@@ -5,14 +5,14 @@
 #   TYPE:           executable, uses makexp_aix
 #   SYSTEM:         AIX
 #
-#   DESCRIPTION:    Creates a shareable .o from a set of pre-compiled 
+#   DESCRIPTION:    Creates a shareable .o from a set of pre-compiled
 #                   (unshared) .o files
 #
 #   USAGE:          ld_so_aix [CC] [arguments]
 #
 #   ARGUMENTS:      Same as for "ld". The following arguments are processed
 #                   or supplied by this script (those marked with an asterisk
-#                   can be overriden from command line):
+#                   can be overridden from command line):
 #
 #                       Argument                     Default value
 #                   (*) -o [OutputFileName]          -o shr.o
@@ -46,7 +46,7 @@
 #                   4.  Uncommenting the "echo" lines gives detailed output
 #                       about the commands executed in the script.
 #
-#                       
+#
 #   HISTORY:        Oct-1996    -- Support added for multiple .o files --
 #                               -- and optional arguments processing.  --
 #                   Chris Myers (myers@tc.cornell.edu), Keith Kwok
@@ -70,6 +70,7 @@ if test ! -n "$*"; then
 fi
 
 makexp=`dirname $0`/makexp_aix
+test -x "${makexp}" || makexp="@abs_srcdir@/makexp_aix"
 
 # Check for existence of compiler.
 CC=$1; shift
@@ -85,7 +86,7 @@ if test ! -n "$*"; then
 fi
 
 # Default import file for Python
-# Can be overriden by providing a -bI: argument.
+# Can be overridden by providing a -bI: argument.
 impfile="./python.exp"
 
 # Parse arguments
@@ -132,7 +133,7 @@ do
 done
 
 if test "$objfile" = "libpython@VERSION@@ABIFLAGS@.so"; then
-  ldsocoremode="true" 
+  ldsocoremode="true"
 fi
 
 if test -z "$objs"; then
@@ -156,7 +157,7 @@ if test -z "$expfile"; then
 fi
 
 # Default entry symbol for Python modules = init[modulename]
-# Can be overriden by providing a -e argument.
+# Can be overridden by providing a -e argument.
 if test -z "$entry"; then
   entry=PyInit_`echo $filename | sed "s/module.*//"`
 fi

@@ -1150,7 +1150,7 @@ void Entity::onWriteToDBCallback(ENTITY_ID eid,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("{}::onWriteToDBCallback: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("{}::onWriteToDBCallback: not found callback:{}.\n",
 				this->scriptName(), callbackID));
 		}
 

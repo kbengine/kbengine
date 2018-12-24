@@ -6,7 +6,8 @@ This module allows high-level and efficient I/O multiplexing, built upon the
 
 
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple, Mapping
+from collections import namedtuple
+from collections.abc import Mapping
 import math
 import select
 import sys
@@ -43,9 +44,18 @@ def _fileobj_to_fd(fileobj):
 
 
 SelectorKey = namedtuple('SelectorKey', ['fileobj', 'fd', 'events', 'data'])
-"""Object used to associate a file object to its backing file descriptor,
-selected event mask and attached data."""
 
+SelectorKey.__doc__ = """SelectorKey(fileobj, fd, events, data)
+
+    Object used to associate a file object to its backing
+    file descriptor, selected event mask, and attached data.
+"""
+if sys.version_info >= (3, 5):
+    SelectorKey.fileobj.__doc__ = 'File object registered.'
+    SelectorKey.fd.__doc__ = 'Underlying file descriptor.'
+    SelectorKey.events.__doc__ = 'Events that must be waited for on this file object.'
+    SelectorKey.data.__doc__ = ('''Optional opaque data associated to this file object.
+    For example, this could be used to store a per-client session ID.''')
 
 class _SelectorMapping(Mapping):
     """Mapping of file objects to selector keys."""
@@ -174,6 +184,8 @@ class BaseSelector(metaclass=ABCMeta):
         SelectorKey for this file object
         """
         mapping = self.get_map()
+        if mapping is None:
+            raise RuntimeError('Selector is closed')
         try:
             return mapping[fileobj]
         except KeyError:
@@ -240,7 +252,6 @@ class _BaseSelectorImpl(BaseSelector):
         return key
 
     def modify(self, fileobj, events, data=None):
-        # TODO: Subclasses can probably optimize this even further.
         try:
             key = self._fd_to_key[self._fileobj_lookup(fileobj)]
         except KeyError:
@@ -256,6 +267,7 @@ class _BaseSelectorImpl(BaseSelector):
 
     def close(self):
         self._fd_to_key.clear()
+        self._map = None
 
     def get_map(self):
         return self._map
@@ -326,88 +338,115 @@ class SelectSelector(_BaseSelectorImpl):
         return ready
 
 
+class _PollLikeSelector(_BaseSelectorImpl):
+    """Base class shared between poll, epoll and devpoll selectors."""
+    _selector_cls = None
+    _EVENT_READ = None
+    _EVENT_WRITE = None
+
+    def __init__(self):
+        super().__init__()
+        self._selector = self._selector_cls()
+
+    def register(self, fileobj, events, data=None):
+        key = super().register(fileobj, events, data)
+        poller_events = 0
+        if events & EVENT_READ:
+            poller_events |= self._EVENT_READ
+        if events & EVENT_WRITE:
+            poller_events |= self._EVENT_WRITE
+        try:
+            self._selector.register(key.fd, poller_events)
+        except:
+            super().unregister(fileobj)
+            raise
+        return key
+
+    def unregister(self, fileobj):
+        key = super().unregister(fileobj)
+        try:
+            self._selector.unregister(key.fd)
+        except OSError:
+            # This can happen if the FD was closed since it
+            # was registered.
+            pass
+        return key
+
+    def modify(self, fileobj, events, data=None):
+        try:
+            key = self._fd_to_key[self._fileobj_lookup(fileobj)]
+        except KeyError:
+            raise KeyError(f"{fileobj!r} is not registered") from None
+
+        changed = False
+        if events != key.events:
+            selector_events = 0
+            if events & EVENT_READ:
+                selector_events |= self._EVENT_READ
+            if events & EVENT_WRITE:
+                selector_events |= self._EVENT_WRITE
+            try:
+                self._selector.modify(key.fd, selector_events)
+            except:
+                super().unregister(fileobj)
+                raise
+            changed = True
+        if data != key.data:
+            changed = True
+
+        if changed:
+            key = key._replace(events=events, data=data)
+            self._fd_to_key[key.fd] = key
+        return key
+
+    def select(self, timeout=None):
+        # This is shared between poll() and epoll().
+        # epoll() has a different signature and handling of timeout parameter.
+        if timeout is None:
+            timeout = None
+        elif timeout <= 0:
+            timeout = 0
+        else:
+            # poll() has a resolution of 1 millisecond, round away from
+            # zero to wait *at least* timeout seconds.
+            timeout = math.ceil(timeout * 1e3)
+        ready = []
+        try:
+            fd_event_list = self._selector.poll(timeout)
+        except InterruptedError:
+            return ready
+        for fd, event in fd_event_list:
+            events = 0
+            if event & ~self._EVENT_READ:
+                events |= EVENT_WRITE
+            if event & ~self._EVENT_WRITE:
+                events |= EVENT_READ
+
+            key = self._key_from_fd(fd)
+            if key:
+                ready.append((key, events & key.events))
+        return ready
+
+
 if hasattr(select, 'poll'):
 
-    class PollSelector(_BaseSelectorImpl):
+    class PollSelector(_PollLikeSelector):
         """Poll-based selector."""
-
-        def __init__(self):
-            super().__init__()
-            self._poll = select.poll()
-
-        def register(self, fileobj, events, data=None):
-            key = super().register(fileobj, events, data)
-            poll_events = 0
-            if events & EVENT_READ:
-                poll_events |= select.POLLIN
-            if events & EVENT_WRITE:
-                poll_events |= select.POLLOUT
-            self._poll.register(key.fd, poll_events)
-            return key
-
-        def unregister(self, fileobj):
-            key = super().unregister(fileobj)
-            self._poll.unregister(key.fd)
-            return key
-
-        def select(self, timeout=None):
-            if timeout is None:
-                timeout = None
-            elif timeout <= 0:
-                timeout = 0
-            else:
-                # poll() has a resolution of 1 millisecond, round away from
-                # zero to wait *at least* timeout seconds.
-                timeout = math.ceil(timeout * 1e3)
-            ready = []
-            try:
-                fd_event_list = self._poll.poll(timeout)
-            except InterruptedError:
-                return ready
-            for fd, event in fd_event_list:
-                events = 0
-                if event & ~select.POLLIN:
-                    events |= EVENT_WRITE
-                if event & ~select.POLLOUT:
-                    events |= EVENT_READ
-
-                key = self._key_from_fd(fd)
-                if key:
-                    ready.append((key, events & key.events))
-            return ready
+        _selector_cls = select.poll
+        _EVENT_READ = select.POLLIN
+        _EVENT_WRITE = select.POLLOUT
 
 
 if hasattr(select, 'epoll'):
 
-    class EpollSelector(_BaseSelectorImpl):
+    class EpollSelector(_PollLikeSelector):
         """Epoll-based selector."""
-
-        def __init__(self):
-            super().__init__()
-            self._epoll = select.epoll()
+        _selector_cls = select.epoll
+        _EVENT_READ = select.EPOLLIN
+        _EVENT_WRITE = select.EPOLLOUT
 
         def fileno(self):
-            return self._epoll.fileno()
-
-        def register(self, fileobj, events, data=None):
-            key = super().register(fileobj, events, data)
-            epoll_events = 0
-            if events & EVENT_READ:
-                epoll_events |= select.EPOLLIN
-            if events & EVENT_WRITE:
-                epoll_events |= select.EPOLLOUT
-            self._epoll.register(key.fd, epoll_events)
-            return key
-
-        def unregister(self, fileobj):
-            key = super().unregister(fileobj)
-            try:
-                self._epoll.unregister(key.fd)
-            except OSError:
-                # This can happen if the FD was closed since it
-                # was registered.
-                pass
-            return key
+            return self._selector.fileno()
 
         def select(self, timeout=None):
             if timeout is None:
@@ -418,10 +457,15 @@ if hasattr(select, 'epoll'):
                 # epoll_wait() has a resolution of 1 millisecond, round away
                 # from zero to wait *at least* timeout seconds.
                 timeout = math.ceil(timeout * 1e3) * 1e-3
-            max_ev = len(self._fd_to_key)
+
+            # epoll_wait() expects `maxevents` to be greater than zero;
+            # we want to make sure that `select()` can be called when no
+            # FD is registered.
+            max_ev = max(len(self._fd_to_key), 1)
+
             ready = []
             try:
-                fd_event_list = self._epoll.poll(timeout, max_ev)
+                fd_event_list = self._selector.poll(timeout, max_ev)
             except InterruptedError:
                 return ready
             for fd, event in fd_event_list:
@@ -437,7 +481,23 @@ if hasattr(select, 'epoll'):
             return ready
 
         def close(self):
-            self._epoll.close()
+            self._selector.close()
+            super().close()
+
+
+if hasattr(select, 'devpoll'):
+
+    class DevpollSelector(_PollLikeSelector):
+        """Solaris /dev/poll selector."""
+        _selector_cls = select.devpoll
+        _EVENT_READ = select.POLLIN
+        _EVENT_WRITE = select.POLLOUT
+
+        def fileno(self):
+            return self._selector.fileno()
+
+        def close(self):
+            self._selector.close()
             super().close()
 
 
@@ -448,21 +508,25 @@ if hasattr(select, 'kqueue'):
 
         def __init__(self):
             super().__init__()
-            self._kqueue = select.kqueue()
+            self._selector = select.kqueue()
 
         def fileno(self):
-            return self._kqueue.fileno()
+            return self._selector.fileno()
 
         def register(self, fileobj, events, data=None):
             key = super().register(fileobj, events, data)
-            if events & EVENT_READ:
-                kev = select.kevent(key.fd, select.KQ_FILTER_READ,
-                                    select.KQ_EV_ADD)
-                self._kqueue.control([kev], 0, 0)
-            if events & EVENT_WRITE:
-                kev = select.kevent(key.fd, select.KQ_FILTER_WRITE,
-                                    select.KQ_EV_ADD)
-                self._kqueue.control([kev], 0, 0)
+            try:
+                if events & EVENT_READ:
+                    kev = select.kevent(key.fd, select.KQ_FILTER_READ,
+                                        select.KQ_EV_ADD)
+                    self._selector.control([kev], 0, 0)
+                if events & EVENT_WRITE:
+                    kev = select.kevent(key.fd, select.KQ_FILTER_WRITE,
+                                        select.KQ_EV_ADD)
+                    self._selector.control([kev], 0, 0)
+            except:
+                super().unregister(fileobj)
+                raise
             return key
 
         def unregister(self, fileobj):
@@ -471,7 +535,7 @@ if hasattr(select, 'kqueue'):
                 kev = select.kevent(key.fd, select.KQ_FILTER_READ,
                                     select.KQ_EV_DELETE)
                 try:
-                    self._kqueue.control([kev], 0, 0)
+                    self._selector.control([kev], 0, 0)
                 except OSError:
                     # This can happen if the FD was closed since it
                     # was registered.
@@ -480,7 +544,7 @@ if hasattr(select, 'kqueue'):
                 kev = select.kevent(key.fd, select.KQ_FILTER_WRITE,
                                     select.KQ_EV_DELETE)
                 try:
-                    self._kqueue.control([kev], 0, 0)
+                    self._selector.control([kev], 0, 0)
                 except OSError:
                     # See comment above.
                     pass
@@ -491,7 +555,7 @@ if hasattr(select, 'kqueue'):
             max_ev = len(self._fd_to_key)
             ready = []
             try:
-                kev_list = self._kqueue.control(None, max_ev, timeout)
+                kev_list = self._selector.control(None, max_ev, timeout)
             except InterruptedError:
                 return ready
             for kev in kev_list:
@@ -509,16 +573,19 @@ if hasattr(select, 'kqueue'):
             return ready
 
         def close(self):
-            self._kqueue.close()
+            self._selector.close()
             super().close()
 
 
-# Choose the best implementation: roughly, epoll|kqueue > poll > select.
+# Choose the best implementation, roughly:
+#    epoll|kqueue|devpoll > poll > select.
 # select() also can't accept a FD > FD_SETSIZE (usually around 1024)
 if 'KqueueSelector' in globals():
     DefaultSelector = KqueueSelector
 elif 'EpollSelector' in globals():
     DefaultSelector = EpollSelector
+elif 'DevpollSelector' in globals():
+    DefaultSelector = DevpollSelector
 elif 'PollSelector' in globals():
     DefaultSelector = PollSelector
 else:

@@ -19,7 +19,7 @@ OS X specific arguments to configure
 
   If this argument is specified the build will create a Python.framework rather
   than a traditional Unix install. See the section
-  _`Building and using a framework-based Python on Mac OS X` for more 
+  _`Building and using a framework-based Python on Mac OS X` for more
   information on frameworks.
 
   If the optional directory argument is specified the framework is installed
@@ -46,14 +46,19 @@ OS X specific arguments to configure
   The optional argument specifies which OS X SDK should be used to perform the
   build.  If xcodebuild is available and configured, this defaults to
   the Xcode default MacOS X SDK, otherwise ``/Developer/SDKs/MacOSX.10.4u.sdk``
-  if available or ``/`` if not.
+  if available or ``/`` if not.  When building on OS X 10.5 or later, you can
+  specify ``/`` to use the installed system headers rather than an SDK.  As of
+  OS X 10.9, you should install the optional system headers from the Command
+  Line Tools component using ``xcode-select``::
+
+     $ sudo xcode-select --install
 
   See the section _`Building and using a universal binary of Python on Mac OS X`
   for more information.
 
-* ``--with-univeral-archs=VALUE``
+* ``--with-universal-archs=VALUE``
 
-  Specify the kind of universal binary that should be created. This option is 
+  Specify the kind of universal binary that should be created. This option is
   only valid when ``--enable-universalsdk`` is specified.  The default is
   ``32-bit`` if a building with a SDK that supports PPC, otherwise defaults
   to ``intel``.
@@ -93,7 +98,7 @@ In general, universal builds depend on specific features provided by the
 Apple-supplied compilers and other build tools included in Apple's Xcode
 development tools.  You should install Xcode and the command line tools
 component appropriate for the OS X release you are running on.  See the
-Python Developer's Guide (http://docs.python.org/devguide/setup.html)
+Python Developer's Guide (https://devguide.python.org/setup/)
 for more information.
 
 2.1 Flavors of universal binaries
@@ -121,7 +126,7 @@ values are available:
 
 To build a universal binary that includes a 64-bit architecture, you must build
 on a system running OS X 10.5 or later.  The ``all`` and ``64-bit`` flavors can
-only be built with an 10.5 SDK because ``ppc64`` support was only included with
+only be built with a 10.5 SDK because ``ppc64`` support was only included with
 OS X 10.5.  Although legacy ``ppc`` support was included with Xcode 3 on OS X
 10.6, it was removed in Xcode 4, versions of which were released on OS X 10.6
 and which is the standard for OS X 10.7.  To summarize, the
@@ -174,14 +179,14 @@ Building and using a framework-based Python on Mac OS X.
 --------------------------------------------------------------------------
 
 The main reason is because you want to create GUI programs in Python. With the
-exception of X11/XDarwin-based GUI toolkits all GUI programs need to be run 
+exception of X11/XDarwin-based GUI toolkits all GUI programs need to be run
 from a Mac OS X application bundle (".app").
 
 While it is technically possible to create a .app without using frameworks you
 will have to do the work yourself if you really want this.
 
 A second reason for using frameworks is that they put Python-related items in
-only two places: "/Library/Framework/Python.framework" and 
+only two places: "/Library/Framework/Python.framework" and
 "/Applications/Python <VERSION>" where ``<VERSION>`` can be e.g. "3.4",
 "2.7", etc.  This simplifies matters for users installing
 Python from a binary distribution if they want to get rid of it again. Moreover,
@@ -228,11 +233,11 @@ in the sequence
  1. ./configure --enable-framework
 
  2. make
- 
+
  3. make install
 
 This sequence will put the framework in ``/Library/Framework/Python.framework``,
-the applications in ``/Applications/Python <VERSION>`` and the unix tools in 
+the applications in ``/Applications/Python <VERSION>`` and the unix tools in
 ``/usr/local/bin``.
 
 Installing in another place, for instance ``$HOME/Library/Frameworks`` if you
@@ -300,7 +305,7 @@ All of this is normally done completely isolated in /tmp/_py, so it does not
 use your normal build directory nor does it install into /.
 
 Because of the way the script locates the files it needs you have to run it
-from within the BuildScript directory. The script accepts a number of 
+from within the BuildScript directory. The script accepts a number of
 command-line arguments, run it with --help for more information.
 
 Configure warnings
@@ -350,4 +355,4 @@ Resources
 
   *  http://www.python.org/community/sigs/current/pythonmac-sig/
 
-  *  http://docs.python.org/devguide/
+  *  https://devguide.python.org/

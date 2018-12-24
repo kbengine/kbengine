@@ -2,7 +2,6 @@ LIB =	pyscript
 
 SRCS =					\
 	copy				\
-	install_py_dlls		\
 	map					\
 	math				\
 	pickler				\

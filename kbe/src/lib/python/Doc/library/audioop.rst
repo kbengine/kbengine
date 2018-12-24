@@ -4,10 +4,11 @@
 .. module:: audioop
    :synopsis: Manipulate raw audio data.
 
+--------------
 
 The :mod:`audioop` module contains some useful operations on sound fragments.
 It operates on sound fragments consisting of signed integer samples 8, 16, 24
-or 32 bits wide, stored in :term:`bytes-like object`\ s.  All scalar items are
+or 32 bits wide, stored in :term:`bytes-like objects <bytes-like object>`.  All scalar items are
 integers, unless specified otherwise.
 
 .. versionchanged:: 3.4
@@ -276,6 +277,6 @@ sample and subtract the whole output sample from the input sample::
        #              out_test)
        prefill = '\0'*(pos+ipos)*2
        postfill = '\0'*(len(inputdata)-len(prefill)-len(outputdata))
-       outputdata = prefill + audioop.mul(outputdata,2,-factor) + postfill
+       outputdata = prefill + audioop.mul(outputdata, 2, -factor) + postfill
        return audioop.add(inputdata, outputdata, 2)
 

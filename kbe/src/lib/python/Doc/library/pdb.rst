@@ -6,8 +6,11 @@
 .. module:: pdb
    :synopsis: The Python debugger for interactive interpreters.
 
+**Source code:** :source:`Lib/pdb.py`
 
 .. index:: single: debugging
+
+--------------
 
 The module :mod:`pdb` defines an interactive source code debugger for Python
 programs.  It supports setting (conditional) breakpoints and single stepping at
@@ -58,6 +61,12 @@ useful than quitting the debugger upon program's exit.
    :file:`pdb.py` now accepts a ``-c`` option that executes commands as if given
    in a :file:`.pdbrc` file, see :ref:`debugger-commands`.
 
+.. versionadded:: 3.7
+   :file:`pdb.py` now accepts a ``-m`` option that execute modules similar to the way
+   ``python3 -m`` does. As with a script, the debugger will pause execution just
+   before the first line of the module.
+
+
 The typical usage to break into the debugger from a running program is to
 insert ::
 
@@ -73,7 +82,7 @@ The typical usage to inspect a crashed program is::
    >>> import mymodule
    >>> mymodule.test()
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
      File "./mymodule.py", line 4, in test
        test2()
      File "./mymodule.py", line 3, in test2
@@ -115,11 +124,15 @@ slightly different way:
    is entered.
 
 
-.. function:: set_trace()
+.. function:: set_trace(*, header=None)
 
-   Enter the debugger at the calling stack frame.  This is useful to hard-code a
-   breakpoint at a given point in a program, even if the code is not otherwise
-   being debugged (e.g. when an assertion fails).
+   Enter the debugger at the calling stack frame.  This is useful to hard-code
+   a breakpoint at a given point in a program, even if the code is not
+   otherwise being debugged (e.g. when an assertion fails).  If given,
+   *header* is printed to the console just before debugging begins.
+
+   .. versionchanged:: 3.7
+      The keyword-only argument *header*.
 
 
 .. function:: post_mortem(traceback=None)
@@ -141,7 +154,7 @@ The ``run*`` functions and :func:`set_trace` are aliases for instantiating the
 access further features, you have to do this yourself:
 
 .. class:: Pdb(completekey='tab', stdin=None, stdout=None, skip=None, \
-               nosigint=False)
+               nosigint=False, readrc=True)
 
    :class:`Pdb` is the debugger class.
 
@@ -153,9 +166,12 @@ access further features, you have to do this yourself:
    that matches one of these patterns. [1]_
 
    By default, Pdb sets a handler for the SIGINT signal (which is sent when the
-   user presses Ctrl-C on the console) when you give a ``continue`` command.
-   This allows you to break into the debugger again by pressing Ctrl-C.  If you
-   want Pdb not to touch the SIGINT handler, set *nosigint* tot true.
+   user presses :kbd:`Ctrl-C` on the console) when you give a ``continue`` command.
+   This allows you to break into the debugger again by pressing :kbd:`Ctrl-C`.  If you
+   want Pdb not to touch the SIGINT handler, set *nosigint* to true.
+
+   The *readrc* argument defaults to true and controls whether Pdb will load
+   .pdbrc files from the filesystem.
 
    Example call to enable tracing with *skip*::
 
@@ -167,6 +183,9 @@ access further features, you have to do this yourself:
    .. versionadded:: 3.2
       The *nosigint* argument.  Previously, a SIGINT handler was never set by
       Pdb.
+
+   .. versionchanged:: 3.6
+      The *readrc* argument.
 
    .. method:: run(statement, globals=None, locals=None)
                runeval(expression, globals=None, locals=None)
@@ -313,19 +332,22 @@ by the local file.
       (com) end
       (Pdb)
 
-   To remove all commands from a breakpoint, type commands and follow it
+   To remove all commands from a breakpoint, type ``commands`` and follow it
    immediately with ``end``; that is, give no commands.
 
-   With no *bpnumber* argument, commands refers to the last breakpoint set.
+   With no *bpnumber* argument, ``commands`` refers to the last breakpoint set.
 
    You can use breakpoint commands to start your program up again.  Simply use
-   the continue command, or step, or any other command that resumes execution.
+   the :pdbcmd:`continue` command, or :pdbcmd:`step`,
+   or any other command that resumes execution.
 
-   Specifying any command resuming execution (currently continue, step, next,
-   return, jump, quit and their abbreviations) terminates the command list (as if
+   Specifying any command resuming execution
+   (currently :pdbcmd:`continue`, :pdbcmd:`step`, :pdbcmd:`next`,
+   :pdbcmd:`return`, :pdbcmd:`jump`, :pdbcmd:`quit` and their abbreviations)
+   terminates the command list (as if
    that command was immediately followed by end). This is because any time you
    resume execution (even with a simple next or step), you may encounter another
-   breakpoint--which could have its own command list, leading to ambiguities about
+   breakpoint—which could have its own command list, leading to ambiguities about
    which list to execute.
 
    If you use the 'silent' command in the command list, the usual message about
@@ -446,7 +468,7 @@ by the local file.
 
 .. pdbcommand:: interact
 
-   Start an interative interpreter (using the :mod:`code` module) whose global
+   Start an interactive interpreter (using the :mod:`code` module) whose global
    namespace contains all the (global and local) names found in the current
    scope.
 

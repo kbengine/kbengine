@@ -2,10 +2,12 @@
 code that adds all the email6 features.
 """
 
+import re
 from email._policybase import Policy, Compat32, compat32, _extend_docstrings
 from email.utils import _has_surrogates
 from email.headerregistry import HeaderRegistry as HeaderRegistry
 from email.contentmanager import raw_data_manager
+from email.message import EmailMessage
 
 __all__ = [
     'Compat32',
@@ -17,6 +19,8 @@ __all__ = [
     'SMTP',
     'HTTP',
     ]
+
+linesep_splitter = re.compile(r'\n|\r')
 
 @_extend_docstrings
 class EmailPolicy(Policy):
@@ -34,6 +38,13 @@ class EmailPolicy(Policy):
 
     In addition to the settable attributes listed above that apply to
     all Policies, this policy adds the following additional attributes:
+
+    utf8                -- if False (the default) message headers will be
+                           serialized as ASCII, using encoded words to encode
+                           any non-ASCII characters in the source strings.  If
+                           True, the message headers will be serialized using
+                           utf8 and will not contain encoded words (see RFC
+                           6532 for more on this serialization format).
 
     refold_source       -- if the value for a header in the Message object
                            came from the parsing of some source, this attribute
@@ -72,6 +83,8 @@ class EmailPolicy(Policy):
 
     """
 
+    message_factory = EmailMessage
+    utf8 = False
     refold_source = 'long'
     header_factory = HeaderRegistry()
     content_manager = raw_data_manager
@@ -127,6 +140,8 @@ class EmailPolicy(Policy):
         if hasattr(value, 'name') and value.name.lower() == name.lower():
             return (name, value)
         if isinstance(value, str) and len(value.splitlines())>1:
+            # XXX this error message isn't quite right when we use splitlines
+            # (see issue 22233), but I'm not sure what should happen here.
             raise ValueError("Header values may not contain linefeed "
                              "or carriage return characters")
         return (name, self.header_factory(name, value))
@@ -142,7 +157,9 @@ class EmailPolicy(Policy):
         """
         if hasattr(value, 'name'):
             return value
-        return self.header_factory(name, ''.join(value.splitlines()))
+        # We can't use splitlines here because it splits on more than \r and \n.
+        value = ''.join(linesep_splitter.split(value))
+        return self.header_factory(name, value)
 
     def fold(self, name, value):
         """+
@@ -175,9 +192,13 @@ class EmailPolicy(Policy):
         refold_header setting, since there is no way to know whether the binary
         data consists of single byte characters or multibyte characters.
 
+        If utf8 is true, headers are encoded to utf8, otherwise to ascii with
+        non-ASCII unicode rendered as encoded words.
+
         """
         folded = self._fold(name, value, refold_binary=self.cte_type=='7bit')
-        return folded.encode('ascii', 'surrogateescape')
+        charset = 'utf8' if self.utf8 else 'ascii'
+        return folded.encode(charset, 'surrogateescape')
 
     def _fold(self, name, value, refold_binary=False):
         if hasattr(value, 'name'):
@@ -199,3 +220,4 @@ del default.header_factory
 strict = default.clone(raise_on_defect=True)
 SMTP = default.clone(linesep='\r\n')
 HTTP = default.clone(linesep='\r\n', max_line_length=None)
+SMTPUTF8 = SMTP.clone(utf8=True)

@@ -38,6 +38,8 @@ class AllTest(unittest.TestCase):
                           modname, e.__class__.__name__, e))
             if "__builtins__" in names:
                 del names["__builtins__"]
+            if '__annotations__' in names:
+                del names['__annotations__']
             keys = set(names)
             all_list = sys.modules[modname].__all__
             all_set = set(all_list)
@@ -69,16 +71,6 @@ class AllTest(unittest.TestCase):
             # In case _socket fails to build, make this test fail more gracefully
             # than an AttributeError somewhere deep in CGIHTTPServer.
             import _socket
-
-        # rlcompleter needs special consideration; it import readline which
-        # initializes GNU readline which calls setlocale(LC_CTYPE, "")... :-(
-        try:
-            import rlcompleter
-            import locale
-        except ImportError:
-            pass
-        else:
-            locale.setlocale(locale.LC_CTYPE, 'C')
 
         ignored = []
         failed_imports = []

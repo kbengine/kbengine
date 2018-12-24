@@ -7,22 +7,12 @@ from test import support
 import weakref
 import pickle
 import operator
-import io
-import math
 import struct
 import sys
 import warnings
 
 import array
 from array import _array_reconstructor as array_reconstructor
-
-try:
-    # Try to determine availability of long long independently
-    # of the array module under test
-    struct.calcsize('@q')
-    have_long_long = True
-except struct.error:
-    have_long_long = False
 
 sizeof_wchar = array.array('u').itemsize
 
@@ -34,17 +24,25 @@ class ArraySubclassWithKwargs(array.array):
     def __init__(self, typecode, newarg=None):
         array.array.__init__(self)
 
-typecodes = "ubBhHiIlLfd"
-if have_long_long:
-    typecodes += 'qQ'
+typecodes = 'ubBhHiIlLfdqQ'
 
-class BadConstructorTest(unittest.TestCase):
+class MiscTest(unittest.TestCase):
 
-    def test_constructor(self):
+    def test_bad_constructor(self):
         self.assertRaises(TypeError, array.array)
         self.assertRaises(TypeError, array.array, spam=42)
         self.assertRaises(TypeError, array.array, 'xx')
         self.assertRaises(ValueError, array.array, 'x')
+
+    def test_empty(self):
+        # Exercise code for handling zero-length arrays
+        a = array.array('B')
+        a[:] = a
+        self.assertEqual(len(a), 0)
+        self.assertEqual(len(a + a), 0)
+        self.assertEqual(len(a * 3), 0)
+        a += a
+        self.assertEqual(len(a), 0)
 
 
 # Machine format codes.
@@ -284,18 +282,53 @@ class BaseTest:
             self.assertEqual(type(a), type(b))
 
     def test_iterator_pickle(self):
-        data = array.array(self.typecode, self.example)
-        orgit = iter(data)
-        d = pickle.dumps(orgit)
-        it = pickle.loads(d)
-        self.assertEqual(type(orgit), type(it))
-        self.assertEqual(list(it), list(data))
+        orig = array.array(self.typecode, self.example)
+        data = list(orig)
+        data2 = data[::-1]
+        for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+            # initial iterator
+            itorig = iter(orig)
+            d = pickle.dumps((itorig, orig), proto)
+            it, a = pickle.loads(d)
+            a.fromlist(data2)
+            self.assertEqual(type(it), type(itorig))
+            self.assertEqual(list(it), data + data2)
 
-        if len(data):
-            it = pickle.loads(d)
-            next(it)
-            d = pickle.dumps(it)
-            self.assertEqual(list(it), list(data)[1:])
+            # running iterator
+            next(itorig)
+            d = pickle.dumps((itorig, orig), proto)
+            it, a = pickle.loads(d)
+            a.fromlist(data2)
+            self.assertEqual(type(it), type(itorig))
+            self.assertEqual(list(it), data[1:] + data2)
+
+            # empty iterator
+            for i in range(1, len(data)):
+                next(itorig)
+            d = pickle.dumps((itorig, orig), proto)
+            it, a = pickle.loads(d)
+            a.fromlist(data2)
+            self.assertEqual(type(it), type(itorig))
+            self.assertEqual(list(it), data2)
+
+            # exhausted iterator
+            self.assertRaises(StopIteration, next, itorig)
+            d = pickle.dumps((itorig, orig), proto)
+            it, a = pickle.loads(d)
+            a.fromlist(data2)
+            self.assertEqual(list(it), [])
+
+    def test_exhausted_iterator(self):
+        a = array.array(self.typecode, self.example)
+        self.assertEqual(list(a), list(self.example))
+        exhit = iter(a)
+        empit = iter(a)
+        for x in exhit:  # exhaust the iterator
+            next(empit)  # not exhausted
+        a.append(self.outside)
+        self.assertEqual(list(exhit), [])
+        self.assertEqual(list(empit), [self.outside])
+        self.assertEqual(list(a), list(self.example) + [self.outside])
 
     def test_insert(self):
         a = array.array(self.typecode, self.example)
@@ -393,7 +426,9 @@ class BaseTest:
         self.assertEqual(a, b)
 
     def test_tofromstring(self):
-        nb_warnings = 4
+        # Warnings not raised when arguments are incorrect as Argument Clinic
+        # handles that before the warning can be raised.
+        nb_warnings = 2
         with warnings.catch_warnings(record=True) as r:
             warnings.filterwarnings("always",
                                     message=r"(to|from)string\(\) is deprecated",
@@ -1038,6 +1073,17 @@ class BaseTest:
             a = array.array(self.typecode, "foo")
             a = array.array(self.typecode, array.array('u', 'foo'))
 
+    @support.cpython_only
+    def test_obsolete_write_lock(self):
+        from _testcapi import getbuffer_with_null_view
+        a = array.array('B', b"")
+        self.assertRaises(BufferError, getbuffer_with_null_view, a)
+
+    def test_free_after_iterating(self):
+        support.check_free_after_iterating(self, iter, array.array,
+                                           (self.typecode,))
+        support.check_free_after_iterating(self, reversed, array.array,
+                                           (self.typecode,))
 
 class StringTest(BaseTest):
 
@@ -1184,7 +1230,26 @@ class NumberTest(BaseTest):
         b = array.array(self.typecode, a)
         self.assertEqual(a, b)
 
-class SignedNumberTest(NumberTest):
+class IntegerNumberTest(NumberTest):
+    def test_type_error(self):
+        a = array.array(self.typecode)
+        a.append(42)
+        with self.assertRaises(TypeError):
+            a.append(42.0)
+        with self.assertRaises(TypeError):
+            a[0] = 42.0
+
+class Intable:
+    def __init__(self, num):
+        self._num = num
+    def __int__(self):
+        return self._num
+    def __sub__(self, other):
+        return Intable(int(self) - int(other))
+    def __add__(self, other):
+        return Intable(int(self) + int(other))
+
+class SignedNumberTest(IntegerNumberTest):
     example = [-1, 0, 1, 42, 0x7f]
     smallerexample = [-1, 0, 1, 42, 0x7e]
     biggerexample = [-1, 0, 1, 43, 0x7f]
@@ -1195,8 +1260,9 @@ class SignedNumberTest(NumberTest):
         lower = -1 * int(pow(2, a.itemsize * 8 - 1))
         upper = int(pow(2, a.itemsize * 8 - 1)) - 1
         self.check_overflow(lower, upper)
+        self.check_overflow(Intable(lower), Intable(upper))
 
-class UnsignedNumberTest(NumberTest):
+class UnsignedNumberTest(IntegerNumberTest):
     example = [0, 1, 17, 23, 42, 0xff]
     smallerexample = [0, 1, 17, 23, 42, 0xfe]
     biggerexample = [0, 1, 17, 23, 43, 0xff]
@@ -1207,6 +1273,7 @@ class UnsignedNumberTest(NumberTest):
         lower = 0
         upper = int(pow(2, a.itemsize * 8)) - 1
         self.check_overflow(lower, upper)
+        self.check_overflow(Intable(lower), Intable(upper))
 
     def test_bytes_extend(self):
         s = bytes(self.example)
@@ -1258,12 +1325,10 @@ class UnsignedLongTest(UnsignedNumberTest, unittest.TestCase):
     typecode = 'L'
     minitemsize = 4
 
-@unittest.skipIf(not have_long_long, 'need long long support')
 class LongLongTest(SignedNumberTest, unittest.TestCase):
     typecode = 'q'
     minitemsize = 8
 
-@unittest.skipIf(not have_long_long, 'need long long support')
 class UnsignedLongLongTest(UnsignedNumberTest, unittest.TestCase):
     typecode = 'Q'
     minitemsize = 8
@@ -1276,6 +1341,16 @@ class FPTest(NumberTest):
 
     def assertEntryEqual(self, entry1, entry2):
         self.assertAlmostEqual(entry1, entry2)
+
+    def test_nan(self):
+        a = array.array(self.typecode, [float('nan')])
+        b = array.array(self.typecode, [float('nan')])
+        self.assertIs(a != b, True)
+        self.assertIs(a == b, False)
+        self.assertIs(a > b, False)
+        self.assertIs(a >= b, False)
+        self.assertIs(a < b, False)
+        self.assertIs(a <= b, False)
 
     def test_byteswap(self):
         a = array.array(self.typecode, self.example)

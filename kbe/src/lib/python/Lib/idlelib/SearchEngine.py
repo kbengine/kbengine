@@ -1,5 +1,6 @@
 '''Define SearchEngine for search dialogs.'''
 import re
+
 from tkinter import StringVar, BooleanVar, TclError
 import tkinter.messagebox as tkMessageBox
 
@@ -13,6 +14,7 @@ def get(root):
         root._searchengine = SearchEngine(root)
         # This creates a cycle that persists until root is deleted.
     return root._searchengine
+
 
 class SearchEngine:
     """Handles searching a text widget for Find, Replace, and Grep."""
@@ -57,7 +59,7 @@ class SearchEngine:
 
     def setcookedpat(self, pat):
         "Set pattern after escaping if re."
-        # called only in SearchDialog.py: 66
+        # called only in search.py: 66
         if self.isre():
             pat = re.escape(pat)
         self.setpat(pat)
@@ -107,7 +109,7 @@ class SearchEngine:
         It directly return the result of that call.
 
         Text is a text widget. Prog is a precompiled pattern.
-        The ok parameteris a bit complicated as it has two effects.
+        The ok parameter is a bit complicated as it has two effects.
 
         If there is a selection, the search begin at either end,
         depending on the direction setting and ok, with ok meaning that
@@ -186,12 +188,13 @@ class SearchEngine:
             col = len(chars) - 1
         return None
 
+
 def search_reverse(prog, chars, col):
     '''Search backwards and return an re match object or None.
 
     This is done by searching forwards until there is no match.
     Prog: compiled re object with a search method returning a match.
-    Chars: line of text, without \n.
+    Chars: line of text, without \\n.
     Col: stop index for the search; the limit for match.end().
     '''
     m = prog.search(chars)
@@ -228,6 +231,7 @@ def get_line_col(index):
     line, col = map(int, index.split(".")) # Fails on invalid index
     return line, col
 
+
 if __name__ == "__main__":
-    import unittest
-    unittest.main('idlelib.idle_test.test_searchengine', verbosity=2, exit=False)
+    from unittest import main
+    main('idlelib.idle_test.test_searchengine', verbosity=2)

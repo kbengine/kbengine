@@ -1,5 +1,4 @@
 import unittest
-import inspect
 import sys
 from unittest.mock import Mock, MagicMock, _magics
 
@@ -256,7 +255,7 @@ class TestMockingMagicMethods(unittest.TestCase):
 
         for entry in _magics:
             self.assertTrue(hasattr(mock, entry))
-        self.assertFalse(hasattr(mock, '__imaginery__'))
+        self.assertFalse(hasattr(mock, '__imaginary__'))
 
 
     def test_magic_mock_equality(self):
@@ -422,6 +421,47 @@ class TestMockingMagicMethods(unittest.TestCase):
         m.__iter__.return_value = iter([4, 5, 6])
         self.assertEqual(list(m), [4, 5, 6])
         self.assertEqual(list(m), [])
+
+
+    def test_matmul(self):
+        m = MagicMock()
+        self.assertIsInstance(m @ 1, MagicMock)
+        m.__matmul__.return_value = 42
+        m.__rmatmul__.return_value = 666
+        m.__imatmul__.return_value = 24
+        self.assertEqual(m @ 1, 42)
+        self.assertEqual(1 @ m, 666)
+        m @= 24
+        self.assertEqual(m, 24)
+
+    def test_divmod_and_rdivmod(self):
+        m = MagicMock()
+        self.assertIsInstance(divmod(5, m), MagicMock)
+        m.__divmod__.return_value = (2, 1)
+        self.assertEqual(divmod(m, 2), (2, 1))
+        m = MagicMock()
+        foo = divmod(2, m)
+        self.assertIsInstance(foo, MagicMock)
+        foo_direct = m.__divmod__(2)
+        self.assertIsInstance(foo_direct, MagicMock)
+        bar = divmod(m, 2)
+        self.assertIsInstance(bar, MagicMock)
+        bar_direct = m.__rdivmod__(2)
+        self.assertIsInstance(bar_direct, MagicMock)
+
+    # http://bugs.python.org/issue23310
+    # Check if you can change behaviour of magic methods in MagicMock init
+    def test_magic_in_initialization(self):
+        m = MagicMock(**{'__str__.return_value': "12"})
+        self.assertEqual(str(m), "12")
+
+    def test_changing_magic_set_in_initialization(self):
+        m = MagicMock(**{'__str__.return_value': "12"})
+        m.__str__.return_value = "13"
+        self.assertEqual(str(m), "13")
+        m = MagicMock(**{'__str__.return_value': "12"})
+        m.configure_mock(**{'__str__.return_value': "14"})
+        self.assertEqual(str(m), "14")
 
 
 if __name__ == '__main__':

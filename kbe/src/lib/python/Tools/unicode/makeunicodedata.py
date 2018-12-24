@@ -1,9 +1,8 @@
 #
 # (re)generate unicode property and type databases
 #
-# this script converts a unicode 3.2 database file to
-# Modules/unicodedata_db.h, Modules/unicodename_db.h,
-# and Objects/unicodetype_db.h
+# This script converts Unicode database files to Modules/unicodedata_db.h,
+# Modules/unicodename_db.h, and Objects/unicodetype_db.h
 #
 # history:
 # 2000-09-24 fl   created (based on bits and pieces from unidb)
@@ -34,10 +33,15 @@ import zipfile
 from textwrap import dedent
 
 SCRIPT = sys.argv[0]
-VERSION = "3.2"
+VERSION = "3.3"
 
 # The Unicode Database
-UNIDATA_VERSION = "6.3.0"
+# --------------------
+# When changing UCD version please update
+#   * Doc/library/stdtypes.rst, and
+#   * Doc/library/unicodedata.rst
+#   * Doc/reference/lexical_analysis.rst (two occurrences)
+UNIDATA_VERSION = "11.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
 COMPOSITION_EXCLUSIONS = "CompositionExclusions%s.txt"
 EASTASIAN_WIDTH = "EastAsianWidth%s.txt"
@@ -94,10 +98,12 @@ EXTENDED_CASE_MASK = 0x4000
 # these ranges need to match unicodedata.c:is_unified_ideograph
 cjk_ranges = [
     ('3400', '4DB5'),
-    ('4E00', '9FCC'),
+    ('4E00', '9FEF'),
     ('20000', '2A6D6'),
     ('2A700', '2B734'),
-    ('2B740', '2B81D')
+    ('2B740', '2B81D'),
+    ('2B820', '2CEA1'),
+    ('2CEB0', '2EBE0'),
 ]
 
 def maketables(trace=0):
@@ -269,8 +275,8 @@ def makeunicodedata(unicode, trace):
     print("struct reindex{int start;short count,index;};", file=fp)
     print("static struct reindex nfc_first[] = {", file=fp)
     for start,end in comp_first_ranges:
-        print("  { %d, %d, %d}," % (start,end-start,comp_first[start]), file=fp)
-    print("  {0,0,0}", file=fp)
+        print("    { %d, %d, %d}," % (start,end-start,comp_first[start]), file=fp)
+    print("    {0,0,0}", file=fp)
     print("};\n", file=fp)
     print("static struct reindex nfc_last[] = {", file=fp)
     for start,end in comp_last_ranges:
@@ -346,28 +352,28 @@ def makeunicodedata(unicode, trace):
         index1, index2, shift = splitbins(index, trace)
         print("static const change_record change_records_%s[] = {" % cversion, file=fp)
         for record in records:
-            print("\t{ %s }," % ", ".join(map(str,record)), file=fp)
+            print("    { %s }," % ", ".join(map(str,record)), file=fp)
         print("};", file=fp)
         Array("changes_%s_index" % cversion, index1).dump(fp, trace)
         Array("changes_%s_data" % cversion, index2).dump(fp, trace)
         print("static const change_record* get_change_%s(Py_UCS4 n)" % cversion, file=fp)
         print("{", file=fp)
-        print("\tint index;", file=fp)
-        print("\tif (n >= 0x110000) index = 0;", file=fp)
-        print("\telse {", file=fp)
-        print("\t\tindex = changes_%s_index[n>>%d];" % (cversion, shift), file=fp)
-        print("\t\tindex = changes_%s_data[(index<<%d)+(n & %d)];" % \
+        print("    int index;", file=fp)
+        print("    if (n >= 0x110000) index = 0;", file=fp)
+        print("    else {", file=fp)
+        print("        index = changes_%s_index[n>>%d];" % (cversion, shift), file=fp)
+        print("        index = changes_%s_data[(index<<%d)+(n & %d)];" % \
               (cversion, shift, ((1<<shift)-1)), file=fp)
-        print("\t}", file=fp)
-        print("\treturn change_records_%s+index;" % cversion, file=fp)
+        print("    }", file=fp)
+        print("    return change_records_%s+index;" % cversion, file=fp)
         print("}\n", file=fp)
         print("static Py_UCS4 normalization_%s(Py_UCS4 n)" % cversion, file=fp)
         print("{", file=fp)
-        print("\tswitch(n) {", file=fp)
+        print("    switch(n) {", file=fp)
         for k, v in normalization:
-            print("\tcase %s: return 0x%s;" % (hex(k), v), file=fp)
-        print("\tdefault: return 0;", file=fp)
-        print("\t}\n}\n", file=fp)
+            print("    case %s: return 0x%s;" % (hex(k), v), file=fp)
+        print("    default: return 0;", file=fp)
+        print("    }\n}\n", file=fp)
 
     fp.close()
 
@@ -603,7 +609,7 @@ def makeunicodename(unicode, trace):
             if name and name[0] != "<":
                 names[char] = name + chr(0)
 
-    print(len(list(n for n in names if n is not None)), "distinct names")
+    print(len([n for n in names if n is not None]), "distinct names")
 
     # collect unique words from names (note that we differ between
     # words inside a sentence, and words ending a sentence.  the
@@ -790,6 +796,7 @@ def merge_old_version(version, new, old):
     category_changes = [0xFF]*0x110000
     decimal_changes = [0xFF]*0x110000
     mirrored_changes = [0xFF]*0x110000
+    east_asian_width_changes = [0xFF]*0x110000
     # In numeric data, 0 means "no change",
     # -1 means "did not have a numeric value
     numeric_changes = [0] * 0x110000
@@ -856,6 +863,9 @@ def merge_old_version(version, new, old):
                     elif k == 14:
                         # change to simple titlecase mapping; ignore
                         pass
+                    elif k == 15:
+                        # change to east asian width
+                        east_asian_width_changes[i] = EASTASIANWIDTH_NAMES.index(value)
                     elif k == 16:
                         # derived property changes; not yet
                         pass
@@ -867,8 +877,9 @@ def merge_old_version(version, new, old):
                         class Difference(Exception):pass
                         raise Difference(hex(i), k, old.table[i], new.table[i])
     new.changed.append((version, list(zip(bidir_changes, category_changes,
-                                     decimal_changes, mirrored_changes,
-                                     numeric_changes)),
+                                          decimal_changes, mirrored_changes,
+                                          east_asian_width_changes,
+                                          numeric_changes)),
                         normalization_changes))
 
 def open_data(template, version):
@@ -1251,12 +1262,12 @@ class Array:
             for item in self.data:
                 i = str(item) + ", "
                 if len(s) + len(i) > 78:
-                    file.write(s + "\n")
+                    file.write(s.rstrip() + "\n")
                     s = "    " + i
                 else:
                     s = s + i
             if s.strip():
-                file.write(s + "\n")
+                file.write(s.rstrip() + "\n")
         file.write("};\n\n")
 
 def getsize(data):

@@ -7,11 +7,12 @@ import re
 import tempfile
 import importlib, importlib.machinery, importlib.util
 import py_compile
+import warnings
 from test.support import (
-    forget, make_legacy_pyc, run_unittest, unload, verbose, no_tracing,
-    create_empty_file)
-from test.script_helper import (
-    make_pkg, make_script, make_zip_pkg, make_zip_script, temp_dir)
+    forget, make_legacy_pyc, unload, verbose, no_tracing,
+    create_empty_file, temp_dir)
+from test.support.script_helper import (
+    make_pkg, make_script, make_zip_pkg, make_zip_script)
 
 
 import runpy
@@ -197,8 +198,11 @@ class RunModuleTestCase(unittest.TestCase, CodeExecutionMixin):
         self.expect_import_error("sys.imp.eric")
         self.expect_import_error("os.path.half")
         self.expect_import_error("a.bee")
+        # Relative names not allowed
         self.expect_import_error(".howard")
         self.expect_import_error("..eaten")
+        self.expect_import_error(".test_runpy")
+        self.expect_import_error(".unittest")
         # Package without __main__.py
         self.expect_import_error("multiprocessing")
 
@@ -243,7 +247,7 @@ class RunModuleTestCase(unittest.TestCase, CodeExecutionMixin):
                                                           mod_fname)
         return pkg_dir, mod_fname, mod_name, mod_spec
 
-    def _del_pkg(self, top, depth, mod_name):
+    def _del_pkg(self, top):
         for entry in list(sys.modules):
             if entry.startswith("__runpy_pkg__"):
                 del sys.modules[entry]
@@ -269,7 +273,7 @@ class RunModuleTestCase(unittest.TestCase, CodeExecutionMixin):
             if verbose > 1: print(ex) # Persist with cleaning up
 
     def _fix_ns_for_legacy_pyc(self, ns, alter_sys):
-        char_to_add = "c" if __debug__ else "o"
+        char_to_add = "c"
         ns["__file__"] += char_to_add
         ns["__cached__"] = ns["__file__"]
         spec = ns["__spec__"]
@@ -317,7 +321,7 @@ class RunModuleTestCase(unittest.TestCase, CodeExecutionMixin):
                 self._fix_ns_for_legacy_pyc(expected_ns, alter_sys)
                 self.check_code_execution(create_ns, expected_ns)
         finally:
-            self._del_pkg(pkg_dir, depth, mod_name)
+            self._del_pkg(pkg_dir)
         if verbose > 1: print("Module executed successfully")
 
     def _check_package(self, depth, alter_sys=False,
@@ -358,7 +362,7 @@ class RunModuleTestCase(unittest.TestCase, CodeExecutionMixin):
                 self._fix_ns_for_legacy_pyc(expected_ns, alter_sys)
                 self.check_code_execution(create_ns, expected_ns)
         finally:
-            self._del_pkg(pkg_dir, depth, pkg_name)
+            self._del_pkg(pkg_dir)
         if verbose > 1: print("Package executed successfully")
 
     def _add_relative_modules(self, base_dir, source, depth):
@@ -421,7 +425,7 @@ from ..uncle.cousin import nephew
                 self.assertIn("nephew", d2)
                 del d2 # Ensure __loader__ entry doesn't keep file open
         finally:
-            self._del_pkg(pkg_dir, depth, mod_name)
+            self._del_pkg(pkg_dir)
         if verbose > 1: print("Module executed successfully")
 
     def test_run_module(self):
@@ -438,6 +442,59 @@ from ..uncle.cousin import nephew
         for depth in range(1, 4):
             if verbose > 1: print("Testing package depth:", depth)
             self._check_package(depth)
+
+    def test_run_package_init_exceptions(self):
+        # These were previously wrapped in an ImportError; see Issue 14285
+        result = self._make_pkg("", 1, "__main__")
+        pkg_dir, _, mod_name, _ = result
+        mod_name = mod_name.replace(".__main__", "")
+        self.addCleanup(self._del_pkg, pkg_dir)
+        init = os.path.join(pkg_dir, "__runpy_pkg__", "__init__.py")
+
+        exceptions = (ImportError, AttributeError, TypeError, ValueError)
+        for exception in exceptions:
+            name = exception.__name__
+            with self.subTest(name):
+                source = "raise {0}('{0} in __init__.py.')".format(name)
+                with open(init, "wt", encoding="ascii") as mod_file:
+                    mod_file.write(source)
+                try:
+                    run_module(mod_name)
+                except exception as err:
+                    self.assertNotIn("finding spec", format(err))
+                else:
+                    self.fail("Nothing raised; expected {}".format(name))
+                try:
+                    run_module(mod_name + ".submodule")
+                except exception as err:
+                    self.assertNotIn("finding spec", format(err))
+                else:
+                    self.fail("Nothing raised; expected {}".format(name))
+
+    def test_submodule_imported_warning(self):
+        pkg_dir, _, mod_name, _ = self._make_pkg("", 1)
+        try:
+            __import__(mod_name)
+            with self.assertWarnsRegex(RuntimeWarning,
+                    r"found in sys\.modules"):
+                run_module(mod_name)
+        finally:
+            self._del_pkg(pkg_dir)
+
+    def test_package_imported_no_warning(self):
+        pkg_dir, _, mod_name, _ = self._make_pkg("", 1, "__main__")
+        self.addCleanup(self._del_pkg, pkg_dir)
+        package = mod_name.replace(".__main__", "")
+        # No warning should occur if we only imported the parent package
+        __import__(package)
+        self.assertIn(package, sys.modules)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            run_module(package)
+        # But the warning should occur if we imported the __main__ submodule
+        __import__(mod_name)
+        with self.assertWarnsRegex(RuntimeWarning, r"found in sys\.modules"):
+            run_module(package)
 
     def test_run_package_in_namespace_package(self):
         for depth in range(1, 4):
@@ -493,7 +550,7 @@ from ..uncle.cousin import nephew
         try:
             self.check_code_execution(create_ns, expected_ns)
         finally:
-            self._del_pkg(pkg_dir, depth, mod_name)
+            self._del_pkg(pkg_dir)
 
     def test_pkgutil_walk_packages(self):
         # This is a dodgy hack to use the test_runpy infrastructure to test
@@ -517,16 +574,17 @@ from ..uncle.cousin import nephew
         expected_modules.add(pkg_name + ".runpy_test")
         pkg_dir, mod_fname, mod_name, mod_spec = (
                self._make_pkg("", max_depth))
-        self.addCleanup(self._del_pkg, pkg_dir, max_depth, mod_name)
+        self.addCleanup(self._del_pkg, pkg_dir)
         for depth in range(2, max_depth+1):
             self._add_relative_modules(pkg_dir, "", depth)
-        for finder, mod_name, ispkg in pkgutil.walk_packages([pkg_dir]):
-            self.assertIsInstance(finder,
+        for moduleinfo in pkgutil.walk_packages([pkg_dir]):
+            self.assertIsInstance(moduleinfo, pkgutil.ModuleInfo)
+            self.assertIsInstance(moduleinfo.module_finder,
                                   importlib.machinery.FileFinder)
-            if ispkg:
-                expected_packages.remove(mod_name)
+            if moduleinfo.ispkg:
+                expected_packages.remove(moduleinfo.name)
             else:
-                expected_modules.remove(mod_name)
+                expected_modules.remove(moduleinfo.name)
         self.assertEqual(len(expected_packages), 0, expected_packages)
         self.assertEqual(len(expected_modules), 0, expected_modules)
 
@@ -673,7 +731,7 @@ class RunPathTestCase(unittest.TestCase, CodeExecutionMixin):
             script_name = self._make_test_script(script_dir, mod_name, source)
             zip_name, fname = make_zip_script(script_dir, 'test_zip', script_name)
             msg = "recursion depth exceeded"
-            self.assertRaisesRegex(RuntimeError, msg, run_path, zip_name)
+            self.assertRaisesRegex(RecursionError, msg, run_path, zip_name)
 
     def test_encoding(self):
         with temp_dir() as script_dir:

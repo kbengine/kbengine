@@ -4,7 +4,6 @@
 import abc
 import sys
 import unittest
-from test.support import run_unittest
 from types import DynamicClassAttribute
 
 class PropertyBase(Exception):
@@ -158,9 +157,9 @@ class PropertyTests(unittest.TestCase):
         # check that the DynamicClassAttribute's __isabstractmethod__ descriptor does the
         # right thing when presented with a value that fails truth testing:
         class NotBool(object):
-            def __nonzero__(self):
+            def __bool__(self):
                 raise ValueError()
-            __len__ = __nonzero__
+            __len__ = __bool__
         with self.assertRaises(ValueError):
             class C(object):
                 def foo(self):
@@ -297,8 +296,5 @@ class PropertySubclassTests(unittest.TestCase):
 
 
 
-def test_main():
-    run_unittest(PropertyTests, PropertySubclassTests)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

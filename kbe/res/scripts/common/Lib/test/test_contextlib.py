@@ -1,15 +1,57 @@
 """Unit tests for contextlib.py, and other context managers."""
 
+import asyncio
 import io
 import sys
 import tempfile
+import threading
 import unittest
 from contextlib import *  # Tests __all__
 from test import support
-try:
-    import threading
-except ImportError:
-    threading = None
+import weakref
+
+
+class TestAbstractContextManager(unittest.TestCase):
+
+    def test_enter(self):
+        class DefaultEnter(AbstractContextManager):
+            def __exit__(self, *args):
+                super().__exit__(*args)
+
+        manager = DefaultEnter()
+        self.assertIs(manager.__enter__(), manager)
+
+    def test_exit_is_abstract(self):
+        class MissingExit(AbstractContextManager):
+            pass
+
+        with self.assertRaises(TypeError):
+            MissingExit()
+
+    def test_structural_subclassing(self):
+        class ManagerFromScratch:
+            def __enter__(self):
+                return self
+            def __exit__(self, exc_type, exc_value, traceback):
+                return None
+
+        self.assertTrue(issubclass(ManagerFromScratch, AbstractContextManager))
+
+        class DefaultEnter(AbstractContextManager):
+            def __exit__(self, *args):
+                super().__exit__(*args)
+
+        self.assertTrue(issubclass(DefaultEnter, AbstractContextManager))
+
+        class NoEnter(ManagerFromScratch):
+            __enter__ = None
+
+        self.assertFalse(issubclass(NoEnter, AbstractContextManager))
+
+        class NoExit(ManagerFromScratch):
+            __exit__ = None
+
+        self.assertFalse(issubclass(NoExit, AbstractContextManager))
 
 
 class ContextManagerTestCase(unittest.TestCase):
@@ -83,6 +125,65 @@ class ContextManagerTestCase(unittest.TestCase):
             raise ZeroDivisionError(999)
         self.assertEqual(state, [1, 42, 999])
 
+    def test_contextmanager_except_stopiter(self):
+        stop_exc = StopIteration('spam')
+        @contextmanager
+        def woohoo():
+            yield
+        try:
+            with self.assertWarnsRegex(DeprecationWarning,
+                                       "StopIteration"):
+                with woohoo():
+                    raise stop_exc
+        except Exception as ex:
+            self.assertIs(ex, stop_exc)
+        else:
+            self.fail('StopIteration was suppressed')
+
+    def test_contextmanager_except_pep479(self):
+        code = """\
+from __future__ import generator_stop
+from contextlib import contextmanager
+@contextmanager
+def woohoo():
+    yield
+"""
+        locals = {}
+        exec(code, locals, locals)
+        woohoo = locals['woohoo']
+
+        stop_exc = StopIteration('spam')
+        try:
+            with woohoo():
+                raise stop_exc
+        except Exception as ex:
+            self.assertIs(ex, stop_exc)
+        else:
+            self.fail('StopIteration was suppressed')
+
+    def test_contextmanager_do_not_unchain_non_stopiteration_exceptions(self):
+        @contextmanager
+        def test_issue29692():
+            try:
+                yield
+            except Exception as exc:
+                raise RuntimeError('issue29692:Chained') from exc
+        try:
+            with test_issue29692():
+                raise ZeroDivisionError
+        except Exception as ex:
+            self.assertIs(type(ex), RuntimeError)
+            self.assertEqual(ex.args[0], 'issue29692:Chained')
+            self.assertIsInstance(ex.__cause__, ZeroDivisionError)
+
+        try:
+            with test_issue29692():
+                raise StopIteration('issue29692:Unchained')
+        except Exception as ex:
+            self.assertIs(type(ex), StopIteration)
+            self.assertEqual(ex.args[0], 'issue29692:Unchained')
+            self.assertIsNone(ex.__cause__)
+
     def _create_contextmanager_attribs(self):
         def attribs(**kw):
             def decorate(func):
@@ -110,6 +211,60 @@ class ContextManagerTestCase(unittest.TestCase):
     def test_instance_docstring_given_cm_docstring(self):
         baz = self._create_contextmanager_attribs()(None)
         self.assertEqual(baz.__doc__, "Whee!")
+
+    def test_keywords(self):
+        # Ensure no keyword arguments are inhibited
+        @contextmanager
+        def woohoo(self, func, args, kwds):
+            yield (self, func, args, kwds)
+        with woohoo(self=11, func=22, args=33, kwds=44) as target:
+            self.assertEqual(target, (11, 22, 33, 44))
+
+    def test_nokeepref(self):
+        class A:
+            pass
+
+        @contextmanager
+        def woohoo(a, b):
+            a = weakref.ref(a)
+            b = weakref.ref(b)
+            self.assertIsNone(a())
+            self.assertIsNone(b())
+            yield
+
+        with woohoo(A(), b=A()):
+            pass
+
+    def test_param_errors(self):
+        @contextmanager
+        def woohoo(a, *, b):
+            yield
+
+        with self.assertRaises(TypeError):
+            woohoo()
+        with self.assertRaises(TypeError):
+            woohoo(3, 5)
+        with self.assertRaises(TypeError):
+            woohoo(b=3)
+
+    def test_recursive(self):
+        depth = 0
+        @contextmanager
+        def woohoo():
+            nonlocal depth
+            before = depth
+            depth += 1
+            yield
+            depth -= 1
+            self.assertEqual(depth, before)
+
+        @woohoo()
+        def recursive():
+            if depth < 10:
+                recursive()
+
+        recursive()
+        self.assertEqual(depth, 0)
 
 
 class ClosingTestCase(unittest.TestCase):
@@ -145,6 +300,16 @@ class ClosingTestCase(unittest.TestCase):
                 1 / 0
         self.assertEqual(state, [1])
 
+
+class NullcontextTestCase(unittest.TestCase):
+    def test_nullcontext(self):
+        class C:
+            pass
+        c = C()
+        with nullcontext(c) as c_in:
+            self.assertIs(c_in, c)
+
+
 class FileContextTestCase(unittest.TestCase):
 
     def testWithOpen(self):
@@ -165,7 +330,6 @@ class FileContextTestCase(unittest.TestCase):
         finally:
             support.unlink(tfn)
 
-@unittest.skipUnless(threading, 'Threading required for this test.')
 class LockContextTestCase(unittest.TestCase):
 
     def boilerPlate(self, lock, locked):
@@ -389,17 +553,18 @@ class TestContextDecorator(unittest.TestCase):
         self.assertEqual(state, [1, 'something else', 999])
 
 
-class TestExitStack(unittest.TestCase):
+class TestBaseExitStack:
+    exit_stack = None
 
     @support.requires_docstrings
     def test_instance_docs(self):
         # Issue 19330: ensure context manager instances have good docstrings
-        cm_docstring = ExitStack.__doc__
-        obj = ExitStack()
+        cm_docstring = self.exit_stack.__doc__
+        obj = self.exit_stack()
         self.assertEqual(obj.__doc__, cm_docstring)
 
     def test_no_resources(self):
-        with ExitStack():
+        with self.exit_stack():
             pass
 
     def test_callback(self):
@@ -415,7 +580,7 @@ class TestExitStack(unittest.TestCase):
         def _exit(*args, **kwds):
             """Test metadata propagation"""
             result.append((args, kwds))
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             for args, kwds in reversed(expected):
                 if args and kwds:
                     f = stack.callback(_exit, *args, **kwds)
@@ -427,9 +592,9 @@ class TestExitStack(unittest.TestCase):
                     f = stack.callback(_exit)
                 self.assertIs(f, _exit)
             for wrapper in stack._exit_callbacks:
-                self.assertIs(wrapper.__wrapped__, _exit)
-                self.assertNotEqual(wrapper.__name__, _exit.__name__)
-                self.assertIsNone(wrapper.__doc__, _exit.__doc__)
+                self.assertIs(wrapper[1].__wrapped__, _exit)
+                self.assertNotEqual(wrapper[1].__name__, _exit.__name__)
+                self.assertIsNone(wrapper[1].__doc__, _exit.__doc__)
         self.assertEqual(result, expected)
 
     def test_push(self):
@@ -449,21 +614,21 @@ class TestExitStack(unittest.TestCase):
                 self.fail("Should not be called!")
             def __exit__(self, *exc_details):
                 self.check_exc(*exc_details)
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             stack.push(_expect_ok)
-            self.assertIs(stack._exit_callbacks[-1], _expect_ok)
+            self.assertIs(stack._exit_callbacks[-1][1], _expect_ok)
             cm = ExitCM(_expect_ok)
             stack.push(cm)
-            self.assertIs(stack._exit_callbacks[-1].__self__, cm)
+            self.assertIs(stack._exit_callbacks[-1][1].__self__, cm)
             stack.push(_suppress_exc)
-            self.assertIs(stack._exit_callbacks[-1], _suppress_exc)
+            self.assertIs(stack._exit_callbacks[-1][1], _suppress_exc)
             cm = ExitCM(_expect_exc)
             stack.push(cm)
-            self.assertIs(stack._exit_callbacks[-1].__self__, cm)
+            self.assertIs(stack._exit_callbacks[-1][1].__self__, cm)
             stack.push(_expect_exc)
-            self.assertIs(stack._exit_callbacks[-1], _expect_exc)
+            self.assertIs(stack._exit_callbacks[-1][1], _expect_exc)
             stack.push(_expect_exc)
-            self.assertIs(stack._exit_callbacks[-1], _expect_exc)
+            self.assertIs(stack._exit_callbacks[-1][1], _expect_exc)
             1/0
 
     def test_enter_context(self):
@@ -475,19 +640,19 @@ class TestExitStack(unittest.TestCase):
 
         result = []
         cm = TestCM()
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             @stack.callback  # Registered first => cleaned up last
             def _exit():
                 result.append(4)
             self.assertIsNotNone(_exit)
             stack.enter_context(cm)
-            self.assertIs(stack._exit_callbacks[-1].__self__, cm)
+            self.assertIs(stack._exit_callbacks[-1][1].__self__, cm)
             result.append(2)
         self.assertEqual(result, [1, 2, 3, 4])
 
     def test_close(self):
         result = []
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             @stack.callback
             def _exit():
                 result.append(1)
@@ -498,7 +663,7 @@ class TestExitStack(unittest.TestCase):
 
     def test_pop_all(self):
         result = []
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             @stack.callback
             def _exit():
                 result.append(3)
@@ -511,12 +676,12 @@ class TestExitStack(unittest.TestCase):
 
     def test_exit_raise(self):
         with self.assertRaises(ZeroDivisionError):
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.push(lambda *exc: False)
                 1/0
 
     def test_exit_suppress(self):
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             stack.push(lambda *exc: True)
             1/0
 
@@ -580,7 +745,7 @@ class TestExitStack(unittest.TestCase):
             return True
 
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.callback(raise_exc, IndexError)
                 stack.callback(raise_exc, KeyError)
                 stack.callback(raise_exc, AttributeError)
@@ -608,7 +773,7 @@ class TestExitStack(unittest.TestCase):
             return True
 
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.callback(lambda: None)
                 stack.callback(raise_exc, IndexError)
         except Exception as exc:
@@ -617,7 +782,7 @@ class TestExitStack(unittest.TestCase):
             self.fail("Expected IndexError, but no exception was raised")
 
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.callback(raise_exc, KeyError)
                 stack.push(suppress_exc)
                 stack.callback(raise_exc, IndexError)
@@ -644,7 +809,7 @@ class TestExitStack(unittest.TestCase):
         # fix, ExitStack would try to fix it *again* and get into an
         # infinite self-referential loop
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.enter_context(gets_the_context_right(exc4))
                 stack.enter_context(gets_the_context_right(exc3))
                 stack.enter_context(gets_the_context_right(exc2))
@@ -671,7 +836,7 @@ class TestExitStack(unittest.TestCase):
         exc4 = Exception(4)
         exc5 = Exception(5)
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.callback(raise_nested, exc4, exc5)
                 stack.callback(raise_nested, exc2, exc3)
                 raise exc1
@@ -685,27 +850,25 @@ class TestExitStack(unittest.TestCase):
             self.assertIsNone(
                 exc.__context__.__context__.__context__.__context__.__context__)
 
-
-
     def test_body_exception_suppress(self):
         def suppress_exc(*exc_details):
             return True
         try:
-            with ExitStack() as stack:
+            with self.exit_stack() as stack:
                 stack.push(suppress_exc)
                 1/0
         except IndexError as exc:
             self.fail("Expected no exception, got IndexError")
 
     def test_exit_exception_chaining_suppress(self):
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             stack.push(lambda *exc: True)
             stack.push(lambda *exc: 1/0)
             stack.push(lambda *exc: {}[1])
 
     def test_excessive_nesting(self):
         # The original implementation would die with RecursionError here
-        with ExitStack() as stack:
+        with self.exit_stack() as stack:
             for i in range(10000):
                 stack.callback(int)
 
@@ -713,63 +876,117 @@ class TestExitStack(unittest.TestCase):
         class Example(object): pass
         cm = Example()
         cm.__exit__ = object()
-        stack = ExitStack()
+        stack = self.exit_stack()
         self.assertRaises(AttributeError, stack.enter_context, cm)
         stack.push(cm)
-        self.assertIs(stack._exit_callbacks[-1], cm)
+        self.assertIs(stack._exit_callbacks[-1][1], cm)
 
-class TestRedirectStdout(unittest.TestCase):
+    def test_dont_reraise_RuntimeError(self):
+        # https://bugs.python.org/issue27122
+        class UniqueException(Exception): pass
+        class UniqueRuntimeError(RuntimeError): pass
+
+        @contextmanager
+        def second():
+            try:
+                yield 1
+            except Exception as exc:
+                raise UniqueException("new exception") from exc
+
+        @contextmanager
+        def first():
+            try:
+                yield 1
+            except Exception as exc:
+                raise exc
+
+        # The UniqueRuntimeError should be caught by second()'s exception
+        # handler which chain raised a new UniqueException.
+        with self.assertRaises(UniqueException) as err_ctx:
+            with self.exit_stack() as es_ctx:
+                es_ctx.enter_context(second())
+                es_ctx.enter_context(first())
+                raise UniqueRuntimeError("please no infinite loop.")
+
+        exc = err_ctx.exception
+        self.assertIsInstance(exc, UniqueException)
+        self.assertIsInstance(exc.__context__, UniqueRuntimeError)
+        self.assertIsNone(exc.__context__.__context__)
+        self.assertIsNone(exc.__context__.__cause__)
+        self.assertIs(exc.__cause__, exc.__context__)
+
+
+class TestExitStack(TestBaseExitStack, unittest.TestCase):
+    exit_stack = ExitStack
+
+
+class TestRedirectStream:
+
+    redirect_stream = None
+    orig_stream = None
 
     @support.requires_docstrings
     def test_instance_docs(self):
         # Issue 19330: ensure context manager instances have good docstrings
-        cm_docstring = redirect_stdout.__doc__
-        obj = redirect_stdout(None)
+        cm_docstring = self.redirect_stream.__doc__
+        obj = self.redirect_stream(None)
         self.assertEqual(obj.__doc__, cm_docstring)
 
     def test_no_redirect_in_init(self):
-        orig_stdout = sys.stdout
-        redirect_stdout(None)
-        self.assertIs(sys.stdout, orig_stdout)
+        orig_stdout = getattr(sys, self.orig_stream)
+        self.redirect_stream(None)
+        self.assertIs(getattr(sys, self.orig_stream), orig_stdout)
 
     def test_redirect_to_string_io(self):
         f = io.StringIO()
         msg = "Consider an API like help(), which prints directly to stdout"
-        orig_stdout = sys.stdout
-        with redirect_stdout(f):
-            print(msg)
-        self.assertIs(sys.stdout, orig_stdout)
+        orig_stdout = getattr(sys, self.orig_stream)
+        with self.redirect_stream(f):
+            print(msg, file=getattr(sys, self.orig_stream))
+        self.assertIs(getattr(sys, self.orig_stream), orig_stdout)
         s = f.getvalue().strip()
         self.assertEqual(s, msg)
 
     def test_enter_result_is_target(self):
         f = io.StringIO()
-        with redirect_stdout(f) as enter_result:
+        with self.redirect_stream(f) as enter_result:
             self.assertIs(enter_result, f)
 
     def test_cm_is_reusable(self):
         f = io.StringIO()
-        write_to_f = redirect_stdout(f)
-        orig_stdout = sys.stdout
+        write_to_f = self.redirect_stream(f)
+        orig_stdout = getattr(sys, self.orig_stream)
         with write_to_f:
-            print("Hello", end=" ")
+            print("Hello", end=" ", file=getattr(sys, self.orig_stream))
         with write_to_f:
-            print("World!")
-        self.assertIs(sys.stdout, orig_stdout)
+            print("World!", file=getattr(sys, self.orig_stream))
+        self.assertIs(getattr(sys, self.orig_stream), orig_stdout)
         s = f.getvalue()
         self.assertEqual(s, "Hello World!\n")
 
     def test_cm_is_reentrant(self):
         f = io.StringIO()
-        write_to_f = redirect_stdout(f)
-        orig_stdout = sys.stdout
+        write_to_f = self.redirect_stream(f)
+        orig_stdout = getattr(sys, self.orig_stream)
         with write_to_f:
-            print("Hello", end=" ")
+            print("Hello", end=" ", file=getattr(sys, self.orig_stream))
             with write_to_f:
-                print("World!")
-        self.assertIs(sys.stdout, orig_stdout)
+                print("World!", file=getattr(sys, self.orig_stream))
+        self.assertIs(getattr(sys, self.orig_stream), orig_stdout)
         s = f.getvalue()
         self.assertEqual(s, "Hello World!\n")
+
+
+class TestRedirectStdout(TestRedirectStream, unittest.TestCase):
+
+    redirect_stream = redirect_stdout
+    orig_stream = "stdout"
+
+
+class TestRedirectStderr(TestRedirectStream, unittest.TestCase):
+
+    redirect_stream = redirect_stderr
+    orig_stream = "stderr"
 
 
 class TestSuppress(unittest.TestCase):
@@ -820,9 +1037,11 @@ class TestSuppress(unittest.TestCase):
         with ignore_exceptions:
             len(5)
         with ignore_exceptions:
-            1/0
             with ignore_exceptions: # Check nested usage
                 len(5)
+            outer_continued = True
+            1/0
+        self.assertTrue(outer_continued)
 
 if __name__ == "__main__":
     unittest.main()

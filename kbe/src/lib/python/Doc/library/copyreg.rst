@@ -4,12 +4,15 @@
 .. module:: copyreg
    :synopsis: Register pickle support functions.
 
+**Source code:** :source:`Lib/copyreg.py`
 
 .. index::
    module: pickle
    module: copy
 
-The :mod:`copyreg` module offers a way to define fuctions used while pickling
+--------------
+
+The :mod:`copyreg` module offers a way to define functions used while pickling
 specific objects.  The :mod:`pickle` and :mod:`copy` modules use those functions
 when pickling/copying those objects.  The module provides configuration
 information about object constructors which are not classes.
@@ -56,7 +59,7 @@ it will be used:
    ...
    >>> copyreg.pickle(C, pickle_c)
    >>> c = C(1)
-   >>> d = copy.copy(c)
+   >>> d = copy.copy(c)  # doctest: +SKIP
    pickling a C instance...
-   >>> p = pickle.dumps(c)
+   >>> p = pickle.dumps(c)  # doctest: +SKIP
    pickling a C instance...

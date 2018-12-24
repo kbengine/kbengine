@@ -1,6 +1,6 @@
 """Test that the semantics relating to the 'fromlist' argument are correct."""
 from .. import util
-from . import util as import_util
+import warnings
 import unittest
 
 
@@ -29,8 +29,10 @@ class ReturnValue:
                 module = self.__import__('pkg.module', fromlist=['attr'])
                 self.assertEqual(module.__name__, 'pkg.module')
 
-Frozen_ReturnValue, Source_ReturnValue = util.test_both(
-        ReturnValue, __import__=import_util.__import__)
+
+(Frozen_ReturnValue,
+ Source_ReturnValue
+ ) = util.test_both(ReturnValue, __import__=util.__import__)
 
 
 class HandlingFromlist:
@@ -72,16 +74,23 @@ class HandlingFromlist:
                 self.assertTrue(hasattr(module, 'module'))
                 self.assertEqual(module.module.__name__, 'pkg.module')
 
-    def test_module_from_package_triggers_ImportError(self):
-        # If a submodule causes an ImportError because it tries to import
-        # a module which doesn't exist, that should let the ImportError
-        # propagate.
+    def test_nonexistent_from_package(self):
+        with util.mock_modules('pkg.__init__') as importer:
+            with util.import_state(meta_path=[importer]):
+                module = self.__import__('pkg', fromlist=['non_existent'])
+                self.assertEqual(module.__name__, 'pkg')
+                self.assertFalse(hasattr(module, 'non_existent'))
+
+    def test_module_from_package_triggers_ModuleNotFoundError(self):
+        # If a submodule causes an ModuleNotFoundError because it tries
+        # to import a module which doesn't exist, that should let the
+        # ModuleNotFoundError propagate.
         def module_code():
             import i_do_not_exist
         with util.mock_modules('pkg.__init__', 'pkg.mod',
                                module_code={'pkg.mod': module_code}) as importer:
             with util.import_state(meta_path=[importer]):
-                with self.assertRaises(ImportError) as exc:
+                with self.assertRaises(ModuleNotFoundError) as exc:
                     self.__import__('pkg', fromlist=['mod'])
                 self.assertEqual('i_do_not_exist', exc.exception.name)
 
@@ -121,8 +130,45 @@ class HandlingFromlist:
                 self.assertEqual(module.module1.__name__, 'pkg.module1')
                 self.assertEqual(module.module2.__name__, 'pkg.module2')
 
-Frozen_FromList, Source_FromList = util.test_both(
-        HandlingFromlist, __import__=import_util.__import__)
+    def test_nonexistent_in_all(self):
+        with util.mock_modules('pkg.__init__') as importer:
+            with util.import_state(meta_path=[importer]):
+                importer['pkg'].__all__ = ['non_existent']
+                module = self.__import__('pkg', fromlist=['*'])
+                self.assertEqual(module.__name__, 'pkg')
+                self.assertFalse(hasattr(module, 'non_existent'))
+
+    def test_star_in_all(self):
+        with util.mock_modules('pkg.__init__') as importer:
+            with util.import_state(meta_path=[importer]):
+                importer['pkg'].__all__ = ['*']
+                module = self.__import__('pkg', fromlist=['*'])
+                self.assertEqual(module.__name__, 'pkg')
+                self.assertFalse(hasattr(module, '*'))
+
+    def test_invalid_type(self):
+        with util.mock_modules('pkg.__init__') as importer:
+            with util.import_state(meta_path=[importer]), \
+                 warnings.catch_warnings():
+                warnings.simplefilter('error', BytesWarning)
+                with self.assertRaisesRegex(TypeError, r'\bfrom\b'):
+                    self.__import__('pkg', fromlist=[b'attr'])
+                with self.assertRaisesRegex(TypeError, r'\bfrom\b'):
+                    self.__import__('pkg', fromlist=iter([b'attr']))
+
+    def test_invalid_type_in_all(self):
+        with util.mock_modules('pkg.__init__') as importer:
+            with util.import_state(meta_path=[importer]), \
+                 warnings.catch_warnings():
+                warnings.simplefilter('error', BytesWarning)
+                importer['pkg'].__all__ = [b'attr']
+                with self.assertRaisesRegex(TypeError, r'\bpkg\.__all__\b'):
+                    self.__import__('pkg', fromlist=['*'])
+
+
+(Frozen_FromList,
+ Source_FromList
+ ) = util.test_both(HandlingFromlist, __import__=util.__import__)
 
 
 if __name__ == '__main__':

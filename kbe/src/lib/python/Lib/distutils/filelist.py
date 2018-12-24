@@ -6,6 +6,7 @@ and building lists of files.
 
 import os, re
 import fnmatch
+import functools
 from distutils.util import convert_path
 from distutils.errors import DistutilsTemplateError, DistutilsInternalError
 from distutils import log
@@ -242,35 +243,28 @@ class FileList:
 # ----------------------------------------------------------------------
 # Utility functions
 
-def findall(dir=os.curdir):
-    """Find all files under 'dir' and return the list of full filenames
-    (relative to 'dir').
+def _find_all_simple(path):
     """
-    from stat import ST_MODE, S_ISREG, S_ISDIR, S_ISLNK
+    Find all files under 'path'
+    """
+    results = (
+        os.path.join(base, file)
+        for base, dirs, files in os.walk(path, followlinks=True)
+        for file in files
+    )
+    return filter(os.path.isfile, results)
 
-    list = []
-    stack = [dir]
-    pop = stack.pop
-    push = stack.append
 
-    while stack:
-        dir = pop()
-        names = os.listdir(dir)
-
-        for name in names:
-            if dir != os.curdir:        # avoid the dreaded "./" syndrome
-                fullname = os.path.join(dir, name)
-            else:
-                fullname = name
-
-            # Avoid excess stat calls -- just one will do, thank you!
-            stat = os.stat(fullname)
-            mode = stat[ST_MODE]
-            if S_ISREG(mode):
-                list.append(fullname)
-            elif S_ISDIR(mode) and not S_ISLNK(mode):
-                push(fullname)
-    return list
+def findall(dir=os.curdir):
+    """
+    Find all files under 'dir' and return the list of full filenames.
+    Unless dir is '.', return full filenames with dir prepended.
+    """
+    files = _find_all_simple(dir)
+    if dir == os.curdir:
+        make_rel = functools.partial(os.path.relpath, start=dir)
+        files = map(make_rel, files)
+    return list(files)
 
 
 def glob_to_re(pattern):
@@ -308,21 +302,26 @@ def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
         else:
             return pattern
 
+    # ditch start and end characters
+    start, _, end = glob_to_re('_').partition('_')
+
     if pattern:
         pattern_re = glob_to_re(pattern)
+        assert pattern_re.startswith(start) and pattern_re.endswith(end)
     else:
         pattern_re = ''
 
     if prefix is not None:
-        # ditch end of pattern character
-        empty_pattern = glob_to_re('')
-        prefix_re = glob_to_re(prefix)[:-len(empty_pattern)]
+        prefix_re = glob_to_re(prefix)
+        assert prefix_re.startswith(start) and prefix_re.endswith(end)
+        prefix_re = prefix_re[len(start): len(prefix_re) - len(end)]
         sep = os.sep
         if os.sep == '\\':
             sep = r'\\'
-        pattern_re = "^" + sep.join((prefix_re, ".*" + pattern_re))
+        pattern_re = pattern_re[len(start): len(pattern_re) - len(end)]
+        pattern_re = r'%s\A%s%s.*%s%s' % (start, prefix_re, sep, pattern_re, end)
     else:                               # no prefix -- respect anchor flag
         if anchor:
-            pattern_re = "^" + pattern_re
+            pattern_re = r'%s\A%s' % (start, pattern_re[len(start):])
 
     return re.compile(pattern_re)

@@ -28,9 +28,9 @@ Class HtmlDiff:
 
 __all__ = ['get_close_matches', 'ndiff', 'restore', 'SequenceMatcher',
            'Differ','IS_CHARACTER_JUNK', 'IS_LINE_JUNK', 'context_diff',
-           'unified_diff', 'HtmlDiff', 'Match']
+           'unified_diff', 'diff_bytes', 'HtmlDiff', 'Match']
 
-import heapq
+from heapq import nlargest as _nlargest
 from collections import namedtuple as _namedtuple
 
 Match = _namedtuple('Match', 'a b size')
@@ -729,7 +729,7 @@ def get_close_matches(word, possibilities, n=3, cutoff=0.6):
             result.append((s.ratio(), x))
 
     # Move the best scorers to head of list
-    result = heapq.nlargest(n, result)
+    result = _nlargest(n, result)
     # Strip scores for the best n matches
     return [x for score, x in result]
 
@@ -852,10 +852,9 @@ class Differ:
           and return true iff the string is junk. The module-level function
           `IS_LINE_JUNK` may be used to filter out lines without visible
           characters, except for at most one splat ('#').  It is recommended
-          to leave linejunk None; as of Python 2.3, the underlying
-          SequenceMatcher class has grown an adaptive notion of "noise" lines
-          that's better than any static definition the author has ever been
-          able to craft.
+          to leave linejunk None; the underlying SequenceMatcher class has
+          an adaptive notion of "noise" lines that's better than any static
+          definition the author has ever been able to craft.
 
         - `charjunk`: A function that should accept a string of length 1. The
           module-level function `IS_CHARACTER_JUNK` may be used to filter out
@@ -1084,7 +1083,7 @@ class Differ:
 
 import re
 
-def IS_LINE_JUNK(line, pat=re.compile(r"\s*#?\s*$").match):
+def IS_LINE_JUNK(line, pat=re.compile(r"\s*(?:#\s*)?$").match):
     r"""
     Return 1 for ignorable line: iff `line` is blank or contains a single '#'.
 
@@ -1175,6 +1174,7 @@ def unified_diff(a, b, fromfile='', tofile='', fromfiledate='',
      four
     """
 
+    _check_types(a, b, fromfile, tofile, fromfiledate, tofiledate, lineterm)
     started = False
     for group in SequenceMatcher(None,a,b).get_grouped_opcodes(n):
         if not started:
@@ -1262,6 +1262,7 @@ def context_diff(a, b, fromfile='', tofile='',
       four
     """
 
+    _check_types(a, b, fromfile, tofile, fromfiledate, tofiledate, lineterm)
     prefix = dict(insert='+ ', delete='- ', replace='! ', equal='  ')
     started = False
     for group in SequenceMatcher(None,a,b).get_grouped_opcodes(n):
@@ -1293,22 +1294,70 @@ def context_diff(a, b, fromfile='', tofile='',
                     for line in b[j1:j2]:
                         yield prefix[tag] + line
 
+def _check_types(a, b, *args):
+    # Checking types is weird, but the alternative is garbled output when
+    # someone passes mixed bytes and str to {unified,context}_diff(). E.g.
+    # without this check, passing filenames as bytes results in output like
+    #   --- b'oldfile.txt'
+    #   +++ b'newfile.txt'
+    # because of how str.format() incorporates bytes objects.
+    if a and not isinstance(a[0], str):
+        raise TypeError('lines to compare must be str, not %s (%r)' %
+                        (type(a[0]).__name__, a[0]))
+    if b and not isinstance(b[0], str):
+        raise TypeError('lines to compare must be str, not %s (%r)' %
+                        (type(b[0]).__name__, b[0]))
+    for arg in args:
+        if not isinstance(arg, str):
+            raise TypeError('all arguments must be str, not: %r' % (arg,))
+
+def diff_bytes(dfunc, a, b, fromfile=b'', tofile=b'',
+               fromfiledate=b'', tofiledate=b'', n=3, lineterm=b'\n'):
+    r"""
+    Compare `a` and `b`, two sequences of lines represented as bytes rather
+    than str. This is a wrapper for `dfunc`, which is typically either
+    unified_diff() or context_diff(). Inputs are losslessly converted to
+    strings so that `dfunc` only has to worry about strings, and encoded
+    back to bytes on return. This is necessary to compare files with
+    unknown or inconsistent encoding. All other inputs (except `n`) must be
+    bytes rather than str.
+    """
+    def decode(s):
+        try:
+            return s.decode('ascii', 'surrogateescape')
+        except AttributeError as err:
+            msg = ('all arguments must be bytes, not %s (%r)' %
+                   (type(s).__name__, s))
+            raise TypeError(msg) from err
+    a = list(map(decode, a))
+    b = list(map(decode, b))
+    fromfile = decode(fromfile)
+    tofile = decode(tofile)
+    fromfiledate = decode(fromfiledate)
+    tofiledate = decode(tofiledate)
+    lineterm = decode(lineterm)
+
+    lines = dfunc(a, b, fromfile, tofile, fromfiledate, tofiledate, n, lineterm)
+    for line in lines:
+        yield line.encode('ascii', 'surrogateescape')
+
 def ndiff(a, b, linejunk=None, charjunk=IS_CHARACTER_JUNK):
     r"""
     Compare `a` and `b` (lists of strings); return a `Differ`-style delta.
 
     Optional keyword parameters `linejunk` and `charjunk` are for filter
-    functions (or None):
+    functions, or can be None:
 
-    - linejunk: A function that should accept a single string argument, and
+    - linejunk: A function that should accept a single string argument and
       return true iff the string is junk.  The default is None, and is
-      recommended; as of Python 2.3, an adaptive notion of "noise" lines is
-      used that does a good job on its own.
+      recommended; the underlying SequenceMatcher class has an adaptive
+      notion of "noise" lines.
 
-    - charjunk: A function that should accept a string of length 1. The
-      default is module-level function IS_CHARACTER_JUNK, which filters out
-      whitespace characters (a blank or tab; note: bad idea to include newline
-      in this!).
+    - charjunk: A function that accepts a character (string of length
+      1), and returns true iff the character is junk. The default is
+      the module-level function IS_CHARACTER_JUNK, which filters out
+      whitespace characters (a blank or tab; note: it's a bad idea to
+      include newline in this!).
 
     Tools/scripts/ndiff.py is a command-line front-end to this function.
 
@@ -1366,7 +1415,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
     import re
 
     # regular expression for finding intraline change indices
-    change_re = re.compile('(\++|\-+|\^+)')
+    change_re = re.compile(r'(\++|\-+|\^+)')
 
     # create the difference iterator to generate the differences
     diff_lines_iterator = ndiff(fromlines,tolines,linejunk,charjunk)
@@ -1410,7 +1459,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
             change_re.sub(record_sub_info,markers)
             # process each tuple inserting our special marks that won't be
             # noticed by an xml/html escaper.
-            for key,(begin,end) in sub_info[::-1]:
+            for key,(begin,end) in reversed(sub_info):
                 text = text[0:begin]+'\0'+key+text[begin:end]+'\1'+text[end:]
             text = text[2:]
         # Handle case of add/delete entire line
@@ -1448,10 +1497,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
             # are a concatenation of the first character of each of the 4 lines
             # so we can do some very readable comparisons.
             while len(lines) < 4:
-                try:
-                    lines.append(next(diff_lines_iterator))
-                except StopIteration:
-                    lines.append('X')
+                lines.append(next(diff_lines_iterator, 'X'))
             s = ''.join([line[0] for line in lines])
             if s.startswith('X'):
                 # When no more lines, pump out any remaining blank lines so the
@@ -1469,7 +1515,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
                 yield _make_line(lines,'-',0), None, True
                 continue
             elif s.startswith(('--?+', '--+', '- ')):
-                # in delete block and see a intraline change or unchanged line
+                # in delete block and see an intraline change or unchanged line
                 # coming: yield the delete line and then blanks
                 from_line,to_line = _make_line(lines,'-',0), None
                 num_blanks_to_yield,num_blanks_pending = num_blanks_pending-1,0
@@ -1514,7 +1560,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
                 num_blanks_to_yield -= 1
                 yield ('','\n'),None,True
             if s.startswith('X'):
-                raise StopIteration
+                return
             else:
                 yield from_line,to_line,True
 
@@ -1536,7 +1582,10 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
         while True:
             # Collecting lines of text until we have a from/to pair
             while (len(fromlines)==0 or len(tolines)==0):
-                from_line, to_line, found_diff = next(line_iterator)
+                try:
+                    from_line, to_line, found_diff = next(line_iterator)
+                except StopIteration:
+                    return
                 if from_line is not None:
                     fromlines.append((from_line,found_diff))
                 if to_line is not None:
@@ -1550,8 +1599,7 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
     # them up without doing anything else with them.
     line_pair_iterator = _line_pair_iterator()
     if context is None:
-        while True:
-            yield next(line_pair_iterator)
+        yield from line_pair_iterator
     # Handle case where user wants context differencing.  We must do some
     # storage of lines until we know for sure that they are to be yielded.
     else:
@@ -1564,7 +1612,10 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
             index, contextLines = 0, [None]*(context)
             found_diff = False
             while(found_diff is False):
-                from_line, to_line, found_diff = next(line_pair_iterator)
+                try:
+                    from_line, to_line, found_diff = next(line_pair_iterator)
+                except StopIteration:
+                    return
                 i = index % context
                 contextLines[i] = (from_line, to_line, found_diff)
                 index += 1
@@ -1583,14 +1634,18 @@ def _mdiff(fromlines, tolines, context=None, linejunk=None,
                 lines_to_write -= 1
             # Now yield the context lines after the change
             lines_to_write = context-1
-            while(lines_to_write):
-                from_line, to_line, found_diff = next(line_pair_iterator)
-                # If another change within the context, extend the context
-                if found_diff:
-                    lines_to_write = context-1
-                else:
-                    lines_to_write -= 1
-                yield from_line, to_line, found_diff
+            try:
+                while(lines_to_write):
+                    from_line, to_line, found_diff = next(line_pair_iterator)
+                    # If another change within the context, extend the context
+                    if found_diff:
+                        lines_to_write = context-1
+                    else:
+                        lines_to_write -= 1
+                    yield from_line, to_line, found_diff
+            except StopIteration:
+                # Catch exception from next() and return normally
+                return
 
 
 _file_template = """
@@ -1601,7 +1656,7 @@ _file_template = """
 
 <head>
     <meta http-equiv="Content-Type"
-          content="text/html; charset=ISO-8859-1" />
+          content="text/html; charset=%(charset)s" />
     <title></title>
     <style type="text/css">%(styles)s
     </style>
@@ -1679,7 +1734,7 @@ class HtmlDiff(object):
         tabsize -- tab stop spacing, defaults to 8.
         wrapcolumn -- column number where lines are broken and wrapped,
             defaults to None where lines are not wrapped.
-        linejunk,charjunk -- keyword arguments passed into ndiff() (used to by
+        linejunk,charjunk -- keyword arguments passed into ndiff() (used by
             HtmlDiff() to generate the side by side HTML differences).  See
             ndiff() documentation for argument default values and descriptions.
         """
@@ -1688,8 +1743,8 @@ class HtmlDiff(object):
         self._linejunk = linejunk
         self._charjunk = charjunk
 
-    def make_file(self,fromlines,tolines,fromdesc='',todesc='',context=False,
-                  numlines=5):
+    def make_file(self, fromlines, tolines, fromdesc='', todesc='',
+                  context=False, numlines=5, *, charset='utf-8'):
         """Returns HTML file of side by side comparison with change highlights
 
         Arguments:
@@ -1704,13 +1759,16 @@ class HtmlDiff(object):
             When context is False, controls the number of lines to place
             the "next" link anchors before the next change (so click of
             "next" link jumps to just before the change).
+        charset -- charset of the HTML document
         """
 
-        return self._file_template % dict(
-            styles = self._styles,
-            legend = self._legend,
-            table = self.make_table(fromlines,tolines,fromdesc,todesc,
-                                    context=context,numlines=numlines))
+        return (self._file_template % dict(
+            styles=self._styles,
+            legend=self._legend,
+            table=self.make_table(fromlines, tolines, fromdesc, todesc,
+                                  context=context, numlines=numlines),
+            charset=charset
+        )).encode(charset, 'xmlcharrefreplace').decode(charset)
 
     def _tab_newline_replace(self,fromlines,tolines):
         """Returns from/to line lists with tabs expanded and newlines removed.
@@ -2025,7 +2083,7 @@ def restore(delta, which):
         tag = {1: "- ", 2: "+ "}[int(which)]
     except KeyError:
         raise ValueError('unknown delta choice (must be 1 or 2): %r'
-                           % which)
+                           % which) from None
     prefixes = ("  ", tag)
     for line in delta:
         if line[:2] in prefixes:

@@ -3,11 +3,13 @@
 
 .. module:: zipimport
    :synopsis: support for importing Python modules from ZIP archives.
+
 .. moduleauthor:: Just van Rossum <just@letterror.com>
 
+--------------
 
 This module adds the ability to import Python modules (:file:`\*.py`,
-:file:`\*.py[co]`) and packages from ZIP-format archives. It is usually not
+:file:`\*.pyc`) and packages from ZIP-format archives. It is usually not
 needed to use the :mod:`zipimport` module explicitly; it is automatically used
 by the built-in :keyword:`import` mechanism for :data:`sys.path` items that are paths
 to ZIP archives.
@@ -20,17 +22,17 @@ subdirectory.  For example, the path :file:`example.zip/lib/` would only
 import from the :file:`lib/` subdirectory within the archive.
 
 Any files may be present in the ZIP archive, but only files :file:`.py` and
-:file:`.py[co]` are available for import.  ZIP import of dynamic modules
+:file:`.pyc` are available for import.  ZIP import of dynamic modules
 (:file:`.pyd`, :file:`.so`) is disallowed. Note that if an archive only contains
 :file:`.py` files, Python will not attempt to modify the archive by adding the
-corresponding :file:`.pyc` or :file:`.pyo` file, meaning that if a ZIP archive
+corresponding :file:`.pyc` file, meaning that if a ZIP archive
 doesn't contain :file:`.pyc` files, importing may be rather slow.
 
 ZIP archives with an archive comment are currently not supported.
 
 .. seealso::
 
-   `PKZIP Application Note <http://www.pkware.com/documents/casestudies/APPNOTE.TXT>`_
+   `PKZIP Application Note <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>`_
       Documentation on the ZIP file format by Phil Katz, the creator of the format and
       algorithms used.
 
@@ -145,7 +147,9 @@ Examples
 --------
 
 Here is an example that imports a module from a ZIP archive - note that the
-:mod:`zipimport` module is not explicitly used. ::
+:mod:`zipimport` module is not explicitly used.
+
+.. code-block:: shell-session
 
    $ unzip -l example.zip
    Archive:  example.zip
@@ -161,4 +165,3 @@ Here is an example that imports a module from a ZIP archive - note that the
    >>> import jwzthreading
    >>> jwzthreading.__file__
    'example.zip/jwzthreading.py'
-

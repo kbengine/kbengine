@@ -117,6 +117,16 @@ newnfagrammar(void)
     return gr;
 }
 
+static void
+freenfagrammar(nfagrammar *gr)
+{
+    for (int i = 0; i < gr->gr_nnfas; i++) {
+        PyObject_FREE(gr->gr_nfa[i]->nf_state);
+    }
+    PyObject_FREE(gr->gr_nfa);
+    PyObject_FREE(gr);
+}
+
 static nfa *
 addnfa(nfagrammar *gr, char *name)
 {
@@ -134,13 +144,14 @@ addnfa(nfagrammar *gr, char *name)
 
 #ifdef Py_DEBUG
 
-static char REQNFMT[] = "metacompile: less than %d children\n";
+static const char REQNFMT[] = "metacompile: less than %d children\n";
 
-#define REQN(i, count) \
+#define REQN(i, count) do { \
     if (i < count) { \
         fprintf(stderr, REQNFMT, count); \
         Py_FatalError("REQN"); \
-    } else
+    } \
+} while (0)
 
 #else
 #define REQN(i, count)  /* empty */
@@ -378,7 +389,7 @@ typedef struct _ss_dfa {
 
 /* Forward */
 static void printssdfa(int xx_nstates, ss_state *xx_state, int nbits,
-                       labellist *ll, char *msg);
+                       labellist *ll, const char *msg);
 static void simplify(int xx_nstates, ss_state *xx_state);
 static void convert(dfa *d, int xx_nstates, ss_state *xx_state);
 
@@ -487,13 +498,17 @@ makedfa(nfagrammar *gr, nfa *nf, dfa *d)
 
     convert(d, xx_nstates, xx_state);
 
-    /* XXX cleanup */
+    for (int i = 0; i < xx_nstates; i++) {
+        for (int j = 0; j < xx_state[i].ss_narcs; j++)
+            delbitset(xx_state[i].ss_arc[j].sa_bitset);
+        PyObject_FREE(xx_state[i].ss_arc);
+    }
     PyObject_FREE(xx_state);
 }
 
 static void
 printssdfa(int xx_nstates, ss_state *xx_state, int nbits,
-           labellist *ll, char *msg)
+           labellist *ll, const char *msg)
 {
     int i, ibit, iarc;
     ss_state *yy;
@@ -668,7 +683,7 @@ pgen(node *n)
     g = maketables(gr);
     translatelabels(g);
     addfirstsets(g);
-    PyObject_FREE(gr);
+    freenfagrammar(gr);
     return g;
 }
 

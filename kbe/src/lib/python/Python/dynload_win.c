@@ -9,6 +9,7 @@
 #include <ctype.h>
 
 #include "importdl.h"
+#include "patchlevel.h"
 #include <windows.h>
 
 // "activation context" magic - see dl_nt.c...
@@ -17,20 +18,30 @@ extern ULONG_PTR _Py_ActivateActCtx();
 void _Py_DeactivateActCtx(ULONG_PTR cookie);
 #endif
 
-const char *_PyImport_DynLoadFiletab[] = {
 #ifdef _DEBUG
-    "_d.pyd",
+#define PYD_DEBUG_SUFFIX "_d"
 #else
-    ".pyd",
+#define PYD_DEBUG_SUFFIX ""
 #endif
+
+#ifdef PYD_PLATFORM_TAG
+#define PYD_TAGGED_SUFFIX PYD_DEBUG_SUFFIX ".cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) "-" PYD_PLATFORM_TAG ".pyd"
+#else
+#define PYD_TAGGED_SUFFIX PYD_DEBUG_SUFFIX ".cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) ".pyd"
+#endif
+
+#define PYD_UNTAGGED_SUFFIX PYD_DEBUG_SUFFIX ".pyd"
+
+const char *_PyImport_DynLoadFiletab[] = {
+    PYD_TAGGED_SUFFIX,
+    PYD_UNTAGGED_SUFFIX,
     NULL
 };
-
 
 /* Case insensitive string compare, to avoid any dependencies on particular
    C RTL implementations */
 
-static int strcasecmp (char *string1, char *string2)
+static int strcasecmp (const char *string1, const char *string2)
 {
     int first, second;
 
@@ -173,22 +184,23 @@ static char *GetPythonImport (HINSTANCE hModule)
     return NULL;
 }
 
-dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
-                                       PyObject *pathname, FILE *fp)
+dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
+                                              const char *shortname,
+                                              PyObject *pathname, FILE *fp)
 {
     dl_funcptr p;
     char funcname[258], *import_python;
-    wchar_t *wpathname;
+    const wchar_t *wpathname;
 
 #ifndef _DEBUG
     _Py_CheckPython3();
 #endif
 
-    wpathname = PyUnicode_AsUnicode(pathname);
+    wpathname = _PyUnicode_AsUnicode(pathname);
     if (wpathname == NULL)
         return NULL;
 
-    PyOS_snprintf(funcname, sizeof(funcname), "PyInit_%.200s", shortname);
+    PyOS_snprintf(funcname, sizeof(funcname), "%.20s_%.200s", prefix, shortname);
 
     {
         HINSTANCE hDLL = NULL;

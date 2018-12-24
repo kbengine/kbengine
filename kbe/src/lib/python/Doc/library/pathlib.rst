@@ -5,9 +5,13 @@
 .. module:: pathlib
    :synopsis: Object-oriented filesystem paths
 
+.. versionadded:: 3.4
+
+**Source code:** :source:`Lib/pathlib.py`
+
 .. index:: single: path; operations
 
-.. versionadded:: 3.4
+--------------
 
 This module offers classes representing filesystem paths with semantics
 appropriate for different operating systems.  Path classes are divided
@@ -30,12 +34,6 @@ Pure paths are useful in some special cases; for example:
 #. You want to make sure that your code only manipulates paths without actually
    accessing the OS. In this case, instantiating one of the pure classes may be
    useful since those simply don't have any OS-accessing operations.
-
-.. note::
-   This module has been included in the standard library on a
-   :term:`provisional basis <provisional package>`. Backwards incompatible
-   changes (up to and including removal of the package) may occur if deemed
-   necessary by the core developers.
 
 .. seealso::
    :pep:`428`: The pathlib module -- object-oriented filesystem paths.
@@ -106,8 +104,9 @@ we also call *flavours*:
       >>> PurePath('setup.py')      # Running on a Unix machine
       PurePosixPath('setup.py')
 
-   Each element of *pathsegments* can be either a string or bytes object
-   representing a path segment; it can also be another path object::
+   Each element of *pathsegments* can be either a string representing a
+   path segment, an object implementing the :class:`os.PathLike` interface
+   which returns a string, or another path object::
 
       >>> PurePath('foo', 'some/path', 'bar')
       PurePosixPath('foo/some/path/bar')
@@ -147,6 +146,12 @@ we also call *flavours*:
    (a naïve approach would make ``PurePosixPath('foo/../bar')`` equivalent
    to ``PurePosixPath('bar')``, which is wrong if ``foo`` is a symbolic link
    to another directory)
+
+   Pure path objects implement the :class:`os.PathLike` interface, allowing them
+   to be used anywhere the interface is accepted.
+
+   .. versionchanged:: 3.6
+      Added support for the :class:`os.PathLike` interface.
 
 .. class:: PurePosixPath(*pathsegments)
 
@@ -195,7 +200,7 @@ Paths of a different flavour compare unequal and cannot be ordered::
    >>> PureWindowsPath('foo') < PurePosixPath('foo')
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
-   TypeError: unorderable types: PureWindowsPath() < PurePosixPath()
+   TypeError: '<' not supported between instances of 'PureWindowsPath' and 'PurePosixPath'
 
 
 Operators
@@ -211,6 +216,14 @@ The slash operator helps create child paths, similarly to :func:`os.path.join`::
    >>> q = PurePath('bin')
    >>> '/usr' / q
    PurePosixPath('/usr/bin')
+
+A path object can be used anywhere an object implementing :class:`os.PathLike`
+is accepted::
+
+   >>> import os
+   >>> p = PurePath('/etc')
+   >>> os.fspath(p)
+   '/etc'
 
 The string representation of a path is the raw filesystem path itself
 (in native form, e.g. with backslashes under Windows), which you can
@@ -257,6 +270,10 @@ property:
 
 Methods and properties
 ^^^^^^^^^^^^^^^^^^^^^^
+
+.. testsetup::
+
+   from pathlib import PurePosixPath, PureWindowsPath
 
 Pure paths provide the following methods and properties:
 
@@ -542,7 +559,8 @@ Pure paths provide the following methods and properties:
 .. method:: PurePath.with_suffix(suffix)
 
    Return a new path with the :attr:`suffix` changed.  If the original path
-   doesn't have a suffix, the new *suffix* is appended instead::
+   doesn't have a suffix, the new *suffix* is appended instead.  If the
+   *suffix* is an empty string, the original suffix is removed::
 
       >>> p = PureWindowsPath('c:/Downloads/pathlib.tar.gz')
       >>> p.with_suffix('.bz2')
@@ -550,6 +568,9 @@ Pure paths provide the following methods and properties:
       >>> p = PureWindowsPath('README')
       >>> p.with_suffix('.txt')
       PureWindowsPath('README.txt')
+      >>> p = PureWindowsPath('README.txt')
+      >>> p.with_suffix('')
+      PureWindowsPath('README')
 
 
 .. _concrete-paths:
@@ -628,10 +649,23 @@ call fails (for example because the path doesn't exist):
       PosixPath('/home/antoine/pathlib')
 
 
+.. classmethod:: Path.home()
+
+   Return a new path object representing the user's home directory (as
+   returned by :func:`os.path.expanduser` with ``~`` construct)::
+
+      >>> Path.home()
+      PosixPath('/home/antoine')
+
+   .. versionadded:: 3.5
+
+
 .. method:: Path.stat()
 
    Return information about this path (similarly to :func:`os.stat`).
    The result is looked up at each call to this method.
+
+   ::
 
       >>> p = Path('setup.py')
       >>> p.stat().st_size
@@ -668,6 +702,18 @@ call fails (for example because the path doesn't exist):
    .. note::
       If the path points to a symlink, :meth:`exists` returns whether the
       symlink *points to* an existing file or directory.
+
+
+.. method:: Path.expanduser()
+
+   Return a new path with expanded ``~`` and ``~user`` constructs,
+   as returned by :meth:`os.path.expanduser`::
+
+      >>> p = PosixPath('~/films/Monty Python')
+      >>> p.expanduser()
+      PosixPath('/home/eric/films/Monty Python')
+
+   .. versionadded:: 3.5
 
 
 .. method:: Path.glob(pattern)
@@ -717,6 +763,18 @@ call fails (for example because the path doesn't exist):
 
    ``False`` is also returned if the path doesn't exist or is a broken symlink;
    other errors (such as permission errors) are propagated.
+
+
+.. method:: Path.is_mount()
+
+   Return ``True`` if the path is a :dfn:`mount point`: a point in a
+   file system where a different file system has been mounted.  On POSIX, the
+   function checks whether *path*'s parent, :file:`path/..`, is on a different
+   device than *path*, or whether :file:`path/..` and *path* point to the same
+   i-node on the same device --- this should detect mount points for all Unix
+   and POSIX variants.  Not implemented on Windows.
+
+   .. versionadded:: 3.7
 
 
 .. method:: Path.is_symlink()
@@ -791,7 +849,7 @@ call fails (for example because the path doesn't exist):
    the symbolic link's information rather than its target's.
 
 
-.. method:: Path.mkdir(mode=0o777, parents=False)
+.. method:: Path.mkdir(mode=0o777, parents=False, exist_ok=False)
 
    Create a new directory at this given path.  If *mode* is given, it is
    combined with the process' ``umask`` value to determine the file mode
@@ -804,6 +862,16 @@ call fails (for example because the path doesn't exist):
 
    If *parents* is false (the default), a missing parent raises
    :exc:`FileNotFoundError`.
+
+   If *exist_ok* is false (the default), :exc:`FileExistsError` is
+   raised if the target directory already exists.
+
+   If *exist_ok* is true, :exc:`FileExistsError` exceptions will be
+   ignored (same behavior as the POSIX ``mkdir -p`` command), but only if the
+   last path component is not an existing non-directory file.
+
+   .. versionchanged:: 3.5
+      The *exist_ok* parameter was added.
 
 
 .. method:: Path.open(mode='r', buffering=-1, encoding=None, errors=None, newline=None)
@@ -824,10 +892,40 @@ call fails (for example because the path doesn't exist):
    if the file's uid isn't found in the system database.
 
 
+.. method:: Path.read_bytes()
+
+   Return the binary contents of the pointed-to file as a bytes object::
+
+      >>> p = Path('my_binary_file')
+      >>> p.write_bytes(b'Binary file contents')
+      20
+      >>> p.read_bytes()
+      b'Binary file contents'
+
+   .. versionadded:: 3.5
+
+
+.. method:: Path.read_text(encoding=None, errors=None)
+
+   Return the decoded contents of the pointed-to file as a string::
+
+      >>> p = Path('my_text_file')
+      >>> p.write_text('Text file contents')
+      18
+      >>> p.read_text()
+      'Text file contents'
+
+   The file is opened and then closed. The optional parameters have the same
+   meaning as in :func:`open`.
+
+   .. versionadded:: 3.5
+
+
 .. method:: Path.rename(target)
 
-   Rename this file or directory to the given *target*.  *target* can be
-   either a string or another path object::
+   Rename this file or directory to the given *target*.  On Unix, if
+   *target* exists and is a file, it will be replaced silently if the user
+   has permission.  *target* can be either a string or another path object::
 
       >>> p = Path('foo')
       >>> p.open('w').write('some text')
@@ -844,7 +942,7 @@ call fails (for example because the path doesn't exist):
    to an existing file or directory, it will be unconditionally replaced.
 
 
-.. method:: Path.resolve()
+.. method:: Path.resolve(strict=False)
 
    Make the path absolute, resolving any symlinks.  A new path object is
    returned::
@@ -855,21 +953,25 @@ call fails (for example because the path doesn't exist):
       >>> p.resolve()
       PosixPath('/home/antoine/pathlib')
 
-   `".."` components are also eliminated (this is the only method to do so)::
+   "``..``" components are also eliminated (this is the only method to do so)::
 
       >>> p = Path('docs/../setup.py')
       >>> p.resolve()
       PosixPath('/home/antoine/pathlib/setup.py')
 
-   If the path doesn't exist, :exc:`FileNotFoundError` is raised.  If an
-   infinite loop is encountered along the resolution path,
-   :exc:`RuntimeError` is raised.
+   If the path doesn't exist and *strict* is ``True``, :exc:`FileNotFoundError`
+   is raised.  If *strict* is ``False``, the path is resolved as far as possible
+   and any remainder is appended without checking whether it exists.  If an
+   infinite loop is encountered along the resolution path, :exc:`RuntimeError`
+   is raised.
 
+   .. versionadded:: 3.6
+      The *strict* argument.
 
 .. method:: Path.rglob(pattern)
 
-   This is like calling :meth:`glob` with "``**``" added in front of the
-   given *pattern*:
+   This is like calling :meth:`Path.glob` with "``**``" added in front of the
+   given *pattern*::
 
       >>> sorted(Path().rglob("*.py"))
       [PosixPath('build/lib/pathlib.py'),
@@ -884,11 +986,34 @@ call fails (for example because the path doesn't exist):
    Remove this directory.  The directory must be empty.
 
 
+.. method:: Path.samefile(other_path)
+
+   Return whether this path points to the same file as *other_path*, which
+   can be either a Path object, or a string.  The semantics are similar
+   to :func:`os.path.samefile` and :func:`os.path.samestat`.
+
+   An :exc:`OSError` can be raised if either file cannot be accessed for some
+   reason.
+
+   ::
+
+      >>> p = Path('spam')
+      >>> q = Path('eggs')
+      >>> p.samefile(q)
+      False
+      >>> p.samefile('spam')
+      True
+
+   .. versionadded:: 3.5
+
+
 .. method:: Path.symlink_to(target, target_is_directory=False)
 
    Make this path a symbolic link to *target*.  Under Windows,
    *target_is_directory* must be true (default ``False``) if the link's target
    is a directory.  Under POSIX, *target_is_directory*'s value is ignored.
+
+   ::
 
       >>> p = Path('mylink')
       >>> p.symlink_to('setup.py')
@@ -904,7 +1029,7 @@ call fails (for example because the path doesn't exist):
       of :func:`os.symlink`'s.
 
 
-.. method:: Path.touch(mode=0o777, exist_ok=True)
+.. method:: Path.touch(mode=0o666, exist_ok=True)
 
    Create a file at this given path.  If *mode* is given, it is combined
    with the process' ``umask`` value to determine the file mode and access
@@ -917,3 +1042,73 @@ call fails (for example because the path doesn't exist):
 
    Remove this file or symbolic link.  If the path points to a directory,
    use :func:`Path.rmdir` instead.
+
+
+.. method:: Path.write_bytes(data)
+
+   Open the file pointed to in bytes mode, write *data* to it, and close the
+   file::
+
+      >>> p = Path('my_binary_file')
+      >>> p.write_bytes(b'Binary file contents')
+      20
+      >>> p.read_bytes()
+      b'Binary file contents'
+
+   An existing file of the same name is overwritten.
+
+   .. versionadded:: 3.5
+
+
+.. method:: Path.write_text(data, encoding=None, errors=None)
+
+   Open the file pointed to in text mode, write *data* to it, and close the
+   file::
+
+      >>> p = Path('my_text_file')
+      >>> p.write_text('Text file contents')
+      18
+      >>> p.read_text()
+      'Text file contents'
+
+   .. versionadded:: 3.5
+
+Correspondence to tools in the :mod:`os` module
+-----------------------------------------------
+
+Below is a table mapping various :mod:`os` functions to their corresponding
+:class:`PurePath`/:class:`Path` equivalent.
+
+.. note::
+
+   Although :func:`os.path.relpath` and :meth:`PurePath.relative_to` have some
+   overlapping use-cases, their semantics differ enough to warrant not
+   considering them equivalent.
+
+====================================   ==============================
+os and os.path                         pathlib
+====================================   ==============================
+:func:`os.path.abspath`                :meth:`Path.resolve`
+:func:`os.chmod`                       :meth:`Path.chmod`
+:func:`os.mkdir`                       :meth:`Path.mkdir`
+:func:`os.rename`                      :meth:`Path.rename`
+:func:`os.replace`                     :meth:`Path.replace`
+:func:`os.rmdir`                       :meth:`Path.rmdir`
+:func:`os.remove`, :func:`os.unlink`   :meth:`Path.unlink`
+:func:`os.getcwd`                      :func:`Path.cwd`
+:func:`os.path.exists`                 :meth:`Path.exists`
+:func:`os.path.expanduser`             :meth:`Path.expanduser` and
+                                       :meth:`Path.home`
+:func:`os.path.isdir`                  :meth:`Path.is_dir`
+:func:`os.path.isfile`                 :meth:`Path.is_file`
+:func:`os.path.islink`                 :meth:`Path.is_symlink`
+:func:`os.stat`                        :meth:`Path.stat`,
+                                       :meth:`Path.owner`,
+                                       :meth:`Path.group`
+:func:`os.path.isabs`                  :meth:`PurePath.is_absolute`
+:func:`os.path.join`                   :func:`PurePath.joinpath`
+:func:`os.path.basename`               :data:`PurePath.name`
+:func:`os.path.dirname`                :data:`PurePath.parent`
+:func:`os.path.samefile`               :meth:`Path.samefile`
+:func:`os.path.splitext`               :data:`PurePath.suffix`
+====================================   ==============================

@@ -48,6 +48,8 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #ifdef _MSC_VER
   #include "vccompat.h"
@@ -59,12 +61,6 @@ extern "C" {
   #define MPD_HIDE_SYMBOLS_END
   #define EXTINLINE extern inline
 #else
-  #ifdef HAVE_STDINT_H
-    #include <stdint.h>
-  #endif
-  #ifdef HAVE_INTTYPES_H
-    #include <inttypes.h>
-  #endif
   #ifndef __GNUC_STDC_INLINE__
     #define __GNUC_STDC_INLINE__ 1
   #endif
@@ -108,9 +104,9 @@ MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
 
 #define MPD_MAJOR_VERSION 2
 #define MPD_MINOR_VERSION 4
-#define MPD_MICRO_VERSION 1
+#define MPD_MICRO_VERSION 2
 
-#define MPD_VERSION "2.4.1"
+#define MPD_VERSION "2.4.2"
 
 #define MPD_VERSION_HEX ((MPD_MAJOR_VERSION << 24) | \
                          (MPD_MINOR_VERSION << 16) | \

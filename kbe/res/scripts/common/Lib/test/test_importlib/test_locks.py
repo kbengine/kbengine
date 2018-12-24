@@ -1,50 +1,41 @@
-from . import util
-frozen_init, source_init = util.import_importlib('importlib')
-frozen_bootstrap = frozen_init._bootstrap
-source_bootstrap = source_init._bootstrap
+from . import util as test_util
+
+init = test_util.import_importlib('importlib')
 
 import sys
-import time
+import threading
 import unittest
 import weakref
 
 from test import support
+from test import lock_tests
 
-try:
-    import threading
-except ImportError:
-    threading = None
-else:
-    from test import lock_tests
 
-if threading is not None:
-    class ModuleLockAsRLockTests:
-        locktype = classmethod(lambda cls: cls.LockType("some_lock"))
+class ModuleLockAsRLockTests:
+    locktype = classmethod(lambda cls: cls.LockType("some_lock"))
 
-        # _is_owned() unsupported
-        test__is_owned = None
-        # acquire(blocking=False) unsupported
-        test_try_acquire = None
-        test_try_acquire_contended = None
-        # `with` unsupported
-        test_with = None
-        # acquire(timeout=...) unsupported
-        test_timeout = None
-        # _release_save() unsupported
-        test_release_save_unacquired = None
+    # _is_owned() unsupported
+    test__is_owned = None
+    # acquire(blocking=False) unsupported
+    test_try_acquire = None
+    test_try_acquire_contended = None
+    # `with` unsupported
+    test_with = None
+    # acquire(timeout=...) unsupported
+    test_timeout = None
+    # _release_save() unsupported
+    test_release_save_unacquired = None
+    # lock status in repr unsupported
+    test_repr = None
+    test_locked_repr = None
 
-    class Frozen_ModuleLockAsRLockTests(ModuleLockAsRLockTests, lock_tests.RLockTests):
-        LockType = frozen_bootstrap._ModuleLock
+LOCK_TYPES = {kind: splitinit._bootstrap._ModuleLock
+              for kind, splitinit in init.items()}
 
-    class Source_ModuleLockAsRLockTests(ModuleLockAsRLockTests, lock_tests.RLockTests):
-        LockType = source_bootstrap._ModuleLock
-
-else:
-    class Frozen_ModuleLockAsRLockTests(unittest.TestCase):
-        pass
-
-    class Source_ModuleLockAsRLockTests(unittest.TestCase):
-        pass
+(Frozen_ModuleLockAsRLockTests,
+ Source_ModuleLockAsRLockTests
+ ) = test_util.test_both(ModuleLockAsRLockTests, lock_tests.RLockTests,
+                         LockType=LOCK_TYPES)
 
 
 class DeadlockAvoidanceTests:
@@ -52,7 +43,7 @@ class DeadlockAvoidanceTests:
     def setUp(self):
         try:
             self.old_switchinterval = sys.getswitchinterval()
-            sys.setswitchinterval(0.000001)
+            support.setswitchinterval(0.000001)
         except AttributeError:
             self.old_switchinterval = None
 
@@ -70,14 +61,17 @@ class DeadlockAvoidanceTests:
             NTHREADS = NLOCKS - 1
         barrier = threading.Barrier(NTHREADS)
         results = []
+
         def _acquire(lock):
-            """Try to acquire the lock. Return True on success, False on deadlock."""
+            """Try to acquire the lock. Return True on success,
+            False on deadlock."""
             try:
                 lock.acquire()
             except self.DeadlockError:
                 return False
             else:
                 return True
+
         def f():
             a, b = pairs.pop()
             ra = _acquire(a)
@@ -106,18 +100,22 @@ class DeadlockAvoidanceTests:
         self.assertEqual(results.count((True, False)), 0)
         self.assertEqual(results.count((True, True)), len(results))
 
-@unittest.skipUnless(threading, "threads needed for this test")
-class Frozen_DeadlockAvoidanceTests(DeadlockAvoidanceTests, unittest.TestCase):
-    LockType = frozen_bootstrap._ModuleLock
-    DeadlockError = frozen_bootstrap._DeadlockError
 
-@unittest.skipUnless(threading, "threads needed for this test")
-class Source_DeadlockAvoidanceTests(DeadlockAvoidanceTests, unittest.TestCase):
-    LockType = source_bootstrap._ModuleLock
-    DeadlockError = source_bootstrap._DeadlockError
+DEADLOCK_ERRORS = {kind: splitinit._bootstrap._DeadlockError
+                   for kind, splitinit in init.items()}
+
+(Frozen_DeadlockAvoidanceTests,
+ Source_DeadlockAvoidanceTests
+ ) = test_util.test_both(DeadlockAvoidanceTests,
+                         LockType=LOCK_TYPES,
+                         DeadlockError=DEADLOCK_ERRORS)
 
 
 class LifetimeTests:
+
+    @property
+    def bootstrap(self):
+        return self.init._bootstrap
 
     def test_lock_lifetime(self):
         name = "xyzzy"
@@ -135,11 +133,10 @@ class LifetimeTests:
         self.assertEqual(0, len(self.bootstrap._module_locks),
                          self.bootstrap._module_locks)
 
-class Frozen_LifetimeTests(LifetimeTests, unittest.TestCase):
-    bootstrap = frozen_bootstrap
 
-class Source_LifetimeTests(LifetimeTests, unittest.TestCase):
-    bootstrap = source_bootstrap
+(Frozen_LifetimeTests,
+ Source_LifetimeTests
+ ) = test_util.test_both(LifetimeTests, init=init)
 
 
 @support.reap_threads

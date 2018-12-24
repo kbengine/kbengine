@@ -93,7 +93,7 @@ PyObject* AllClients::onScriptGetAttribute(PyObject* attr)
 		return 0;
 	}
 	
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule_)->findClientMethodDescription(ccattr);
 	

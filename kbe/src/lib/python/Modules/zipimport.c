@@ -1,4 +1,6 @@
 #include "Python.h"
+#include "internal/import.h"
+#include "internal/pystate.h"
 #include "structmember.h"
 #include "osdefs.h"
 #include "marshal.h"
@@ -20,15 +22,13 @@ _Py_IDENTIFIER(replace);
 
 /* zip_searchorder defines how we search for a module in the Zip
    archive: we first search for a package __init__, then for
-   non-package .pyc, .pyo and .py entries. The .pyc and .pyo entries
+   non-package .pyc, and .py entries. The .pyc entries
    are swapped by initzipimport() if we run in optimized mode. Also,
    '/' is replaced by SEP there. */
 static struct st_zip_searchorder zip_searchorder[] = {
     {"/__init__.pyc", IS_PACKAGE | IS_BYTECODE},
-    {"/__init__.pyo", IS_PACKAGE | IS_BYTECODE},
     {"/__init__.py", IS_PACKAGE | IS_SOURCE},
     {".pyc", IS_BYTECODE},
-    {".pyo", IS_BYTECODE},
     {".py", IS_SOURCE},
     {"", 0}
 };
@@ -56,27 +56,53 @@ static PyObject *get_data(PyObject *archive, PyObject *toc_entry);
 static PyObject *get_module_code(ZipImporter *self, PyObject *fullname,
                                  int *p_ispackage, PyObject **p_modpath);
 
+static PyTypeObject ZipImporter_Type;
 
 #define ZipImporter_Check(op) PyObject_TypeCheck(op, &ZipImporter_Type)
+
+/*[clinic input]
+module zipimport
+class zipimport.zipimporter "ZipImporter *" "&ZipImporter_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=9db8b61557d911e7]*/
+#include "clinic/zipimport.c.h"
 
 
 /* zipimporter.__init__
    Split the "subdirectory" from the Zip archive path, lookup a matching
    entry in sys.path_importer_cache, fetch the file directory from there
    if found, or else read it from the archive. */
+
+/*[clinic input]
+zipimport.zipimporter.__init__
+
+    archivepath as path: object(converter="PyUnicode_FSDecoder")
+        A path-like object to a zipfile, or to a specific path inside
+        a zipfile.
+    /
+
+Create a new zipimporter instance.
+
+'archivepath' must be a path-like object to a zipfile, or to a specific path
+inside a zipfile. For example, it can be '/tmp/myimport.zip', or
+'/tmp/myimport.zip/mydirectory', if mydirectory is a valid directory inside
+the archive.
+
+'ZipImportError' is raised if 'archivepath' doesn't point to a valid Zip
+archive.
+
+The 'archive' attribute of the zipimporter object contains the name of the
+zipfile targeted.
+
+[clinic start generated code]*/
+
 static int
-zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
+zipimport_zipimporter___init___impl(ZipImporter *self, PyObject *path)
+/*[clinic end generated code: output=141558fefdb46dc8 input=92b9ebeed1f6a704]*/
 {
-    PyObject *path, *files, *tmp;
+    PyObject *files, *tmp;
     PyObject *filename = NULL;
     Py_ssize_t len, flen;
-
-    if (!_PyArg_NoKeywords("zipimporter()", kwds))
-        return -1;
-
-    if (!PyArg_ParseTuple(args, "O&:zipimporter",
-                          PyUnicode_FSDecoder, &path))
-        return -1;
 
     if (PyUnicode_READY(path) == -1)
         return -1;
@@ -139,10 +165,10 @@ zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
     }
     else
         Py_INCREF(files);
-    self->files = files;
+    Py_XSETREF(self->files, files);
 
     /* Transfer reference */
-    self->archive = filename;
+    Py_XSETREF(self->archive, filename);
     filename = NULL;
 
     /* Check if there is a prefix directory following the filename. */
@@ -151,18 +177,18 @@ zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
                                   PyUnicode_GET_LENGTH(path));
         if (tmp == NULL)
             goto error;
-        self->prefix = tmp;
+        Py_XSETREF(self->prefix, tmp);
         if (PyUnicode_READ_CHAR(path, len-1) != SEP) {
             /* add trailing SEP */
             tmp = PyUnicode_FromFormat("%U%c", self->prefix, SEP);
             if (tmp == NULL)
                 goto error;
-            Py_DECREF(self->prefix);
-            self->prefix = tmp;
+            Py_SETREF(self->prefix, tmp);
         }
     }
-    else
-        self->prefix = PyUnicode_New(0, 0);
+    else {
+        Py_XSETREF(self->prefix, PyUnicode_New(0, 0));
+    }
     Py_DECREF(path);
     return 0;
 
@@ -233,7 +259,7 @@ make_filename(PyObject *prefix, PyObject *name)
     Py_ssize_t len;
 
     len = PyUnicode_GET_LENGTH(prefix) + PyUnicode_GET_LENGTH(name) + 1;
-    p = buf = PyMem_Malloc(sizeof(Py_UCS4) * len);
+    p = buf = PyMem_New(Py_UCS4, len);
     if (buf == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -297,6 +323,12 @@ get_module_info(ZipImporter *self, PyObject *fullname)
     PyObject *path, *fullpath, *item;
     struct st_zip_searchorder *zso;
 
+    if (self->prefix == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "zipimporter.__init__() wasn't called");
+        return MI_ERROR;
+    }
+
     subname = get_subname(fullname);
     if (subname == NULL)
         return MI_ERROR;
@@ -327,17 +359,14 @@ get_module_info(ZipImporter *self, PyObject *fullname)
 }
 
 typedef enum {
-    FL_ERROR,
-    FL_NOT_FOUND,
-    FL_MODULE_FOUND,
-    FL_NS_FOUND
+    FL_ERROR = -1,       /* error */
+    FL_NOT_FOUND,        /* no loader or namespace portions found */
+    FL_MODULE_FOUND,     /* module/package found */
+    FL_NS_FOUND          /* namespace portion found: */
+                         /* *namespace_portion will point to the name */
 } find_loader_result;
 
-/* The guts of "find_loader" and "find_module". Return values:
-   -1: error
-    0: no loader or namespace portions found
-    1: module/package found
-    2: namespace portion found: *namespace_portion will point to the name
+/* The guts of "find_loader" and "find_module".
 */
 static find_loader_result
 find_loader(ZipImporter *self, PyObject *fullname, PyObject **namespace_portion)
@@ -352,40 +381,62 @@ find_loader(ZipImporter *self, PyObject *fullname, PyObject **namespace_portion)
     if (mi == MI_NOT_FOUND) {
         /* Not a module or regular package. See if this is a directory, and
            therefore possibly a portion of a namespace package. */
-        int is_dir = check_is_directory(self, self->prefix, fullname);
+        find_loader_result result = FL_NOT_FOUND;
+        PyObject *subname;
+        int is_dir;
+
+        /* We're only interested in the last path component of fullname;
+           earlier components are recorded in self->prefix. */
+        subname = get_subname(fullname);
+        if (subname == NULL) {
+            return FL_ERROR;
+        }
+
+        is_dir = check_is_directory(self, self->prefix, subname);
         if (is_dir < 0)
-            return -1;
-        if (is_dir) {
+            result = FL_ERROR;
+        else if (is_dir) {
             /* This is possibly a portion of a namespace
                package. Return the string representing its path,
                without a trailing separator. */
             *namespace_portion = PyUnicode_FromFormat("%U%c%U%U",
                                                       self->archive, SEP,
-                                                      self->prefix, fullname);
+                                                      self->prefix, subname);
             if (*namespace_portion == NULL)
-                return FL_ERROR;
-            return FL_NS_FOUND;
+                result = FL_ERROR;
+            else
+                result = FL_NS_FOUND;
         }
-        return FL_NOT_FOUND;
+        Py_DECREF(subname);
+        return result;
     }
     /* This is a module or package. */
     return FL_MODULE_FOUND;
 }
 
+/*[clinic input]
+zipimport.zipimporter.find_module
 
-/* Check whether we can satisfy the import of the module named by
-   'fullname'. Return self if we can, None if we can't. */
+    fullname: unicode
+    path: object = None
+    /
+
+Search for a module specified by 'fullname'.
+
+'fullname' must be the fully qualified (dotted) module name. It returns the
+zipimporter instance itself if the module was found, or None if it wasn't.
+The optional 'path' argument is ignored -- it's there for compatibility
+with the importer protocol.
+
+[clinic start generated code]*/
+
 static PyObject *
-zipimporter_find_module(PyObject *obj, PyObject *args)
+zipimport_zipimporter_find_module_impl(ZipImporter *self, PyObject *fullname,
+                                       PyObject *path)
+/*[clinic end generated code: output=506087f609466dc7 input=e3528520e075063f]*/
 {
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *path = NULL;
-    PyObject *fullname;
     PyObject *namespace_portion = NULL;
     PyObject *result = NULL;
-
-    if (!PyArg_ParseTuple(args, "U|O:zipimporter.find_module", &fullname, &path))
-        return NULL;
 
     switch (find_loader(self, fullname, &namespace_portion)) {
     case FL_ERROR:
@@ -400,28 +451,39 @@ zipimporter_find_module(PyObject *obj, PyObject *args)
     case FL_MODULE_FOUND:
         result = (PyObject *)self;
         break;
+    default:
+        PyErr_BadInternalCall();
+        return NULL;
     }
     Py_INCREF(result);
     return result;
 }
 
 
-/* Check whether we can satisfy the import of the module named by
-   'fullname', or whether it could be a portion of a namespace
-   package. Return self if we can load it, a string containing the
-   full path if it's a possible namespace portion, None if we
-   can't load it. */
+/*[clinic input]
+zipimport.zipimporter.find_loader
+
+    fullname: unicode
+    path: object = None
+    /
+
+Search for a module specified by 'fullname'.
+
+'fullname' must be the fully qualified (dotted) module name. It returns the
+zipimporter instance itself if the module was found, a string containing the
+full path name if it's possibly a portion of a namespace package,
+or None otherwise. The optional 'path' argument is ignored -- it's
+there for compatibility with the importer protocol.
+
+[clinic start generated code]*/
+
 static PyObject *
-zipimporter_find_loader(PyObject *obj, PyObject *args)
+zipimport_zipimporter_find_loader_impl(ZipImporter *self, PyObject *fullname,
+                                       PyObject *path)
+/*[clinic end generated code: output=601599a43bc0f49a input=dc73f275b0d5be23]*/
 {
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *path = NULL;
-    PyObject *fullname;
     PyObject *result = NULL;
     PyObject *namespace_portion = NULL;
-
-    if (!PyArg_ParseTuple(args, "U|O:zipimporter.find_module", &fullname, &path))
-        return NULL;
 
     switch (find_loader(self, fullname, &namespace_portion)) {
     case FL_ERROR:
@@ -436,23 +498,34 @@ zipimporter_find_loader(PyObject *obj, PyObject *args)
         result = Py_BuildValue("O[O]", Py_None, namespace_portion);
         Py_DECREF(namespace_portion);
         return result;
+    default:
+        PyErr_BadInternalCall();
+        return NULL;
     }
     return result;
 }
 
-/* Load and return the module named by 'fullname'. */
+/*[clinic input]
+zipimport.zipimporter.load_module
+
+    fullname: unicode
+    /
+
+Load the module specified by 'fullname'.
+
+'fullname' must be the fully qualified (dotted) module name. It returns the
+imported module, or raises ZipImportError if it wasn't found.
+
+[clinic start generated code]*/
+
 static PyObject *
-zipimporter_load_module(PyObject *obj, PyObject *args)
+zipimport_zipimporter_load_module_impl(ZipImporter *self, PyObject *fullname)
+/*[clinic end generated code: output=7303cebf88d47953 input=c236e2e8621f04ef]*/
 {
-    ZipImporter *self = (ZipImporter *)obj;
     PyObject *code = NULL, *mod, *dict;
-    PyObject *fullname;
     PyObject *modpath = NULL;
     int ispackage;
 
-    if (!PyArg_ParseTuple(args, "U:zipimporter.load_module",
-                          &fullname))
-        return NULL;
     if (PyUnicode_READY(fullname) == -1)
         return NULL;
 
@@ -510,17 +583,22 @@ error:
     return NULL;
 }
 
-/* Return a string matching __file__ for the named module */
-static PyObject *
-zipimporter_get_filename(PyObject *obj, PyObject *args)
-{
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *fullname, *code, *modpath;
-    int ispackage;
+/*[clinic input]
+zipimport.zipimporter.get_filename
 
-    if (!PyArg_ParseTuple(args, "U:zipimporter.get_filename",
-                          &fullname))
-        return NULL;
+    fullname: unicode
+    /
+
+Return the filename for the specified module.
+[clinic start generated code]*/
+
+static PyObject *
+zipimport_zipimporter_get_filename_impl(ZipImporter *self,
+                                        PyObject *fullname)
+/*[clinic end generated code: output=c5b92b58bea86506 input=28d2eb57e4f25c8a]*/
+{
+    PyObject *code, *modpath;
+    int ispackage;
 
     /* Deciding the filename requires working out where the code
        would come from if the module was actually loaded */
@@ -532,17 +610,23 @@ zipimporter_get_filename(PyObject *obj, PyObject *args)
     return modpath;
 }
 
-/* Return a bool signifying whether the module is a package or not. */
-static PyObject *
-zipimporter_is_package(PyObject *obj, PyObject *args)
-{
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *fullname;
-    enum zi_module_info mi;
+/*[clinic input]
+zipimport.zipimporter.is_package
 
-    if (!PyArg_ParseTuple(args, "U:zipimporter.is_package",
-                          &fullname))
-        return NULL;
+    fullname: unicode
+    /
+
+Return True if the module specified by fullname is a package.
+
+Raise ZipImportError if the module couldn't be found.
+
+[clinic start generated code]*/
+
+static PyObject *
+zipimport_zipimporter_is_package_impl(ZipImporter *self, PyObject *fullname)
+/*[clinic end generated code: output=c32958c2a5216ae6 input=a7ba752f64345062]*/
+{
+    enum zi_module_info mi;
 
     mi = get_module_info(self, fullname);
     if (mi == MI_ERROR)
@@ -555,19 +639,35 @@ zipimporter_is_package(PyObject *obj, PyObject *args)
 }
 
 
+/*[clinic input]
+zipimport.zipimporter.get_data
+
+    pathname as path: unicode
+    /
+
+Return the data associated with 'pathname'.
+
+Raise OSError if the file was not found.
+
+[clinic start generated code]*/
+
 static PyObject *
-zipimporter_get_data(PyObject *obj, PyObject *args)
+zipimport_zipimporter_get_data_impl(ZipImporter *self, PyObject *path)
+/*[clinic end generated code: output=65dc506aaa268436 input=fa6428b74843c4ae]*/
 {
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *path, *key;
+    PyObject *key;
     PyObject *toc_entry;
     Py_ssize_t path_start, path_len, len;
 
-    if (!PyArg_ParseTuple(args, "U:zipimporter.get_data", &path))
+    if (self->archive == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "zipimporter.__init__() wasn't called");
         return NULL;
+    }
 
 #ifdef ALTSEP
-    path = _PyObject_CallMethodId(path, &PyId_replace, "CC", ALTSEP, SEP);
+    path = _PyObject_CallMethodId((PyObject *)&PyUnicode_Type, &PyId_replace,
+                                  "OCC", path, ALTSEP, SEP);
     if (!path)
         return NULL;
 #else
@@ -590,7 +690,7 @@ zipimporter_get_data(PyObject *obj, PyObject *args)
         goto error;
     toc_entry = PyDict_GetItem(self->files, key);
     if (toc_entry == NULL) {
-        PyErr_SetFromErrnoWithFilenameObject(PyExc_IOError, key);
+        PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, key);
         Py_DECREF(key);
         goto error;
     }
@@ -602,28 +702,45 @@ zipimporter_get_data(PyObject *obj, PyObject *args)
     return NULL;
 }
 
+/*[clinic input]
+zipimport.zipimporter.get_code
+
+    fullname: unicode
+    /
+
+Return the code object for the specified module.
+
+Raise ZipImportError if the module couldn't be found.
+
+[clinic start generated code]*/
+
 static PyObject *
-zipimporter_get_code(PyObject *obj, PyObject *args)
+zipimport_zipimporter_get_code_impl(ZipImporter *self, PyObject *fullname)
+/*[clinic end generated code: output=b923c37fa99cbac4 input=2761412bc37f3549]*/
 {
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *fullname;
-
-    if (!PyArg_ParseTuple(args, "U:zipimporter.get_code", &fullname))
-        return NULL;
-
     return get_module_code(self, fullname, NULL, NULL);
 }
 
-static PyObject *
-zipimporter_get_source(PyObject *obj, PyObject *args)
-{
-    ZipImporter *self = (ZipImporter *)obj;
-    PyObject *toc_entry;
-    PyObject *fullname, *subname, *path, *fullpath;
-    enum zi_module_info mi;
+/*[clinic input]
+zipimport.zipimporter.get_source
 
-    if (!PyArg_ParseTuple(args, "U:zipimporter.get_source", &fullname))
-        return NULL;
+    fullname: unicode
+    /
+
+Return the source code for the specified module.
+
+Raise ZipImportError if the module couldn't be found, return None if the
+archive does contain the module, but has no source for it.
+
+[clinic start generated code]*/
+
+static PyObject *
+zipimport_zipimporter_get_source_impl(ZipImporter *self, PyObject *fullname)
+/*[clinic end generated code: output=bc059301b0c33729 input=4e4b186f2e690716]*/
+{
+    PyObject *toc_entry;
+    PyObject *subname, *path, *fullpath;
+    enum zi_module_info mi;
 
     mi = get_module_info(self, fullname);
     if (mi == MI_ERROR)
@@ -664,84 +781,49 @@ zipimporter_get_source(PyObject *obj, PyObject *args)
     }
 
     /* we have the module, but no source */
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(doc_find_module,
-"find_module(fullname, path=None) -> self or None.\n\
-\n\
-Search for a module specified by 'fullname'. 'fullname' must be the\n\
-fully qualified (dotted) module name. It returns the zipimporter\n\
-instance itself if the module was found, or None if it wasn't.\n\
-The optional 'path' argument is ignored -- it's there for compatibility\n\
-with the importer protocol.");
+/*[clinic input]
+zipimport.zipimporter.get_resource_reader
 
-PyDoc_STRVAR(doc_find_loader,
-"find_loader(fullname, path=None) -> self, str or None.\n\
-\n\
-Search for a module specified by 'fullname'. 'fullname' must be the\n\
-fully qualified (dotted) module name. It returns the zipimporter\n\
-instance itself if the module was found, a string containing the\n\
-full path name if it's possibly a portion of a namespace package,\n\
-or None otherwise. The optional 'path' argument is ignored -- it's\n\
- there for compatibility with the importer protocol.");
+    fullname: unicode
+    /
 
-PyDoc_STRVAR(doc_load_module,
-"load_module(fullname) -> module.\n\
-\n\
-Load the module specified by 'fullname'. 'fullname' must be the\n\
-fully qualified (dotted) module name. It returns the imported\n\
-module, or raises ZipImportError if it wasn't found.");
+Return the ResourceReader for a package in a zip file.
 
-PyDoc_STRVAR(doc_get_data,
-"get_data(pathname) -> string with file data.\n\
-\n\
-Return the data associated with 'pathname'. Raise IOError if\n\
-the file wasn't found.");
+If 'fullname' is a package within the zip file, return the 'ResourceReader'
+object for the package.  Otherwise return None.
 
-PyDoc_STRVAR(doc_is_package,
-"is_package(fullname) -> bool.\n\
-\n\
-Return True if the module specified by fullname is a package.\n\
-Raise ZipImportError if the module couldn't be found.");
+[clinic start generated code]*/
 
-PyDoc_STRVAR(doc_get_code,
-"get_code(fullname) -> code object.\n\
-\n\
-Return the code object for the specified module. Raise ZipImportError\n\
-if the module couldn't be found.");
+static PyObject *
+zipimport_zipimporter_get_resource_reader_impl(ZipImporter *self,
+                                               PyObject *fullname)
+/*[clinic end generated code: output=5e367d431f830726 input=bfab94d736e99151]*/
+{
+    PyObject *module = PyImport_ImportModule("importlib.resources");
+    if (module == NULL) {
+        return NULL;
+    }
+    PyObject *retval = PyObject_CallMethod(
+        module, "_zipimport_get_resource_reader",
+        "OO", (PyObject *)self, fullname);
+    Py_DECREF(module);
+    return retval;
+}
 
-PyDoc_STRVAR(doc_get_source,
-"get_source(fullname) -> source string.\n\
-\n\
-Return the source code for the specified module. Raise ZipImportError\n\
-if the module couldn't be found, return None if the archive does\n\
-contain the module, but has no source for it.");
-
-
-PyDoc_STRVAR(doc_get_filename,
-"get_filename(fullname) -> filename string.\n\
-\n\
-Return the filename for the specified module.");
 
 static PyMethodDef zipimporter_methods[] = {
-    {"find_module", zipimporter_find_module, METH_VARARGS,
-     doc_find_module},
-    {"find_loader", zipimporter_find_loader, METH_VARARGS,
-     doc_find_loader},
-    {"load_module", zipimporter_load_module, METH_VARARGS,
-     doc_load_module},
-    {"get_data", zipimporter_get_data, METH_VARARGS,
-     doc_get_data},
-    {"get_code", zipimporter_get_code, METH_VARARGS,
-     doc_get_code},
-    {"get_source", zipimporter_get_source, METH_VARARGS,
-     doc_get_source},
-    {"get_filename", zipimporter_get_filename, METH_VARARGS,
-     doc_get_filename},
-    {"is_package", zipimporter_is_package, METH_VARARGS,
-     doc_is_package},
+    ZIPIMPORT_ZIPIMPORTER_FIND_MODULE_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_FIND_LOADER_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_LOAD_MODULE_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_GET_FILENAME_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_IS_PACKAGE_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_GET_DATA_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_GET_CODE_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_GET_SOURCE_METHODDEF
+    ZIPIMPORT_ZIPIMPORTER_GET_RESOURCE_READER_METHODDEF
     {NULL,              NULL}   /* sentinel */
 };
 
@@ -751,20 +833,6 @@ static PyMemberDef zipimporter_members[] = {
     {"_files",   T_OBJECT, offsetof(ZipImporter, files),    READONLY},
     {NULL}
 };
-
-PyDoc_STRVAR(zipimporter_doc,
-"zipimporter(archivepath) -> zipimporter object\n\
-\n\
-Create a new zipimporter instance. 'archivepath' must be a path to\n\
-a zipfile, or to a specific path inside a zipfile. For example, it can be\n\
-'/tmp/myimport.zip', or '/tmp/myimport.zip/mydirectory', if mydirectory is a\n\
-valid directory inside the archive.\n\
-\n\
-'ZipImportError is raised if 'archivepath' doesn't point to a valid Zip\n\
-archive.\n\
-\n\
-The 'archive' attribute of zipimporter objects contains the name of the\n\
-zipfile targeted.");
 
 #define DEFERRED_ADDRESS(ADDR) 0
 
@@ -790,7 +858,7 @@ static PyTypeObject ZipImporter_Type = {
     0,                                          /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
         Py_TPFLAGS_HAVE_GC,                     /* tp_flags */
-    zipimporter_doc,                            /* tp_doc */
+    zipimport_zipimporter___init____doc__,      /* tp_doc */
     zipimporter_traverse,                       /* tp_traverse */
     0,                                          /* tp_clear */
     0,                                          /* tp_richcompare */
@@ -805,7 +873,7 @@ static PyTypeObject ZipImporter_Type = {
     0,                                          /* tp_descr_get */
     0,                                          /* tp_descr_set */
     0,                                          /* tp_dictoffset */
-    (initproc)zipimporter_init,                 /* tp_init */
+    (initproc)zipimport_zipimporter___init__,   /* tp_init */
     PyType_GenericAlloc,                        /* tp_alloc */
     PyType_GenericNew,                          /* tp_new */
     PyObject_GC_Del,                            /* tp_free */
@@ -814,21 +882,41 @@ static PyTypeObject ZipImporter_Type = {
 
 /* implementation */
 
-/* Given a buffer, return the long that is represented by the first
+/* Given a buffer, return the unsigned int that is represented by the first
    4 bytes, encoded as little endian. This partially reimplements
    marshal.c:r_long() */
-static long
-get_long(unsigned char *buf) {
-    long x;
+static unsigned int
+get_uint32(const unsigned char *buf)
+{
+    unsigned int x;
     x =  buf[0];
-    x |= (long)buf[1] <<  8;
-    x |= (long)buf[2] << 16;
-    x |= (long)buf[3] << 24;
-#if SIZEOF_LONG > 4
-    /* Sign extension for 64-bit machines */
-    x |= -(x & 0x80000000L);
-#endif
+    x |= (unsigned int)buf[1] <<  8;
+    x |= (unsigned int)buf[2] << 16;
+    x |= (unsigned int)buf[3] << 24;
     return x;
+}
+
+/* Given a buffer, return the unsigned int that is represented by the first
+   2 bytes, encoded as little endian. This partially reimplements
+   marshal.c:r_short() */
+static unsigned short
+get_uint16(const unsigned char *buf)
+{
+    unsigned short x;
+    x =  buf[0];
+    x |= (unsigned short)buf[1] <<  8;
+    return x;
+}
+
+static void
+set_file_error(PyObject *archive, int eof)
+{
+    if (eof) {
+        PyErr_SetString(PyExc_EOFError, "EOF read where not expected");
+    }
+    else {
+        PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, archive);
+    }
 }
 
 /*
@@ -858,111 +946,135 @@ read_directory(PyObject *archive)
 {
     PyObject *files = NULL;
     FILE *fp;
-    unsigned short flags;
-    short compress, time, date, name_size;
-    long crc, data_size, file_size, header_size;
-    Py_ssize_t file_offset, header_position, header_offset;
-    long l, count;
-    Py_ssize_t i;
+    unsigned short flags, compress, time, date, name_size;
+    unsigned int crc, data_size, file_size, header_size, header_offset;
+    unsigned long file_offset, header_position;
+    unsigned long arc_offset;  /* Absolute offset to start of the zip-archive. */
+    unsigned int count, i;
+    unsigned char buffer[46];
     char name[MAXPATHLEN + 5];
-    char dummy[8]; /* Buffer to read unused header values into */
     PyObject *nameobj = NULL;
-    char *p, endof_central_dir[22];
-    Py_ssize_t arc_offset;  /* Absolute offset to start of the zip-archive. */
     PyObject *path;
     const char *charset;
     int bootstrap;
+    const char *errmsg = NULL;
 
     fp = _Py_fopen_obj(archive, "rb");
     if (fp == NULL) {
-        if (!PyErr_Occurred())
-            PyErr_Format(ZipImportError, "can't open Zip file: %R", archive);
+        if (PyErr_ExceptionMatches(PyExc_OSError)) {
+            _PyErr_FormatFromCause(ZipImportError,
+                                   "can't open Zip file: %R", archive);
+        }
         return NULL;
     }
 
     if (fseek(fp, -22, SEEK_END) == -1) {
-        fclose(fp);
-        PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-        return NULL;
+        goto file_error;
     }
-    header_position = ftell(fp);
-    if (fread(endof_central_dir, 1, 22, fp) != 22) {
-        fclose(fp);
-        PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-        return NULL;
+    header_position = (unsigned long)ftell(fp);
+    if (header_position == (unsigned long)-1) {
+        goto file_error;
     }
-    if (get_long((unsigned char *)endof_central_dir) != 0x06054B50) {
+    assert(header_position <= (unsigned long)LONG_MAX);
+    if (fread(buffer, 1, 22, fp) != 22) {
+        goto file_error;
+    }
+    if (get_uint32(buffer) != 0x06054B50u) {
         /* Bad: End of Central Dir signature */
-        fclose(fp);
-        PyErr_Format(ZipImportError, "not a Zip file: %R", archive);
-        return NULL;
+        errmsg = "not a Zip file";
+        goto invalid_header;
     }
 
-    header_size = get_long((unsigned char *)endof_central_dir + 12);
-    header_offset = get_long((unsigned char *)endof_central_dir + 16);
-    arc_offset = header_position - header_offset - header_size;
-    header_offset += arc_offset;
+    header_size = get_uint32(buffer + 12);
+    header_offset = get_uint32(buffer + 16);
+    if (header_position < header_size) {
+        errmsg = "bad central directory size";
+        goto invalid_header;
+    }
+    if (header_position < header_offset) {
+        errmsg = "bad central directory offset";
+        goto invalid_header;
+    }
+    if (header_position - header_size < header_offset) {
+        errmsg = "bad central directory size or offset";
+        goto invalid_header;
+    }
+    header_position -= header_size;
+    arc_offset = header_position - header_offset;
 
     files = PyDict_New();
-    if (files == NULL)
+    if (files == NULL) {
         goto error;
-
+    }
     /* Start of Central Directory */
     count = 0;
-    if (fseek(fp, header_offset, 0) == -1)
+    if (fseek(fp, (long)header_position, 0) == -1) {
         goto file_error;
+    }
     for (;;) {
         PyObject *t;
+        size_t n;
         int err;
 
-        /* Start of file header */
-        l = PyMarshal_ReadLongFromFile(fp);
-        if (l == -1 && PyErr_Occurred())
-            goto error;
-        if (l != 0x02014B50)
-            break;              /* Bad: Central Dir File Header */
-
-        /* On Windows, calling fseek to skip over the fields we don't use is
-        slower than reading the data into a dummy buffer because fseek flushes
-        stdio's internal buffers. See issue #8745. */
-        if (fread(dummy, 1, 4, fp) != 4) /* Skip unused fields, avoid fseek */
-            goto file_error;
-
-        flags = (unsigned short)PyMarshal_ReadShortFromFile(fp);
-        compress = PyMarshal_ReadShortFromFile(fp);
-        time = PyMarshal_ReadShortFromFile(fp);
-        date = PyMarshal_ReadShortFromFile(fp);
-        crc = PyMarshal_ReadLongFromFile(fp);
-        data_size = PyMarshal_ReadLongFromFile(fp);
-        file_size = PyMarshal_ReadLongFromFile(fp);
-        name_size = PyMarshal_ReadShortFromFile(fp);
-        header_size = name_size +
-           PyMarshal_ReadShortFromFile(fp) +
-           PyMarshal_ReadShortFromFile(fp);
-        if (fread(dummy, 1, 8, fp) != 8) /* Skip unused fields, avoid fseek */
-            goto file_error;
-        file_offset = PyMarshal_ReadLongFromFile(fp) + arc_offset;
-        if (PyErr_Occurred())
-            goto error;
-
-        if (name_size > MAXPATHLEN)
-            name_size = MAXPATHLEN;
-
-        p = name;
-        for (i = 0; i < (Py_ssize_t)name_size; i++) {
-            *p = (char)getc(fp);
-            if (*p == '/')
-                *p = SEP;
-            p++;
+        n = fread(buffer, 1, 46, fp);
+        if (n < 4) {
+            goto eof_error;
         }
-        *p = 0;         /* Add terminating null byte */
-        for (; i < header_size; i++) /* Skip the rest of the header */
-            if(getc(fp) == EOF) /* Avoid fseek */
+        /* Start of file header */
+        if (get_uint32(buffer) != 0x02014B50u) {
+            break;              /* Bad: Central Dir File Header */
+        }
+        if (n != 46) {
+            goto eof_error;
+        }
+        flags = get_uint16(buffer + 8);
+        compress = get_uint16(buffer + 10);
+        time = get_uint16(buffer + 12);
+        date = get_uint16(buffer + 14);
+        crc = get_uint32(buffer + 16);
+        data_size = get_uint32(buffer + 20);
+        file_size = get_uint32(buffer + 24);
+        name_size = get_uint16(buffer + 28);
+        header_size = (unsigned int)name_size +
+           get_uint16(buffer + 30) /* extra field */ +
+           get_uint16(buffer + 32) /* comment */;
+
+        file_offset = get_uint32(buffer + 42);
+        if (file_offset > header_offset) {
+            errmsg = "bad local header offset";
+            goto invalid_header;
+        }
+        file_offset += arc_offset;
+
+        if (name_size > MAXPATHLEN) {
+            name_size = MAXPATHLEN;
+        }
+        if (fread(name, 1, name_size, fp) != name_size) {
+            goto file_error;
+        }
+        name[name_size] = '\0';  /* Add terminating null byte */
+#if SEP != '/'
+        for (i = 0; i < name_size; i++) {
+            if (name[i] == '/') {
+                name[i] = SEP;
+            }
+        }
+#endif
+        /* Skip the rest of the header.
+         * On Windows, calling fseek to skip over the fields we don't use is
+         * slower than reading the data because fseek flushes stdio's
+         * internal buffers.  See issue #8745. */
+        assert(header_size <= 3*0xFFFFu);
+        for (i = name_size; i < header_size; i++) {
+            if (getc(fp) == EOF) {
                 goto file_error;
+            }
+        }
 
         bootstrap = 0;
-        if (flags & 0x0800)
+        if (flags & 0x0800) {
             charset = "utf-8";
+        }
         else if (!PyThreadState_GET()->interp->codecs_initialized) {
             /* During bootstrap, we may need to load the encodings
                package from a ZIP file. But the cp437 encoding is implemented
@@ -973,44 +1085,59 @@ read_directory(PyObject *archive)
             charset = "ascii";
             bootstrap = 1;
         }
-        else
+        else {
             charset = "cp437";
+        }
         nameobj = PyUnicode_Decode(name, name_size, charset, NULL);
         if (nameobj == NULL) {
-            if (bootstrap)
+            if (bootstrap) {
                 PyErr_Format(PyExc_NotImplementedError,
                     "bootstrap issue: python%i%i.zip contains non-ASCII "
                     "filenames without the unicode flag",
                     PY_MAJOR_VERSION, PY_MINOR_VERSION);
+            }
             goto error;
         }
-        if (PyUnicode_READY(nameobj) == -1)
+        if (PyUnicode_READY(nameobj) == -1) {
             goto error;
+        }
         path = PyUnicode_FromFormat("%U%c%U", archive, SEP, nameobj);
-        if (path == NULL)
+        if (path == NULL) {
             goto error;
-        t = Py_BuildValue("Nhllnhhl", path, compress, data_size,
+        }
+        t = Py_BuildValue("NHIIkHHI", path, compress, data_size,
                           file_size, file_offset, time, date, crc);
-        if (t == NULL)
+        if (t == NULL) {
             goto error;
+        }
         err = PyDict_SetItem(files, nameobj, t);
         Py_CLEAR(nameobj);
         Py_DECREF(t);
-        if (err != 0)
+        if (err != 0) {
             goto error;
+        }
         count++;
     }
     fclose(fp);
-    if (Py_VerboseFlag)
-        PySys_FormatStderr("# zipimport: found %ld names in %R\n",
+    if (Py_VerboseFlag) {
+        PySys_FormatStderr("# zipimport: found %u names in %R\n",
                            count, archive);
+    }
     return files;
+
+eof_error:
+    set_file_error(archive, !ferror(fp));
+    goto error;
+
 file_error:
-    fclose(fp);
-    Py_XDECREF(files);
-    Py_XDECREF(nameobj);
     PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-    return NULL;
+    goto error;
+
+invalid_header:
+    assert(errmsg != NULL);
+    PyErr_Format(ZipImportError, "%s: %R", errmsg, archive);
+    goto error;
+
 error:
     fclose(fp);
     Py_XDECREF(files);
@@ -1030,7 +1157,7 @@ get_decompress_func(void)
     _Py_IDENTIFIER(decompress);
 
     if (importing_zlib != 0)
-        /* Someone has a zlib.py[co] in their Zip file;
+        /* Someone has a zlib.pyc in their Zip file;
            let's avoid a stack overflow. */
         return NULL;
     importing_zlib = 1;
@@ -1056,87 +1183,79 @@ get_decompress_func(void)
 static PyObject *
 get_data(PyObject *archive, PyObject *toc_entry)
 {
-    PyObject *raw_data, *data = NULL, *decompress;
+    PyObject *raw_data = NULL, *data, *decompress;
     char *buf;
     FILE *fp;
-    int err;
-    Py_ssize_t bytes_read = 0;
-    long l;
     PyObject *datapath;
-    long compress, data_size, file_size, file_offset, bytes_size;
-    long time, date, crc;
+    unsigned short compress, time, date;
+    unsigned int crc;
+    Py_ssize_t data_size, file_size, bytes_size;
+    long file_offset, header_size;
+    unsigned char buffer[30];
+    const char *errmsg = NULL;
 
-    if (!PyArg_ParseTuple(toc_entry, "Olllllll", &datapath, &compress,
+    if (!PyArg_ParseTuple(toc_entry, "OHnnlHHI", &datapath, &compress,
                           &data_size, &file_size, &file_offset, &time,
                           &date, &crc)) {
+        return NULL;
+    }
+    if (data_size < 0) {
+        PyErr_Format(ZipImportError, "negative data size");
         return NULL;
     }
 
     fp = _Py_fopen_obj(archive, "rb");
     if (!fp) {
-        if (!PyErr_Occurred())
-            PyErr_Format(PyExc_IOError,
-               "zipimport: can not open file %U", archive);
         return NULL;
     }
-
     /* Check to make sure the local file header is correct */
     if (fseek(fp, file_offset, 0) == -1) {
-        fclose(fp);
-        PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-        return NULL;
+        goto file_error;
     }
-
-    l = PyMarshal_ReadLongFromFile(fp);
-    if (l != 0x04034B50) {
+    if (fread(buffer, 1, 30, fp) != 30) {
+        goto eof_error;
+    }
+    if (get_uint32(buffer) != 0x04034B50u) {
         /* Bad: Local File Header */
-        if (!PyErr_Occurred())
-            PyErr_Format(ZipImportError,
-                         "bad local file header in %U",
-                         archive);
-        fclose(fp);
-        return NULL;
-    }
-    if (fseek(fp, file_offset + 26, 0) == -1) {
-        fclose(fp);
-        PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-        return NULL;
+        errmsg = "bad local file header";
+        goto invalid_header;
     }
 
-    l = 30 + PyMarshal_ReadShortFromFile(fp) +
-        PyMarshal_ReadShortFromFile(fp);        /* local header size */
-    if (PyErr_Occurred()) {
+    header_size = (unsigned int)30 +
+        get_uint16(buffer + 26) /* file name */ +
+        get_uint16(buffer + 28) /* extra field */;
+    if (file_offset > LONG_MAX - header_size) {
+        errmsg = "bad local file header size";
+        goto invalid_header;
+    }
+    file_offset += header_size;  /* Start of file data */
+
+    if (data_size > LONG_MAX - 1) {
         fclose(fp);
+        PyErr_NoMemory();
         return NULL;
     }
-    file_offset += l;           /* Start of file data */
-
     bytes_size = compress == 0 ? data_size : data_size + 1;
-    if (bytes_size == 0)
+    if (bytes_size == 0) {
         bytes_size++;
+    }
     raw_data = PyBytes_FromStringAndSize((char *)NULL, bytes_size);
-
     if (raw_data == NULL) {
-        fclose(fp);
-        return NULL;
+        goto error;
     }
     buf = PyBytes_AsString(raw_data);
 
-    err = fseek(fp, file_offset, 0);
-    if (err == 0) {
-        bytes_read = fread(buf, 1, data_size, fp);
-    } else {
-        fclose(fp);
-        PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
-        return NULL;
+    if (fseek(fp, file_offset, 0) == -1) {
+        goto file_error;
     }
-    fclose(fp);
-    if (err || bytes_read != data_size) {
-        PyErr_SetString(PyExc_IOError,
+    if (fread(buf, 1, data_size, fp) != (size_t)data_size) {
+        PyErr_SetString(PyExc_OSError,
                         "zipimport: can't read data");
-        Py_DECREF(raw_data);
-        return NULL;
+        goto error;
     }
+
+    fclose(fp);
+    fp = NULL;
 
     if (compress != 0) {
         buf[data_size] = 'Z';  /* saw this in zipfile.py */
@@ -1160,9 +1279,36 @@ get_data(PyObject *archive, PyObject *toc_entry)
     }
     data = PyObject_CallFunction(decompress, "Oi", raw_data, -15);
     Py_DECREF(decompress);
-error:
     Py_DECREF(raw_data);
+    if (data != NULL && !PyBytes_Check(data)) {
+        PyErr_Format(PyExc_TypeError,
+                     "zlib.decompress() must return a bytes object, not "
+                     "%.200s",
+                     Py_TYPE(data)->tp_name);
+        Py_DECREF(data);
+        return NULL;
+    }
     return data;
+
+eof_error:
+    set_file_error(archive, !ferror(fp));
+    goto error;
+
+file_error:
+    PyErr_Format(ZipImportError, "can't read Zip file: %R", archive);
+    goto error;
+
+invalid_header:
+    assert(errmsg != NULL);
+    PyErr_Format(ZipImportError, "%s: %R", errmsg, archive);
+    goto error;
+
+error:
+    if (fp != NULL) {
+        fclose(fp);
+    }
+    Py_XDECREF(raw_data);
+    return NULL;
 }
 
 /* Lenient date/time comparison function. The precision of the mtime
@@ -1178,7 +1324,7 @@ eq_mtime(time_t t1, time_t t2)
     return d <= 1;
 }
 
-/* Given the contents of a .py[co] file in a buffer, unmarshal the data
+/* Given the contents of a .pyc file in a buffer, unmarshal the data
    and return the code object. Return None if it the magic word doesn't
    match (we do this instead of raising an exception as we fall back
    to .py if available and we don't want to mask other errors).
@@ -1187,37 +1333,46 @@ static PyObject *
 unmarshal_code(PyObject *pathname, PyObject *data, time_t mtime)
 {
     PyObject *code;
-    char *buf = PyBytes_AsString(data);
+    unsigned char *buf = (unsigned char *)PyBytes_AsString(data);
     Py_ssize_t size = PyBytes_Size(data);
 
-    if (size <= 9) {
+    if (size < 16) {
         PyErr_SetString(ZipImportError,
                         "bad pyc data");
         return NULL;
     }
 
-    if (get_long((unsigned char *)buf) != PyImport_GetMagicNumber()) {
-        if (Py_VerboseFlag)
+    if (get_uint32(buf) != (unsigned int)PyImport_GetMagicNumber()) {
+        if (Py_VerboseFlag) {
             PySys_FormatStderr("# %R has bad magic\n",
                                pathname);
-        Py_INCREF(Py_None);
-        return Py_None;  /* signal caller to try alternative */
+        }
+        Py_RETURN_NONE;  /* signal caller to try alternative */
     }
 
-    if (mtime != 0 && !eq_mtime(get_long((unsigned char *)buf + 4),
-                                mtime)) {
-        if (Py_VerboseFlag)
+    uint32_t flags = get_uint32(buf + 4);
+    if (flags != 0) {
+        // Hash-based pyc. We currently refuse to handle checked hash-based
+        // pycs. We could validate hash-based pycs against the source, but it
+        // seems likely that most people putting hash-based pycs in a zipfile
+        // will use unchecked ones.
+        if (strcmp(_Py_CheckHashBasedPycsMode, "never") &&
+            (flags != 0x1 || !strcmp(_Py_CheckHashBasedPycsMode, "always")))
+            Py_RETURN_NONE;
+    } else if ((mtime != 0 && !eq_mtime(get_uint32(buf + 8), mtime))) {
+        if (Py_VerboseFlag) {
             PySys_FormatStderr("# %R has bad mtime\n",
                                pathname);
-        Py_INCREF(Py_None);
-        return Py_None;  /* signal caller to try alternative */
+        }
+        Py_RETURN_NONE;  /* signal caller to try alternative */
     }
 
     /* XXX the pyc's size field is ignored; timestamp collisions are probably
        unimportant with zip files. */
-    code = PyMarshal_ReadObjectFromString(buf + 12, size - 12);
-    if (code == NULL)
+    code = PyMarshal_ReadObjectFromString((char *)buf + 16, size - 16);
+    if (code == NULL) {
         return NULL;
+    }
     if (!PyCode_Check(code)) {
         Py_DECREF(code);
         PyErr_Format(PyExc_TypeError,
@@ -1228,7 +1383,7 @@ unmarshal_code(PyObject *pathname, PyObject *data, time_t mtime)
     return code;
 }
 
-/* Replace any occurances of "\r\n?" in the input string with "\n".
+/* Replace any occurrences of "\r\n?" in the input string with "\n".
    This converts DOS and Mac line endings to Unix line endings.
    Also append a trailing "\n" to be compatible with
    PyParser_SimpleParseFile(). Returns a new reference. */
@@ -1275,22 +1430,16 @@ normalize_line_endings(PyObject *source)
 static PyObject *
 compile_source(PyObject *pathname, PyObject *source)
 {
-    PyObject *code, *fixed_source, *pathbytes;
-
-    pathbytes = PyUnicode_EncodeFSDefault(pathname);
-    if (pathbytes == NULL)
-        return NULL;
+    PyObject *code, *fixed_source;
 
     fixed_source = normalize_line_endings(source);
     if (fixed_source == NULL) {
-        Py_DECREF(pathbytes);
         return NULL;
     }
 
-    code = Py_CompileString(PyBytes_AsString(fixed_source),
-                            PyBytes_AsString(pathbytes),
-                            Py_file_input);
-    Py_DECREF(pathbytes);
+    code = Py_CompileStringObject(PyBytes_AsString(fixed_source),
+                                  pathname, Py_file_input, NULL, -1);
+
     Py_DECREF(fixed_source);
     return code;
 }
@@ -1315,7 +1464,7 @@ parse_dostime(int dostime, int dosdate)
     return mktime(&stm);
 }
 
-/* Given a path to a .pyc or .pyo file in the archive, return the
+/* Given a path to a .pyc file in the archive, return the
    modification time of the matching .py file, or 0 if no source
    is available. */
 static time_t
@@ -1324,7 +1473,7 @@ get_mtime_of_source(ZipImporter *self, PyObject *path)
     PyObject *toc_entry, *stripped;
     time_t mtime;
 
-    /* strip 'c' or 'o' from *.py[co] */
+    /* strip 'c' from *.pyc */
     if (PyUnicode_READY(path) == -1)
         return (time_t)-1;
     stripped = PyUnicode_FromKindAndData(PyUnicode_KIND(path),
@@ -1378,6 +1527,12 @@ get_module_code(ZipImporter *self, PyObject *fullname,
     PyObject *code = NULL, *toc_entry, *subname;
     PyObject *path, *fullpath = NULL;
     struct st_zip_searchorder *zso;
+
+    if (self->prefix == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "zipimporter.__init__() wasn't called");
+        return NULL;
+    }
 
     subname = get_subname(fullname);
     if (subname == NULL)
@@ -1478,17 +1633,6 @@ PyInit_zipimport(void)
     /* Correct directory separator */
     zip_searchorder[0].suffix[0] = SEP;
     zip_searchorder[1].suffix[0] = SEP;
-    zip_searchorder[2].suffix[0] = SEP;
-    if (Py_OptimizeFlag) {
-        /* Reverse *.pyc and *.pyo */
-        struct st_zip_searchorder tmp;
-        tmp = zip_searchorder[0];
-        zip_searchorder[0] = zip_searchorder[1];
-        zip_searchorder[1] = tmp;
-        tmp = zip_searchorder[3];
-        zip_searchorder[3] = zip_searchorder[4];
-        zip_searchorder[4] = tmp;
-    }
 
     mod = PyModule_Create(&zipimportmodule);
     if (mod == NULL)

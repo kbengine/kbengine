@@ -3,11 +3,15 @@
 
 .. module:: lzma
    :synopsis: A Python wrapper for the liblzma compression library.
+
 .. moduleauthor:: Nadeem Vawda <nadeem.vawda@gmail.com>
 .. sectionauthor:: Nadeem Vawda <nadeem.vawda@gmail.com>
 
 .. versionadded:: 3.3
 
+**Source code:** :source:`Lib/lzma.py`
+
+--------------
 
 This module provides classes and convenience functions for compressing and
 decompressing data using the LZMA compression algorithm. Also included is a file
@@ -35,8 +39,9 @@ Reading and writing compressed files
    object`.
 
    The *filename* argument can be either an actual file name (given as a
-   :class:`str` or :class:`bytes` object), in which case the named file is
-   opened, or it can be an existing file object to read from or write to.
+   :class:`str`, :class:`bytes` or :term:`path-like <path-like object>` object), in
+   which case the named file is opened, or it can be an existing file object
+   to read from or write to.
 
    The *mode* argument can be any of ``"r"``, ``"rb"``, ``"w"``, ``"wb"``,
    ``"x"``, ``"xb"``, ``"a"`` or ``"ab"`` for binary mode, or ``"rt"``,
@@ -60,6 +65,9 @@ Reading and writing compressed files
    .. versionchanged:: 3.4
       Added support for the ``"x"``, ``"xb"`` and ``"xt"`` modes.
 
+   .. versionchanged:: 3.6
+      Accepts a :term:`path-like object`.
+
 
 .. class:: LZMAFile(filename=None, mode="r", \*, format=None, check=-1, preset=None, filters=None)
 
@@ -67,9 +75,10 @@ Reading and writing compressed files
 
    An :class:`LZMAFile` can wrap an already-open :term:`file object`, or operate
    directly on a named file. The *filename* argument specifies either the file
-   object to wrap, or the name of the file to open (as a :class:`str` or
-   :class:`bytes` object). When wrapping an existing file object, the wrapped
-   file will not be closed when the :class:`LZMAFile` is closed.
+   object to wrap, or the name of the file to open (as a :class:`str`,
+   :class:`bytes` or :term:`path-like <path-like object>` object). When wrapping an
+   existing file object, the wrapped file will not be closed when the
+   :class:`LZMAFile` is closed.
 
    The *mode* argument can be either ``"r"`` for reading (default), ``"w"`` for
    overwriting, ``"x"`` for exclusive creation, or ``"a"`` for appending. These
@@ -109,6 +118,13 @@ Reading and writing compressed files
 
    .. versionchanged:: 3.4
       Added support for the ``"x"`` and ``"xb"`` modes.
+
+   .. versionchanged:: 3.5
+      The :meth:`~io.BufferedIOBase.read` method now accepts an argument of
+      ``None``.
+
+   .. versionchanged:: 3.6
+      Accepts a :term:`path-like object`.
 
 
 Compressing and decompressing data in memory
@@ -221,13 +237,32 @@ Compressing and decompressing data in memory
       decompress a multi-stream input with :class:`LZMADecompressor`, you must
       create a new decompressor for each stream.
 
-   .. method:: decompress(data)
+   .. method:: decompress(data, max_length=-1)
 
-      Decompress *data* (a :class:`bytes` object), returning a :class:`bytes`
-      object containing the decompressed data for at least part of the input.
-      Some of *data* may be buffered internally, for use in later calls to
-      :meth:`decompress`. The returned data should be concatenated with the
-      output of any previous calls to :meth:`decompress`.
+      Decompress *data* (a :term:`bytes-like object`), returning
+      uncompressed data as bytes. Some of *data* may be buffered
+      internally, for use in later calls to :meth:`decompress`. The
+      returned data should be concatenated with the output of any
+      previous calls to :meth:`decompress`.
+
+      If *max_length* is nonnegative, returns at most *max_length*
+      bytes of decompressed data. If this limit is reached and further
+      output can be produced, the :attr:`~.needs_input` attribute will
+      be set to ``False``. In this case, the next call to
+      :meth:`~.decompress` may provide *data* as ``b''`` to obtain
+      more of the output.
+
+      If all of the input data was decompressed and returned (either
+      because this was less than *max_length* bytes, or because
+      *max_length* was negative), the :attr:`~.needs_input` attribute
+      will be set to ``True``.
+
+      Attempting to decompress data after the end of stream is reached
+      raises an `EOFError`.  Any data found after the end of the
+      stream is ignored and saved in the :attr:`~.unused_data` attribute.
+
+      .. versionchanged:: 3.5
+         Added the *max_length* parameter.
 
    .. attribute:: check
 
@@ -245,6 +280,12 @@ Compressing and decompressing data in memory
 
       Before the end of the stream is reached, this will be ``b""``.
 
+   .. attribute:: needs_input
+
+      ``False`` if the :meth:`.decompress` method can provide more
+      decompressed data before requiring new uncompressed input.
+
+      .. versionadded:: 3.5
 
 .. function:: compress(data, format=FORMAT_XZ, check=-1, preset=None, filters=None)
 
@@ -329,10 +370,9 @@ entries in the dictionary representing the filter):
      select automatically based on other filter options.
 
 The delta filter stores the differences between bytes, producing more repetitive
-input for the compressor in certain circumstances. It only supports a single
-The delta filter supports only one option, ``dist``. This indicates the distance
-between bytes to be subtracted. The default is 1, i.e. take the differences
-between adjacent bytes.
+input for the compressor in certain circumstances. It supports one option,
+``dist``. This indicates the distance between bytes to be subtracted. The
+default is 1, i.e. take the differences between adjacent bytes.
 
 The BCJ filters are intended to be applied to machine code. They convert
 relative branches, calls and jumps in the code to use absolute addressing, with

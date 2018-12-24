@@ -1,10 +1,9 @@
 /*
-  IMPORTANT NOTE: IF THIS FILE IS CHANGED, WININST-6.EXE MUST BE RECOMPILED
-  WITH THE MSVC6 WININST.DSW WORKSPACE FILE MANUALLY, AND WININST-7.1.EXE MUST
-  BE RECOMPILED WITH THE MSVC 2003.NET WININST-7.1.VCPROJ FILE MANUALLY.
+  IMPORTANT NOTE: IF THIS FILE IS CHANGED, PCBUILD\BDIST_WININST.VCXPROJ MUST
+  BE REBUILT AS WELL.
 
-  IF CHANGES TO THIS FILE ARE CHECKED INTO PYTHON CVS, THE RECOMPILED BINARIES
-  MUST BE CHECKED IN AS WELL!
+  IF CHANGES TO THIS FILE ARE CHECKED IN, THE RECOMPILED BINARIES MUST BE
+  CHECKED IN AS WELL!
 */
 
 /*
@@ -153,6 +152,13 @@ char *failure_reason = NULL;
 
 HANDLE hBitmap;
 char *bitmap_bytes;
+
+static const char *REGISTRY_SUFFIX_6432 =
+#ifdef _WIN64
+                                          "";
+#else
+                                          "-32";
+#endif
 
 
 #define WM_NUMFILES WM_USER+1
@@ -658,8 +664,8 @@ static HINSTANCE LoadPythonDll(char *fname)
     if (h)
         return h;
     wsprintf(subkey_name,
-             "SOFTWARE\\Python\\PythonCore\\%d.%d\\InstallPath",
-             py_major, py_minor);
+             "SOFTWARE\\Python\\PythonCore\\%d.%d%s\\InstallPath",
+             py_major, py_minor, REGISTRY_SUFFIX_6432);
     if (ERROR_SUCCESS != RegQueryValue(HKEY_CURRENT_USER, subkey_name,
                                        fullpath, &size) &&
         ERROR_SUCCESS != RegQueryValue(HKEY_LOCAL_MACHINE, subkey_name,
@@ -667,7 +673,9 @@ static HINSTANCE LoadPythonDll(char *fname)
         return NULL;
     strcat(fullpath, "\\");
     strcat(fullpath, fname);
-    return LoadLibrary(fullpath);
+    // We use LOAD_WITH_ALTERED_SEARCH_PATH to ensure any dependent DLLs
+    // next to the Python DLL (eg, the CRT DLL) are also loaded.
+    return LoadLibraryEx(fullpath, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 }
 
 static int prepare_script_environment(HINSTANCE hPython)
@@ -710,7 +718,7 @@ static int prepare_script_environment(HINSTANCE hPython)
  * 1 if the Python-dll does not export the functions we need
  * 2 if no install-script is specified in pathname
  * 3 if the install-script file could not be opened
- * the return value of PyRun_SimpleString() otherwise,
+ * the return value of PyRun_SimpleString() or Py_FinalizeEx() otherwise,
  * which is 0 if everything is ok, -1 if an exception had occurred
  * in the install-script.
  */
@@ -723,7 +731,7 @@ do_run_installscript(HINSTANCE hPython, char *pathname, int argc, char **argv)
     DECLPROC(hPython, void, Py_Initialize, (void));
     DECLPROC(hPython, int, PySys_SetArgv, (int, wchar_t **));
     DECLPROC(hPython, int, PyRun_SimpleString, (char *));
-    DECLPROC(hPython, void, Py_Finalize, (void));
+    DECLPROC(hPython, int, Py_FinalizeEx, (void));
     DECLPROC(hPython, PyObject *, Py_BuildValue, (char *, ...));
     DECLPROC(hPython, PyObject *, PyCFunction_New,
              (PyMethodDef *, PyObject *));
@@ -731,7 +739,7 @@ do_run_installscript(HINSTANCE hPython, char *pathname, int argc, char **argv)
     DECLPROC(hPython, PyObject *, PyErr_Format, (PyObject *, char *));
 
     if (!Py_Initialize || !PySys_SetArgv
-        || !PyRun_SimpleString || !Py_Finalize)
+        || !PyRun_SimpleString || !Py_FinalizeEx)
         return 1;
 
     if (!Py_BuildValue || !PyArg_ParseTuple || !PyErr_Format)
@@ -778,7 +786,9 @@ do_run_installscript(HINSTANCE hPython, char *pathname, int argc, char **argv)
             }
         }
     }
-    Py_Finalize();
+    if (Py_FinalizeEx() < 0) {
+        result = -1;
+    }
 
     close(fh);
     return result;
@@ -840,11 +850,11 @@ static int do_run_simple_script(HINSTANCE hPython, char *script)
     int rc;
     DECLPROC(hPython, void, Py_Initialize, (void));
     DECLPROC(hPython, void, Py_SetProgramName, (wchar_t *));
-    DECLPROC(hPython, void, Py_Finalize, (void));
+    DECLPROC(hPython, int, Py_FinalizeEx, (void));
     DECLPROC(hPython, int, PyRun_SimpleString, (char *));
     DECLPROC(hPython, void, PyErr_Print, (void));
 
-    if (!Py_Initialize || !Py_SetProgramName || !Py_Finalize ||
+    if (!Py_Initialize || !Py_SetProgramName || !Py_FinalizeEx ||
         !PyRun_SimpleString || !PyErr_Print)
         return -1;
 
@@ -854,7 +864,9 @@ static int do_run_simple_script(HINSTANCE hPython, char *script)
     rc = PyRun_SimpleString(script);
     if (rc)
         PyErr_Print();
-    Py_Finalize();
+    if (Py_FinalizeEx() < 0) {
+        rc = -1;
+    }
     return rc;
 }
 
@@ -1216,7 +1228,7 @@ static void CenterWindow(HWND hwnd)
 
 #include <prsht.h>
 
-BOOL CALLBACK
+INT_PTR CALLBACK
 IntroDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     LPNMHDR lpnm;
@@ -1565,7 +1577,7 @@ SCHEME *GetScheme(int major, int minor)
     return old_scheme;
 }
 
-BOOL CALLBACK
+INT_PTR CALLBACK
 SelectPythonDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     LPNMHDR lpnm;
@@ -1602,7 +1614,7 @@ SelectPythonDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
             if (count == 0) {
                 char Buffer[4096];
-                char *msg;
+                const char *msg;
                 if (target_version && target_version[0]) {
                     wsprintf(Buffer,
                              "Python version %s required, which was not found"
@@ -1649,16 +1661,16 @@ SelectPythonDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     PropSheet_SetWizButtons(GetParent(hwnd),
                                             PSWIZB_BACK | PSWIZB_NEXT);
                     /* Get the python directory */
-            ivi = (InstalledVersionInfo *)
+                    ivi = (InstalledVersionInfo *)
                         SendDlgItemMessage(hwnd,
-                                                                IDC_VERSIONS_LIST,
-                                                                LB_GETITEMDATA,
-                                                                id,
-                                                                0);
-            hkey_root = ivi->hkey;
-                                strcpy(python_dir, ivi->prefix);
-                                SetDlgItemText(hwnd, IDC_PATH, python_dir);
-                                /* retrieve the python version and pythondll to use */
+                            IDC_VERSIONS_LIST,
+                            LB_GETITEMDATA,
+                            id,
+                            0);
+                    hkey_root = ivi->hkey;
+                    strcpy(python_dir, ivi->prefix);
+                    SetDlgItemText(hwnd, IDC_PATH, python_dir);
+                    /* retrieve the python version and pythondll to use */
                     result = SendDlgItemMessage(hwnd, IDC_VERSIONS_LIST,
                                                  LB_GETTEXTLEN, (WPARAM)id, 0);
                     pbuf = (char *)malloc(result + 1);
@@ -1774,6 +1786,16 @@ static BOOL OpenLogfile(char *dir)
 
     sprintf(buffer, "%s\\%s-wininst.log", dir, meta_name);
     logfile = fopen(buffer, "a");
+    if (!logfile) {
+        char error[1024];
+
+        sprintf(error, "Can't create \"%s\" (%s).\n\n"
+                "Try to execute the installer as administrator.",
+                buffer, strerror(errno));
+        MessageBox(GetFocus(), error, NULL, MB_OK | MB_ICONSTOP);
+        return FALSE;
+    }
+
     time(&ltime);
     now = localtime(&ltime);
     strftime(buffer, sizeof(buffer),
@@ -1857,7 +1879,7 @@ static void CloseLogfile(void)
         fclose(logfile);
 }
 
-BOOL CALLBACK
+INT_PTR CALLBACK
 InstallFilesDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     LPNMHDR lpnm;
@@ -1931,21 +1953,21 @@ InstallFilesDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 /*
  * The scheme we have to use depends on the Python version...
  if sys.version < "2.2":
- WINDOWS_SCHEME = {
- 'purelib': '$base',
- 'platlib': '$base',
- 'headers': '$base/Include/$dist_name',
- 'scripts': '$base/Scripts',
- 'data'   : '$base',
- }
+    WINDOWS_SCHEME = {
+    'purelib': '$base',
+    'platlib': '$base',
+    'headers': '$base/Include/$dist_name',
+    'scripts': '$base/Scripts',
+    'data'   : '$base',
+    }
  else:
- WINDOWS_SCHEME = {
- 'purelib': '$base/Lib/site-packages',
- 'platlib': '$base/Lib/site-packages',
- 'headers': '$base/Include/$dist_name',
- 'scripts': '$base/Scripts',
- 'data'   : '$base',
- }
+    WINDOWS_SCHEME = {
+    'purelib': '$base/Lib/site-packages',
+    'platlib': '$base/Lib/site-packages',
+    'headers': '$base/Include/$dist_name',
+    'scripts': '$base/Scripts',
+    'data'   : '$base',
+    }
 */
             scheme = GetScheme(py_major, py_minor);
             /* Run the pre-install script. */
@@ -2012,7 +2034,7 @@ InstallFilesDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-BOOL CALLBACK
+INT_PTR CALLBACK
 FinishedDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     LPNMHDR lpnm;
@@ -2157,7 +2179,7 @@ BOOL MyIsUserAnAdmin()
     // to leave the library loaded)
     if (0 == (shell32=LoadLibrary("shell32.dll")))
         return FALSE;
-    if (0 == (pfnIsUserAnAdmin=(PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin")))
+    if (NULL == (pfnIsUserAnAdmin=(PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin")))
         return FALSE;
     return (*pfnIsUserAnAdmin)();
 }
@@ -2186,23 +2208,6 @@ BOOL NeedAutoUAC()
     RegCloseKey(hk);
     // Python is installed in HKLM - we must elevate.
     return TRUE;
-}
-
-// Returns TRUE if the platform supports UAC.
-BOOL PlatformSupportsUAC()
-{
-    // Note that win2k does seem to support ShellExecute with 'runas',
-    // but does *not* support IsUserAnAdmin - so we just pretend things
-    // only work on XP and later.
-    BOOL bIsWindowsXPorLater;
-    OSVERSIONINFO winverinfo;
-    winverinfo.dwOSVersionInfoSize = sizeof(winverinfo);
-    if (!GetVersionEx(&winverinfo))
-        return FALSE; // something bad has gone wrong
-    bIsWindowsXPorLater =
-       ( (winverinfo.dwMajorVersion > 5) ||
-       ( (winverinfo.dwMajorVersion == 5) && (winverinfo.dwMinorVersion >= 1) ));
-    return bIsWindowsXPorLater;
 }
 
 // Spawn ourself as an elevated application.  On failure, a message is
@@ -2258,9 +2263,11 @@ int DoInstall(void)
     GetPrivateProfileString("Setup", "user_access_control", "",
                              user_access_control, sizeof(user_access_control), ini_file);
 
+    strcat(target_version, REGISTRY_SUFFIX_6432);
+
     // See if we need to do the Vista UAC magic.
     if (strcmp(user_access_control, "force")==0) {
-        if (PlatformSupportsUAC() && !MyIsUserAnAdmin()) {
+        if (!MyIsUserAnAdmin()) {
             SpawnUAC();
             return 0;
         }
@@ -2268,7 +2275,7 @@ int DoInstall(void)
     } else if (strcmp(user_access_control, "auto")==0) {
         // Check if it looks like we need UAC control, based
         // on how Python itself was installed.
-        if (PlatformSupportsUAC() && !MyIsUserAnAdmin() && NeedAutoUAC()) {
+        if (!MyIsUserAnAdmin() && NeedAutoUAC()) {
             SpawnUAC();
             return 0;
         }

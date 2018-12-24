@@ -21,11 +21,13 @@ def check_ssl_verifiy(host, port):
 
 class SmtpTest(unittest.TestCase):
     testServer = 'smtp.gmail.com'
-    remotePort = 25
+    remotePort = 587
 
     def test_connect_starttls(self):
         support.get_attribute(smtplib, 'SMTP_SSL')
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
         with support.transient_internet(self.testServer):
             server = smtplib.SMTP(self.testServer, self.remotePort)
             try:
@@ -58,7 +60,9 @@ class SmtpSSLTest(unittest.TestCase):
             server.quit()
 
     def test_connect_using_sslcontext(self):
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
         support.get_attribute(smtplib, 'SMTP_SSL')
         with support.transient_internet(self.testServer):
             server = smtplib.SMTP_SSL(self.testServer, self.remotePort, context=context)
@@ -79,8 +83,5 @@ class SmtpSSLTest(unittest.TestCase):
             server.quit()
 
 
-def test_main():
-    support.run_unittest(SmtpTest, SmtpSSLTest)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

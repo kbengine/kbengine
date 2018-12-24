@@ -11,10 +11,12 @@ import importlib
 import sys
 import time
 import shutil
+import threading
 import unittest
+from unittest import mock
 from test.support import (
-    verbose, import_module, run_unittest, TESTFN, reap_threads, forget, unlink)
-threading = import_module('threading')
+    verbose, import_module, run_unittest, TESTFN, reap_threads,
+    forget, unlink, rmtree, start_threads)
 
 def task(N, done, done_tasks, errors):
     try:
@@ -35,6 +37,12 @@ def task(N, done, done_tasks, errors):
         finished = len(done_tasks) == N
         if finished:
             done.set()
+
+def mock_register_at_fork(func):
+    # bpo-30599: Mock os.register_at_fork() when importing the random module,
+    # since this function doesn't allow to unregister callbacks and would leak
+    # memory.
+    return mock.patch('os.register_at_fork', create=True)(func)
 
 # Create a circular import structure: A -> C -> B -> D -> A
 # NOTE: `time` is already loaded and therefore doesn't threaten to deadlock.
@@ -96,7 +104,8 @@ class ThreadedImportTests(unittest.TestCase):
         if self.old_random is not None:
             sys.modules['random'] = self.old_random
 
-    def check_parallel_module_init(self):
+    @mock_register_at_fork
+    def check_parallel_module_init(self, mock_os):
         if imp.lock_held():
             # This triggers on, e.g., from test import autotest.
             raise unittest.SkipTest("can't run when import lock is held")
@@ -114,12 +123,18 @@ class ThreadedImportTests(unittest.TestCase):
             errors = []
             done_tasks = []
             done.clear()
-            for i in range(N):
-                t = threading.Thread(target=task,
-                                     args=(N, done, done_tasks, errors,))
-                t.start()
-            self.assertTrue(done.wait(60))
-            self.assertFalse(errors)
+            t0 = time.monotonic()
+            with start_threads(threading.Thread(target=task,
+                                                args=(N, done, done_tasks, errors,))
+                               for i in range(N)):
+                pass
+            completed = done.wait(10 * 60)
+            dt = time.monotonic() - t0
+            if verbose:
+                print("%.1f ms" % (dt*1e3), flush=True, end=" ")
+            dbg_info = 'done: %s/%s' % (len(done_tasks), N)
+            self.assertFalse(errors, dbg_info)
+            self.assertTrue(completed, dbg_info)
             if verbose:
                 print("OK.")
 
@@ -207,14 +222,16 @@ class ThreadedImportTests(unittest.TestCase):
         t2.join()
         self.assertEqual(set(results), {'a', 'b'})
 
-    def test_side_effect_import(self):
+    @mock_register_at_fork
+    def test_side_effect_import(self, mock_os):
         code = """if 1:
             import threading
             def target():
                 import random
             t = threading.Thread(target=target)
             t.start()
-            t.join()"""
+            t.join()
+            t = None"""
         sys.path.insert(0, os.curdir)
         self.addCleanup(sys.path.remove, os.curdir)
         filename = TESTFN + ".py"
@@ -222,8 +239,10 @@ class ThreadedImportTests(unittest.TestCase):
             f.write(code.encode('utf-8'))
         self.addCleanup(unlink, filename)
         self.addCleanup(forget, TESTFN)
+        self.addCleanup(rmtree, '__pycache__')
         importlib.invalidate_caches()
         __import__(TESTFN)
+        del sys.modules[TESTFN]
 
 
 @reap_threads

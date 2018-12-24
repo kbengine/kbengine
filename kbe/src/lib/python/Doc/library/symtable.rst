@@ -4,6 +4,10 @@
 .. module:: symtable
    :synopsis: Interface to the compiler's internal symbol tables.
 
+**Source code:** :source:`Lib/symtable.py`
+
+--------------
+
 .. moduleauthor:: Jeremy Hylton <jeremy@alum.mit.edu>
 .. sectionauthor:: Benjamin Peterson <benjamin@python.org>
 
@@ -66,10 +70,6 @@ Examining Symbol Tables
    .. method:: has_exec()
 
       Return ``True`` if the block uses ``exec``.
-
-   .. method:: has_import_star()
-
-      Return ``True`` if the block uses a starred from-import.
 
    .. method:: get_identifiers()
 
@@ -185,4 +185,4 @@ Examining Symbol Tables
    .. method:: get_namespace()
 
       Return the namespace bound to this name.  If more than one namespace is
-      bound, a :exc:`ValueError` is raised.
+      bound, :exc:`ValueError` is raised.

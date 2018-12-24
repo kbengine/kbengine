@@ -6,11 +6,11 @@ branches:
     - 1.x
 
 os:
-  - Visual Studio 2015
+  - Visual Studio 2017
 
 environment:
   matrix:
-  - TOOLSET: vs2015
+  - TOOLSET: vs2017
 
 build:
-  project: kbe/src/kbengine_vs140.sln
+  project: kbe/src/kbengine.sln

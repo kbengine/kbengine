@@ -1,8 +1,6 @@
 from .. import util
-from . import util as import_util
 import sys
 import unittest
-import importlib
 from test import support
 
 
@@ -102,8 +100,10 @@ class ParentModuleTests:
                 finally:
                     support.unload(subname)
 
-Frozen_ParentTests, Source_ParentTests = util.test_both(
-        ParentModuleTests, __import__=import_util.__import__)
+
+(Frozen_ParentTests,
+ Source_ParentTests
+ ) = util.test_both(ParentModuleTests, __import__=util.__import__)
 
 
 if __name__ == '__main__':

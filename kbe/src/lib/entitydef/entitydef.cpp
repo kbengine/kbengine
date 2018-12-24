@@ -1577,9 +1577,13 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
 			std::string pyModulePath = "";
 			
-			const char *pModulePath = PyModule_GetFilename(pyModule);
-			if (pModulePath)
-				pyModulePath = pModulePath;
+			PyObject *fileobj = NULL;
+
+			fileobj = PyModule_GetFilenameObject(pyModule);
+			if (fileobj)
+				pyModulePath = PyUnicode_AsUTF8(fileobj);
+
+			Py_DECREF(fileobj);
 
 			strutil::kbe_replace(userScriptsPath, "/", "");
 			strutil::kbe_replace(userScriptsPath, "\\", "");

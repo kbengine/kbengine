@@ -752,7 +752,7 @@ class CCompiler:
         raise NotImplementedError
 
     def library_option(self, lib):
-        """Return the compiler option to add 'dir' to the list of libraries
+        """Return the compiler option to add 'lib' to the list of libraries
         linked into the shared library or executable.
         """
         raise NotImplementedError
@@ -875,9 +875,9 @@ main (int argc, char **argv) {
     def library_filename(self, libname, lib_type='static',     # or 'shared'
                          strip_dir=0, output_dir=''):
         assert output_dir is not None
-        if lib_type not in ("static", "shared", "dylib"):
+        if lib_type not in ("static", "shared", "dylib", "xcode_stub"):
             raise ValueError(
-                  "'lib_type' must be \"static\", \"shared\" or \"dylib\"")
+                  "'lib_type' must be \"static\", \"shared\", \"dylib\", or \"xcode_stub\"")
         fmt = getattr(self, lib_type + "_lib_format")
         ext = getattr(self, lib_type + "_lib_extension")
 
@@ -959,7 +959,7 @@ def get_default_compiler(osname=None, platform=None):
 # is assumed to be in the 'distutils' package.)
 compiler_class = { 'unix':    ('unixccompiler', 'UnixCCompiler',
                                "standard UNIX-style compiler"),
-                   'msvc':    ('msvccompiler', 'MSVCCompiler',
+                   'msvc':    ('_msvccompiler', 'MSVCCompiler',
                                "Microsoft Visual C++"),
                    'cygwin':  ('cygwinccompiler', 'CygwinCCompiler',
                                "Cygwin port of GNU C Compiler for Win32"),

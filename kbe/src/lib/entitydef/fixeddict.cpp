@@ -289,7 +289,7 @@ int FixedDict::mp_length(PyObject* self)
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
-	char* dictKeyName = PyUnicode_AsUTF8AndSize(key, NULL);
+	const char* dictKeyName = PyUnicode_AsUTF8AndSize(key, NULL);
 	if (dictKeyName == NULL)
 	{
 		char err[255];

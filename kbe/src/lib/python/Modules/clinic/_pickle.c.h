@@ -34,6 +34,34 @@ PyDoc_STRVAR(_pickle_Pickler_dump__doc__,
 #define _PICKLE_PICKLER_DUMP_METHODDEF    \
     {"dump", (PyCFunction)_pickle_Pickler_dump, METH_O, _pickle_Pickler_dump__doc__},
 
+PyDoc_STRVAR(_pickle_Pickler___sizeof____doc__,
+"__sizeof__($self, /)\n"
+"--\n"
+"\n"
+"Returns size in memory, in bytes.");
+
+#define _PICKLE_PICKLER___SIZEOF___METHODDEF    \
+    {"__sizeof__", (PyCFunction)_pickle_Pickler___sizeof__, METH_NOARGS, _pickle_Pickler___sizeof____doc__},
+
+static Py_ssize_t
+_pickle_Pickler___sizeof___impl(PicklerObject *self);
+
+static PyObject *
+_pickle_Pickler___sizeof__(PicklerObject *self, PyObject *Py_UNUSED(ignored))
+{
+    PyObject *return_value = NULL;
+    Py_ssize_t _return_value;
+
+    _return_value = _pickle_Pickler___sizeof___impl(self);
+    if ((_return_value == -1) && PyErr_Occurred()) {
+        goto exit;
+    }
+    return_value = PyLong_FromSsize_t(_return_value);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(_pickle_Pickler___init____doc__,
 "Pickler(file, protocol=None, fix_imports=True)\n"
 "--\n"
@@ -50,7 +78,7 @@ PyDoc_STRVAR(_pickle_Pickler___init____doc__,
 "\n"
 "The *file* argument must have a write() method that accepts a single\n"
 "bytes argument. It can thus be a file object opened for binary\n"
-"writing, a io.BytesIO instance, or any other custom object that meets\n"
+"writing, an io.BytesIO instance, or any other custom object that meets\n"
 "this interface.\n"
 "\n"
 "If *fix_imports* is True and protocol is less than 3, pickle will try\n"
@@ -58,21 +86,23 @@ PyDoc_STRVAR(_pickle_Pickler___init____doc__,
 "2, so that the pickle data stream is readable with Python 2.");
 
 static int
-_pickle_Pickler___init___impl(PicklerObject *self, PyObject *file, PyObject *protocol, int fix_imports);
+_pickle_Pickler___init___impl(PicklerObject *self, PyObject *file,
+                              PyObject *protocol, int fix_imports);
 
 static int
 _pickle_Pickler___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
-    static char *_keywords[] = {"file", "protocol", "fix_imports", NULL};
+    static const char * const _keywords[] = {"file", "protocol", "fix_imports", NULL};
+    static _PyArg_Parser _parser = {"O|Op:Pickler", _keywords, 0};
     PyObject *file;
     PyObject *protocol = NULL;
     int fix_imports = 1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "O|Op:Pickler", _keywords,
-        &file, &protocol, &fix_imports))
+    if (!_PyArg_ParseTupleAndKeywordsFast(args, kwargs, &_parser,
+        &file, &protocol, &fix_imports)) {
         goto exit;
+    }
     return_value = _pickle_Pickler___init___impl((PicklerObject *)self, file, protocol, fix_imports);
 
 exit:
@@ -169,23 +199,54 @@ PyDoc_STRVAR(_pickle_Unpickler_find_class__doc__,
 "needed.  Both arguments passed are str objects.");
 
 #define _PICKLE_UNPICKLER_FIND_CLASS_METHODDEF    \
-    {"find_class", (PyCFunction)_pickle_Unpickler_find_class, METH_VARARGS, _pickle_Unpickler_find_class__doc__},
+    {"find_class", (PyCFunction)_pickle_Unpickler_find_class, METH_FASTCALL, _pickle_Unpickler_find_class__doc__},
 
 static PyObject *
-_pickle_Unpickler_find_class_impl(UnpicklerObject *self, PyObject *module_name, PyObject *global_name);
+_pickle_Unpickler_find_class_impl(UnpicklerObject *self,
+                                  PyObject *module_name,
+                                  PyObject *global_name);
 
 static PyObject *
-_pickle_Unpickler_find_class(UnpicklerObject *self, PyObject *args)
+_pickle_Unpickler_find_class(UnpicklerObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *module_name;
     PyObject *global_name;
 
-    if (!PyArg_UnpackTuple(args, "find_class",
+    if (!_PyArg_UnpackStack(args, nargs, "find_class",
         2, 2,
-        &module_name, &global_name))
+        &module_name, &global_name)) {
         goto exit;
+    }
     return_value = _pickle_Unpickler_find_class_impl(self, module_name, global_name);
+
+exit:
+    return return_value;
+}
+
+PyDoc_STRVAR(_pickle_Unpickler___sizeof____doc__,
+"__sizeof__($self, /)\n"
+"--\n"
+"\n"
+"Returns size in memory, in bytes.");
+
+#define _PICKLE_UNPICKLER___SIZEOF___METHODDEF    \
+    {"__sizeof__", (PyCFunction)_pickle_Unpickler___sizeof__, METH_NOARGS, _pickle_Unpickler___sizeof____doc__},
+
+static Py_ssize_t
+_pickle_Unpickler___sizeof___impl(UnpicklerObject *self);
+
+static PyObject *
+_pickle_Unpickler___sizeof__(UnpicklerObject *self, PyObject *Py_UNUSED(ignored))
+{
+    PyObject *return_value = NULL;
+    Py_ssize_t _return_value;
+
+    _return_value = _pickle_Unpickler___sizeof___impl(self);
+    if ((_return_value == -1) && PyErr_Occurred()) {
+        goto exit;
+    }
+    return_value = PyLong_FromSsize_t(_return_value);
 
 exit:
     return return_value;
@@ -204,11 +265,11 @@ PyDoc_STRVAR(_pickle_Unpickler___init____doc__,
 "The argument *file* must have two methods, a read() method that takes\n"
 "an integer argument, and a readline() method that requires no\n"
 "arguments.  Both methods should return bytes.  Thus *file* can be a\n"
-"binary file object opened for reading, a io.BytesIO object, or any\n"
+"binary file object opened for reading, an io.BytesIO object, or any\n"
 "other custom object that meets this interface.\n"
 "\n"
 "Optional keyword arguments are *fix_imports*, *encoding* and *errors*,\n"
-"which are used to control compatiblity support for pickle stream\n"
+"which are used to control compatibility support for pickle stream\n"
 "generated by Python 2.  If *fix_imports* is True, pickle will try to\n"
 "map the old Python 2 names to the new names used in Python 3.  The\n"
 "*encoding* and *errors* tell pickle how to decode 8-bit string\n"
@@ -217,22 +278,25 @@ PyDoc_STRVAR(_pickle_Unpickler___init____doc__,
 "string instances as bytes objects.");
 
 static int
-_pickle_Unpickler___init___impl(UnpicklerObject *self, PyObject *file, int fix_imports, const char *encoding, const char *errors);
+_pickle_Unpickler___init___impl(UnpicklerObject *self, PyObject *file,
+                                int fix_imports, const char *encoding,
+                                const char *errors);
 
 static int
 _pickle_Unpickler___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
-    static char *_keywords[] = {"file", "fix_imports", "encoding", "errors", NULL};
+    static const char * const _keywords[] = {"file", "fix_imports", "encoding", "errors", NULL};
+    static _PyArg_Parser _parser = {"O|$pss:Unpickler", _keywords, 0};
     PyObject *file;
     int fix_imports = 1;
     const char *encoding = "ASCII";
     const char *errors = "strict";
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "O|$pss:Unpickler", _keywords,
-        &file, &fix_imports, &encoding, &errors))
+    if (!_PyArg_ParseTupleAndKeywordsFast(args, kwargs, &_parser,
+        &file, &fix_imports, &encoding, &errors)) {
         goto exit;
+    }
     return_value = _pickle_Unpickler___init___impl((UnpicklerObject *)self, file, fix_imports, encoding, errors);
 
 exit:
@@ -312,7 +376,7 @@ PyDoc_STRVAR(_pickle_dump__doc__,
 "\n"
 "The *file* argument must have a write() method that accepts a single\n"
 "bytes argument.  It can thus be a file object opened for binary\n"
-"writing, a io.BytesIO instance, or any other custom object that meets\n"
+"writing, an io.BytesIO instance, or any other custom object that meets\n"
 "this interface.\n"
 "\n"
 "If *fix_imports* is True and protocol is less than 3, pickle will try\n"
@@ -320,25 +384,27 @@ PyDoc_STRVAR(_pickle_dump__doc__,
 "2, so that the pickle data stream is readable with Python 2.");
 
 #define _PICKLE_DUMP_METHODDEF    \
-    {"dump", (PyCFunction)_pickle_dump, METH_VARARGS|METH_KEYWORDS, _pickle_dump__doc__},
+    {"dump", (PyCFunction)_pickle_dump, METH_FASTCALL|METH_KEYWORDS, _pickle_dump__doc__},
 
 static PyObject *
-_pickle_dump_impl(PyModuleDef *module, PyObject *obj, PyObject *file, PyObject *protocol, int fix_imports);
+_pickle_dump_impl(PyObject *module, PyObject *obj, PyObject *file,
+                  PyObject *protocol, int fix_imports);
 
 static PyObject *
-_pickle_dump(PyModuleDef *module, PyObject *args, PyObject *kwargs)
+_pickle_dump(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
-    static char *_keywords[] = {"obj", "file", "protocol", "fix_imports", NULL};
+    static const char * const _keywords[] = {"obj", "file", "protocol", "fix_imports", NULL};
+    static _PyArg_Parser _parser = {"OO|O$p:dump", _keywords, 0};
     PyObject *obj;
     PyObject *file;
     PyObject *protocol = NULL;
     int fix_imports = 1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "OO|O$p:dump", _keywords,
-        &obj, &file, &protocol, &fix_imports))
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &obj, &file, &protocol, &fix_imports)) {
         goto exit;
+    }
     return_value = _pickle_dump_impl(module, obj, file, protocol, fix_imports);
 
 exit:
@@ -364,24 +430,26 @@ PyDoc_STRVAR(_pickle_dumps__doc__,
 "Python 2, so that the pickle data stream is readable with Python 2.");
 
 #define _PICKLE_DUMPS_METHODDEF    \
-    {"dumps", (PyCFunction)_pickle_dumps, METH_VARARGS|METH_KEYWORDS, _pickle_dumps__doc__},
+    {"dumps", (PyCFunction)_pickle_dumps, METH_FASTCALL|METH_KEYWORDS, _pickle_dumps__doc__},
 
 static PyObject *
-_pickle_dumps_impl(PyModuleDef *module, PyObject *obj, PyObject *protocol, int fix_imports);
+_pickle_dumps_impl(PyObject *module, PyObject *obj, PyObject *protocol,
+                   int fix_imports);
 
 static PyObject *
-_pickle_dumps(PyModuleDef *module, PyObject *args, PyObject *kwargs)
+_pickle_dumps(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
-    static char *_keywords[] = {"obj", "protocol", "fix_imports", NULL};
+    static const char * const _keywords[] = {"obj", "protocol", "fix_imports", NULL};
+    static _PyArg_Parser _parser = {"O|O$p:dumps", _keywords, 0};
     PyObject *obj;
     PyObject *protocol = NULL;
     int fix_imports = 1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "O|O$p:dumps", _keywords,
-        &obj, &protocol, &fix_imports))
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &obj, &protocol, &fix_imports)) {
         goto exit;
+    }
     return_value = _pickle_dumps_impl(module, obj, protocol, fix_imports);
 
 exit:
@@ -405,11 +473,11 @@ PyDoc_STRVAR(_pickle_load__doc__,
 "The argument *file* must have two methods, a read() method that takes\n"
 "an integer argument, and a readline() method that requires no\n"
 "arguments.  Both methods should return bytes.  Thus *file* can be a\n"
-"binary file object opened for reading, a io.BytesIO object, or any\n"
+"binary file object opened for reading, an io.BytesIO object, or any\n"
 "other custom object that meets this interface.\n"
 "\n"
 "Optional keyword arguments are *fix_imports*, *encoding* and *errors*,\n"
-"which are used to control compatiblity support for pickle stream\n"
+"which are used to control compatibility support for pickle stream\n"
 "generated by Python 2.  If *fix_imports* is True, pickle will try to\n"
 "map the old Python 2 names to the new names used in Python 3.  The\n"
 "*encoding* and *errors* tell pickle how to decode 8-bit string\n"
@@ -418,25 +486,27 @@ PyDoc_STRVAR(_pickle_load__doc__,
 "string instances as bytes objects.");
 
 #define _PICKLE_LOAD_METHODDEF    \
-    {"load", (PyCFunction)_pickle_load, METH_VARARGS|METH_KEYWORDS, _pickle_load__doc__},
+    {"load", (PyCFunction)_pickle_load, METH_FASTCALL|METH_KEYWORDS, _pickle_load__doc__},
 
 static PyObject *
-_pickle_load_impl(PyModuleDef *module, PyObject *file, int fix_imports, const char *encoding, const char *errors);
+_pickle_load_impl(PyObject *module, PyObject *file, int fix_imports,
+                  const char *encoding, const char *errors);
 
 static PyObject *
-_pickle_load(PyModuleDef *module, PyObject *args, PyObject *kwargs)
+_pickle_load(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
-    static char *_keywords[] = {"file", "fix_imports", "encoding", "errors", NULL};
+    static const char * const _keywords[] = {"file", "fix_imports", "encoding", "errors", NULL};
+    static _PyArg_Parser _parser = {"O|$pss:load", _keywords, 0};
     PyObject *file;
     int fix_imports = 1;
     const char *encoding = "ASCII";
     const char *errors = "strict";
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "O|$pss:load", _keywords,
-        &file, &fix_imports, &encoding, &errors))
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &file, &fix_imports, &encoding, &errors)) {
         goto exit;
+    }
     return_value = _pickle_load_impl(module, file, fix_imports, encoding, errors);
 
 exit:
@@ -455,7 +525,7 @@ PyDoc_STRVAR(_pickle_loads__doc__,
 "representation are ignored.\n"
 "\n"
 "Optional keyword arguments are *fix_imports*, *encoding* and *errors*,\n"
-"which are used to control compatiblity support for pickle stream\n"
+"which are used to control compatibility support for pickle stream\n"
 "generated by Python 2.  If *fix_imports* is True, pickle will try to\n"
 "map the old Python 2 names to the new names used in Python 3.  The\n"
 "*encoding* and *errors* tell pickle how to decode 8-bit string\n"
@@ -464,28 +534,30 @@ PyDoc_STRVAR(_pickle_loads__doc__,
 "string instances as bytes objects.");
 
 #define _PICKLE_LOADS_METHODDEF    \
-    {"loads", (PyCFunction)_pickle_loads, METH_VARARGS|METH_KEYWORDS, _pickle_loads__doc__},
+    {"loads", (PyCFunction)_pickle_loads, METH_FASTCALL|METH_KEYWORDS, _pickle_loads__doc__},
 
 static PyObject *
-_pickle_loads_impl(PyModuleDef *module, PyObject *data, int fix_imports, const char *encoding, const char *errors);
+_pickle_loads_impl(PyObject *module, PyObject *data, int fix_imports,
+                   const char *encoding, const char *errors);
 
 static PyObject *
-_pickle_loads(PyModuleDef *module, PyObject *args, PyObject *kwargs)
+_pickle_loads(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
-    static char *_keywords[] = {"data", "fix_imports", "encoding", "errors", NULL};
+    static const char * const _keywords[] = {"data", "fix_imports", "encoding", "errors", NULL};
+    static _PyArg_Parser _parser = {"O|$pss:loads", _keywords, 0};
     PyObject *data;
     int fix_imports = 1;
     const char *encoding = "ASCII";
     const char *errors = "strict";
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-        "O|$pss:loads", _keywords,
-        &data, &fix_imports, &encoding, &errors))
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &data, &fix_imports, &encoding, &errors)) {
         goto exit;
+    }
     return_value = _pickle_loads_impl(module, data, fix_imports, encoding, errors);
 
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=f965b6c7018c898d input=a9049054013a1b77]*/
+/*[clinic end generated code: output=e995dd494045d876 input=a9049054013a1b77]*/
