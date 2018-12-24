@@ -31,9 +31,7 @@ union value {
                 long l;
                 float f;
                 double d;
-#ifdef HAVE_LONG_LONG
-                PY_LONG_LONG ll;
-#endif
+                long long ll;
                 long double D;
 };
 
@@ -191,7 +189,7 @@ typedef struct {
    remember is that in PyCArrayType_new the ffi_type fields must be filled in -
    so far it was unneeded because libffi doesn't support arrays at all
    (because they are passed as pointers to function calls anyway).  But it's
-   too much risk to change that now, and there are other fields which doen't
+   too much risk to change that now, and there are other fields which doesn't
    belong into this structure anyway.  Maybe in ctypes 2.0... (ctypes 2000?)
 */
     Py_ssize_t size;            /* number of bytes */
@@ -238,7 +236,7 @@ typedef struct {
  StgDictObject function to a generic one.
 
  Currently, PyCFuncPtr types have 'converters' and 'checker' entries in their
- type dict.  They are only used to cache attributes from other entries, whihc
+ type dict.  They are only used to cache attributes from other entries, which
  is wrong.
 
  One use case is the .value attribute that all simple types have.  But some
@@ -303,9 +301,7 @@ struct tagPyCArgObject {
         short h;
         int i;
         long l;
-#ifdef HAVE_LONG_LONG
-        PY_LONG_LONG q;
-#endif
+        long long q;
         long double D;
         double d;
         float f;
@@ -327,7 +323,7 @@ extern int
 PyCData_set(PyObject *dst, PyObject *type, SETFUNC setfunc, PyObject *value,
           Py_ssize_t index, Py_ssize_t size, char *ptr);
 
-extern void _ctypes_extend_error(PyObject *exc_class, char *fmt, ...);
+extern void _ctypes_extend_error(PyObject *exc_class, const char *fmt, ...);
 
 struct basespec {
     CDataObject *base;
@@ -352,8 +348,6 @@ extern char *_ctypes_conversion_errors;
 
 extern void _ctypes_free_closure(void *);
 extern void *_ctypes_alloc_closure(void);
-
-extern void _ctypes_add_traceback(char *, char *, int);
 
 extern PyObject *PyCData_FromBaseObj(PyObject *type, PyObject *base, Py_ssize_t index, char *adr);
 extern char *_ctypes_alloc_format_string(const char *prefix, const char *suffix);

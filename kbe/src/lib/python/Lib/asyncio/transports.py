@@ -1,12 +1,9 @@
 """Abstract Transport class."""
 
-import sys
-
-_PY34 = sys.version_info >= (3, 4)
-
-__all__ = ['BaseTransport', 'ReadTransport', 'WriteTransport',
-           'Transport', 'DatagramTransport', 'SubprocessTransport',
-           ]
+__all__ = (
+    'BaseTransport', 'ReadTransport', 'WriteTransport',
+    'Transport', 'DatagramTransport', 'SubprocessTransport',
+)
 
 
 class BaseTransport:
@@ -21,6 +18,10 @@ class BaseTransport:
         """Get optional transport information."""
         return self._extra.get(name, default)
 
+    def is_closing(self):
+        """Return True if the transport is closing or closed."""
+        raise NotImplementedError
+
     def close(self):
         """Close the transport.
 
@@ -31,9 +32,21 @@ class BaseTransport:
         """
         raise NotImplementedError
 
+    def set_protocol(self, protocol):
+        """Set a new protocol."""
+        raise NotImplementedError
+
+    def get_protocol(self):
+        """Return the current protocol."""
+        raise NotImplementedError
+
 
 class ReadTransport(BaseTransport):
     """Interface for read-only transports."""
+
+    def is_reading(self):
+        """Return True if the transport is receiving."""
+        raise NotImplementedError
 
     def pause_reading(self):
         """Pause the receiving end.
@@ -64,7 +77,7 @@ class WriteTransport(BaseTransport):
         high-water limit.  Neither value can be negative.
 
         The defaults are implementation-specific.  If only the
-        high-water limit is given, the low-water limit defaults to a
+        high-water limit is given, the low-water limit defaults to an
         implementation-specific value less than or equal to the
         high-water limit.  Setting high to zero forces low to zero as
         well, and causes pause_writing() to be called whenever the
@@ -94,12 +107,8 @@ class WriteTransport(BaseTransport):
         The default implementation concatenates the arguments and
         calls write() on the result.
         """
-        if not _PY34:
-            # In Python 3.3, bytes.join() doesn't handle memoryview.
-            list_of_data = (
-                bytes(data) if isinstance(data, memoryview) else data
-                for data in list_of_data)
-        self.write(b''.join(list_of_data))
+        data = b''.join(list_of_data)
+        self.write(data)
 
     def write_eof(self):
         """Close the write end after flushing buffered data.
@@ -238,8 +247,10 @@ class _FlowControlMixin(Transport):
     resume_writing() may be called.
     """
 
-    def __init__(self, extra=None):
+    def __init__(self, extra=None, loop=None):
         super().__init__(extra)
+        assert loop is not None
+        self._loop = loop
         self._protocol_paused = False
         self._set_write_buffer_limits()
 
@@ -261,7 +272,7 @@ class _FlowControlMixin(Transport):
 
     def _maybe_resume_protocol(self):
         if (self._protocol_paused and
-            self.get_write_buffer_size() <= self._low_water):
+                self.get_write_buffer_size() <= self._low_water):
             self._protocol_paused = False
             try:
                 self._protocol.resume_writing()
@@ -279,14 +290,16 @@ class _FlowControlMixin(Transport):
     def _set_write_buffer_limits(self, high=None, low=None):
         if high is None:
             if low is None:
-                high = 64*1024
+                high = 64 * 1024
             else:
-                high = 4*low
+                high = 4 * low
         if low is None:
             low = high // 4
+
         if not high >= low >= 0:
-            raise ValueError('high (%r) must be >= low (%r) must be >= 0' %
-                             (high, low))
+            raise ValueError(
+                f'high ({high!r}) must be >= low ({low!r}) must be >= 0')
+
         self._high_water = high
         self._low_water = low
 

@@ -3,6 +3,7 @@
 
 .. module:: pprint
    :synopsis: Data pretty printer.
+
 .. moduleauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 
@@ -197,7 +198,7 @@ are converted to strings.  The default implementation uses the internals of the
    the current presentation context (direct and indirect containers for *object*
    that are affecting the presentation) as the keys; if an object needs to be
    presented which is already represented in *context*, the third return value
-   should be ``True``.  Recursive calls to the :meth:`format` method should add
+   should be ``True``.  Recursive calls to the :meth:`.format` method should add
    additional entries for containers to this dictionary.  The third argument,
    *maxlevels*, gives the requested limit to recursion; this will be ``0`` if there
    is no requested limit.  This argument should be passed unmodified to recursive
@@ -211,12 +212,12 @@ Example
 -------
 
 To demonstrate several uses of the :func:`pprint` function and its parameters,
-let's fetch information about a project from `PyPI <https://pypi.python.org>`_::
+let's fetch information about a project from `PyPI <https://pypi.org>`_::
 
    >>> import json
    >>> import pprint
    >>> from urllib.request import urlopen
-   >>> with urlopen('http://pypi.python.org/pypi/Twisted/json') as url:
+   >>> with urlopen('http://pypi.org/project/Twisted/json') as url:
    ...     http_info = url.info()
    ...     raw_data = url.read().decode(http_info.get_content_charset())
    >>> project_info = json.loads(raw_data)
@@ -235,10 +236,10 @@ In its basic form, :func:`pprint` shows the whole object::
              'classifiers': ['Programming Language :: Python :: 2.6',
                              'Programming Language :: Python :: 2.7',
                              'Programming Language :: Python :: 2 :: Only'],
-             'description': 'An extensible framework for Python programming, '
-                            'with special focus\r\n'
-                            'on event-based network programming and '
-                            'multiprotocol integration.',
+             'description': 'An extensible framework for Python programming, with '
+                            'special focus\r\n'
+                            'on event-based network programming and multiprotocol '
+                            'integration.',
              'docs_url': '',
              'download_url': 'UNKNOWN',
              'home_page': 'http://twistedmatrix.com/',
@@ -247,9 +248,9 @@ In its basic form, :func:`pprint` shows the whole object::
              'maintainer': '',
              'maintainer_email': '',
              'name': 'Twisted',
-             'package_url': 'http://pypi.python.org/pypi/Twisted',
+             'package_url': 'http://pypi.org/project/Twisted',
              'platform': 'UNKNOWN',
-             'release_url': 'http://pypi.python.org/pypi/Twisted/12.3.0',
+             'release_url': 'http://pypi.org/project/Twisted/12.3.0',
              'requires_python': None,
              'stable_version': None,
              'summary': 'An asynchronous networking framework written in Python',
@@ -263,7 +264,7 @@ In its basic form, :func:`pprint` shows the whole object::
               'python_version': 'source',
               'size': 2615733,
               'upload_time': '2012-12-26T12:47:03',
-              'url': 'https://pypi.python.org/packages/source/T/Twisted/Twisted-12.3.0.tar.bz2'},
+              'url': 'https://pypi.org/packages/source/T/Twisted/Twisted-12.3.0.tar.bz2'},
              {'comment_text': '',
               'downloads': 5224,
               'filename': 'Twisted-12.3.0.win32-py2.7.msi',
@@ -273,7 +274,7 @@ In its basic form, :func:`pprint` shows the whole object::
               'python_version': '2.7',
               'size': 2916352,
               'upload_time': '2012-12-26T12:48:15',
-              'url': 'https://pypi.python.org/packages/2.7/T/Twisted/Twisted-12.3.0.win32-py2.7.msi'}]}
+              'url': 'https://pypi.org/packages/2.7/T/Twisted/Twisted-12.3.0.win32-py2.7.msi'}]}
 
 The result can be limited to a certain *depth* (ellipsis is used for deeper
 contents)::
@@ -288,10 +289,10 @@ contents)::
              'cheesecake_documentation_id': None,
              'cheesecake_installability_id': None,
              'classifiers': [...],
-             'description': 'An extensible framework for Python programming, '
-                            'with special focus\r\n'
-                            'on event-based network programming and '
-                            'multiprotocol integration.',
+             'description': 'An extensible framework for Python programming, with '
+                            'special focus\r\n'
+                            'on event-based network programming and multiprotocol '
+                            'integration.',
              'docs_url': '',
              'download_url': 'UNKNOWN',
              'home_page': 'http://twistedmatrix.com/',
@@ -300,9 +301,9 @@ contents)::
              'maintainer': '',
              'maintainer_email': '',
              'name': 'Twisted',
-             'package_url': 'http://pypi.python.org/pypi/Twisted',
+             'package_url': 'http://pypi.org/project/Twisted',
              'platform': 'UNKNOWN',
-             'release_url': 'http://pypi.python.org/pypi/Twisted/12.3.0',
+             'release_url': 'http://pypi.org/project/Twisted/12.3.0',
              'requires_python': None,
              'stable_version': None,
              'summary': 'An asynchronous networking framework written in Python',
@@ -323,13 +324,12 @@ cannot be split, the specified width will be exceeded::
              'cheesecake_installability_id': None,
              'classifiers': [...],
              'description': 'An extensible '
-                            'framework for '
-                            'Python programming, '
-                            'with special '
-                            'focus\r\n'
-                            'on event-based '
-                            'network programming '
-                            'and multiprotocol '
+                            'framework for Python '
+                            'programming, with '
+                            'special focus\r\n'
+                            'on event-based network '
+                            'programming and '
+                            'multiprotocol '
                             'integration.',
              'docs_url': '',
              'download_url': 'UNKNOWN',
@@ -339,13 +339,13 @@ cannot be split, the specified width will be exceeded::
              'maintainer': '',
              'maintainer_email': '',
              'name': 'Twisted',
-             'package_url': 'http://pypi.python.org/pypi/Twisted',
+             'package_url': 'http://pypi.org/project/Twisted',
              'platform': 'UNKNOWN',
-             'release_url': 'http://pypi.python.org/pypi/Twisted/12.3.0',
+             'release_url': 'http://pypi.org/project/Twisted/12.3.0',
              'requires_python': None,
              'stable_version': None,
-             'summary': 'An asynchronous '
-                        'networking framework '
-                        'written in Python',
+             'summary': 'An asynchronous networking '
+                        'framework written in '
+                        'Python',
              'version': '12.3.0'},
     'urls': [{...}, {...}]}

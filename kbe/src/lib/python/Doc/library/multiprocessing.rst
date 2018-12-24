@@ -4,6 +4,9 @@
 .. module:: multiprocessing
    :synopsis: Process-based parallelism.
 
+**Source code:** :source:`Lib/multiprocessing/`
+
+--------------
 
 Introduction
 ------------
@@ -16,41 +19,27 @@ to this, the :mod:`multiprocessing` module allows the programmer to fully
 leverage multiple processors on a given machine.  It runs on both Unix and
 Windows.
 
-.. note::
+The :mod:`multiprocessing` module also introduces APIs which do not have
+analogs in the :mod:`threading` module.  A prime example of this is the
+:class:`~multiprocessing.pool.Pool` object which offers a convenient means of
+parallelizing the execution of a function across multiple input values,
+distributing the input data across processes (data parallelism).  The following
+example demonstrates the common practice of defining such functions in a module
+so that child processes can successfully import that module.  This basic example
+of data parallelism using :class:`~multiprocessing.pool.Pool`, ::
 
-    Some of this package's functionality requires a functioning shared semaphore
-    implementation on the host operating system. Without one, the
-    :mod:`multiprocessing.synchronize` module will be disabled, and attempts to
-    import it will result in an :exc:`ImportError`. See
-    :issue:`3770` for additional information.
+   from multiprocessing import Pool
 
-.. note::
+   def f(x):
+       return x*x
 
-    Functionality within this package requires that the ``__main__`` module be
-    importable by the children. This is covered in :ref:`multiprocessing-programming`
-    however it is worth pointing out here. This means that some examples, such
-    as the :class:`multiprocessing.pool.Pool` examples will not work in the
-    interactive interpreter. For example::
+   if __name__ == '__main__':
+       with Pool(5) as p:
+           print(p.map(f, [1, 2, 3]))
 
-        >>> from multiprocessing import Pool
-        >>> p = Pool(5)
-        >>> def f(x):
-        ...     return x*x
-        ...
-        >>> p.map(f, [1,2,3])
-        Process PoolWorker-1:
-        Process PoolWorker-2:
-        Process PoolWorker-3:
-        Traceback (most recent call last):
-        Traceback (most recent call last):
-        Traceback (most recent call last):
-        AttributeError: 'module' object has no attribute 'f'
-        AttributeError: 'module' object has no attribute 'f'
-        AttributeError: 'module' object has no attribute 'f'
+will print to standard output ::
 
-    (If you try this it will actually output three full tracebacks
-    interleaved in a semi-random fashion, and then you may have to
-    stop the master process somehow.)
+   [1, 4, 9]
 
 
 The :class:`Process` class
@@ -79,8 +68,7 @@ To show the individual process IDs involved, here is an expanded example::
     def info(title):
         print(title)
         print('module name:', __name__)
-        if hasattr(os, 'getppid'):  # only available on Unix
-            print('parent process:', os.getppid())
+        print('parent process:', os.getppid())
         print('process id:', os.getpid())
 
     def f(name):
@@ -147,7 +135,7 @@ start a *semaphore tracker* process which tracks the unlinked named
 semaphores created by processes of the program.  When all processes
 have exited the semaphore tracker unlinks any remaining semaphores.
 Usually there should be none, but if a process was killed by a signal
-there may some "leaked" semaphores.  (Unlinking the named semaphores
+there may be some "leaked" semaphores.  (Unlinking the named semaphores
 is a serious matter since the system allows only a limited number, and
 they will not be automatically unlinked until the next reboot.)
 
@@ -191,7 +179,7 @@ program. ::
 
 Note that objects related to one context may not be compatible with
 processes for a different context.  In particular, locks created using
-the *fork* context cannot be passed to a processes started using the
+the *fork* context cannot be passed to processes started using the
 *spawn* or *forkserver* start methods.
 
 A library which wants to use a particular start method should probably
@@ -331,7 +319,7 @@ However, if you really do need to use some shared data then
    proxies.
 
    A manager returned by :func:`Manager` will support types
-   :class:`list`, :class:`dict`, :class:`Namespace`, :class:`Lock`,
+   :class:`list`, :class:`dict`, :class:`~managers.Namespace`, :class:`Lock`,
    :class:`RLock`, :class:`Semaphore`, :class:`BoundedSemaphore`,
    :class:`Condition`, :class:`Event`, :class:`Barrier`,
    :class:`Queue`, :class:`Value` and :class:`Array`.  For example, ::
@@ -376,8 +364,9 @@ processes in a few different ways.
 
 For example::
 
-   from multiprocessing import Pool
-   from time import sleep
+   from multiprocessing import Pool, TimeoutError
+   import time
+   import os
 
    def f(x):
        return x*x
@@ -393,18 +382,60 @@ For example::
            for i in pool.imap_unordered(f, range(10)):
                print(i)
 
-           # evaluate "f(10)" asynchronously
-           res = pool.apply_async(f, [10])
-           print(res.get(timeout=1))             # prints "100"
+           # evaluate "f(20)" asynchronously
+           res = pool.apply_async(f, (20,))      # runs in *only* one process
+           print(res.get(timeout=1))             # prints "400"
 
-           # make worker sleep for 10 secs
-           res = pool.apply_async(sleep, [10])
-           print(res.get(timeout=1))             # raises multiprocessing.TimeoutError
+           # evaluate "os.getpid()" asynchronously
+           res = pool.apply_async(os.getpid, ()) # runs in *only* one process
+           print(res.get(timeout=1))             # prints the PID of that process
+
+           # launching multiple evaluations asynchronously *may* use more processes
+           multiple_results = [pool.apply_async(os.getpid, ()) for i in range(4)]
+           print([res.get(timeout=1) for res in multiple_results])
+
+           # make a single worker sleep for 10 secs
+           res = pool.apply_async(time.sleep, (10,))
+           try:
+               print(res.get(timeout=1))
+           except TimeoutError:
+               print("We lacked patience and got a multiprocessing.TimeoutError")
+
+           print("For the moment, the pool remains available for more work")
 
        # exiting the 'with'-block has stopped the pool
+       print("Now the pool is closed and no longer available")
 
 Note that the methods of a pool should only ever be used by the
 process which created it.
+
+.. note::
+
+   Functionality within this package requires that the ``__main__`` module be
+   importable by the children. This is covered in :ref:`multiprocessing-programming`
+   however it is worth pointing out here. This means that some examples, such
+   as the :class:`multiprocessing.pool.Pool` examples will not work in the
+   interactive interpreter. For example::
+
+      >>> from multiprocessing import Pool
+      >>> p = Pool(5)
+      >>> def f(x):
+      ...     return x*x
+      ...
+      >>> p.map(f, [1,2,3])
+      Process PoolWorker-1:
+      Process PoolWorker-2:
+      Process PoolWorker-3:
+      Traceback (most recent call last):
+      Traceback (most recent call last):
+      Traceback (most recent call last):
+      AttributeError: 'module' object has no attribute 'f'
+      AttributeError: 'module' object has no attribute 'f'
+      AttributeError: 'module' object has no attribute 'f'
+
+   (If you try this it will actually output three full tracebacks
+   interleaved in a semi-random fashion, and then you may have to
+   stop the master process somehow.)
 
 
 Reference
@@ -465,6 +496,9 @@ The :mod:`multiprocessing` package mostly replicates the API of the
       If the optional argument *timeout* is ``None`` (the default), the method
       blocks until the process whose :meth:`join` method is called terminates.
       If *timeout* is a positive number, it blocks at most *timeout* seconds.
+      Note that the method returns ``None`` if its process terminates or if the
+      method times out.  Check the process's :attr:`exitcode` to determine if
+      it terminated.
 
       A process can be joined many times.
 
@@ -564,6 +598,22 @@ The :mod:`multiprocessing` package mostly replicates the API of the
          acquired a lock or semaphore etc. then terminating it is liable to
          cause other processes to deadlock.
 
+   .. method:: kill()
+
+      Same as :meth:`terminate()` but using the ``SIGKILL`` signal on Unix.
+
+      .. versionadded:: 3.7
+
+   .. method:: close()
+
+      Close the :class:`Process` object, releasing all resources associated
+      with it.  :exc:`ValueError` is raised if the underlying process
+      is still running.  Once :meth:`close` returns successfully, most
+      other methods and attributes of the :class:`Process` object will
+      raise :exc:`ValueError`.
+
+      .. versionadded:: 3.7
+
    Note that the :meth:`start`, :meth:`join`, :meth:`is_alive`,
    :meth:`terminate` and :attr:`exitcode` methods should only be called by
    the process that created the process object.
@@ -616,8 +666,9 @@ primitives like locks.
 For passing messages one can use :func:`Pipe` (for a connection between two
 processes) or a queue (which allows multiple producers and consumers).
 
-The :class:`Queue`, :class:`SimpleQueue` and :class:`JoinableQueue` types are multi-producer,
-multi-consumer FIFO queues modelled on the :class:`queue.Queue` class in the
+The :class:`Queue`, :class:`SimpleQueue` and :class:`JoinableQueue` types
+are multi-producer, multi-consumer :abbr:`FIFO (first-in, first-out)`
+queues modelled on the :class:`queue.Queue` class in the
 standard library.  They differ in that :class:`Queue` lacks the
 :meth:`~queue.Queue.task_done` and :meth:`~queue.Queue.join` methods introduced
 into Python 2.5's :class:`queue.Queue` class.
@@ -684,8 +735,9 @@ For an example of the usage of queues for interprocess communication see
 
 .. function:: Pipe([duplex])
 
-   Returns a pair ``(conn1, conn2)`` of :class:`Connection` objects representing
-   the ends of a pipe.
+   Returns a pair ``(conn1, conn2)`` of
+   :class:`~multiprocessing.connection.Connection` objects representing the
+   ends of a pipe.
 
    If *duplex* is ``True`` (the default) then the pipe is bidirectional.  If
    *duplex* is ``False`` then the pipe is unidirectional: ``conn1`` can only be
@@ -786,6 +838,14 @@ For an example of the usage of queues for interprocess communication see
       immediately without waiting to flush enqueued data to the
       underlying pipe, and you don't care about lost data.
 
+   .. note::
+
+      This class's functionality requires a functioning shared semaphore
+      implementation on the host operating system. Without one, the
+      functionality in this class will be disabled, and attempts to
+      instantiate a :class:`Queue` will result in an :exc:`ImportError`. See
+      :issue:`3770` for additional information.  The same holds true for any
+      of the specialized queue types listed below.
 
 .. class:: SimpleQueue()
 
@@ -842,13 +902,18 @@ Miscellaneous
 
    Return list of all live children of the current process.
 
-   Calling this has the side affect of "joining" any processes which have
+   Calling this has the side effect of "joining" any processes which have
    already finished.
 
 .. function:: cpu_count()
 
-   Return the number of CPUs in the system.  May raise
-   :exc:`NotImplementedError`.
+   Return the number of CPUs in the system.
+
+   This number is not equivalent to the number of CPUs the current process can
+   use.  The number of usable CPUs can be obtained with
+   ``len(os.sched_getaffinity(0))``
+
+   May raise :exc:`NotImplementedError`.
 
    .. seealso::
       :func:`os.cpu_count`
@@ -880,8 +945,10 @@ Miscellaneous
    If the ``freeze_support()`` line is omitted then trying to run the frozen
    executable will raise :exc:`RuntimeError`.
 
-   If the module is being run normally by the Python interpreter then
-   :func:`freeze_support` has no effect.
+   Calling ``freeze_support()`` has no effect when invoked on any operating
+   system other than Windows.  In addition, if the module is being run
+   normally by the Python interpreter on Windows (the program has not been
+   frozen), then ``freeze_support()`` has no effect.
 
 .. function:: get_all_start_methods()
 
@@ -898,7 +965,7 @@ Miscellaneous
    Return a context object which has the same attributes as the
    :mod:`multiprocessing` module.
 
-   If *method* is *None* then the default context is returned.
+   If *method* is ``None`` then the default context is returned.
    Otherwise *method* should be ``'fork'``, ``'spawn'``,
    ``'forkserver'``.  :exc:`ValueError` is raised if the specified
    start method is not available.
@@ -912,10 +979,10 @@ Miscellaneous
    If the start method has not been fixed and *allow_none* is false,
    then the start method is fixed to the default and the name is
    returned.  If the start method has not been fixed and *allow_none*
-   is true then *None* is returned.
+   is true then ``None`` is returned.
 
    The return value can be ``'fork'``, ``'spawn'``, ``'forkserver'``
-   or *None*.  ``'fork'`` is the default on Unix, while ``'spawn'`` is
+   or ``None``.  ``'fork'`` is the default on Unix, while ``'spawn'`` is
    the default on Windows.
 
    .. versionadded:: 3.4
@@ -955,10 +1022,13 @@ Miscellaneous
 Connection Objects
 ~~~~~~~~~~~~~~~~~~
 
+.. currentmodule:: multiprocessing.connection
+
 Connection objects allow the sending and receiving of picklable objects or
 strings.  They can be thought of as message oriented connected sockets.
 
-Connection objects are usually created using :func:`Pipe` -- see also
+Connection objects are usually created using
+:func:`Pipe <multiprocessing.Pipe>` -- see also
 :ref:`multiprocessing-listeners-clients`.
 
 .. class:: Connection
@@ -968,13 +1038,13 @@ Connection objects are usually created using :func:`Pipe` -- see also
       Send an object to the other end of the connection which should be read
       using :meth:`recv`.
 
-      The object must be picklable.  Very large pickles (approximately 32 MB+,
-      though it depends on the OS) may raise a ValueError exception.
+      The object must be picklable.  Very large pickles (approximately 32 MiB+,
+      though it depends on the OS) may raise a :exc:`ValueError` exception.
 
    .. method:: recv()
 
       Return an object sent from the other end of the connection using
-      :meth:`send`.  Blocks until there its something to receive.  Raises
+      :meth:`send`.  Blocks until there is something to receive.  Raises
       :exc:`EOFError` if there is nothing left to receive
       and the other end was closed.
 
@@ -1005,7 +1075,7 @@ Connection objects are usually created using :func:`Pipe` -- see also
 
       If *offset* is given then data is read from that position in *buffer*.  If
       *size* is given then that many bytes will be read from buffer.  Very large
-      buffers (approximately 32 MB+, though it depends on the OS) may raise a
+      buffers (approximately 32 MiB+, though it depends on the OS) may raise a
       :exc:`ValueError` exception
 
    .. method:: recv_bytes([maxlength])
@@ -1020,7 +1090,7 @@ Connection objects are usually created using :func:`Pipe` -- see also
       readable.
 
       .. versionchanged:: 3.3
-         This function used to raise a :exc:`IOError`, which is now an
+         This function used to raise :exc:`IOError`, which is now an
          alias of :exc:`OSError`.
 
 
@@ -1093,6 +1163,8 @@ For example:
 Synchronization primitives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. currentmodule:: multiprocessing
+
 Generally synchronization primitives are not as necessary in a multiprocess
 program as they are in a multithreaded program.  See the documentation for
 :mod:`threading` module.
@@ -1108,10 +1180,15 @@ object -- see :ref:`multiprocessing-managers`.
 
 .. class:: BoundedSemaphore([value])
 
-   A bounded semaphore object: a clone of :class:`threading.BoundedSemaphore`.
+   A bounded semaphore object: a close analog of
+   :class:`threading.BoundedSemaphore`.
 
-   (On Mac OS X, this is indistinguishable from :class:`Semaphore` because
-   ``sem_getvalue()`` is not implemented on that platform).
+   A solitary difference from its close analog exists: its ``acquire`` method's
+   first argument is named *block*, as is consistent with :meth:`Lock.acquire`.
+
+   .. note::
+      On Mac OS X, this is indistinguishable from :class:`Semaphore` because
+      ``sem_getvalue()`` is not implemented on that platform.
 
 .. class:: Condition([lock])
 
@@ -1127,32 +1204,134 @@ object -- see :ref:`multiprocessing-managers`.
 
    A clone of :class:`threading.Event`.
 
+
 .. class:: Lock()
 
-   A non-recursive lock object: a clone of :class:`threading.Lock`.
+   A non-recursive lock object: a close analog of :class:`threading.Lock`.
+   Once a process or thread has acquired a lock, subsequent attempts to
+   acquire it from any process or thread will block until it is released;
+   any process or thread may release it.  The concepts and behaviors of
+   :class:`threading.Lock` as it applies to threads are replicated here in
+   :class:`multiprocessing.Lock` as it applies to either processes or threads,
+   except as noted.
+
+   Note that :class:`Lock` is actually a factory function which returns an
+   instance of ``multiprocessing.synchronize.Lock`` initialized with a
+   default context.
+
+   :class:`Lock` supports the :term:`context manager` protocol and thus may be
+   used in :keyword:`with` statements.
+
+   .. method:: acquire(block=True, timeout=None)
+
+      Acquire a lock, blocking or non-blocking.
+
+      With the *block* argument set to ``True`` (the default), the method call
+      will block until the lock is in an unlocked state, then set it to locked
+      and return ``True``.  Note that the name of this first argument differs
+      from that in :meth:`threading.Lock.acquire`.
+
+      With the *block* argument set to ``False``, the method call does not
+      block.  If the lock is currently in a locked state, return ``False``;
+      otherwise set the lock to a locked state and return ``True``.
+
+      When invoked with a positive, floating-point value for *timeout*, block
+      for at most the number of seconds specified by *timeout* as long as
+      the lock can not be acquired.  Invocations with a negative value for
+      *timeout* are equivalent to a *timeout* of zero.  Invocations with a
+      *timeout* value of ``None`` (the default) set the timeout period to
+      infinite.  Note that the treatment of negative or ``None`` values for
+      *timeout* differs from the implemented behavior in
+      :meth:`threading.Lock.acquire`.  The *timeout* argument has no practical
+      implications if the *block* argument is set to ``False`` and is thus
+      ignored.  Returns ``True`` if the lock has been acquired or ``False`` if
+      the timeout period has elapsed.
+
+
+   .. method:: release()
+
+      Release a lock.  This can be called from any process or thread, not only
+      the process or thread which originally acquired the lock.
+
+      Behavior is the same as in :meth:`threading.Lock.release` except that
+      when invoked on an unlocked lock, a :exc:`ValueError` is raised.
+
 
 .. class:: RLock()
 
-   A recursive lock object: a clone of :class:`threading.RLock`.
+   A recursive lock object: a close analog of :class:`threading.RLock`.  A
+   recursive lock must be released by the process or thread that acquired it.
+   Once a process or thread has acquired a recursive lock, the same process
+   or thread may acquire it again without blocking; that process or thread
+   must release it once for each time it has been acquired.
+
+   Note that :class:`RLock` is actually a factory function which returns an
+   instance of ``multiprocessing.synchronize.RLock`` initialized with a
+   default context.
+
+   :class:`RLock` supports the :term:`context manager` protocol and thus may be
+   used in :keyword:`with` statements.
+
+
+   .. method:: acquire(block=True, timeout=None)
+
+      Acquire a lock, blocking or non-blocking.
+
+      When invoked with the *block* argument set to ``True``, block until the
+      lock is in an unlocked state (not owned by any process or thread) unless
+      the lock is already owned by the current process or thread.  The current
+      process or thread then takes ownership of the lock (if it does not
+      already have ownership) and the recursion level inside the lock increments
+      by one, resulting in a return value of ``True``.  Note that there are
+      several differences in this first argument's behavior compared to the
+      implementation of :meth:`threading.RLock.acquire`, starting with the name
+      of the argument itself.
+
+      When invoked with the *block* argument set to ``False``, do not block.
+      If the lock has already been acquired (and thus is owned) by another
+      process or thread, the current process or thread does not take ownership
+      and the recursion level within the lock is not changed, resulting in
+      a return value of ``False``.  If the lock is in an unlocked state, the
+      current process or thread takes ownership and the recursion level is
+      incremented, resulting in a return value of ``True``.
+
+      Use and behaviors of the *timeout* argument are the same as in
+      :meth:`Lock.acquire`.  Note that some of these behaviors of *timeout*
+      differ from the implemented behaviors in :meth:`threading.RLock.acquire`.
+
+
+   .. method:: release()
+
+      Release a lock, decrementing the recursion level.  If after the
+      decrement the recursion level is zero, reset the lock to unlocked (not
+      owned by any process or thread) and if any other processes or threads
+      are blocked waiting for the lock to become unlocked, allow exactly one
+      of them to proceed.  If after the decrement the recursion level is still
+      nonzero, the lock remains locked and owned by the calling process or
+      thread.
+
+      Only call this method when the calling process or thread owns the lock.
+      An :exc:`AssertionError` is raised if this method is called by a process
+      or thread other than the owner or if the lock is in an unlocked (unowned)
+      state.  Note that the type of exception raised in this situation
+      differs from the implemented behavior in :meth:`threading.RLock.release`.
+
 
 .. class:: Semaphore([value])
 
-   A semaphore object: a clone of :class:`threading.Semaphore`.
+   A semaphore object: a close analog of :class:`threading.Semaphore`.
+
+   A solitary difference from its close analog exists: its ``acquire`` method's
+   first argument is named *block*, as is consistent with :meth:`Lock.acquire`.
 
 .. note::
-
-   The :meth:`acquire` and :meth:`wait` methods of each of these types
-   treat negative timeouts as zero timeouts.  This differs from
-   :mod:`threading` where, since version 3.2, the equivalent
-   :meth:`acquire` methods treat negative timeouts as infinite
-   timeouts.
 
    On Mac OS X, ``sem_timedwait`` is unsupported, so calling ``acquire()`` with
    a timeout will emulate that function's behavior using a sleeping loop.
 
 .. note::
 
-   If the SIGINT signal generated by Ctrl-C arrives while the main thread is
+   If the SIGINT signal generated by :kbd:`Ctrl-C` arrives while the main thread is
    blocked by a call to :meth:`BoundedSemaphore.acquire`, :meth:`Lock.acquire`,
    :meth:`RLock.acquire`, :meth:`Semaphore.acquire`, :meth:`Condition.acquire`
    or :meth:`Condition.wait` then the call will be immediately interrupted and
@@ -1160,6 +1339,14 @@ object -- see :ref:`multiprocessing-managers`.
 
    This differs from the behaviour of :mod:`threading` where SIGINT will be
    ignored while the equivalent blocking calls are in progress.
+
+.. note::
+
+   Some of this package's functionality requires a functioning shared semaphore
+   implementation on the host operating system. Without one, the
+   :mod:`multiprocessing.synchronize` module will be disabled, and attempts to
+   import it will result in an :exc:`ImportError`. See
+   :issue:`3770` for additional information.
 
 
 Shared :mod:`ctypes` Objects
@@ -1321,6 +1508,9 @@ processes.
 
    Note that accessing the ctypes object through the wrapper can be a lot slower
    than accessing the raw ctypes object.
+
+   .. versionchanged:: 3.5
+      Synchronized objects support the :term:`context manager` protocol.
 
 
 The table below compares the syntax for creating shared ctypes objects from
@@ -1517,7 +1707,9 @@ their parent process exits.  The manager classes are defined in the
    of processes.  Objects of this type are returned by
    :func:`multiprocessing.Manager`.
 
-   It also supports creation of shared lists and dictionaries.
+   Its methods create and return :ref:`multiprocessing-proxy_objects` for a
+   number of commonly used data types to be synchronized across processes.
+   This notably includes shared lists and dictionaries.
 
    .. method:: Barrier(parties[, action[, timeout]])
 
@@ -1580,50 +1772,38 @@ their parent process exits.  The manager classes are defined in the
                dict(mapping)
                dict(sequence)
 
-      Create a shared ``dict`` object and return a proxy for it.
+      Create a shared :class:`dict` object and return a proxy for it.
 
    .. method:: list()
                list(sequence)
 
-      Create a shared ``list`` object and return a proxy for it.
+      Create a shared :class:`list` object and return a proxy for it.
 
-   .. note::
+   .. versionchanged:: 3.6
+      Shared objects are capable of being nested.  For example, a shared
+      container object such as a shared list can contain other shared objects
+      which will all be managed and synchronized by the :class:`SyncManager`.
 
-      Modifications to mutable values or items in dict and list proxies will not
-      be propagated through the manager, because the proxy has no way of knowing
-      when its values or items are modified.  To modify such an item, you can
-      re-assign the modified object to the container proxy::
+.. class:: Namespace
 
-         # create a list proxy and append a mutable object (a dictionary)
-         lproxy = manager.list()
-         lproxy.append({})
-         # now mutate the dictionary
-         d = lproxy[0]
-         d['a'] = 1
-         d['b'] = 2
-         # at this point, the changes to d are not yet synced, but by
-         # reassigning the dictionary, the proxy is notified of the change
-         lproxy[0] = d
+   A type that can register with :class:`SyncManager`.
 
+   A namespace object has no public methods, but does have writable attributes.
+   Its representation shows the values of its attributes.
 
-Namespace objects
->>>>>>>>>>>>>>>>>
+   However, when using a proxy for a namespace object, an attribute beginning
+   with ``'_'`` will be an attribute of the proxy and not an attribute of the
+   referent:
 
-A namespace object has no public methods, but does have writable attributes.
-Its representation shows the values of its attributes.
+   .. doctest::
 
-However, when using a proxy for a namespace object, an attribute beginning with
-``'_'`` will be an attribute of the proxy and not an attribute of the referent:
-
-.. doctest::
-
-   >>> manager = multiprocessing.Manager()
-   >>> Global = manager.Namespace()
-   >>> Global.x = 10
-   >>> Global.y = 'hello'
-   >>> Global._z = 12.3    # this is an attribute of the proxy
-   >>> print(Global)
-   Namespace(x=10, y='hello')
+    >>> manager = multiprocessing.Manager()
+    >>> Global = manager.Namespace()
+    >>> Global.x = 10
+    >>> Global.y = 'hello'
+    >>> Global._z = 12.3    # this is an attribute of the proxy
+    >>> print(Global)
+    Namespace(x=10, y='hello')
 
 
 Customized managers
@@ -1663,8 +1843,8 @@ Running the following commands creates a server for a single shared queue which
 remote clients can access::
 
    >>> from multiprocessing.managers import BaseManager
-   >>> import queue
-   >>> queue = queue.Queue()
+   >>> from queue import Queue
+   >>> queue = Queue()
    >>> class QueueManager(BaseManager): pass
    >>> QueueManager.register('get_queue', callable=lambda:queue)
    >>> m = QueueManager(address=('', 50000), authkey=b'abracadabra')
@@ -1714,6 +1894,8 @@ client to access it remotely::
     >>> s = m.get_server()
     >>> s.serve_forever()
 
+.. _multiprocessing-proxy_objects:
+
 Proxy Objects
 ~~~~~~~~~~~~~
 
@@ -1723,8 +1905,7 @@ proxy.  Multiple proxy objects may have the same referent.
 
 A proxy object has methods which invoke corresponding methods of its referent
 (although not every method of the referent will necessarily be available through
-the proxy).  A proxy can usually be used in most of the same ways that its
-referent can:
+the proxy).  In this way, a proxy can be used just like its referent can:
 
 .. doctest::
 
@@ -1745,9 +1926,9 @@ the referent, whereas applying :func:`repr` will return the representation of
 the proxy.
 
 An important feature of proxy objects is that they are picklable so they can be
-passed between processes.  Note, however, that if a proxy is sent to the
-corresponding manager's process then unpickling it will produce the referent
-itself.  This means, for example, that one shared object can contain a second:
+passed between processes.  As such, a referent can contain
+:ref:`multiprocessing-proxy_objects`.  This permits nesting of these managed
+lists, dicts, and other :ref:`multiprocessing-proxy_objects`:
 
 .. doctest::
 
@@ -1755,10 +1936,46 @@ itself.  This means, for example, that one shared object can contain a second:
    >>> b = manager.list()
    >>> a.append(b)         # referent of a now contains referent of b
    >>> print(a, b)
-   [[]] []
+   [<ListProxy object, typeid 'list' at ...>] []
    >>> b.append('hello')
-   >>> print(a, b)
-   [['hello']] ['hello']
+   >>> print(a[0], b)
+   ['hello'] ['hello']
+
+Similarly, dict and list proxies may be nested inside one another::
+
+   >>> l_outer = manager.list([ manager.dict() for i in range(2) ])
+   >>> d_first_inner = l_outer[0]
+   >>> d_first_inner['a'] = 1
+   >>> d_first_inner['b'] = 2
+   >>> l_outer[1]['c'] = 3
+   >>> l_outer[1]['z'] = 26
+   >>> print(l_outer[0])
+   {'a': 1, 'b': 2}
+   >>> print(l_outer[1])
+   {'c': 3, 'z': 26}
+
+If standard (non-proxy) :class:`list` or :class:`dict` objects are contained
+in a referent, modifications to those mutable values will not be propagated
+through the manager because the proxy has no way of knowing when the values
+contained within are modified.  However, storing a value in a container proxy
+(which triggers a ``__setitem__`` on the proxy object) does propagate through
+the manager and so to effectively modify such an item, one could re-assign the
+modified value to the container proxy::
+
+   # create a list proxy and append a mutable object (a dictionary)
+   lproxy = manager.list()
+   lproxy.append({})
+   # now mutate the dictionary
+   d = lproxy[0]
+   d['a'] = 1
+   d['b'] = 2
+   # at this point, the changes to d are not yet synced, but by
+   # updating the dictionary, the proxy is notified of the change
+   lproxy[0] = d
+
+This approach is perhaps less convenient than employing nested
+:ref:`multiprocessing-proxy_objects` for most use cases but also
+demonstrates a level of control over the synchronization.
 
 .. note::
 
@@ -1800,7 +2017,7 @@ itself.  This means, for example, that one shared object can contain a second:
       raised by :meth:`_callmethod`.
 
       Note in particular that an exception will be raised if *methodname* has
-      not been *exposed*
+      not been *exposed*.
 
       An example of the usage of :meth:`_callmethod`:
 
@@ -1809,9 +2026,9 @@ itself.  This means, for example, that one shared object can contain a second:
          >>> l = manager.list(range(10))
          >>> l._callmethod('__len__')
          10
-         >>> l._callmethod('__getslice__', (2, 7))   # equiv to `l[2:7]`
+         >>> l._callmethod('__getitem__', (slice(2, 7),)) # equivalent to l[2:7]
          [2, 3, 4, 5, 6]
-         >>> l._callmethod('__getitem__', (20,))     # equiv to `l[20]`
+         >>> l._callmethod('__getitem__', (20,))          # equivalent to l[20]
          Traceback (most recent call last):
          ...
          IndexError: list index out of range
@@ -1864,7 +2081,7 @@ with the :class:`Pool` class.
 
    *maxtasksperchild* is the number of tasks a worker process can complete
    before it will exit and be replaced with a fresh worker process, to enable
-   unused resources to be freed. The default *maxtasksperchild* is None, which
+   unused resources to be freed. The default *maxtasksperchild* is ``None``, which
    means worker processes will live as long as the pool.
 
    *context* can be used to specify the context used for starting
@@ -1906,7 +2123,7 @@ with the :class:`Pool` class.
       If *callback* is specified then it should be a callable which accepts a
       single argument.  When the result becomes ready *callback* is applied to
       it, that is unless the call failed, in which case the *error_callback*
-      is applied instead
+      is applied instead.
 
       If *error_callback* is specified then it should be a callable which
       accepts a single argument.  If the target function fails, then
@@ -1931,7 +2148,7 @@ with the :class:`Pool` class.
       If *callback* is specified then it should be a callable which accepts a
       single argument.  When the result becomes ready *callback* is applied to
       it, that is unless the call failed, in which case the *error_callback*
-      is applied instead
+      is applied instead.
 
       If *error_callback* is specified then it should be a callable which
       accepts a single argument.  If the target function fails, then
@@ -1962,18 +2179,18 @@ with the :class:`Pool` class.
 
    .. method:: starmap(func, iterable[, chunksize])
 
-      Like :meth:`map` except that the elements of the `iterable` are expected
+      Like :meth:`map` except that the elements of the *iterable* are expected
       to be iterables that are unpacked as arguments.
 
-      Hence an `iterable` of `[(1,2), (3, 4)]` results in `[func(1,2),
-      func(3,4)]`.
+      Hence an *iterable* of ``[(1,2), (3, 4)]`` results in ``[func(1,2),
+      func(3,4)]``.
 
       .. versionadded:: 3.3
 
-   .. method:: starmap_async(func, iterable[, chunksize[, callback[, error_back]]])
+   .. method:: starmap_async(func, iterable[, chunksize[, callback[, error_callback]]])
 
       A combination of :meth:`starmap` and :meth:`map_async` that iterates over
-      `iterable` of iterables and calls `func` with the iterables unpacked.
+      *iterable* of iterables and calls *func* with the iterables unpacked.
       Returns a result object.
 
       .. versionadded:: 3.3
@@ -2028,13 +2245,14 @@ with the :class:`Pool` class.
 The following example demonstrates the use of a pool::
 
    from multiprocessing import Pool
+   import time
 
    def f(x):
        return x*x
 
    if __name__ == '__main__':
        with Pool(processes=4) as pool:         # start 4 worker processes
-           result = pool.apply_async(f, (10,)) # evaluate "f(10)" asynchronously
+           result = pool.apply_async(f, (10,)) # evaluate "f(10)" asynchronously in a single process
            print(result.get(timeout=1))        # prints "100" unless your computer is *very* slow
 
            print(pool.map(f, range(10)))       # prints "[0, 1, 4,..., 81]"
@@ -2044,9 +2262,8 @@ The following example demonstrates the use of a pool::
            print(next(it))                     # prints "1"
            print(it.next(timeout=1))           # prints "4" unless your computer is *very* slow
 
-           import time
            result = pool.apply_async(time.sleep, (10,))
-           print(result.get(timeout=1))        # raises TimeoutError
+           print(result.get(timeout=1))        # raises multiprocessing.TimeoutError
 
 
 .. _multiprocessing-listeners-clients:
@@ -2058,7 +2275,7 @@ Listeners and Clients
    :synopsis: API for dealing with sockets.
 
 Usually message passing between processes is done using queues or by using
-:class:`~multiprocessing.Connection` objects returned by
+:class:`~Connection` objects returned by
 :func:`~multiprocessing.Pipe`.
 
 However, the :mod:`multiprocessing.connection` module allows some extra
@@ -2085,23 +2302,22 @@ multiple connections at the same time.
    If a welcome message is not received, then
    :exc:`~multiprocessing.AuthenticationError` is raised.
 
-.. function:: Client(address[, family[, authenticate[, authkey]]])
+.. function:: Client(address[, family[, authkey]])
 
    Attempt to set up a connection to the listener which is using address
-   *address*, returning a :class:`~multiprocessing.Connection`.
+   *address*, returning a :class:`~Connection`.
 
    The type of the connection is determined by *family* argument, but this can
    generally be omitted since it can usually be inferred from the format of
    *address*. (See :ref:`multiprocessing-address-formats`)
 
-   If *authenticate* is ``True`` or *authkey* is a byte string then digest
-   authentication is used.  The key used for authentication will be either
-   *authkey* or ``current_process().authkey`` if *authkey* is ``None``.
-   If authentication fails then
-   :exc:`~multiprocessing.AuthenticationError` is raised.  See
-   :ref:`multiprocessing-auth-keys`.
+   If *authkey* is given and not None, it should be a byte string and will be
+   used as the secret key for an HMAC-based authentication challenge. No
+   authentication is done if *authkey* is None.
+   :exc:`~multiprocessing.AuthenticationError` is raised if authentication fails.
+   See :ref:`multiprocessing-auth-keys`.
 
-.. class:: Listener([address[, family[, backlog[, authenticate[, authkey]]]]])
+.. class:: Listener([address[, family[, backlog[, authkey]]]])
 
    A wrapper for a bound socket or Windows named pipe which is 'listening' for
    connections.
@@ -2130,24 +2346,17 @@ multiple connections at the same time.
    to the :meth:`~socket.socket.listen` method of the socket once it has been
    bound.
 
-   If *authenticate* is ``True`` (``False`` by default) or *authkey* is not
-   ``None`` then digest authentication is used.
-
-   If *authkey* is a byte string then it will be used as the
-   authentication key; otherwise it must be *None*.
-
-   If *authkey* is ``None`` and *authenticate* is ``True`` then
-   ``current_process().authkey`` is used as the authentication key.  If
-   *authkey* is ``None`` and *authenticate* is ``False`` then no
-   authentication is done.  If authentication fails then
-   :exc:`~multiprocessing.AuthenticationError` is raised.
+   If *authkey* is given and not None, it should be a byte string and will be
+   used as the secret key for an HMAC-based authentication challenge. No
+   authentication is done if *authkey* is None.
+   :exc:`~multiprocessing.AuthenticationError` is raised if authentication fails.
    See :ref:`multiprocessing-auth-keys`.
 
    .. method:: accept()
 
       Accept a connection on the bound socket or named pipe of the listener
-      object and return a :class:`~multiprocessing.Connection` object.  If
-      authentication is attempted and fails, then
+      object and return a :class:`~Connection` object.
+      If authentication is attempted and fails, then
       :exc:`~multiprocessing.AuthenticationError` is raised.
 
    .. method:: close()
@@ -2183,7 +2392,7 @@ multiple connections at the same time.
    For both Unix and Windows, an object can appear in *object_list* if
    it is
 
-   * a readable :class:`~multiprocessing.Connection` object;
+   * a readable :class:`~multiprocessing.connection.Connection` object;
    * a connected and readable :class:`socket.socket` object; or
    * the :attr:`~multiprocessing.Process.sentinel` attribute of a
      :class:`~multiprocessing.Process` object.
@@ -2306,10 +2515,10 @@ an ``'AF_PIPE'`` address rather than an ``'AF_UNIX'`` address.
 Authentication keys
 ~~~~~~~~~~~~~~~~~~~
 
-When one uses :meth:`Connection.recv <multiprocessing.Connection.recv>`, the
+When one uses :meth:`Connection.recv <Connection.recv>`, the
 data received is automatically
-unpickled.  Unfortunately unpickling data from an untrusted source is a security
-risk.  Therefore :class:`Listener` and :func:`Client` use the :mod:`hmac` module
+unpickled. Unfortunately unpickling data from an untrusted source is a security
+risk. Therefore :class:`Listener` and :func:`Client` use the :mod:`hmac` module
 to provide digest authentication.
 
 An authentication key is a byte string which can be thought of as a
@@ -2320,7 +2529,7 @@ the connection.)
 
 If authentication is requested but no authentication key is specified then the
 return value of ``current_process().authkey`` is used (see
-:class:`~multiprocessing.Process`).  This value will automatically inherited by
+:class:`~multiprocessing.Process`).  This value will be automatically inherited by
 any :class:`~multiprocessing.Process` object that the current process creates.
 This means that (by default) all processes of a multi-process program will share
 a single authentication key which can be used when setting up connections
@@ -2464,7 +2673,7 @@ Joining processes that use queues
     items which have been put on the queue will eventually be removed before the
     process is joined.  Otherwise you cannot be sure that processes which have
     put items on the queue will terminate.  Remember also that non-daemonic
-    processes will be automatically be joined.
+    processes will be joined automatically.
 
     An example which will deadlock is the following::
 
@@ -2480,7 +2689,7 @@ Joining processes that use queues
             p.join()                    # this deadlocks
             obj = queue.get()
 
-    A fix here would be to swap the last two lines round (or simply remove the
+    A fix here would be to swap the last two lines (or simply remove the
     ``p.join()`` line).
 
 Explicitly pass resources to child processes
@@ -2505,8 +2714,8 @@ Explicitly pass resources to child processes
             ... do something using "lock" ...
 
         if __name__ == '__main__':
-           lock = Lock()
-           for i in range(10):
+            lock = Lock()
+            for i in range(10):
                 Process(target=f).start()
 
     should be rewritten as ::
@@ -2517,8 +2726,8 @@ Explicitly pass resources to child processes
             ... do something using "l" ...
 
         if __name__ == '__main__':
-           lock = Lock()
-           for i in range(10):
+            lock = Lock()
+            for i in range(10):
                 Process(target=f, args=(lock,)).start()
 
 Beware of replacing :data:`sys.stdin` with a "file like object"
@@ -2531,7 +2740,7 @@ Beware of replacing :data:`sys.stdin` with a "file like object"
     in issues with processes-in-processes. This has been changed to::
 
         sys.stdin.close()
-        sys.stdin = open(os.devnull)
+        sys.stdin = open(os.open(os.devnull, os.O_RDONLY), closefd=False)
 
     Which solves the fundamental issue of processes colliding with each other
     resulting in a bad file descriptor error, but introduces a potential danger
@@ -2562,12 +2771,7 @@ start method.
 
 More picklability
 
-    Ensure that all arguments to :meth:`Process.__init__` are
-    picklable.  This means, in particular, that bound or unbound
-    methods cannot be used directly as the ``target`` (unless you use
-    the *fork* start method) --- just define a function and use that
-    instead.
-
+    Ensure that all arguments to :meth:`Process.__init__` are picklable.
     Also, if you subclass :class:`~multiprocessing.Process` then make sure that
     instances will be picklable when the :meth:`Process.start
     <multiprocessing.Process.start>` method is called.

@@ -31,7 +31,7 @@ static XxoObject *
 newXxoObject(PyObject *arg)
 {
     XxoObject *self;
-    self = PyObject_New(XxoObject, (PyTypeObject*)Xxo_Type);
+    self = PyObject_GC_New(XxoObject, (PyTypeObject*)Xxo_Type);
     if (self == NULL)
         return NULL;
     self->x_attr = NULL;
@@ -40,11 +40,17 @@ newXxoObject(PyObject *arg)
 
 /* Xxo methods */
 
-static void
-Xxo_dealloc(XxoObject *self)
+static int
+Xxo_traverse(XxoObject *self, visitproc visit, void *arg)
 {
-    Py_XDECREF(self->x_attr);
-    ((freefunc)PyType_GetSlot(Py_TYPE(self), Py_tp_free))(self);
+    Py_VISIT(self->x_attr);
+    return 0;
+}
+
+static void
+Xxo_finalize(XxoObject *self)
+{
+    Py_CLEAR(self->x_attr);
 }
 
 static PyObject *
@@ -82,7 +88,7 @@ Xxo_getattro(XxoObject *self, PyObject *name)
 }
 
 static int
-Xxo_setattr(XxoObject *self, char *name, PyObject *v)
+Xxo_setattr(XxoObject *self, const char *name, PyObject *v)
 {
     if (self->x_attr == NULL) {
         self->x_attr = PyDict_New();
@@ -102,7 +108,8 @@ Xxo_setattr(XxoObject *self, char *name, PyObject *v)
 
 static PyType_Slot Xxo_Type_slots[] = {
     {Py_tp_doc, "The Xxo type"},
-    {Py_tp_dealloc, Xxo_dealloc},
+    {Py_tp_traverse, Xxo_traverse},
+    {Py_tp_finalize, Xxo_finalize},
     {Py_tp_getattro, Xxo_getattro},
     {Py_tp_setattr, Xxo_setattr},
     {Py_tp_methods, Xxo_methods},
@@ -113,7 +120,7 @@ static PyType_Spec Xxo_Type_spec = {
     "xxlimited.Xxo",
     sizeof(XxoObject),
     0,
-    Py_TPFLAGS_DEFAULT,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_HAVE_FINALIZE,
     Xxo_Type_slots
 };
 
@@ -169,7 +176,7 @@ xx_roj(PyObject *self, PyObject *args)
 
 /* ---------- */
 
-static PyType_Slot Str_Type_slots[] = {    
+static PyType_Slot Str_Type_slots[] = {
     {Py_tp_base, NULL}, /* filled out in module init function */
     {0, 0},
 };
@@ -222,25 +229,9 @@ static PyMethodDef xx_methods[] = {
 PyDoc_STRVAR(module_doc,
 "This is a template module just for instruction.");
 
-/* Initialization function for the module (*must* be called PyInit_xx) */
-
-
-static struct PyModuleDef xxmodule = {
-    PyModuleDef_HEAD_INIT,
-    "xxlimited",
-    module_doc,
-    -1,
-    xx_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
-PyMODINIT_FUNC
-PyInit_xxlimited(void)
+static int
+xx_modexec(PyObject *m)
 {
-    PyObject *m = NULL;
     PyObject *o;
 
     /* Due to cross platform compiler issues the slots must be filled
@@ -254,11 +245,6 @@ PyInit_xxlimited(void)
     if (Xxo_Type == NULL)
         goto fail;
 
-    /* Create the module and add the functions */
-    m = PyModule_Create(&xxmodule);
-    if (m == NULL)
-        goto fail;
-
     /* Add some symbolic constants to the module */
     if (ErrorObject == NULL) {
         ErrorObject = PyErr_NewException("xxlimited.error", NULL, NULL);
@@ -267,6 +253,12 @@ PyInit_xxlimited(void)
     }
     Py_INCREF(ErrorObject);
     PyModule_AddObject(m, "error", ErrorObject);
+
+    /* Add Xxo */
+    o = PyType_FromSpec(&Xxo_Type_spec);
+    if (o == NULL)
+        goto fail;
+    PyModule_AddObject(m, "Xxo", o);
 
     /* Add Str */
     o = PyType_FromSpec(&Str_Type_spec);
@@ -279,8 +271,34 @@ PyInit_xxlimited(void)
     if (o == NULL)
         goto fail;
     PyModule_AddObject(m, "Null", o);
-    return m;
+    return 0;
  fail:
     Py_XDECREF(m);
-    return NULL;
+    return -1;
+}
+
+
+static PyModuleDef_Slot xx_slots[] = {
+    {Py_mod_exec, xx_modexec},
+    {0, NULL}
+};
+
+static struct PyModuleDef xxmodule = {
+    PyModuleDef_HEAD_INIT,
+    "xxlimited",
+    module_doc,
+    0,
+    xx_methods,
+    xx_slots,
+    NULL,
+    NULL,
+    NULL
+};
+
+/* Export function for the module (*must* be called PyInit_xx) */
+
+PyMODINIT_FUNC
+PyInit_xxlimited(void)
+{
+    return PyModuleDef_Init(&xxmodule);
 }

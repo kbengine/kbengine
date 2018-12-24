@@ -261,7 +261,7 @@ class SheetParser:
     def end_int(self, text):
         try:
             self.value = int(text)
-        except:
+        except (TypeError, ValueError):
             self.value = None
 
     end_long = end_int
@@ -269,13 +269,13 @@ class SheetParser:
     def end_double(self, text):
         try:
             self.value = float(text)
-        except:
+        except (TypeError, ValueError):
             self.value = None
 
     def end_complex(self, text):
         try:
             self.value = complex(text)
-        except:
+        except (TypeError, ValueError):
             self.value = None
 
     def end_string(self, text):
@@ -413,7 +413,7 @@ class FormulaCell(BaseCell):
 
     def renumber(self, x1, y1, x2, y2, dx, dy):
         out = []
-        for part in re.split('(\w+)', self.formula):
+        for part in re.split(r'(\w+)', self.formula):
             m = re.match('^([A-Z]+)([1-9][0-9]*)$', part)
             if m is not None:
                 sx, sy = m.groups()
@@ -763,7 +763,7 @@ class SheetGUI:
             for cls in int, float, complex:
                 try:
                     value = cls(text)
-                except:
+                except (TypeError, ValueError):
                     continue
                 else:
                     cell = NumericCell(value)

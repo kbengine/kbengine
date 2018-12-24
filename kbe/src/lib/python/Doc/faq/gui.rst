@@ -29,21 +29,21 @@ Tkinter
 Standard builds of Python include an object-oriented interface to the Tcl/Tk
 widget set, called :ref:`tkinter <Tkinter>`.  This is probably the easiest to
 install (since it comes included with most
-`binary distributions <http://www.python.org/download/>`_ of Python) and use.
+`binary distributions <https://www.python.org/downloads/>`_ of Python) and use.
 For more info about Tk, including pointers to the source, see the
-`Tcl/Tk home page <http://www.tcl.tk>`_.  Tcl/Tk is fully portable to the
+`Tcl/Tk home page <https://www.tcl.tk>`_.  Tcl/Tk is fully portable to the
 Mac OS X, Windows, and Unix platforms.
 
 wxWidgets
 ---------
 
-wxWidgets (http://www.wxwidgets.org) is a free, portable GUI class
+wxWidgets (https://www.wxwidgets.org) is a free, portable GUI class
 library written in C++ that provides a native look and feel on a
 number of platforms, with Windows, Mac OS X, GTK, X11, all listed as
 current stable targets.  Language bindings are available for a number
 of languages including Python, Perl, Ruby, etc.
 
-wxPython (http://www.wxpython.org) is the Python binding for
+`wxPython <https://www.wxpython.org>`_ is the Python binding for
 wxwidgets.  While it often lags slightly behind the official wxWidgets
 releases, it also offers a number of features via pure Python
 extensions that are not available in other language bindings.  There
@@ -58,24 +58,34 @@ Qt
 ---
 
 There are bindings available for the Qt toolkit (using either `PyQt
-<http://www.riverbankcomputing.co.uk/software/pyqt/>`_ or `PySide
-<http://www.pyside.org/>`_) and for KDE (`PyKDE <http://www.riverbankcomputing.co.uk/software/pykde/intro>`__).
+<https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide
+<https://wiki.qt.io/PySide>`_) and for KDE (`PyKDE4 <https://techbase.kde.org/Languages/Python/Using_PyKDE_4>`__).
 PyQt is currently more mature than PySide, but you must buy a PyQt license from
-`Riverbank Computing <http://www.riverbankcomputing.co.uk/software/pyqt/license>`_
+`Riverbank Computing <https://www.riverbankcomputing.com/commercial/license-faq>`_
 if you want to write proprietary applications.  PySide is free for all applications.
 
 Qt 4.5 upwards is licensed under the LGPL license; also, commercial licenses
-are available from `Nokia <http://qt.nokia.com/>`_.
+are available from `The Qt Company <https://www.qt.io/licensing/>`_.
 
 Gtk+
 ----
 
-The `GObject introspection bindings <https://live.gnome.org/PyGObject>`_
+The `GObject introspection bindings <https://wiki.gnome.org/Projects/PyGObject>`_
 for Python allow you to write GTK+ 3 applications.  There is also a
-`Python GTK+ 3 Tutorial <http://python-gtk-3-tutorial.readthedocs.org/en/latest/>`_.
+`Python GTK+ 3 Tutorial <https://python-gtk-3-tutorial.readthedocs.io>`_.
 
-The older PyGtk bindings for the `Gtk+ 2 toolkit <http://www.gtk.org>`_ have
+The older PyGtk bindings for the `Gtk+ 2 toolkit <https://www.gtk.org>`_ have
 been implemented by James Henstridge; see <http://www.pygtk.org>.
+
+Kivy
+----
+
+`Kivy <https://kivy.org/>`_ is a cross-platform GUI library supporting both
+desktop operating systems (Windows, macOS, Linux) and mobile devices (Android,
+iOS).  It is written in Python and Cython, and can use a range of windowing
+backends.
+
+Kivy is free and open source software distributed under the MIT license.
 
 FLTK
 ----
@@ -83,15 +93,6 @@ FLTK
 Python bindings for `the FLTK toolkit <http://www.fltk.org>`_, a simple yet
 powerful and mature cross-platform windowing system, are available from `the
 PyFLTK project <http://pyfltk.sourceforge.net>`_.
-
-
-FOX
-----
-
-A wrapper for `the FOX toolkit <http://www.fox-toolkit.org/>`_ called `FXpy
-<http://fxpy.sourceforge.net/>`_ is available.  FOX supports both Unix variants
-and Windows.
-
 
 OpenGL
 ------
@@ -103,7 +104,7 @@ What platform-specific GUI toolkits exist for Python?
 ========================================================
 
 By installing the `PyObjc Objective-C bridge
-<http://pyobjc.sourceforge.net>`_, Python programs can use Mac OS X's
+<https://pythonhosted.org/pyobjc/>`_, Python programs can use Mac OS X's
 Cocoa libraries.
 
 :ref:`Pythonwin <windows-faq>` by Mark Hammond includes an interface to the
@@ -139,30 +140,11 @@ might include the Tix libraries as well).
 Can I have Tk events handled while waiting for I/O?
 ---------------------------------------------------
 
-Yes, and you don't even need threads!  But you'll have to restructure your I/O
+On platforms other than Windows, yes, and you don't even
+need threads!  But you'll have to restructure your I/O
 code a bit.  Tk has the equivalent of Xt's :c:func:`XtAddInput()` call, which allows you
 to register a callback function which will be called from the Tk mainloop when
-I/O is possible on a file descriptor.  Here's what you need::
-
-   from Tkinter import tkinter
-   tkinter.createfilehandler(file, mask, callback)
-
-The file may be a Python file or socket object (actually, anything with a
-fileno() method), or an integer file descriptor.  The mask is one of the
-constants tkinter.READABLE or tkinter.WRITABLE.  The callback is called as
-follows::
-
-   callback(file, mask)
-
-You must unregister the callback when you're done, using ::
-
-   tkinter.deletefilehandler(file)
-
-Note: since you don't know *how many bytes* are available for reading, you can't
-use the Python file object's read or readline methods, since these will insist
-on reading a predefined number of bytes.  For sockets, the :meth:`recv` or
-:meth:`recvfrom` methods will work fine; for other files, use
-``os.read(file.fileno(), maxbytecount)``.
+I/O is possible on a file descriptor.  See :ref:`tkinter-file-handlers`.
 
 
 I can't get key bindings to work in Tkinter: why?

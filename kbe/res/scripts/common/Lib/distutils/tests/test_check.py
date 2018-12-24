@@ -1,10 +1,17 @@
 """Tests for distutils.command.check."""
+import textwrap
 import unittest
 from test.support import run_unittest
 
 from distutils.command.check import check, HAS_DOCUTILS
 from distutils.tests import support
 from distutils.errors import DistutilsSetupError
+
+try:
+    import pygments
+except ImportError:
+    pygments = None
+
 
 class CheckTestCase(support.LoggingSilencer,
                     support.TempdirManager,
@@ -91,6 +98,42 @@ class CheckTestCase(support.LoggingSilencer,
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
         cmd = self._run(metadata, strict=1, restructuredtext=1)
         self.assertEqual(cmd._warnings, 0)
+
+    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
+    def test_check_restructuredtext_with_syntax_highlight(self):
+        # Don't fail if there is a `code` or `code-block` directive
+
+        example_rst_docs = []
+        example_rst_docs.append(textwrap.dedent("""\
+            Here's some code:
+
+            .. code:: python
+
+                def foo():
+                    pass
+            """))
+        example_rst_docs.append(textwrap.dedent("""\
+            Here's some code:
+
+            .. code-block:: python
+
+                def foo():
+                    pass
+            """))
+
+        for rest_with_code in example_rst_docs:
+            pkg_info, dist = self.create_dist(long_description=rest_with_code)
+            cmd = check(dist)
+            cmd.check_restructuredtext()
+            msgs = cmd._check_rst_data(rest_with_code)
+            if pygments is not None:
+                self.assertEqual(len(msgs), 0)
+            else:
+                self.assertEqual(len(msgs), 1)
+                self.assertEqual(
+                    str(msgs[0][1]),
+                    'Cannot analyze code. Pygments package not found.'
+                )
 
     def test_check_all(self):
 

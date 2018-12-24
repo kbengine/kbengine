@@ -10,6 +10,12 @@
 #include <shadow.h>
 #endif
 
+#include "clinic/spwdmodule.c.h"
+
+/*[clinic input]
+module spwd
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=c0b841b90a6a07ce]*/
 
 PyDoc_STRVAR(spwd__doc__,
 "This module provides access to the Unix shadow password database.\n\
@@ -107,26 +113,35 @@ static PyObject *mkspent(struct spwd *p)
 
 #ifdef HAVE_GETSPNAM
 
-PyDoc_STRVAR(spwd_getspnam__doc__,
-"getspnam(name) -> (sp_namp, sp_pwdp, sp_lstchg, sp_min, sp_max,\n\
-                    sp_warn, sp_inact, sp_expire, sp_flag)\n\
-Return the shadow password database entry for the given user name.\n\
-See spwd.__doc__ for more on shadow password database entries.");
+/*[clinic input]
+spwd.getspnam
 
-static PyObject* spwd_getspnam(PyObject *self, PyObject *args)
+    arg: unicode
+    /
+
+Return the shadow password database entry for the given user name.
+
+See `help(spwd)` for more on shadow password database entries.
+[clinic start generated code]*/
+
+static PyObject *
+spwd_getspnam_impl(PyObject *module, PyObject *arg)
+/*[clinic end generated code: output=701250cf57dc6ebe input=dd89429e6167a00f]*/
 {
     char *name;
     struct spwd *p;
-    PyObject *arg, *bytes, *retval = NULL;
+    PyObject *bytes, *retval = NULL;
 
-    if (!PyArg_ParseTuple(args, "U:getspnam", &arg))
-        return NULL;
     if ((bytes = PyUnicode_EncodeFSDefault(arg)) == NULL)
         return NULL;
+    /* check for embedded null bytes */
     if (PyBytes_AsStringAndSize(bytes, &name, NULL) == -1)
         goto out;
     if ((p = getspnam(name)) == NULL) {
-        PyErr_SetString(PyExc_KeyError, "getspnam(): name not found");
+        if (errno != 0)
+            PyErr_SetFromErrno(PyExc_OSError);
+        else
+            PyErr_SetString(PyExc_KeyError, "getspnam(): name not found");
         goto out;
     }
     retval = mkspent(p);
@@ -139,14 +154,17 @@ out:
 
 #ifdef HAVE_GETSPENT
 
-PyDoc_STRVAR(spwd_getspall__doc__,
-"getspall() -> list_of_entries\n\
-Return a list of all available shadow password database entries, \
-in arbitrary order.\n\
-See spwd.__doc__ for more on shadow password database entries.");
+/*[clinic input]
+spwd.getspall
+
+Return a list of all available shadow password database entries, in arbitrary order.
+
+See `help(spwd)` for more on shadow password database entries.
+[clinic start generated code]*/
 
 static PyObject *
-spwd_getspall(PyObject *self, PyObject *args)
+spwd_getspall_impl(PyObject *module)
+/*[clinic end generated code: output=4fda298d6bf6d057 input=b2c84b7857d622bd]*/
 {
     PyObject *d;
     struct spwd *p;
@@ -171,10 +189,10 @@ spwd_getspall(PyObject *self, PyObject *args)
 
 static PyMethodDef spwd_methods[] = {
 #ifdef HAVE_GETSPNAM
-    {"getspnam",        spwd_getspnam, METH_VARARGS, spwd_getspnam__doc__},
+    SPWD_GETSPNAM_METHODDEF
 #endif
 #ifdef HAVE_GETSPENT
-    {"getspall",        spwd_getspall, METH_NOARGS, spwd_getspall__doc__},
+    SPWD_GETSPALL_METHODDEF
 #endif
     {NULL,              NULL}           /* sentinel */
 };

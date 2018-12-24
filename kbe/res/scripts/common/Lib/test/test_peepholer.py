@@ -1,9 +1,5 @@
 import dis
-import re
-import sys
-from io import StringIO
 import unittest
-from math import copysign
 
 from test.bytecode_helper import BytecodeTestCase
 
@@ -30,22 +26,25 @@ class TestTranforms(BytecodeTestCase):
 
     def test_global_as_constant(self):
         # LOAD_GLOBAL None/True/False  -->  LOAD_CONST None/True/False
-        def f(x):
-            None
-            None
+        def f():
+            x = None
+            x = None
             return x
-        def g(x):
-            True
+        def g():
+            x = True
             return x
-        def h(x):
-            False
+        def h():
+            x = False
             return x
+
         for func, elem in ((f, None), (g, True), (h, False)):
             self.assertNotInBytecode(func, 'LOAD_GLOBAL')
             self.assertInBytecode(func, 'LOAD_CONST', elem)
+
         def f():
             'Adding a docstring made this test fail in Py2.5.0'
             return None
+
         self.assertNotInBytecode(f, 'LOAD_GLOBAL')
         self.assertInBytecode(f, 'LOAD_CONST', None)
 
@@ -176,8 +175,15 @@ class TestTranforms(BytecodeTestCase):
         self.assertInBytecode(code, 'LOAD_CONST', 'b')
 
         # Verify that large sequences do not result from folding
-        code = compile('a="x"*1000', '', 'single')
+        code = compile('a="x"*10000', '', 'single')
+        self.assertInBytecode(code, 'LOAD_CONST', 10000)
+        self.assertNotIn("x"*10000, code.co_consts)
+        code = compile('a=1<<1000', '', 'single')
         self.assertInBytecode(code, 'LOAD_CONST', 1000)
+        self.assertNotIn(1<<1000, code.co_consts)
+        code = compile('a=2**1000', '', 'single')
+        self.assertInBytecode(code, 'LOAD_CONST', 1000)
+        self.assertNotIn(2**1000, code.co_consts)
 
     def test_binary_subscr_on_unicode(self):
         # valid code get optimized
@@ -319,21 +325,5 @@ class TestBuglets(unittest.TestCase):
             f()
 
 
-def test_main(verbose=None):
-    import sys
-    from test import support
-    test_classes = (TestTranforms, TestBuglets)
-    support.run_unittest(*test_classes)
-
-    # verify reference counting
-    if verbose and hasattr(sys, 'gettotalrefcount'):
-        import gc
-        counts = [None] * 5
-        for i in range(len(counts)):
-            support.run_unittest(*test_classes)
-            gc.collect()
-            counts[i] = sys.gettotalrefcount()
-        print(counts)
-
 if __name__ == "__main__":
-    test_main(verbose=True)
+    unittest.main()

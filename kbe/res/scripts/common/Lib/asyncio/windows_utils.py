@@ -1,22 +1,20 @@
-"""
-Various Windows specific bits and pieces
-"""
+"""Various Windows specific bits and pieces."""
 
 import sys
 
 if sys.platform != 'win32':  # pragma: no cover
     raise ImportError('win32 only')
 
-import socket
+import _winapi
 import itertools
 import msvcrt
 import os
 import subprocess
 import tempfile
-import _winapi
+import warnings
 
 
-__all__ = ['socketpair', 'pipe', 'Popen', 'PIPE', 'PipeHandle']
+__all__ = 'pipe', 'Popen', 'PIPE', 'PipeHandle'
 
 
 # Constants/globals
@@ -28,58 +26,14 @@ STDOUT = subprocess.STDOUT
 _mmap_counter = itertools.count()
 
 
-# Replacement for socket.socketpair()
-
-
-def socketpair(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
-    """A socket pair usable as a self-pipe, for Windows.
-
-    Origin: https://gist.github.com/4325783, by Geert Jansen.  Public domain.
-    """
-    if family == socket.AF_INET:
-        host = '127.0.0.1'
-    elif family == socket.AF_INET6:
-        host = '::1'
-    else:
-        raise ValueError("Ony AF_INET and AF_INET6 socket address families "
-                         "are supported")
-    if type != socket.SOCK_STREAM:
-        raise ValueError("Only SOCK_STREAM socket type is supported")
-    if proto != 0:
-        raise ValueError("Only protocol zero is supported")
-
-    # We create a connected TCP socket. Note the trick with setblocking(0)
-    # that prevents us from having to create a thread.
-    lsock = socket.socket(family, type, proto)
-    try:
-        lsock.bind((host, 0))
-        lsock.listen(1)
-        # On IPv6, ignore flow_info and scope_id
-        addr, port = lsock.getsockname()[:2]
-        csock = socket.socket(family, type, proto)
-        try:
-            csock.setblocking(False)
-            try:
-                csock.connect((addr, port))
-            except (BlockingIOError, InterruptedError):
-                pass
-            ssock, _ = lsock.accept()
-            csock.setblocking(True)
-        except:
-            csock.close()
-            raise
-    finally:
-        lsock.close()
-    return (ssock, csock)
-
-
 # Replacement for os.pipe() using handles instead of fds
 
 
 def pipe(*, duplex=False, overlapped=(True, True), bufsize=BUFSIZE):
     """Like os.pipe() but with overlapped support and using handles not fds."""
-    address = tempfile.mktemp(prefix=r'\\.\pipe\python-pipe-%d-%d-' %
-                              (os.getpid(), next(_mmap_counter)))
+    address = tempfile.mktemp(
+        prefix=r'\\.\pipe\python-pipe-{:d}-{:d}-'.format(
+            os.getpid(), next(_mmap_counter)))
 
     if duplex:
         openmode = _winapi.PIPE_ACCESS_DUPLEX
@@ -132,19 +86,32 @@ class PipeHandle:
     def __init__(self, handle):
         self._handle = handle
 
+    def __repr__(self):
+        if self._handle is not None:
+            handle = f'handle={self._handle!r}'
+        else:
+            handle = 'closed'
+        return f'<{self.__class__.__name__} {handle}>'
+
     @property
     def handle(self):
         return self._handle
 
     def fileno(self):
+        if self._handle is None:
+            raise ValueError("I/O operation on closed pipe")
         return self._handle
 
     def close(self, *, CloseHandle=_winapi.CloseHandle):
-        if self._handle != -1:
+        if self._handle is not None:
             CloseHandle(self._handle)
-            self._handle = -1
+            self._handle = None
 
-    __del__ = close
+    def __del__(self):
+        if self._handle is not None:
+            warnings.warn(f"unclosed {self!r}", ResourceWarning,
+                          source=self)
+            self.close()
 
     def __enter__(self):
         return self

@@ -14,7 +14,7 @@ or config file), :command:`sdist` creates the archive of the default format for
 the current platform.  The default format is a gzip'ed tar file
 (:file:`.tar.gz`) on Unix, and ZIP file on Windows.
 
-You can specify as many formats as you like using the :option:`--formats`
+You can specify as many formats as you like using the :option:`!--formats`
 option, for example::
 
    python setup.py sdist --formats=gztar,zip
@@ -32,11 +32,17 @@ to create a gzipped tarball and a zip file.  The available formats are:
 | ``bztar`` | bzip2'ed tar file       |         |
 |           | (:file:`.tar.bz2`)      |         |
 +-----------+-------------------------+---------+
+| ``xztar`` | xz'ed tar file          |         |
+|           | (:file:`.tar.xz`)       |         |
++-----------+-------------------------+---------+
 | ``ztar``  | compressed tar file     | \(4)    |
 |           | (:file:`.tar.Z`)        |         |
 +-----------+-------------------------+---------+
 | ``tar``   | tar file (:file:`.tar`) |         |
 +-----------+-------------------------+---------+
+
+.. versionchanged:: 3.5
+   Added support for the ``xztar`` format.
 
 Notes:
 
@@ -54,7 +60,7 @@ Notes:
    requires the :program:`compress` program. Notice that this format is now
    pending for deprecation and will be removed in the future versions of Python.
 
-When using any ``tar`` format (``gztar``, ``bztar``, ``ztar`` or
+When using any ``tar`` format (``gztar``, ``bztar``, ``xztar``, ``ztar`` or
 ``tar``), under Unix you can specify the ``owner`` and ``group`` names
 that will be set for each member of the archive.
 
@@ -89,8 +95,9 @@ source distribution:
   distributions, but in the future there will be a standard for testing Python
   module distributions)
 
-* :file:`README.txt` (or :file:`README`), :file:`setup.py` (or whatever  you
-  called your setup script), and :file:`setup.cfg`
+* Any of the standard README files (:file:`README`, :file:`README.txt`,
+  or :file:`README.rst`), :file:`setup.py` (or whatever you called your setup
+  script), and :file:`setup.cfg`.
 
 * all files that matches the ``package_data`` metadata.
   See :ref:`distutils-installing-package-data`.
@@ -124,10 +131,15 @@ described above does not apply in this case.
    :command:`sdist` will read a :file:`MANIFEST` file if no :file:`MANIFEST.in`
    exists, like it used to do.
 
+.. versionchanged:: 3.7
+   :file:`README.rst` is now included in the list of distutils standard READMEs.
+
 
 The manifest template has one command per line, where each command specifies a
 set of files to include or exclude from the source distribution.  For an
-example, again we turn to the Distutils' own manifest template::
+example, again we turn to the Distutils' own manifest template:
+
+.. code-block:: none
 
    include *.txt
    recursive-include examples *.txt *.py
@@ -139,7 +151,7 @@ matching :file:`\*.txt` or :file:`\*.py`, and exclude all directories matching
 :file:`examples/sample?/build`.  All of this is done *after* the standard
 include set, so you can exclude files from the standard set with explicit
 instructions in the manifest template.  (Or, you can use the
-:option:`--no-defaults` option to disable the standard set entirely.)  There are
+:option:`!--no-defaults` option to disable the standard set entirely.)  There are
 several other commands available in the manifest template mini-language; see
 section :ref:`sdist-cmd`.
 
@@ -158,8 +170,8 @@ Now we have our complete list of files, which is written to the manifest for
 future reference, and then used to build the source distribution archive(s).
 
 You can disable the default set of included files with the
-:option:`--no-defaults` option, and you can disable the standard exclude set
-with :option:`--no-prune`.
+:option:`!--no-defaults` option, and you can disable the standard exclude set
+with :option:`!--no-prune`.
 
 Following the Distutils' own manifest template, let's trace how the
 :command:`sdist` command builds the list of files to include in the Distutils
@@ -217,7 +229,7 @@ The normal course of operations for the :command:`sdist` command is as follows:
   in) to create the source distribution archive(s)
 
 There are a couple of options that modify this behaviour.  First, use the
-:option:`--no-defaults` and :option:`--no-prune` to disable the standard
+:option:`!--no-defaults` and :option:`!--no-prune` to disable the standard
 "include" and "exclude" sets.
 
 Second, you might just want to (re)generate the manifest, but not create a source
@@ -225,4 +237,4 @@ distribution::
 
    python setup.py sdist --manifest-only
 
-:option:`-o` is a shortcut for :option:`--manifest-only`.
+:option:`!-o` is a shortcut for :option:`!--manifest-only`.

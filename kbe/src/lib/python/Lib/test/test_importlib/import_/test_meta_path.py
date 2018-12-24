@@ -1,5 +1,4 @@
 from .. import util
-from . import util as import_util
 import importlib._bootstrap
 import sys
 from types import MethodType
@@ -46,8 +45,10 @@ class CallingOrder:
                 self.assertEqual(len(w), 1)
                 self.assertTrue(issubclass(w[-1].category, ImportWarning))
 
-Frozen_CallingOrder, Source_CallingOrder = util.test_both(
-        CallingOrder, __import__=import_util.__import__)
+
+(Frozen_CallingOrder,
+ Source_CallingOrder
+ ) = util.test_both(CallingOrder, __import__=util.__import__)
 
 
 class CallSignature:
@@ -75,7 +76,6 @@ class CallSignature:
                 self.__import__(mod_name)
                 assert len(log) == 1
                 args = log[0][0]
-                kwargs = log[0][1]
                 # Assuming all arguments are positional.
                 self.assertEqual(args[0], mod_name)
                 self.assertIsNone(args[1])
@@ -100,19 +100,25 @@ class CallSignature:
                 self.assertEqual(args[0], mod_name)
                 self.assertIs(args[1], path)
 
+
 class CallSignaturePEP302(CallSignature):
     mock_modules = util.mock_modules
     finder_name = 'find_module'
 
-Frozen_CallSignaturePEP302, Source_CallSignaturePEP302 = util.test_both(
-        CallSignaturePEP302, __import__=import_util.__import__)
+
+(Frozen_CallSignaturePEP302,
+ Source_CallSignaturePEP302
+ ) = util.test_both(CallSignaturePEP302, __import__=util.__import__)
+
 
 class CallSignaturePEP451(CallSignature):
     mock_modules = util.mock_spec
     finder_name = 'find_spec'
 
-Frozen_CallSignaturePEP451, Source_CallSignaturePEP451 = util.test_both(
-        CallSignaturePEP451, __import__=import_util.__import__)
+
+(Frozen_CallSignaturePEP451,
+ Source_CallSignaturePEP451
+ ) = util.test_both(CallSignaturePEP451, __import__=util.__import__)
 
 
 if __name__ == '__main__':

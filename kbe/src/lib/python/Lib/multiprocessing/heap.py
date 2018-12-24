@@ -14,8 +14,7 @@ import sys
 import tempfile
 import threading
 
-from . import context
-from . import reduction
+from .context import reduction, assert_spawning
 from . import util
 
 __all__ = ['BufferWrapper']
@@ -48,29 +47,44 @@ if sys.platform == 'win32':
             self._state = (self.size, self.name)
 
         def __getstate__(self):
-            context.assert_spawning(self)
+            assert_spawning(self)
             return self._state
 
         def __setstate__(self, state):
             self.size, self.name = self._state = state
             self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
-            assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
+            # XXX Temporarily preventing buildbot failures while determining
+            # XXX the correct long-term fix. See issue 23060
+            #assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
 
 else:
 
     class Arena(object):
+        if sys.platform == 'linux':
+            _dir_candidates = ['/dev/shm']
+        else:
+            _dir_candidates = []
 
         def __init__(self, size, fd=-1):
             self.size = size
             self.fd = fd
             if fd == -1:
                 self.fd, name = tempfile.mkstemp(
-                     prefix='pym-%d-'%os.getpid(), dir=util.get_temp_dir())
+                     prefix='pym-%d-'%os.getpid(),
+                     dir=self._choose_dir(size))
                 os.unlink(name)
                 util.Finalize(self, os.close, (self.fd,))
-                with open(self.fd, 'wb', closefd=False) as f:
-                    f.write(b'\0'*size)
+                os.ftruncate(self.fd, size)
             self.buffer = mmap.mmap(self.fd, self.size)
+
+        def _choose_dir(self, size):
+            # Choose a non-storage backed directory if possible,
+            # to improve performance
+            for d in self._dir_candidates:
+                st = os.statvfs(d)
+                if st.f_bavail * st.f_frsize >= size:  # enough free space?
+                    return d
+            return util.get_temp_dir()
 
     def reduce_arena(a):
         if a.fd == -1:
@@ -197,7 +211,10 @@ class Heap(object):
         # synchronously sometimes later from malloc() or free(), by calling
         # _free_pending_blocks() (appending and retrieving from a list is not
         # strictly thread-safe but under cPython it's atomic thanks to the GIL).
-        assert os.getpid() == self._lastpid
+        if os.getpid() != self._lastpid:
+            raise ValueError(
+                "My pid ({0:n}) is not last pid {1:n}".format(
+                    os.getpid(),self._lastpid))
         if not self._lock.acquire(False):
             # can't acquire the lock right now, add the block to the list of
             # pending blocks to free
@@ -213,12 +230,14 @@ class Heap(object):
 
     def malloc(self, size):
         # return a block of right size (possibly rounded up)
-        assert 0 <= size < sys.maxsize
+        if size < 0:
+            raise ValueError("Size {0:n} out of range".format(size))
+        if sys.maxsize <= size:
+            raise OverflowError("Size {0:n} too large".format(size))
         if os.getpid() != self._lastpid:
             self.__init__()                     # reinitialize after fork
-        self._lock.acquire()
-        self._free_pending_blocks()
-        try:
+        with self._lock:
+            self._free_pending_blocks()
             size = self._roundup(max(size,1), self._alignment)
             (arena, start, stop) = self._malloc(size)
             new_stop = start + size
@@ -227,8 +246,6 @@ class Heap(object):
             block = (arena, start, new_stop)
             self._allocated_blocks.add(block)
             return block
-        finally:
-            self._lock.release()
 
 #
 # Class representing a chunk of an mmap -- can be inherited by child process
@@ -239,7 +256,10 @@ class BufferWrapper(object):
     _heap = Heap()
 
     def __init__(self, size):
-        assert 0 <= size < sys.maxsize
+        if size < 0:
+            raise ValueError("Size {0:n} out of range".format(size))
+        if sys.maxsize <= size:
+            raise OverflowError("Size {0:n} too large".format(size))
         block = BufferWrapper._heap.malloc(size)
         self._state = (block, size)
         util.Finalize(self, BufferWrapper._heap.free, args=(block,))

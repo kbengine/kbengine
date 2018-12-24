@@ -202,7 +202,7 @@ template<>
 inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* callback)
 {
 	PyObject* pystr = PyObject_Str(callback);
-	char* ccattr = PyUnicode_AsUTF8AndSize(callback, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(callback, NULL);
 	Py_DECREF(pystr);
 
 	INFO_MSG(fmt::format("CallbackMgr::processTimeout: callbackID:{}, callback({}) timeout!\n", cbID,

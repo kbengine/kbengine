@@ -17,609 +17,436 @@ Porting Python 2 Code to Python 3
    please see :ref:`cporting-howto`.
 
    If you would like to read one core Python developer's take on why Python 3
-   came into existence, you can read Nick Coghlan's `Python 3 Q & A`_.
-
-   If you prefer to read a (free) book on porting a project to Python 3,
-   consider reading `Porting to Python 3`_ by Lennart Regebro which should cover
-   much of what is discussed in this HOWTO.
+   came into existence, you can read Nick Coghlan's `Python 3 Q & A`_ or
+   Brett Cannon's `Why Python 3 exists`_.
 
    For help with porting, you can email the python-porting_ mailing list with
    questions.
 
-The Short Version
-=================
-
-* Decide what's the oldest version of Python 2 you want to support (if at all)
-* Make sure you have a thorough test suite and use continuous integration
-  testing to make sure you stay compatible with the versions of Python you care
-  about
-* If you have dependencies, check their Python 3 status using caniusepython3
-  (`command-line tool <https://pypi.python.org/pypi/caniusepython3>`__,
-  `web app <https://caniusepython3.com/>`__)
-
-With that done, your options are:
-
-* If you are dropping Python 2 support, use 2to3_ to port to Python 3
-* If you are keeping Python 2 support, then start writing Python 2/3-compatible
-  code starting **TODAY**
-
-  + If you have dependencies that have not been ported, reach out to them to port
-    their project while working to make your code compatible with Python 3 so
-    you're ready when your dependencies are all ported
-  + If all your dependencies have been ported (or you have none), go ahead and
-    port to Python 3
-
-* If you are creating a new project that wants to have 2/3 compatibility,
-  code in Python 3 and then backport to Python 2
-
-
-Before You Begin
-================
-
-If your project is on the Cheeseshop_/PyPI_, make sure it has the proper
-`trove classifiers`_ to signify what versions of Python it **currently**
-supports. At minimum you should specify the major version(s), e.g.
-``Programming Language :: Python :: 2`` if your project currently only supports
-Python 2. It is preferrable that you be as specific as possible by listing every
-major/minor version of Python that you support, e.g. if your project supports
-Python 2.6 and 2.7, then you want the classifiers of::
-
- Programming Language :: Python :: 2
- Programming Language :: Python :: 2.6
- Programming Language :: Python :: 2.7
-
-Once your project supports Python 3 you will want to go back and add the
-appropriate classifiers for Python 3 as well. This is important as setting the
-``Programming Language :: Python :: 3`` classifier will lead to your project
-being listed under the `Python 3 Packages`_ section of PyPI.
-
-Make sure you have a robust test suite. You need to
-make sure everything continues to work, just like when you support a new
-minor/feature release of Python. This means making sure your test suite is
-thorough and is ported properly between Python 2 & 3 (consider using coverage_
-to measure that you have effective test coverage). You will also most likely
-want to use something like tox_ to automate testing between all of your
-supported versions of Python. You will also want to **port your tests first** so
-that you can make sure that you detect breakage during the transition. Tests also
-tend to be simpler than the code they are testing so it gives you an idea of how
-easy it can be to port code.
-
-Drop support for older Python versions if possible. `Python 2.5`_
-introduced a lot of useful syntax and libraries which have become idiomatic
-in Python 3. `Python 2.6`_ introduced future statements which makes
-compatibility much easier if you are going from Python 2 to 3.
-`Python 2.7`_ continues the trend in the stdlib. Choose the newest version
-of Python which you believe can be your minimum support version
-and work from there.
-
-Target the newest version of Python 3 that you can. Beyond just the usual
-bugfixes, compatibility has continued to improve between Python 2 and 3 as time
-has passed. E.g. Python 3.3 added back the ``u`` prefix for
-strings, making source-compatible Python code easier to write.
-
-
-Writing Source-Compatible Python 2/3 Code
-=========================================
-
-Over the years the Python community has discovered that the easiest way to
-support both Python 2 and 3 in parallel is to write Python code that works in
-either version. While this might sound counter-intuitive at first, it actually
-is not difficult and typically only requires following some select
-(non-idiomatic) practices and using some key projects to help make bridging
-between Python 2 and 3 easier.
-
-Projects to Consider
---------------------
-
-The lowest level library for supporting Python 2 & 3 simultaneously is six_.
-Reading through its documentation will give you an idea of where exactly the
-Python language changed between versions 2 & 3 and thus what you will want the
-library to help you continue to support.
-
-To help automate porting your code over to using six, you can use
-modernize_. This project will attempt to rewrite your code to be as modern as
-possible while using six to smooth out any differences between Python 2 & 3.
-
-If you want to write your compatible code to feel more like Python 3 there is
-the future_ project. It tries to provide backports of objects from Python 3 so
-that you can use them from Python 2-compatible code, e.g. replacing the
-``bytes`` type from Python 2 with the one from Python 3.
-It also provides a translation script like modernize (its translation code is
-actually partially based on it) to help start working with a pre-existing code
-base. It is also unique in that its translation script will also port Python 3
-code backwards as well as Python 2 code forwards.
-
-
-Tips & Tricks
--------------
-
-To help with writing source-compatible code using one of the projects mentioned
-in `Projects to Consider`_, consider following the below suggestions. Some of
-them are handled by the suggested projects, so if you do use one of them then
-read their documentation first to see which suggestions below will taken care of
-for you.
-
-Support Python 2.7
-//////////////////
-
-As a first step, make sure that your project is compatible with `Python 2.7`_.
-This is just good to do as Python 2.7 is the last release of Python 2 and thus
-will be used for a rather long time. It also allows for use of the ``-3`` flag
-to Python to help discover places in your code where compatibility might be an
-issue (the ``-3`` flag is in Python 2.6 but Python 2.7 adds more warnings).
-
-Try to Support `Python 2.6`_ and Newer Only
-///////////////////////////////////////////
-
-While not possible for all projects, if you can support `Python 2.6`_ and newer
-**only**, your life will be much easier. Various future statements, stdlib
-additions, etc. exist only in Python 2.6 and later which greatly assist in
-supporting Python 3. But if you project must keep support for `Python 2.5`_ then
-it is still possible to simultaneously support Python 3.
-
-Below are the benefits you gain if you only have to support Python 2.6 and
-newer. Some of these options are personal choice while others are
-**strongly** recommended (the ones that are more for personal choice are
-labeled as such).  If you continue to support older versions of Python then you
-at least need to watch out for situations that these solutions fix and handle
-them appropriately (which is where library help from e.g. six_ comes in handy).
-
-
-``from __future__ import print_function``
-'''''''''''''''''''''''''''''''''''''''''
-
-It will not only get you used to typing ``print()`` as a function instead of a
-statement, but it will also give you the various benefits the function has over
-the Python 2 statement (six_ provides a function if you support Python 2.5 or
-older).
-
-
-``from __future__ import unicode_literals``
-'''''''''''''''''''''''''''''''''''''''''''
-
-If you choose to use this future statement then all string literals in
-Python 2 will be assumed to be Unicode (as is already the case in Python 3).
-If you choose not to use this future statement then you should mark all of your
-text strings with a ``u`` prefix and only support Python 3.3 or newer. But you
-are **strongly** advised to do one or the other (six_ provides a function in
-case you don't want to use the future statement **and** you want to support
-Python 3.2 or older).
-
-
-Bytes/string literals
-'''''''''''''''''''''
-
-This is a **very** important one. Prefix Python 2 strings that
-are meant to contain bytes with a ``b`` prefix to very clearly delineate
-what is and is not a Python 3 text string (six_ provides a function to use for
-Python 2.5 compatibility).
-
-This point cannot be stressed enough: make sure you know what all of your string
-literals in Python 2 are meant to be in Python 3. Any string literal that
-should be treated as bytes should have the ``b`` prefix. Any string literal
-that should be Unicode/text in Python 2 should either have the ``u`` literal
-(supported, but ignored, in Python 3.3 and later) or you should have
-``from __future__ import unicode_literals`` at the top of the file. But the key
-point is you should know how Python 3 will treat every one one of your string
-literals and you should mark them as appropriate.
-
-There are some differences between byte literals in Python 2 and those in
-Python 3 thanks to the bytes type just being an alias to ``str`` in Python 2.
-See the `Handle Common "Gotchas"`_ section for what to watch out for.
-
-``from __future__ import absolute_import``
-''''''''''''''''''''''''''''''''''''''''''
-Discussed in more detail below, but you should use this future statement to
-prevent yourself from accidentally using implicit relative imports.
-
-
-Supporting `Python 2.5`_ and Newer Only
-///////////////////////////////////////
-
-If you are supporting `Python 2.5`_ and newer there are still some features of
-Python that you can utilize.
-
-
-``from __future__ import absolute_import``
-''''''''''''''''''''''''''''''''''''''''''
-
-Implicit relative imports (e.g., importing ``spam.bacon`` from within
-``spam.eggs`` with the statement ``import bacon``) do not work in Python 3.
-This future statement moves away from that and allows the use of explicit
-relative imports (e.g., ``from . import bacon``).
-
-In `Python 2.5`_ you must use
-the __future__ statement to get to use explicit relative imports and prevent
-implicit ones. In `Python 2.6`_ explicit relative imports are available without
-the statement, but you still want the __future__ statement to prevent implicit
-relative imports. In `Python 2.7`_ the __future__ statement is not needed. In
-other words, unless you are only supporting Python 2.7 or a version earlier
-than Python 2.5, use this __future__ statement.
-
-
-Mark all Unicode strings with a ``u`` prefix
-'''''''''''''''''''''''''''''''''''''''''''''
-
-While Python 2.6 has a ``__future__`` statement to automatically cause Python 2
-to treat all string literals as Unicode, Python 2.5 does not have that shortcut.
-This means you should go through and mark all string literals with a ``u``
-prefix to turn them explicitly into text strings where appropriate and only
-support Python 3.3 or newer. Otherwise use a project like six_ which provides a
-function to pass all text string literals through.
-
-
-Capturing the Currently Raised Exception
-''''''''''''''''''''''''''''''''''''''''
-
-In Python 2.5 and earlier the syntax to access the current exception is::
-
-   try:
-     raise Exception()
-   except Exception, exc:
-     # Current exception is 'exc'.
-     pass
-
-This syntax changed in Python 3 (and backported to `Python 2.6`_ and later)
-to::
-
-   try:
-     raise Exception()
-   except Exception as exc:
-     # Current exception is 'exc'.
-     # In Python 3, 'exc' is restricted to the block; in Python 2.6/2.7 it will "leak".
-     pass
-
-Because of this syntax change you must change how you capture the current
-exception in Python 2.5 and earlier to::
-
-   try:
-     raise Exception()
-   except Exception:
-     import sys
-     exc = sys.exc_info()[1]
-     # Current exception is 'exc'.
-     pass
-
-You can get more information about the raised exception from
-:func:`sys.exc_info` than simply the current exception instance, but you most
-likely don't need it.
-
-.. note::
-   In Python 3, the traceback is attached to the exception instance
-   through the ``__traceback__`` attribute. If the instance is saved in
-   a local variable that persists outside of the ``except`` block, the
-   traceback will create a reference cycle with the current frame and its
-   dictionary of local variables.  This will delay reclaiming dead
-   resources until the next cyclic :term:`garbage collection` pass.
-
-   In Python 2, this problem only occurs if you save the traceback itself
-   (e.g. the third element of the tuple returned by :func:`sys.exc_info`)
-   in a variable.
-
-
-Handle Common "Gotchas"
-///////////////////////
-
-These are things to watch out for no matter what version of Python 2 you are
-supporting which are not syntactic considerations.
-
-
-``from __future__ import division``
-'''''''''''''''''''''''''''''''''''
-
-While the exact same outcome can be had by using the ``-Qnew`` argument to
-Python, using this future statement lifts the requirement that your users use
-the flag to get the expected behavior of division in Python 3
-(e.g., ``1/2 == 0.5; 1//2 == 0``).
-
-
-
-Specify when opening a file as binary
-'''''''''''''''''''''''''''''''''''''
-
+The Short Explanation
+=====================
+
+To make your project be single-source Python 2/3 compatible, the basic steps
+are:
+
+#. Only worry about supporting Python 2.7
+#. Make sure you have good test coverage (coverage.py_ can help;
+   ``pip install coverage``)
+#. Learn the differences between Python 2 & 3
+#. Use Futurize_ (or Modernize_) to update your code (e.g. ``pip install future``)
+#. Use Pylint_ to help make sure you don't regress on your Python 3 support
+   (``pip install pylint``)
+#. Use caniusepython3_ to find out which of your dependencies are blocking your
+   use of Python 3 (``pip install caniusepython3``)
+#. Once your dependencies are no longer blocking you, use continuous integration
+   to make sure you stay compatible with Python 2 & 3 (tox_ can help test
+   against multiple versions of Python; ``pip install tox``)
+#. Consider using optional static type checking to make sure your type usage
+   works in both Python 2 & 3 (e.g. use mypy_ to check your typing under both
+   Python 2 & Python 3).
+
+
+Details
+=======
+
+A key point about supporting Python 2 & 3 simultaneously is that you can start
+**today**! Even if your dependencies are not supporting Python 3 yet that does
+not mean you can't modernize your code **now** to support Python 3. Most changes
+required to support Python 3 lead to cleaner code using newer practices even in
+Python 2 code.
+
+Another key point is that modernizing your Python 2 code to also support
+Python 3 is largely automated for you. While you might have to make some API
+decisions thanks to Python 3 clarifying text data versus binary data, the
+lower-level work is now mostly done for you and thus can at least benefit from
+the automated changes immediately.
+
+Keep those key points in mind while you read on about the details of porting
+your code to support Python 2 & 3 simultaneously.
+
+
+Drop support for Python 2.6 and older
+-------------------------------------
+
+While you can make Python 2.5 work with Python 3, it is **much** easier if you
+only have to work with Python 2.7. If dropping Python 2.5 is not an
+option then the six_ project can help you support Python 2.5 & 3 simultaneously
+(``pip install six``). Do realize, though, that nearly all the projects listed
+in this HOWTO will not be available to you.
+
+If you are able to skip Python 2.5 and older, then the required changes
+to your code should continue to look and feel like idiomatic Python code. At
+worst you will have to use a function instead of a method in some instances or
+have to import a function instead of using a built-in one, but otherwise the
+overall transformation should not feel foreign to you.
+
+But you should aim for only supporting Python 2.7. Python 2.6 is no longer
+freely supported and thus is not receiving bugfixes. This means **you** will have
+to work around any issues you come across with Python 2.6. There are also some
+tools mentioned in this HOWTO which do not support Python 2.6 (e.g., Pylint_),
+and this will become more commonplace as time goes on. It will simply be easier
+for you if you only support the versions of Python that you have to support.
+
+
+Make sure you specify the proper version support in your ``setup.py`` file
+--------------------------------------------------------------------------
+
+In your ``setup.py`` file you should have the proper `trove classifier`_
+specifying what versions of Python you support. As your project does not support
+Python 3 yet you should at least have
+``Programming Language :: Python :: 2 :: Only`` specified. Ideally you should
+also specify each major/minor version of Python that you do support, e.g.
+``Programming Language :: Python :: 2.7``.
+
+
+Have good test coverage
+-----------------------
+
+Once you have your code supporting the oldest version of Python 2 you want it
+to, you will want to make sure your test suite has good coverage. A good rule of
+thumb is that if you want to be confident enough in your test suite that any
+failures that appear after having tools rewrite your code are actual bugs in the
+tools and not in your code. If you want a number to aim for, try to get over 80%
+coverage (and don't feel bad if you find it hard to get better than 90%
+coverage). If you don't already have a tool to measure test coverage then
+coverage.py_ is recommended.
+
+
+Learn the differences between Python 2 & 3
+-------------------------------------------
+
+Once you have your code well-tested you are ready to begin porting your code to
+Python 3! But to fully understand how your code is going to change and what
+you want to look out for while you code, you will want to learn what changes
+Python 3 makes in terms of Python 2. Typically the two best ways of doing that
+is reading the `"What's New"`_ doc for each release of Python 3 and the
+`Porting to Python 3`_ book (which is free online). There is also a handy
+`cheat sheet`_ from the Python-Future project.
+
+
+Update your code
+----------------
+
+Once you feel like you know what is different in Python 3 compared to Python 2,
+it's time to update your code! You have a choice between two tools in porting
+your code automatically: Futurize_ and Modernize_. Which tool you choose will
+depend on how much like Python 3 you want your code to be. Futurize_ does its
+best to make Python 3 idioms and practices exist in Python 2, e.g. backporting
+the ``bytes`` type from Python 3 so that you have semantic parity between the
+major versions of Python. Modernize_,
+on the other hand, is more conservative and targets a Python 2/3 subset of
+Python, directly relying on six_ to help provide compatibility. As Python 3 is
+the future, it might be best to consider Futurize to begin adjusting to any new
+practices that Python 3 introduces which you are not accustomed to yet.
+
+Regardless of which tool you choose, they will update your code to run under
+Python 3 while staying compatible with the version of Python 2 you started with.
+Depending on how conservative you want to be, you may want to run the tool over
+your test suite first and visually inspect the diff to make sure the
+transformation is accurate. After you have transformed your test suite and
+verified that all the tests still pass as expected, then you can transform your
+application code knowing that any tests which fail is a translation failure.
+
+Unfortunately the tools can't automate everything to make your code work under
+Python 3 and so there are a handful of things you will need to update manually
+to get full Python 3 support (which of these steps are necessary vary between
+the tools). Read the documentation for the tool you choose to use to see what it
+fixes by default and what it can do optionally to know what will (not) be fixed
+for you and what you may have to fix on your own (e.g. using ``io.open()`` over
+the built-in ``open()`` function is off by default in Modernize). Luckily,
+though, there are only a couple of things to watch out for which can be
+considered large issues that may be hard to debug if not watched for.
+
+
+Division
+++++++++
+
+In Python 3, ``5 / 2 == 2.5`` and not ``2``; all division between ``int`` values
+result in a ``float``. This change has actually been planned since Python 2.2
+which was released in 2002. Since then users have been encouraged to add
+``from __future__ import division`` to any and all files which use the ``/`` and
+``//`` operators or to be running the interpreter with the ``-Q`` flag. If you
+have not been doing this then you will need to go through your code and do two
+things:
+
+#. Add ``from __future__ import division`` to your files
+#. Update any division operator as necessary to either use ``//`` to use floor
+   division or continue using ``/`` and expect a float
+
+The reason that ``/`` isn't simply translated to ``//`` automatically is that if
+an object defines a ``__truediv__`` method but not ``__floordiv__`` then your
+code would begin to fail (e.g. a user-defined class that uses ``/`` to
+signify some operation but not ``//`` for the same thing or at all).
+
+
+Text versus binary data
++++++++++++++++++++++++
+
+In Python 2 you could use the ``str`` type for both text and binary data.
+Unfortunately this confluence of two different concepts could lead to brittle
+code which sometimes worked for either kind of data, sometimes not. It also
+could lead to confusing APIs if people didn't explicitly state that something
+that accepted ``str`` accepted either text or binary data instead of one
+specific type. This complicated the situation especially for anyone supporting
+multiple languages as APIs wouldn't bother explicitly supporting ``unicode``
+when they claimed text data support.
+
+To make the distinction between text and binary data clearer and more
+pronounced, Python 3 did what most languages created in the age of the internet
+have done and made text and binary data distinct types that cannot blindly be
+mixed together (Python predates widespread access to the internet). For any code
+that deals only with text or only binary data, this separation doesn't pose an
+issue. But for code that has to deal with both, it does mean you might have to
+now care about when you are using text compared to binary data, which is why
+this cannot be entirely automated.
+
+To start, you will need to decide which APIs take text and which take binary
+(it is **highly** recommended you don't design APIs that can take both due to
+the difficulty of keeping the code working; as stated earlier it is difficult to
+do well). In Python 2 this means making sure the APIs that take text can work
+with ``unicode`` and those that work with binary data work with the
+``bytes`` type from Python 3 (which is a subset of ``str`` in Python 2 and acts
+as an alias for ``bytes`` type in Python 2). Usually the biggest issue is
+realizing which methods exist on which types in Python 2 & 3 simultaneously
+(for text that's ``unicode`` in Python 2 and ``str`` in Python 3, for binary
+that's ``str``/``bytes`` in Python 2 and ``bytes`` in Python 3). The following
+table lists the **unique** methods of each data type across Python 2 & 3
+(e.g., the ``decode()`` method is usable on the equivalent binary data type in
+either Python 2 or 3, but it can't be used by the textual data type consistently
+between Python 2 and 3 because ``str`` in Python 3 doesn't have the method). Do
+note that as of Python 3.5 the ``__mod__`` method was added to the bytes type.
+
+======================== =====================
+**Text data**            **Binary data**
+------------------------ ---------------------
+\                        decode
+------------------------ ---------------------
+encode
+------------------------ ---------------------
+format
+------------------------ ---------------------
+isdecimal
+------------------------ ---------------------
+isnumeric
+======================== =====================
+
+Making the distinction easier to handle can be accomplished by encoding and
+decoding between binary data and text at the edge of your code. This means that
+when you receive text in binary data, you should immediately decode it. And if
+your code needs to send text as binary data then encode it as late as possible.
+This allows your code to work with only text internally and thus eliminates
+having to keep track of what type of data you are working with.
+
+The next issue is making sure you know whether the string literals in your code
+represent text or binary data. You should add a ``b`` prefix to any
+literal that presents binary data. For text you should add a ``u`` prefix to
+the text literal. (there is a :mod:`__future__` import to force all unspecified
+literals to be Unicode, but usage has shown it isn't as effective as adding a
+``b`` or ``u`` prefix to all literals explicitly)
+
+As part of this dichotomy you also need to be careful about opening files.
 Unless you have been working on Windows, there is a chance you have not always
 bothered to add the ``b`` mode when opening a binary file (e.g., ``rb`` for
 binary reading).  Under Python 3, binary files and text files are clearly
 distinct and mutually incompatible; see the :mod:`io` module for details.
 Therefore, you **must** make a decision of whether a file will be used for
-binary access (allowing to read and/or write bytes data) or text access
-(allowing to read and/or write unicode data).
-
-Text files
-''''''''''
-
-Text files created using ``open()`` under Python 2 return byte strings,
-while under Python 3 they return unicode strings.  Depending on your porting
-strategy, this can be an issue.
-
-If you want text files to return unicode strings in Python 2, you have two
-possibilities:
-
-* Under Python 2.6 and higher, use :func:`io.open`.  Since :func:`io.open`
-  is essentially the same function in both Python 2 and Python 3, it will
-  help iron out any issues that might arise.
-
-* If pre-2.6 compatibility is needed, then you should use :func:`codecs.open`
-  instead.  This will make sure that you get back unicode strings in Python 2.
-
-Subclass ``object``
-'''''''''''''''''''
-
-New-style classes have been around since `Python 2.2`_. You need to make sure
-you are subclassing from ``object`` to avoid odd edge cases involving method
-resolution order, etc. This continues to be totally valid in Python 3 (although
-unneeded as all classes implicitly inherit from ``object``).
-
-
-Deal With the Bytes/String Dichotomy
-''''''''''''''''''''''''''''''''''''
-
-One of the biggest issues people have when porting code to Python 3 is handling
-the bytes/string dichotomy. Because Python 2 allowed the ``str`` type to hold
-textual data, people have over the years been rather loose in their delineation
-of what ``str`` instances held text compared to bytes. In Python 3 you cannot
-be so care-free anymore and need to properly handle the difference. The key to
-handling this issue is to make sure that **every** string literal in your
-Python 2 code is either syntactically or functionally marked as either bytes or
-text data. After this is done you then need to make sure your APIs are designed
-to either handle a specific type or made to be properly polymorphic.
-
-
-Mark Up Python 2 String Literals
-********************************
-
-First thing you must do is designate every single string literal in Python 2
-as either textual or bytes data. If you are only supporting Python 2.6 or
-newer, this can be accomplished by marking bytes literals with a ``b`` prefix
-and then designating textual data with a ``u`` prefix or using the
-``unicode_literals`` future statement.
-
-If your project supports versions of Python predating 2.6, then you should use
-the six_ project and its ``b()`` function to denote bytes literals. For text
-literals you can either use six's ``u()`` function or use a ``u`` prefix.
-
-
-Decide what APIs Will Accept
-****************************
-
-In Python 2 it was very easy to accidentally create an API that accepted both
-bytes and textual data. But in Python 3, thanks to the more strict handling of
-disparate types, this loose usage of bytes and text together tends to fail.
-
-Take the dict ``{b'a': 'bytes', u'a': 'text'}`` in Python 2.6. It creates the
-dict ``{u'a': 'text'}`` since ``b'a' == u'a'``. But in Python 3 the equivalent
-dict creates ``{b'a': 'bytes', 'a': 'text'}``, i.e., no lost data. Similar
-issues can crop up when transitioning Python 2 code to Python 3.
-
-This means you need to choose what an API is going to accept and create and
-consistently stick to that API in both Python 2 and 3.
-
-
-Bytes / Unicode Comparison
-**************************
-
-In Python 3, mixing bytes and unicode is forbidden in most situations; it
-will raise a :class:`TypeError` where Python 2 would have attempted an implicit
-coercion between types.  However, there is one case where it doesn't and
-it can be very misleading::
-
-   >>> b"" == ""
-   False
-
-This is because an equality comparison is required by the language to always
-succeed (and return ``False`` for incompatible types).  However, this also
-means that code incorrectly ported to Python 3 can display buggy behaviour
-if such comparisons are silently executed.  To detect such situations,
-Python 3 has a ``-b`` flag that will display a warning::
-
-   $ python3 -b
-   >>> b"" == ""
-   __main__:1: BytesWarning: Comparison between bytes and string
-   False
-
-To turn the warning into an exception, use the ``-bb`` flag instead::
-
-   $ python3 -bb
-   >>> b"" == ""
-   Traceback (most recent call last):
-     File "<stdin>", line 1, in <module>
-   BytesWarning: Comparison between bytes and string
-
-
-Indexing bytes objects
-''''''''''''''''''''''
-
-Another potentially surprising change is the indexing behaviour of bytes
-objects in Python 3::
-
-   >>> b"xyz"[0]
-   120
-
-Indeed, Python 3 bytes objects (as well as :class:`bytearray` objects)
-are sequences of integers.  But code converted from Python 2 will often
-assume that indexing a bytestring produces another bytestring, not an
-integer.  To reconcile both behaviours, use slicing::
-
-   >>> b"xyz"[0:1]
-   b'x'
-   >>> n = 1
-   >>> b"xyz"[n:n+1]
-   b'y'
-
-The only remaining gotcha is that an out-of-bounds slice returns an empty
-bytes object instead of raising ``IndexError``:
-
-   >>> b"xyz"[3]
-   Traceback (most recent call last):
-     File "<stdin>", line 1, in <module>
-   IndexError: index out of range
-   >>> b"xyz"[3:4]
-   b''
-
-
-``__str__()``/``__unicode__()``
-'''''''''''''''''''''''''''''''
-
-In Python 2, objects can specify both a string and unicode representation of
-themselves. In Python 3, though, there is only a string representation. This
-becomes an issue as people can inadvertently do things in their ``__str__()``
-methods which have unpredictable results (e.g., infinite recursion if you
-happen to use the ``unicode(self).encode('utf8')`` idiom as the body of your
-``__str__()`` method).
-
-You can use a mixin class to work around this. This allows you to only define a
-``__unicode__()`` method for your class and let the mixin derive
-``__str__()`` for you (code from
-http://lucumr.pocoo.org/2011/1/22/forwards-compatible-python/)::
-
-   import sys
-
-   class UnicodeMixin(object):
-
-     """Mixin class to handle defining the proper __str__/__unicode__
-     methods in Python 2 or 3."""
-
-     if sys.version_info[0] >= 3: # Python 3
-         def __str__(self):
-             return self.__unicode__()
-     else:  # Python 2
-         def __str__(self):
-             return self.__unicode__().encode('utf8')
-
-
-   class Spam(UnicodeMixin):
-
-     def __unicode__(self):
-         return u'spam-spam-bacon-spam'  # 2to3 will remove the 'u' prefix
-
-
-Don't Index on Exceptions
-'''''''''''''''''''''''''
-
-In Python 2, the following worked::
-
-   >>> exc = Exception(1, 2, 3)
-   >>> exc.args[1]
-   2
-   >>> exc[1]  # Python 2 only!
-   2
-
-But in Python 3, indexing directly on an exception is an error. You need to
-make sure to only index on the :attr:`BaseException.args` attribute which is a
-sequence containing all arguments passed to the :meth:`__init__` method.
-
-Even better is to use the documented attributes the exception provides.
-
-
-Don't use ``__getslice__`` & Friends
-''''''''''''''''''''''''''''''''''''
-
-Been deprecated for a while, but Python 3 finally drops support for
-``__getslice__()``, etc. Move completely over to :meth:`__getitem__` and
-friends.
-
-
-Updating doctests
-'''''''''''''''''
-
-Don't forget to make them Python 2/3 compatible as well. If you wrote a
-monolithic set of doctests (e.g., a single docstring containing all of your
-doctests), you should at least consider breaking the doctests up into smaller
-pieces to make it more manageable to fix. Otherwise it might very well be worth
-your time and effort to port your tests to :mod:`unittest`.
-
-
-Update ``map`` for imbalanced input sequences
-'''''''''''''''''''''''''''''''''''''''''''''
-
-With Python 2, when ``map`` was given more than one input sequence it would pad
-the shorter sequences with `None` values, returning a sequence as long as the
-longest input sequence.
-
-With Python 3, if the input sequences to ``map`` are of unequal length, ``map``
-will stop at the termination of the shortest of the sequences. For full
-compatibility with ``map`` from Python 2.x, wrap the sequence arguments in
-:func:`itertools.zip_longest`, e.g. ``map(func, *sequences)`` becomes
-``list(map(func, itertools.zip_longest(*sequences)))``.
-
-Eliminate ``-3`` Warnings
--------------------------
-
-When you run your application's test suite, run it using the ``-3`` flag passed
-to Python. This will cause various warnings to be raised during execution about
-things that are semantic changes between Python 2 and 3. Try to eliminate those
-warnings to make your code even more portable to Python 3.
-
-
-Alternative Approaches
-======================
-
-While supporting Python 2 & 3 simultaneously is typically the preferred choice
-by people so that they can continue to improve code and have it work for the
-most number of users, your life may be easier if you only have to support one
-major version of Python going forward.
-
-Supporting Only Python 3 Going Forward From Python 2 Code
----------------------------------------------------------
-
-If you have Python 2 code but going forward only want to improve it as Python 3
-code, then you can use 2to3_ to translate your Python 2 code to Python 3 code.
-This is only recommended, though, if your current version of your project is
-going into maintenance mode and you want all new features to be exclusive to
-Python 3.
-
-
-Backporting Python 3 code to Python 2
--------------------------------------
-
-If you have Python 3 code and have little interest in supporting Python 2 you
-can use 3to2_ to translate from Python 3 code to Python 2 code. This is only
-recommended if you don't plan to heavily support Python 2 users. Otherwise
-write your code for Python 3 and then backport as far back as you want. This
-is typically easier than going from Python 2 to 3 as you will have worked out
-any difficulties with e.g. bytes/strings, etc.
-
-
-Other Resources
-===============
-
-The authors of the following blog posts, wiki pages, and books deserve special
-thanks for making public their tips for porting Python 2 code to Python 3 (and
-thus helping provide information for this document and its various revisions
-over the years):
-
-* http://wiki.python.org/moin/PortingPythonToPy3k
-* http://python3porting.com/
-* http://docs.pythonsprints.com/python3_porting/py-porting.html
-* http://techspot.zzzeek.org/2011/01/24/zzzeek-s-guide-to-python-3-porting/
-* http://dabeaz.blogspot.com/2011/01/porting-py65-and-my-superboard-to.html
-* http://lucumr.pocoo.org/2011/1/22/forwards-compatible-python/
-* http://lucumr.pocoo.org/2010/2/11/porting-to-python-3-a-guide/
-* https://wiki.ubuntu.com/Python/3
-
-If you feel there is something missing from this document that should be added,
-please email the python-porting_ mailing list.
-
-
-
-.. _2to3: http://docs.python.org/2/library/2to3.html
-.. _3to2: https://pypi.python.org/pypi/3to2
-.. _Cheeseshop: PyPI_
-.. _coverage: https://pypi.python.org/pypi/coverage
-.. _future: http://python-future.org/
-.. _modernize: https://github.com/mitsuhiko/python-modernize
+binary access (allowing binary data to be read and/or written) or textual access
+(allowing text data to be read and/or written). You should also use :func:`io.open`
+for opening files instead of the built-in :func:`open` function as the :mod:`io`
+module is consistent from Python 2 to 3 while the built-in :func:`open` function
+is not (in Python 3 it's actually :func:`io.open`). Do not bother with the
+outdated practice of using :func:`codecs.open` as that's only necessary for
+keeping compatibility with Python 2.5.
+
+The constructors of both ``str`` and ``bytes`` have different semantics for the
+same arguments between Python 2 & 3. Passing an integer to ``bytes`` in Python 2
+will give you the string representation of the integer: ``bytes(3) == '3'``.
+But in Python 3, an integer argument to ``bytes`` will give you a bytes object
+as long as the integer specified, filled with null bytes:
+``bytes(3) == b'\x00\x00\x00'``. A similar worry is necessary when passing a
+bytes object to ``str``. In Python 2 you just get the bytes object back:
+``str(b'3') == b'3'``. But in Python 3 you get the string representation of the
+bytes object: ``str(b'3') == "b'3'"``.
+
+Finally, the indexing of binary data requires careful handling (slicing does
+**not** require any special handling). In Python 2,
+``b'123'[1] == b'2'`` while in Python 3 ``b'123'[1] == 50``. Because binary data
+is simply a collection of binary numbers, Python 3 returns the integer value for
+the byte you index on. But in Python 2 because ``bytes == str``, indexing
+returns a one-item slice of bytes. The six_ project has a function
+named ``six.indexbytes()`` which will return an integer like in Python 3:
+``six.indexbytes(b'123', 1)``.
+
+To summarize:
+
+#. Decide which of your APIs take text and which take binary data
+#. Make sure that your code that works with text also works with ``unicode`` and
+   code for binary data works with ``bytes`` in Python 2 (see the table above
+   for what methods you cannot use for each type)
+#. Mark all binary literals with a ``b`` prefix, textual literals with a ``u``
+   prefix
+#. Decode binary data to text as soon as possible, encode text as binary data as
+   late as possible
+#. Open files using :func:`io.open` and make sure to specify the ``b`` mode when
+   appropriate
+#. Be careful when indexing into binary data
+
+
+Use feature detection instead of version detection
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Inevitably you will have code that has to choose what to do based on what
+version of Python is running. The best way to do this is with feature detection
+of whether the version of Python you're running under supports what you need.
+If for some reason that doesn't work then you should make the version check be
+against Python 2 and not Python 3. To help explain this, let's look at an
+example.
+
+Let's pretend that you need access to a feature of importlib_ that
+is available in Python's standard library since Python 3.3 and available for
+Python 2 through importlib2_ on PyPI. You might be tempted to write code to
+access e.g. the ``importlib.abc`` module by doing the following::
+
+  import sys
+
+  if sys.version_info[0] == 3:
+      from importlib import abc
+  else:
+      from importlib2 import abc
+
+The problem with this code is what happens when Python 4 comes out? It would
+be better to treat Python 2 as the exceptional case instead of Python 3 and
+assume that future Python versions will be more compatible with Python 3 than
+Python 2::
+
+  import sys
+
+  if sys.version_info[0] > 2:
+      from importlib import abc
+  else:
+      from importlib2 import abc
+
+The best solution, though, is to do no version detection at all and instead rely
+on feature detection. That avoids any potential issues of getting the version
+detection wrong and helps keep you future-compatible::
+
+  try:
+      from importlib import abc
+  except ImportError:
+      from importlib2 import abc
+
+
+Prevent compatibility regressions
+---------------------------------
+
+Once you have fully translated your code to be compatible with Python 3, you
+will want to make sure your code doesn't regress and stop working under
+Python 3. This is especially true if you have a dependency which is blocking you
+from actually running under Python 3 at the moment.
+
+To help with staying compatible, any new modules you create should have
+at least the following block of code at the top of it::
+
+    from __future__ import absolute_import
+    from __future__ import division
+    from __future__ import print_function
+
+You can also run Python 2 with the ``-3`` flag to be warned about various
+compatibility issues your code triggers during execution. If you turn warnings
+into errors with ``-Werror`` then you can make sure that you don't accidentally
+miss a warning.
+
+You can also use the Pylint_ project and its ``--py3k`` flag to lint your code
+to receive warnings when your code begins to deviate from Python 3
+compatibility. This also prevents you from having to run Modernize_ or Futurize_
+over your code regularly to catch compatibility regressions. This does require
+you only support Python 2.7 and Python 3.4 or newer as that is Pylint's
+minimum Python version support.
+
+
+Check which dependencies block your transition
+----------------------------------------------
+
+**After** you have made your code compatible with Python 3 you should begin to
+care about whether your dependencies have also been ported. The caniusepython3_
+project was created to help you determine which projects
+-- directly or indirectly -- are blocking you from supporting Python 3. There
+is both a command-line tool as well as a web interface at
+https://caniusepython3.com.
+
+The project also provides code which you can integrate into your test suite so
+that you will have a failing test when you no longer have dependencies blocking
+you from using Python 3. This allows you to avoid having to manually check your
+dependencies and to be notified quickly when you can start running on Python 3.
+
+
+Update your ``setup.py`` file to denote Python 3 compatibility
+--------------------------------------------------------------
+
+Once your code works under Python 3, you should update the classifiers in
+your ``setup.py`` to contain ``Programming Language :: Python :: 3`` and to not
+specify sole Python 2 support. This will tell anyone using your code that you
+support Python 2 **and** 3. Ideally you will also want to add classifiers for
+each major/minor version of Python you now support.
+
+
+Use continuous integration to stay compatible
+---------------------------------------------
+
+Once you are able to fully run under Python 3 you will want to make sure your
+code always works under both Python 2 & 3. Probably the best tool for running
+your tests under multiple Python interpreters is tox_. You can then integrate
+tox with your continuous integration system so that you never accidentally break
+Python 2 or 3 support.
+
+You may also want to use the ``-bb`` flag with the Python 3 interpreter to
+trigger an exception when you are comparing bytes to strings or bytes to an int
+(the latter is available starting in Python 3.5). By default type-differing
+comparisons simply return ``False``, but if you made a mistake in your
+separation of text/binary data handling or indexing on bytes you wouldn't easily
+find the mistake. This flag will raise an exception when these kinds of
+comparisons occur, making the mistake much easier to track down.
+
+And that's mostly it! At this point your code base is compatible with both
+Python 2 and 3 simultaneously. Your testing will also be set up so that you
+don't accidentally break Python 2 or 3 compatibility regardless of which version
+you typically run your tests under while developing.
+
+
+Consider using optional static type checking
+--------------------------------------------
+
+Another way to help port your code is to use a static type checker like
+mypy_ or pytype_ on your code. These tools can be used to analyze your code as
+if it's being run under Python 2, then you can run the tool a second time as if
+your code is running under Python 3. By running a static type checker twice like
+this you can discover if you're e.g. misusing binary data type in one version
+of Python compared to another. If you add optional type hints to your code you
+can also explicitly state whether your APIs use textual or binary data, helping
+to make sure everything functions as expected in both versions of Python.
+
+
+.. _2to3: https://docs.python.org/3/library/2to3.html
+.. _caniusepython3: https://pypi.org/project/caniusepython3
+.. _cheat sheet: http://python-future.org/compatible_idioms.html
+.. _coverage.py: https://pypi.org/project/coverage
+.. _Futurize: http://python-future.org/automatic_conversion.html
+.. _importlib: https://docs.python.org/3/library/importlib.html#module-importlib
+.. _importlib2: https://pypi.org/project/importlib2
+.. _Modernize: https://python-modernize.readthedocs.io/
+.. _mypy: http://mypy-lang.org/
 .. _Porting to Python 3: http://python3porting.com/
-.. _PyPI: http://pypi.python.org/
-.. _Python 2.2: http://www.python.org/2.2.x
-.. _Python 2.5: http://www.python.org/2.5.x
-.. _Python 2.6: http://www.python.org/2.6.x
-.. _Python 2.7: http://www.python.org/2.7.x
-.. _Python 2.5: http://www.python.org/2.5.x
-.. _Python 3.3: http://www.python.org/3.3.x
-.. _Python 3 Packages: https://pypi.python.org/pypi?:action=browse&c=533&show=all
-.. _Python 3 Q & A: http://ncoghlan-devs-python-notes.readthedocs.org/en/latest/python3/questions_and_answers.html
-.. _python-porting: http://mail.python.org/mailman/listinfo/python-porting
-.. _six: https://pypi.python.org/pypi/six
-.. _tox: https://pypi.python.org/pypi/tox
-.. _trove classifiers: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+.. _Pylint: https://pypi.org/project/pylint
 
+.. _Python 3 Q & A: https://ncoghlan-devs-python-notes.readthedocs.io/en/latest/python3/questions_and_answers.html
+
+.. _pytype: https://github.com/google/pytype
+.. _python-future: http://python-future.org/
+.. _python-porting: https://mail.python.org/mailman/listinfo/python-porting
+.. _six: https://pypi.org/project/six
+.. _tox: https://pypi.org/project/tox
+.. _trove classifier: https://pypi.org/classifiers
+
+.. _"What's New": https://docs.python.org/3/whatsnew/index.html
+
+.. _Why Python 3 exists: https://snarky.ca/why-python-3-exists

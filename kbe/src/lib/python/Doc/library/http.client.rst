@@ -4,6 +4,7 @@
 .. module:: http.client
    :synopsis: HTTP and HTTPS protocol client (requires sockets).
 
+**Source code:** :source:`Lib/http/client.py`
 
 .. index::
    pair: HTTP; protocol
@@ -11,13 +12,16 @@
 
 .. index:: module: urllib.request
 
-**Source code:** :source:`Lib/http/client.py`
-
 --------------
 
 This module defines classes which implement the client side of the HTTP and
 HTTPS protocols.  It is normally not used directly --- the module
 :mod:`urllib.request` uses it to handle URLs that use HTTP and HTTPS.
+
+.. seealso::
+
+    The `Requests package <http://docs.python-requests.org/>`_
+    is recommended for a higher-level HTTP client interface.
 
 .. note::
 
@@ -27,8 +31,8 @@ HTTPS protocols.  It is normally not used directly --- the module
 The module provides the following classes:
 
 
-.. class:: HTTPConnection(host, port=None[, timeout], \
-                          source_address=None)
+.. class:: HTTPConnection(host, port=None[, timeout], source_address=None, \
+                          blocksize=8192)
 
    An :class:`HTTPConnection` instance represents one transaction with an HTTP
    server.  It should be instantiated passing it a host and optional port
@@ -39,6 +43,8 @@ The module provides the following classes:
    (if it is not given, the global default timeout setting is used).
    The optional *source_address* parameter may be a tuple of a (host, port)
    to use as the source address the HTTP connection is made from.
+   The optional *blocksize* parameter sets the buffer size in bytes for
+   sending a file-like message body.
 
    For example, the following calls all create instances that connect to the server
    at the same host and port::
@@ -55,36 +61,21 @@ The module provides the following classes:
       The  *strict* parameter was removed. HTTP 0.9-style "Simple Responses" are
       not longer supported.
 
+   .. versionchanged:: 3.7
+      *blocksize* parameter was added.
+
 
 .. class:: HTTPSConnection(host, port=None, key_file=None, \
                            cert_file=None[, timeout], \
                            source_address=None, *, context=None, \
-                           check_hostname=None)
+                           check_hostname=None, blocksize=8192)
 
    A subclass of :class:`HTTPConnection` that uses SSL for communication with
    secure servers.  Default port is ``443``.  If *context* is specified, it
    must be a :class:`ssl.SSLContext` instance describing the various SSL
    options.
 
-   *key_file* and *cert_file* are deprecated, please use
-   :meth:`ssl.SSLContext.load_cert_chain` instead, or let
-   :func:`ssl.create_default_context` select the system's trusted CA
-   certificates for you.
-
-   The recommended way to connect to HTTPS hosts on the Internet is as
-   follows::
-
-      context = ssl.create_default_context()
-      h = client.HTTPSConnection('www.python.org', 443, context=context)
-
    Please read :ref:`ssl-security` for more information on best practices.
-
-   .. note::
-      If *context* is specified and has a :attr:`~ssl.SSLContext.verify_mode`
-      of either :data:`~ssl.CERT_OPTIONAL` or :data:`~ssl.CERT_REQUIRED`, then
-      by default *host* is matched against the host name(s) allowed by the
-      server's certificate.  If you want to change that behaviour, you can
-      explicitly set *check_hostname* to False.
 
    .. versionchanged:: 3.2
       *source_address*, *context* and *check_hostname* were added.
@@ -96,6 +87,23 @@ The module provides the following classes:
    .. versionchanged:: 3.4
       The *strict* parameter was removed. HTTP 0.9-style "Simple Responses" are
       no longer supported.
+
+   .. versionchanged:: 3.4.3
+      This class now performs all the necessary certificate and hostname checks
+      by default. To revert to the previous, unverified, behavior
+      :func:`ssl._create_unverified_context` can be passed to the *context*
+      parameter.
+
+   .. deprecated:: 3.6
+
+       *key_file* and *cert_file* are deprecated in favor of *context*.
+       Please use :meth:`ssl.SSLContext.load_cert_chain` instead, or let
+       :func:`ssl.create_default_context` select the system's trusted CA
+       certificates for you.
+
+       The *check_hostname* parameter is also deprecated; the
+       :attr:`ssl.SSLContext.check_hostname` attribute of *context* should
+       be used instead.
 
 
 .. class:: HTTPResponse(sock, debuglevel=0, method=None, url=None)
@@ -174,231 +182,41 @@ The following exceptions are raised as appropriate:
    status code that we don't understand.
 
 
+.. exception:: LineTooLong
+
+   A subclass of :exc:`HTTPException`.  Raised if an excessively long line
+   is received in the HTTP protocol from the server.
+
+
+.. exception:: RemoteDisconnected
+
+   A subclass of :exc:`ConnectionResetError` and :exc:`BadStatusLine`.  Raised
+   by :meth:`HTTPConnection.getresponse` when the attempt to read the response
+   results in no data read from the connection, indicating that the remote end
+   has closed the connection.
+
+   .. versionadded:: 3.5
+      Previously, :exc:`BadStatusLine`\ ``('')`` was raised.
+
+
 The constants defined in this module are:
 
 .. data:: HTTP_PORT
 
    The default port for the HTTP protocol (always ``80``).
 
-
 .. data:: HTTPS_PORT
 
    The default port for the HTTPS protocol (always ``443``).
-
-and also the following constants for integer status codes:
-
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| Constant                                 | Value   | Definition                                                            |
-+==========================================+=========+=======================================================================+
-| :const:`CONTINUE`                        | ``100`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.1.1                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.1.1>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`SWITCHING_PROTOCOLS`             | ``101`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.1.2                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.1.2>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PROCESSING`                      | ``102`` | WEBDAV, `RFC 2518, Section 10.1                                       |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_102>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`OK`                              | ``200`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.1                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`CREATED`                         | ``201`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.2                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.2>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`ACCEPTED`                        | ``202`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.3                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.3>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NON_AUTHORITATIVE_INFORMATION`   | ``203`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.4                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.4>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NO_CONTENT`                      | ``204`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.5                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.5>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`RESET_CONTENT`                   | ``205`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.6                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.6>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PARTIAL_CONTENT`                 | ``206`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.2.7                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`MULTI_STATUS`                    | ``207`` | WEBDAV `RFC 2518, Section 10.2                                        |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_207>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`IM_USED`                         | ``226`` | Delta encoding in HTTP,                                               |
-|                                          |         | :rfc:`3229`, Section 10.4.1                                           |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`MULTIPLE_CHOICES`                | ``300`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.1                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.1>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`MOVED_PERMANENTLY`               | ``301`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.2                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.2>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`FOUND`                           | ``302`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.3                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.3>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`SEE_OTHER`                       | ``303`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.4                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.4>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NOT_MODIFIED`                    | ``304`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.5                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`USE_PROXY`                       | ``305`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.6                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.6>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`TEMPORARY_REDIRECT`              | ``307`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.3.8                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.8>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`BAD_REQUEST`                     | ``400`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.1                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`UNAUTHORIZED`                    | ``401`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.2                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PAYMENT_REQUIRED`                | ``402`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.3                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.3>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`FORBIDDEN`                       | ``403`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.4                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NOT_FOUND`                       | ``404`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.5                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`METHOD_NOT_ALLOWED`              | ``405`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.6                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.6>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NOT_ACCEPTABLE`                  | ``406`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.7                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.7>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PROXY_AUTHENTICATION_REQUIRED`   | ``407`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.8                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.8>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`REQUEST_TIMEOUT`                 | ``408`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.9                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.9>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`CONFLICT`                        | ``409`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.10                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.10>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`GONE`                            | ``410`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.11                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.11>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`LENGTH_REQUIRED`                 | ``411`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.12                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.12>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PRECONDITION_FAILED`             | ``412`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.13                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.13>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`REQUEST_ENTITY_TOO_LARGE`        | ``413`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.14                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.14>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`REQUEST_URI_TOO_LONG`            | ``414`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.15                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.15>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`UNSUPPORTED_MEDIA_TYPE`          | ``415`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.16                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.16>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`REQUESTED_RANGE_NOT_SATISFIABLE` | ``416`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.17                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.17>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`EXPECTATION_FAILED`              | ``417`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.4.18                                                               |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.18>`_ |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`UNPROCESSABLE_ENTITY`            | ``422`` | WEBDAV, `RFC 2518, Section 10.3                                       |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_422>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`LOCKED`                          | ``423`` | WEBDAV `RFC 2518, Section 10.4                                        |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_423>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`FAILED_DEPENDENCY`               | ``424`` | WEBDAV, `RFC 2518, Section 10.5                                       |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_424>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`UPGRADE_REQUIRED`                | ``426`` | HTTP Upgrade to TLS,                                                  |
-|                                          |         | :rfc:`2817`, Section 6                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`PRECONDITION_REQUIRED`           | ``428`` | Additional HTTP Status Codes,                                         |
-|                                          |         | :rfc:`6585`, Section 3                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`TOO_MANY_REQUESTS`               | ``429`` | Additional HTTP Status Codes,                                         |
-|                                          |         | :rfc:`6585`, Section 4                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`REQUEST_HEADER_FIELDS_TOO_LARGE` | ``431`` | Additional HTTP Status Codes,                                         |
-|                                          |         | :rfc:`6585`, Section 5                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`INTERNAL_SERVER_ERROR`           | ``500`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.5.1                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NOT_IMPLEMENTED`                 | ``501`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.5.2                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.2>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`BAD_GATEWAY`                     | ``502`` | HTTP/1.1 `RFC 2616, Section                                           |
-|                                          |         | 10.5.3                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.3>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`SERVICE_UNAVAILABLE`             | ``503`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.5.4                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.4>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`GATEWAY_TIMEOUT`                 | ``504`` | HTTP/1.1 `RFC 2616, Section                                           |
-|                                          |         | 10.5.5                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.5>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`HTTP_VERSION_NOT_SUPPORTED`      | ``505`` | HTTP/1.1, `RFC 2616, Section                                          |
-|                                          |         | 10.5.6                                                                |
-|                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.6>`_  |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`INSUFFICIENT_STORAGE`            | ``507`` | WEBDAV, `RFC 2518, Section 10.6                                       |
-|                                          |         | <http://www.webdav.org/specs/rfc2518.html#STATUS_507>`_               |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NOT_EXTENDED`                    | ``510`` | An HTTP Extension Framework,                                          |
-|                                          |         | :rfc:`2774`, Section 7                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-| :const:`NETWORK_AUTHENTICATION_REQUIRED` | ``511`` | Additional HTTP Status Codes,                                         |
-|                                          |         | :rfc:`6585`, Section 6                                                |
-+------------------------------------------+---------+-----------------------------------------------------------------------+
-
-.. versionchanged:: 3.3
-   Added codes ``428``, ``429``, ``431`` and ``511`` from :rfc:`6585`.
-
 
 .. data:: responses
 
    This dictionary maps the HTTP 1.1 status codes to the W3C names.
 
    Example: ``http.client.responses[http.client.NOT_FOUND]`` is ``'Not Found'``.
+
+See :ref:`http-status-codes` for a list of HTTP status codes that are
+available in this module as constants.
 
 
 .. _httpconnection-objects:
@@ -409,28 +227,60 @@ HTTPConnection Objects
 :class:`HTTPConnection` instances have the following methods:
 
 
-.. method:: HTTPConnection.request(method, url, body=None, headers={})
+.. method:: HTTPConnection.request(method, url, body=None, headers={}, *, \
+            encode_chunked=False)
 
    This will send a request to the server using the HTTP request
-   method *method* and the selector *url*.  If the *body* argument is
-   present, it should be string or bytes object of data to send after
-   the headers are finished.  Strings are encoded as ISO-8859-1, the
-   default charset for HTTP.  To use other encodings, pass a bytes
-   object.  The Content-Length header is set to the length of the
-   string.
+   method *method* and the selector *url*.
 
-   The *body* may also be an open :term:`file object`, in which case the
-   contents of the file is sent; this file object should support ``fileno()``
-   and ``read()`` methods. The header Content-Length is automatically set to
-   the length of the file as reported by stat. The *body* argument may also be
-   an iterable and Content-Length header should be explicitly provided when the
-   body is an iterable.
+   If *body* is specified, the specified data is sent after the headers are
+   finished.  It may be a :class:`str`, a :term:`bytes-like object`, an
+   open :term:`file object`, or an iterable of :class:`bytes`.  If *body*
+   is a string, it is encoded as ISO-8859-1, the default for HTTP.  If it
+   is a bytes-like object, the bytes are sent as is.  If it is a :term:`file
+   object`, the contents of the file is sent; this file object should
+   support at least the ``read()`` method.  If the file object is an
+   instance of :class:`io.TextIOBase`, the data returned by the ``read()``
+   method will be encoded as ISO-8859-1, otherwise the data returned by
+   ``read()`` is sent as is.  If *body* is an iterable, the elements of the
+   iterable are sent as is until the iterable is exhausted.
 
-   The *headers* argument should be a mapping of extra HTTP
-   headers to send with the request.
+   The *headers* argument should be a mapping of extra HTTP headers to send
+   with the request.
+
+   If *headers* contains neither Content-Length nor Transfer-Encoding,
+   but there is a request body, one of those
+   header fields will be added automatically.  If
+   *body* is ``None``, the Content-Length header is set to ``0`` for
+   methods that expect a body (``PUT``, ``POST``, and ``PATCH``).  If
+   *body* is a string or a bytes-like object that is not also a
+   :term:`file <file object>`, the Content-Length header is
+   set to its length.  Any other type of *body* (files
+   and iterables in general) will be chunk-encoded, and the
+   Transfer-Encoding header will automatically be set instead of
+   Content-Length.
+
+   The *encode_chunked* argument is only relevant if Transfer-Encoding is
+   specified in *headers*.  If *encode_chunked* is ``False``, the
+   HTTPConnection object assumes that all encoding is handled by the
+   calling code.  If it is ``True``, the body will be chunk-encoded.
+
+   .. note::
+      Chunked transfer encoding has been added to the HTTP protocol
+      version 1.1.  Unless the HTTP server is known to handle HTTP 1.1,
+      the caller must either specify the Content-Length, or must pass a
+      :class:`str` or bytes-like object that is not also a file as the
+      body representation.
 
    .. versionadded:: 3.2
       *body* can now be an iterable.
+
+   .. versionchanged:: 3.6
+      If neither Content-Length nor Transfer-Encoding are set in
+      *headers*, file and iterable *body* objects are now chunk-encoded.
+      The *encode_chunked* argument was added.
+      No attempt is made to determine the Content-Length for file
+      objects.
 
 .. method:: HTTPConnection.getresponse()
 
@@ -441,6 +291,11 @@ HTTPConnection Objects
 
       Note that you must have read the whole response before you can send a new
       request to the server.
+
+   .. versionchanged:: 3.5
+      If a :exc:`ConnectionError` or subclass is raised, the
+      :class:`HTTPConnection` object will be ready to reconnect when
+      a new request is sent.
 
 
 .. method:: HTTPConnection.set_debuglevel(level)
@@ -480,25 +335,36 @@ HTTPConnection Objects
 
 .. method:: HTTPConnection.connect()
 
-   Connect to the server specified when the object was created.
+   Connect to the server specified when the object was created.  By default,
+   this is called automatically when making a request if the client does not
+   already have a connection.
 
 
 .. method:: HTTPConnection.close()
 
    Close the connection to the server.
 
+
+.. attribute:: HTTPConnection.blocksize
+
+   Buffer size in bytes for sending a file-like message body.
+
+   .. versionadded:: 3.7
+
+
 As an alternative to using the :meth:`request` method described above, you can
 also send your request step by step, by using the four functions below.
 
 
-.. method:: HTTPConnection.putrequest(request, selector, skip_host=False, skip_accept_encoding=False)
+.. method:: HTTPConnection.putrequest(method, url, skip_host=False, \
+                                      skip_accept_encoding=False)
 
-   This should be the first call after the connection to the server has been made.
-   It sends a line to the server consisting of the *request* string, the *selector*
-   string, and the HTTP version (``HTTP/1.1``).  To disable automatic sending of
-   ``Host:`` or ``Accept-Encoding:`` headers (for example to accept additional
-   content encodings), specify *skip_host* or *skip_accept_encoding* with non-False
-   values.
+   This should be the first call after the connection to the server has been
+   made. It sends a line to the server consisting of the *method* string,
+   the *url* string, and the HTTP version (``HTTP/1.1``).  To disable automatic
+   sending of ``Host:`` or ``Accept-Encoding:`` headers (for example to accept
+   additional content encodings), specify *skip_host* or *skip_accept_encoding*
+   with non-False values.
 
 
 .. method:: HTTPConnection.putheader(header, argument[, ...])
@@ -509,13 +375,32 @@ also send your request step by step, by using the four functions below.
    an argument.
 
 
-.. method:: HTTPConnection.endheaders(message_body=None)
+.. method:: HTTPConnection.endheaders(message_body=None, *, encode_chunked=False)
 
    Send a blank line to the server, signalling the end of the headers. The
    optional *message_body* argument can be used to pass a message body
-   associated with the request.  The message body will be sent in the same
-   packet as the message headers if it is string, otherwise it is sent in a
-   separate packet.
+   associated with the request.
+
+   If *encode_chunked* is ``True``, the result of each iteration of
+   *message_body* will be chunk-encoded as specified in :rfc:`7230`,
+   Section 3.3.1.  How the data is encoded is dependent on the type of
+   *message_body*.  If *message_body* implements the :ref:`buffer interface
+   <bufferobjects>` the encoding will result in a single chunk.
+   If *message_body* is a :class:`collections.abc.Iterable`, each iteration
+   of *message_body* will result in a chunk.  If *message_body* is a
+   :term:`file object`, each call to ``.read()`` will result in a chunk.
+   The method automatically signals the end of the chunk-encoded data
+   immediately after *message_body*.
+
+   .. note:: Due to the chunked encoding specification, empty chunks
+      yielded by an iterator body will be ignored by the chunk-encoder.
+      This is to avoid premature termination of the read of the request by
+      the target server due to malformed encoding.
+
+   .. versionadded:: 3.6
+      Chunked encoding support.  The *encode_chunked* parameter was
+      added.
+
 
 .. method:: HTTPConnection.send(data)
 
@@ -533,6 +418,10 @@ An :class:`HTTPResponse` instance wraps the HTTP response from the
 server.  It provides access to the request headers and the entity
 body.  The response is an iterable object and can be used in a with
 statement.
+
+.. versionchanged:: 3.5
+   The :class:`io.BufferedIOBase` interface is now implemented and
+   all of its reader operations are supported.
 
 
 .. method:: HTTPResponse.read([amt])
@@ -553,7 +442,6 @@ statement.
    return all of the values joined by ', '.  If 'default' is any iterable other
    than a single string, its elements are similarly returned joined by commas.
 
-
 .. method:: HTTPResponse.getheaders()
 
    Return a list of (header, value) tuples.
@@ -568,21 +456,17 @@ statement.
    headers.  :class:`http.client.HTTPMessage` is a subclass of
    :class:`email.message.Message`.
 
-
 .. attribute:: HTTPResponse.version
 
    HTTP protocol version used by server.  10 for HTTP/1.0, 11 for HTTP/1.1.
-
 
 .. attribute:: HTTPResponse.status
 
    Status code returned by server.
 
-
 .. attribute:: HTTPResponse.reason
 
    Reason phrase returned by server.
-
 
 .. attribute:: HTTPResponse.debuglevel
 
@@ -599,18 +483,18 @@ Examples
 Here is an example session that uses the ``GET`` method::
 
    >>> import http.client
-   >>> conn = http.client.HTTPConnection("www.python.org")
-   >>> conn.request("GET", "/index.html")
+   >>> conn = http.client.HTTPSConnection("www.python.org")
+   >>> conn.request("GET", "/")
    >>> r1 = conn.getresponse()
    >>> print(r1.status, r1.reason)
    200 OK
    >>> data1 = r1.read()  # This will return entire content.
    >>> # The following example demonstrates reading data in chunks.
-   >>> conn.request("GET", "/index.html")
+   >>> conn.request("GET", "/")
    >>> r1 = conn.getresponse()
    >>> while not r1.closed:
-   ...     print(r1.read(200)) # 200 bytes
-   b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"...
+   ...     print(r1.read(200))  # 200 bytes
+   b'<!doctype html>\n<!--[if"...
    ...
    >>> # Example of an invalid request
    >>> conn.request("GET", "/parrot.spam")
@@ -624,8 +508,8 @@ Here is an example session that uses the ``HEAD`` method.  Note that the
 ``HEAD`` method never returns any data. ::
 
    >>> import http.client
-   >>> conn = http.client.HTTPConnection("www.python.org")
-   >>> conn.request("HEAD","/index.html")
+   >>> conn = http.client.HTTPSConnection("www.python.org")
+   >>> conn.request("HEAD", "/")
    >>> res = conn.getresponse()
    >>> print(res.status, res.reason)
    200 OK

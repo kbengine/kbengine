@@ -28,9 +28,9 @@ The order by which events are called is defined by these rules:
    unless this conflicts with the first rule.
 Each function will be called at most once for each event.
 """
-
-import sys
 import re
+import sys
+
 import tkinter
 
 # the event type constants, which define the meaning of mc_type
@@ -60,8 +60,7 @@ _modifier_names = dict([(name, number)
 # destroyed before .__del__ methods here are called.  The following
 # is used to selectively ignore shutdown exceptions to avoid
 # 'Exception ignored' messages.  See http://bugs.python.org/issue20167
-APPLICATION_GONE = '''\
-can't invoke "bind" command:  application has been destroyed'''
+APPLICATION_GONE = "application has been destroyed"
 
 # A binder is a class which binds functions to one type of event. It has two
 # methods: bind and unbind, which get a function and a parsed sequence, as
@@ -108,13 +107,11 @@ class _SimpleBinder:
                 self.widget.unbind(self.widgetinst, self.sequence,
                         self.handlerid)
             except tkinter.TclError as e:
-                if e.args[0] == APPLICATION_GONE:
-                    pass
-                else:
+                if not APPLICATION_GONE in e.args[0]:
                     raise
 
 # An int in range(1 << len(_modifiers)) represents a combination of modifiers
-# (if the least significent bit is on, _modifiers[0] is on, and so on).
+# (if the least significant bit is on, _modifiers[0] is on, and so on).
 # _state_subsets gives for each combination of modifiers, or *state*,
 # a list of the states which are a subset of it. This list is ordered by the
 # number of modifiers is the state - the most specific state comes first.
@@ -243,9 +240,7 @@ class _ComplexBinder:
             try:
                 self.widget.unbind(self.widgetinst, seq, id)
             except tkinter.TclError as e:
-                if e.args[0] == APPLICATION_GONE:
-                    break
-                else:
+                if not APPLICATION_GONE in e.args[0]:
                     raise
 
 # define the list of event types to be handled by MultiEvent. the order is
@@ -412,21 +407,19 @@ def MultiCallCreator(widget):
                         try:
                             self.__binders[triplet[1]].unbind(triplet, func)
                         except tkinter.TclError as e:
-                            if e.args[0] == APPLICATION_GONE:
-                                break
-                            else:
+                            if not APPLICATION_GONE in e.args[0]:
                                 raise
 
     _multicall_dict[widget] = MultiCall
     return MultiCall
 
 
-def _multi_call(parent):
-    root = tkinter.Tk()
-    root.title("Test MultiCall")
-    width, height, x, y = list(map(int, re.split('[x+]', parent.geometry())))
-    root.geometry("+%d+%d"%(x, y + 150))
-    text = MultiCallCreator(tkinter.Text)(root)
+def _multi_call(parent):  # htest #
+    top = tkinter.Toplevel(parent)
+    top.title("Test MultiCall")
+    x, y = map(int, parent.geometry().split('+')[1:])
+    top.geometry("+%d+%d" % (x, y + 175))
+    text = MultiCallCreator(tkinter.Text)(top)
     text.pack()
     def bindseq(seq, n=[0]):
         def handler(event):
@@ -446,8 +439,10 @@ def _multi_call(parent):
     bindseq("<FocusOut>")
     bindseq("<Enter>")
     bindseq("<Leave>")
-    root.mainloop()
 
 if __name__ == "__main__":
+    from unittest import main
+    main('idlelib.idle_test.test_mainmenu', verbosity=2, exit=False)
+
     from idlelib.idle_test.htest import run
     run(_multi_call)

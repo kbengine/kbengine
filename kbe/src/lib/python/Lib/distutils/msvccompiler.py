@@ -157,6 +157,9 @@ def get_build_version():
     i = i + len(prefix)
     s, rest = sys.version[i:].split(" ", 1)
     majorVersion = int(s[:-2]) - 6
+    if majorVersion >= 13:
+        # v13 was skipped and should be v14
+        majorVersion += 1
     minorVersion = int(s[2:3]) / 10.0
     # I don't think paths are affected by minor version in version 6
     if majorVersion == 6:
@@ -169,7 +172,7 @@ def get_build_version():
 def get_build_architecture():
     """Return the processor architecture.
 
-    Possible results are "Intel", "Itanium", or "AMD64".
+    Possible results are "Intel" or "AMD64".
     """
 
     prefix = " bit ("

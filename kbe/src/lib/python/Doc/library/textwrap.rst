@@ -3,6 +3,7 @@
 
 .. module:: textwrap
    :synopsis: Text wrapping and filling
+
 .. moduleauthor:: Greg Ward <gward@python.net>
 .. sectionauthor:: Greg Ward <gward@python.net>
 
@@ -112,6 +113,8 @@ functions should be good enough; otherwise, you should use an instance of
       +
       +
       + world
+
+   .. versionadded:: 3.3
 
 
 :func:`wrap`, :func:`fill` and :func:`shorten` work by creating a

@@ -18,8 +18,6 @@ except:
   a PC, you should add the dos_8x3 directory to your PYTHONPATH.""")
     sys.exit(1)
 
-import os
-
 for dir in sys.path:
     file = os.path.join(dir, "os.py")
     if os.path.isfile(file):
@@ -28,5 +26,5 @@ for dir in sys.path:
             # Add the "test" directory to PYTHONPATH.
             sys.path = sys.path + [test]
 
-import regrtest # Standard Python tester.
-regrtest.main()
+import libregrtest # Standard Python tester.
+libregrtest.main()

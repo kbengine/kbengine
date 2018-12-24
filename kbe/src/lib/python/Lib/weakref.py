@@ -16,11 +16,12 @@ from _weakref import (
      proxy,
      CallableProxyType,
      ProxyType,
-     ReferenceType)
+     ReferenceType,
+     _remove_dead_weakref)
 
 from _weakrefset import WeakSet, _IterationGuard
 
-import collections  # Import after _weakref to avoid circular import.
+import _collections_abc  # Import after _weakref to avoid circular import.
 import sys
 import itertools
 
@@ -86,7 +87,7 @@ class WeakMethod(ref):
     __hash__ = ref.__hash__
 
 
-class WeakValueDictionary(collections.MutableMapping):
+class WeakValueDictionary(_collections_abc.MutableMapping):
     """Mapping class that references values weakly.
 
     Entries in the dictionary will be discarded when no strong
@@ -98,14 +99,22 @@ class WeakValueDictionary(collections.MutableMapping):
     # objects are unwrapped on the way out, and we always wrap on the
     # way in).
 
-    def __init__(self, *args, **kw):
-        def remove(wr, selfref=ref(self)):
+    def __init__(*args, **kw):
+        if not args:
+            raise TypeError("descriptor '__init__' of 'WeakValueDictionary' "
+                            "object needs an argument")
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        def remove(wr, selfref=ref(self), _atomic_removal=_remove_dead_weakref):
             self = selfref()
             if self is not None:
                 if self._iterating:
                     self._pending_removals.append(wr.key)
                 else:
-                    del self.data[wr.key]
+                    # Atomic removal is necessary since this function
+                    # can be called asynchronously by the GC
+                    _atomic_removal(d, wr.key)
         self._remove = remove
         # A list of keys to be removed
         self._pending_removals = []
@@ -119,9 +128,12 @@ class WeakValueDictionary(collections.MutableMapping):
         # We shouldn't encounter any KeyError, because this method should
         # always be called *before* mutating the dict.
         while l:
-            del d[l.pop()]
+            key = l.pop()
+            _remove_dead_weakref(d, key)
 
     def __getitem__(self, key):
+        if self._pending_removals:
+            self._commit_removals()
         o = self.data[key]()
         if o is None:
             raise KeyError(key)
@@ -134,9 +146,13 @@ class WeakValueDictionary(collections.MutableMapping):
         del self.data[key]
 
     def __len__(self):
-        return len(self.data) - len(self._pending_removals)
+        if self._pending_removals:
+            self._commit_removals()
+        return len(self.data)
 
     def __contains__(self, key):
+        if self._pending_removals:
+            self._commit_removals()
         try:
             o = self.data[key]()
         except KeyError:
@@ -144,7 +160,7 @@ class WeakValueDictionary(collections.MutableMapping):
         return o is not None
 
     def __repr__(self):
-        return "<WeakValueDictionary at %s>" % id(self)
+        return "<%s at %#x>" % (self.__class__.__name__, id(self))
 
     def __setitem__(self, key, value):
         if self._pending_removals:
@@ -152,6 +168,8 @@ class WeakValueDictionary(collections.MutableMapping):
         self.data[key] = KeyedRef(value, self._remove, key)
 
     def copy(self):
+        if self._pending_removals:
+            self._commit_removals()
         new = WeakValueDictionary()
         for key, wr in self.data.items():
             o = wr()
@@ -163,6 +181,8 @@ class WeakValueDictionary(collections.MutableMapping):
 
     def __deepcopy__(self, memo):
         from copy import deepcopy
+        if self._pending_removals:
+            self._commit_removals()
         new = self.__class__()
         for key, wr in self.data.items():
             o = wr()
@@ -171,6 +191,8 @@ class WeakValueDictionary(collections.MutableMapping):
         return new
 
     def get(self, key, default=None):
+        if self._pending_removals:
+            self._commit_removals()
         try:
             wr = self.data[key]
         except KeyError:
@@ -184,6 +206,8 @@ class WeakValueDictionary(collections.MutableMapping):
                 return o
 
     def items(self):
+        if self._pending_removals:
+            self._commit_removals()
         with _IterationGuard(self):
             for k, wr in self.data.items():
                 v = wr()
@@ -191,6 +215,8 @@ class WeakValueDictionary(collections.MutableMapping):
                     yield k, v
 
     def keys(self):
+        if self._pending_removals:
+            self._commit_removals()
         with _IterationGuard(self):
             for k, wr in self.data.items():
                 if wr() is not None:
@@ -208,10 +234,14 @@ class WeakValueDictionary(collections.MutableMapping):
         keep the values around longer than needed.
 
         """
+        if self._pending_removals:
+            self._commit_removals()
         with _IterationGuard(self):
             yield from self.data.values()
 
     def values(self):
+        if self._pending_removals:
+            self._commit_removals()
         with _IterationGuard(self):
             for wr in self.data.values():
                 obj = wr()
@@ -233,26 +263,36 @@ class WeakValueDictionary(collections.MutableMapping):
         try:
             o = self.data.pop(key)()
         except KeyError:
+            o = None
+        if o is None:
             if args:
                 return args[0]
-            raise
-        if o is None:
-            raise KeyError(key)
+            else:
+                raise KeyError(key)
         else:
             return o
 
     def setdefault(self, key, default=None):
         try:
-            wr = self.data[key]
+            o = self.data[key]()
         except KeyError:
+            o = None
+        if o is None:
             if self._pending_removals:
                 self._commit_removals()
             self.data[key] = KeyedRef(default, self._remove, key)
             return default
         else:
-            return wr()
+            return o
 
-    def update(self, dict=None, **kwargs):
+    def update(*args, **kwargs):
+        if not args:
+            raise TypeError("descriptor 'update' of 'WeakValueDictionary' "
+                            "object needs an argument")
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        dict = args[0] if args else None
         if self._pending_removals:
             self._commit_removals()
         d = self.data
@@ -274,6 +314,8 @@ class WeakValueDictionary(collections.MutableMapping):
         keep the values around longer than needed.
 
         """
+        if self._pending_removals:
+            self._commit_removals()
         return list(self.data.values())
 
 
@@ -298,7 +340,7 @@ class KeyedRef(ref):
         super().__init__(ob, callback)
 
 
-class WeakKeyDictionary(collections.MutableMapping):
+class WeakKeyDictionary(_collections_abc.MutableMapping):
     """ Mapping class that references keys weakly.
 
     Entries in the dictionary will be discarded when there is no
@@ -322,6 +364,7 @@ class WeakKeyDictionary(collections.MutableMapping):
         # A list of dead weakrefs (keys to be removed)
         self._pending_removals = []
         self._iterating = set()
+        self._dirty_len = False
         if dict is not None:
             self.update(dict)
 
@@ -338,17 +381,27 @@ class WeakKeyDictionary(collections.MutableMapping):
             except KeyError:
                 pass
 
+    def _scrub_removals(self):
+        d = self.data
+        self._pending_removals = [k for k in self._pending_removals if k in d]
+        self._dirty_len = False
+
     def __delitem__(self, key):
+        self._dirty_len = True
         del self.data[ref(key)]
 
     def __getitem__(self, key):
         return self.data[ref(key)]
 
     def __len__(self):
+        if self._dirty_len and self._pending_removals:
+            # self._pending_removals may still contain keys which were
+            # explicitly removed, we have to scrub them (see issue #21173).
+            self._scrub_removals()
         return len(self.data) - len(self._pending_removals)
 
     def __repr__(self):
-        return "<WeakKeyDictionary at %s>" % id(self)
+        return "<%s at %#x>" % (self.__class__.__name__, id(self))
 
     def __setitem__(self, key, value):
         self.data[ref(key, self._remove)] = value
@@ -417,6 +470,7 @@ class WeakKeyDictionary(collections.MutableMapping):
         return list(self.data)
 
     def popitem(self):
+        self._dirty_len = True
         while True:
             key, value = self.data.popitem()
             o = key()
@@ -424,6 +478,7 @@ class WeakKeyDictionary(collections.MutableMapping):
                 return o, value
 
     def pop(self, key, *args):
+        self._dirty_len = True
         return self.data.pop(ref(key), *args)
 
     def setdefault(self, key, default=None):

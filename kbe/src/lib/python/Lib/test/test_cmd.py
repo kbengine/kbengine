@@ -6,7 +6,6 @@ Original by Michael Schneider
 
 import cmd
 import sys
-import re
 import unittest
 import io
 from test import support
@@ -52,7 +51,7 @@ class samplecmdclass(cmd.Cmd):
 
     Test for the function completedefault():
     >>> mycmd.completedefault()
-    This is the completedefault methode
+    This is the completedefault method
     >>> mycmd.completenames("a")
     ['add']
 
@@ -110,7 +109,7 @@ class samplecmdclass(cmd.Cmd):
     5  12  19
     6  13
 
-    This is a interactive test, put some commands in the cmdqueue attribute
+    This is an interactive test, put some commands in the cmdqueue attribute
     and let it execute
     This test includes the preloop(), postloop(), default(), emptyline(),
     parseline(), do_help() functions
@@ -141,7 +140,7 @@ class samplecmdclass(cmd.Cmd):
         print("Hello from postloop")
 
     def completedefault(self, *ignored):
-        print("This is the completedefault methode")
+        print("This is the completedefault method")
 
     def complete_command(self):
         print("complete command")

@@ -3,10 +3,14 @@
 
 .. module:: tkinter.ttk
    :synopsis: Tk themed widget set
+
 .. sectionauthor:: Guilherme Polo <ggpolo@gmail.com>
 
+**Source code:** :source:`Lib/tkinter/ttk.py`
 
 .. index:: single: ttk
+
+--------------
 
 The :mod:`tkinter.ttk` module provides access to the Tk themed widget set,
 introduced in Tk 8.5. If Python has not been compiled against Tk 8.5, this
@@ -22,7 +26,7 @@ appearance.
 
 .. seealso::
 
-   `Tk Widget Styling Support <http://www.tcl.tk/cgi-bin/tct/tip/48>`_
+   `Tk Widget Styling Support <https://core.tcl.tk/tips/doc/trunk/tip/48.md>`_
       A document introducing theming support for Tk
 
 
@@ -62,13 +66,13 @@ for improved styling effects.
 Ttk Widgets
 -----------
 
-Ttk comes with 17 widgets, eleven of which already existed in tkinter:
+Ttk comes with 18 widgets, twelve of which already existed in tkinter:
 :class:`Button`, :class:`Checkbutton`, :class:`Entry`, :class:`Frame`,
 :class:`Label`, :class:`LabelFrame`, :class:`Menubutton`, :class:`PanedWindow`,
-:class:`Radiobutton`, :class:`Scale` and :class:`Scrollbar`. The other six are
-new: :class:`Combobox`, :class:`Notebook`, :class:`Progressbar`,
-:class:`Separator`, :class:`Sizegrip` and :class:`Treeview`. And all them are
-subclasses of :class:`Widget`.
+:class:`Radiobutton`, :class:`Scale`, :class:`Scrollbar`, and :class:`Spinbox`.
+The other six are new: :class:`Combobox`, :class:`Notebook`,
+:class:`Progressbar`, :class:`Separator`, :class:`Sizegrip` and
+:class:`Treeview`. And all them are subclasses of :class:`Widget`.
 
 Using the Ttk widgets gives the application an improved look and feel.
 As discussed above, there are differences in how the styling is coded.
@@ -110,8 +114,9 @@ All the :mod:`ttk` Widgets accepts the following options:
    | class     | Specifies the window class. The class is used when querying  |
    |           | the option database for the window's other options, to       |
    |           | determine the default bindtags for the window, and to select |
-   |           | the widget's default layout and style. This is a read-only   |
-   |           | which may only be specified when the window is created       |
+   |           | the widget's default layout and style. This option is        |
+   |           | read-only, and may only be specified when the window is      |
+   |           | created.                                                     |
    +-----------+--------------------------------------------------------------+
    | cursor    | Specifies the mouse cursor to be used for the widget. If set |
    |           | to the empty string (the default), the cursor is inherited   |
@@ -298,7 +303,7 @@ Besides the methods inherited from :class:`Widget`: :meth:`Widget.cget`,
 :meth:`Widget.configure`, :meth:`Widget.identify`, :meth:`Widget.instate`
 and :meth:`Widget.state`, and the following inherited from :class:`Entry`:
 :meth:`Entry.bbox`, :meth:`Entry.delete`, :meth:`Entry.icursor`,
-:meth:`Entry.index`, :meth:`Entry.inset`, :meth:`Entry.selection`,
+:meth:`Entry.index`, :meth:`Entry.insert`, :meth:`Entry.selection`,
 :meth:`Entry.xview`, it has some other methods, described at
 :class:`ttk.Combobox`.
 
@@ -374,6 +379,87 @@ ttk.Combobox
    .. method:: set(value)
 
       Sets the value of the combobox to *value*.
+
+
+Spinbox
+-------
+The :class:`ttk.Spinbox` widget is a :class:`ttk.Entry` enhanced with increment
+and decrement arrows.  It can be used for numbers or lists of string values.
+This widget is a subclass of :class:`Entry`.
+
+Besides the methods inherited from :class:`Widget`: :meth:`Widget.cget`,
+:meth:`Widget.configure`, :meth:`Widget.identify`, :meth:`Widget.instate`
+and :meth:`Widget.state`, and the following inherited from :class:`Entry`:
+:meth:`Entry.bbox`, :meth:`Entry.delete`, :meth:`Entry.icursor`,
+:meth:`Entry.index`, :meth:`Entry.insert`, :meth:`Entry.xview`,
+it has some other methods, described at :class:`ttk.Spinbox`.
+
+Options
+^^^^^^^
+
+This widget accepts the following specific options:
+
+  .. tabularcolumns:: |l|L|
+
++----------------------+------------------------------------------------------+
+| Option               | Description                                          |
++======================+======================================================+
+| from                 | Float value.  If set, this is the minimum value to   |
+|                      | which the decrement button will decrement.  Must be  |
+|                      | spelled as ``from_`` when used as an argument, since |
+|                      | ``from`` is a Python keyword.                        |
++----------------------+------------------------------------------------------+
+| to                   | Float value.  If set, this is the maximum value to   |
+|                      | which the increment button will increment.           |
++----------------------+------------------------------------------------------+
+| increment            | Float value.  Specifies the amount which the         |
+|                      | increment/decrement buttons change the               |
+|                      | value. Defaults to 1.0.                              |
++----------------------+------------------------------------------------------+
+| values               | Sequence of string or float values.  If specified,   |
+|                      | the increment/decrement buttons will cycle through   |
+|                      | the items in this sequence rather than incrementing  |
+|                      | or decrementing numbers.                             |
+|                      |                                                      |
++----------------------+------------------------------------------------------+
+| wrap                 | Boolean value.  If ``True``, increment and decrement |
+|                      | buttons will cycle from the ``to`` value to the      |
+|                      | ``from`` value or the ``from`` value to the ``to``   |
+|                      | value, respectively.                                 |
++----------------------+------------------------------------------------------+
+| format               | String value.  This specifies the format of numbers  |
+|                      | set by the increment/decrement buttons.  It must be  |
+|                      | in the form "%W.Pf", where W is the padded width of  |
+|                      | the value, P is the precision, and '%' and 'f' are   |
+|                      | literal.                                             |
++----------------------+------------------------------------------------------+
+| command              | Python callable.  Will be called with no arguments   |
+|                      | whenever either of the increment or decrement buttons|
+|                      | are pressed.                                         |
+|                      |                                                      |
++----------------------+------------------------------------------------------+
+
+
+Virtual events
+^^^^^^^^^^^^^^
+
+The spinbox widget generates an **<<Increment>>** virtual event when the
+user presses <Up>, and a **<<Decrement>>** virtual event when the user
+presses <Down>.
+
+ttk.Spinbox
+^^^^^^^^^^^^
+
+.. class:: Spinbox
+
+   .. method:: get()
+
+      Returns the current value of the spinbox.
+
+
+   .. method:: set(value)
+
+      Sets the value of the spinbox to *value*.
 
 
 Notebook
@@ -554,9 +640,9 @@ ttk.Notebook
       This will extend the bindings for the toplevel window containing the
       notebook as follows:
 
-      * Control-Tab: selects the tab following the currently selected one.
-      * Shift-Control-Tab: selects the tab preceding the currently selected one.
-      * Alt-K: where K is the mnemonic (underlined) character of any tab, will
+      * :kbd:`Control-Tab`: selects the tab following the currently selected one.
+      * :kbd:`Shift-Control-Tab`: selects the tab preceding the currently selected one.
+      * :kbd:`Alt-K`: where *K* is the mnemonic (underlined) character of any tab, will
         select that tab.
 
       Multiple notebooks in a single toplevel may be enabled for traversal,
@@ -700,7 +786,7 @@ the widget option ``displaycolumns``. The tree widget can also display column
 headings. Columns may be accessed by number or symbolic names listed in the
 widget option columns. See `Column Identifiers`_.
 
-Each item is identified by an unique name. The widget will generate item IDs
+Each item is identified by a unique name. The widget will generate item IDs
 if they are not supplied by the caller. There is a distinguished root item,
 named ``{}``. The root item itself is not displayed; its children appear at the
 top level of the hierarchy.
@@ -1094,25 +1180,41 @@ ttk.Treeview
       If *selop* is not specified, returns selected items. Otherwise, it will
       act according to the following selection methods.
 
+      .. deprecated-removed:: 3.6 3.8
+         Using ``selection()`` for changing the selection state is deprecated.
+         Use the following selection methods instead.
 
-   .. method:: selection_set(items)
+
+   .. method:: selection_set(*items)
 
       *items* becomes the new selection.
 
+      .. versionchanged:: 3.6
+         *items* can be passed as separate arguments, not just as a single tuple.
 
-   .. method:: selection_add(items)
+
+   .. method:: selection_add(*items)
 
       Add *items* to the selection.
 
+      .. versionchanged:: 3.6
+         *items* can be passed as separate arguments, not just as a single tuple.
 
-   .. method:: selection_remove(items)
+
+   .. method:: selection_remove(*items)
 
       Remove *items* from the selection.
 
+      .. versionchanged:: 3.6
+         *items* can be passed as separate arguments, not just as a single tuple.
 
-   .. method:: selection_toggle(items)
+
+   .. method:: selection_toggle(*items)
 
       Toggle the selection state of each item in *items*.
+
+      .. versionchanged:: 3.6
+         *items* can be passed as separate arguments, not just as a single tuple.
 
 
    .. method:: set(item, column=None, value=None)
@@ -1167,7 +1269,7 @@ Ttk Styling
 Each widget in :mod:`ttk` is assigned a style, which specifies the set of
 elements making up the widget and how they are arranged, along with dynamic
 and default settings for element options. By default the style name is the
-same as the widget's class name, but it may be overriden by the widget's style
+same as the widget's class name, but it may be overridden by the widget's style
 option. If you don't know the class name of a widget, use the method
 :meth:`Misc.winfo_class` (somewidget.winfo_class()).
 
@@ -1399,7 +1501,7 @@ option. If you don't know the class name of a widget, use the method
 Layouts
 ^^^^^^^
 
-A layout can be just None, if it takes no options, or a dict of
+A layout can be just ``None``, if it takes no options, or a dict of
 options specifying how to arrange the element. The layout mechanism
 uses a simplified version of the pack geometry manager: given an
 initial cavity, each element is allocated a parcel. Valid

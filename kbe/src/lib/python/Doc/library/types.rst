@@ -55,6 +55,12 @@ Dynamic Type Creation
 
    .. versionadded:: 3.3
 
+   .. versionchanged:: 3.6
+
+      The default value for the ``namespace`` element of the returned
+      tuple has changed.  Now an insertion-order-preserving mapping is
+      used when the metaclass does not have a ``__prepare__`` method.
+
 .. seealso::
 
    :ref:`metaclasses`
@@ -62,6 +68,23 @@ Dynamic Type Creation
 
    :pep:`3115` - Metaclasses in Python 3000
       Introduced the ``__prepare__`` namespace hook
+
+.. function:: resolve_bases(bases)
+
+   Resolve MRO entries dynamically as specified by :pep:`560`.
+
+   This function looks for items in *bases* that are not instances of
+   :class:`type`, and returns a tuple where each such object that has
+   an ``__mro_entries__`` method is replaced with an unpacked result of
+   calling this method.  If a *bases* item is an instance of :class:`type`,
+   or it doesn't have an ``__mro_entries__`` method, then it is included in
+   the return tuple unchanged.
+
+   .. versionadded:: 3.7
+
+.. seealso::
+
+   :pep:`560` - Core support for typing module and generic types
 
 
 Standard Interpreter Types
@@ -86,8 +109,24 @@ Standard names are defined for the following types:
 
 .. data:: GeneratorType
 
-   The type of :term:`generator`-iterator objects, produced by calling a
-   generator function.
+   The type of :term:`generator`-iterator objects, created by
+   generator functions.
+
+
+.. data:: CoroutineType
+
+   The type of :term:`coroutine` objects, created by
+   :keyword:`async def` functions.
+
+   .. versionadded:: 3.5
+
+
+.. data:: AsyncGeneratorType
+
+   The type of :term:`asynchronous generator`-iterator objects, created by
+   asynchronous generator functions.
+
+   .. versionadded:: 3.6
 
 
 .. data:: CodeType
@@ -110,10 +149,45 @@ Standard names are defined for the following types:
    C".)
 
 
+.. data:: WrapperDescriptorType
+
+   The type of methods of some built-in data types and base classes such as
+   :meth:`object.__init__` or :meth:`object.__lt__`.
+
+   .. versionadded:: 3.7
+
+
+.. data:: MethodWrapperType
+
+   The type of *bound* methods of some built-in data types and base classes.
+   For example it is the type of :code:`object().__str__`.
+
+   .. versionadded:: 3.7
+
+
+.. data:: MethodDescriptorType
+
+   The type of methods of some built-in data types such as :meth:`str.join`.
+
+   .. versionadded:: 3.7
+
+
+.. data:: ClassMethodDescriptorType
+
+   The type of *unbound* class methods of some built-in data types such as
+   ``dict.__dict__['fromkeys']``.
+
+   .. versionadded:: 3.7
+
+
 .. class:: ModuleType(name, doc=None)
 
    The type of :term:`modules <module>`. Constructor takes the name of the
    module to be created and optionally its :term:`docstring`.
+
+   .. note::
+      Use :func:`importlib.util.module_from_spec` to create a new module if you
+      wish to set the various import-controlled attributes.
 
    .. attribute:: __doc__
 
@@ -141,15 +215,22 @@ Standard names are defined for the following types:
          Defaults to ``None``. Previously the attribute was optional.
 
 
-.. data:: TracebackType
+.. class:: TracebackType(tb_next, tb_frame, tb_lasti, tb_lineno)
 
    The type of traceback objects such as found in ``sys.exc_info()[2]``.
+
+   See :ref:`the language reference <traceback-objects>` for details of the
+   available attributes and operations, and guidance on creating tracebacks
+   dynamically.
 
 
 .. data:: FrameType
 
    The type of frame objects such as found in ``tb.tb_frame`` if ``tb`` is a
    traceback object.
+
+   See :ref:`the language reference <frame-objects>` for details of the
+   available attributes and operations.
 
 
 .. data:: GetSetDescriptorType
@@ -240,10 +321,12 @@ Additional Utility Classes and Functions
        class SimpleNamespace:
            def __init__(self, **kwargs):
                self.__dict__.update(kwargs)
+
            def __repr__(self):
                keys = sorted(self.__dict__)
                items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
                return "{}({})".format(type(self).__name__, ", ".join(items))
+
            def __eq__(self, other):
                return self.__dict__ == other.__dict__
 
@@ -267,3 +350,25 @@ Additional Utility Classes and Functions
    attributes on the class with the same name (see Enum for an example).
 
    .. versionadded:: 3.4
+
+
+Coroutine Utility Functions
+---------------------------
+
+.. function:: coroutine(gen_func)
+
+   This function transforms a :term:`generator` function into a
+   :term:`coroutine function` which returns a generator-based coroutine.
+   The generator-based coroutine is still a :term:`generator iterator`,
+   but is also considered to be a :term:`coroutine` object and is
+   :term:`awaitable`.  However, it may not necessarily implement
+   the :meth:`__await__` method.
+
+   If *gen_func* is a generator function, it will be modified in-place.
+
+   If *gen_func* is not a generator function, it will be wrapped. If it
+   returns an instance of :class:`collections.abc.Generator`, the instance
+   will be wrapped in an *awaitable* proxy object.  All other types
+   of objects will be returned as is.
+
+   .. versionadded:: 3.5

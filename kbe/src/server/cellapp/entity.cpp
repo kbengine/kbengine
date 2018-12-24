@@ -635,7 +635,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
@@ -3226,7 +3226,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	char* pEntityType = NULL;
+	const char* pEntityType = NULL;
 	Position3D originpos;
 
 	// 将坐标信息提取出来
@@ -4388,12 +4388,12 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 				continue;
 			}
 
-			char* ccattr = PyUnicode_AsUTF8AndSize(pyObj, NULL);
+			const char* ccattr = PyUnicode_AsUTF8AndSize(pyObj, NULL);
 
 			char *pClass;
 			char *pMethod;
 
-			pClass = strtok(ccattr, ".");
+			pClass = strtok(const_cast<char*>(ccattr), ".");
 			pMethod = strtok(NULL, ".");
 
 			ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(pClass);
@@ -4432,7 +4432,7 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 						}
 						else
 						{
-							char* ccattr1 = PyUnicode_AsUTF8AndSize(pyObj1, NULL);
+							const char* ccattr1 = PyUnicode_AsUTF8AndSize(pyObj1, NULL);
 							s << fmt::format("{}.{}", ccattr1, pMethod);
 							S_RELEASE(pyObj1);
 						}

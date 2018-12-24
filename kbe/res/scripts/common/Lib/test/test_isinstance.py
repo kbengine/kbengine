@@ -3,7 +3,6 @@
 # testing of error conditions uncovered when using extension types.
 
 import unittest
-from test import support
 import sys
 
 
@@ -178,15 +177,6 @@ class Super:
 
 class Child(Super):
     pass
-
-# new-style classes
-class NewSuper(object):
-    pass
-
-class NewChild(NewSuper):
-    pass
-
-
 
 class TestIsInstanceIsSubclass(unittest.TestCase):
     # Tests to ensure that isinstance and issubclass work on abstract
@@ -248,42 +238,27 @@ class TestIsInstanceIsSubclass(unittest.TestCase):
         self.assertEqual(False, issubclass(Child, ()))
         self.assertEqual(True, issubclass(Super, (Child, (Super,))))
 
-        self.assertEqual(True, issubclass(NewChild, (NewChild,)))
-        self.assertEqual(True, issubclass(NewChild, (NewSuper,)))
-        self.assertEqual(False, issubclass(NewSuper, (NewChild,)))
-        self.assertEqual(True, issubclass(NewSuper, (NewChild, NewSuper)))
-        self.assertEqual(False, issubclass(NewChild, ()))
-        self.assertEqual(True, issubclass(NewSuper, (NewChild, (NewSuper,))))
-
         self.assertEqual(True, issubclass(int, (int, (float, int))))
-        self.assertEqual(True, issubclass(str, (str, (Child, NewChild, str))))
+        self.assertEqual(True, issubclass(str, (str, (Child, str))))
 
     def test_subclass_recursion_limit(self):
-        # make sure that issubclass raises RuntimeError before the C stack is
+        # make sure that issubclass raises RecursionError before the C stack is
         # blown
-        self.assertRaises(RuntimeError, blowstack, issubclass, str, str)
+        self.assertRaises(RecursionError, blowstack, issubclass, str, str)
 
     def test_isinstance_recursion_limit(self):
-        # make sure that issubclass raises RuntimeError before the C stack is
+        # make sure that issubclass raises RecursionError before the C stack is
         # blown
-        self.assertRaises(RuntimeError, blowstack, isinstance, '', str)
+        self.assertRaises(RecursionError, blowstack, isinstance, '', str)
 
 def blowstack(fxn, arg, compare_to):
     # Make sure that calling isinstance with a deeply nested tuple for its
-    # argument will raise RuntimeError eventually.
+    # argument will raise RecursionError eventually.
     tuple_arg = (compare_to,)
     for cnt in range(sys.getrecursionlimit()+5):
         tuple_arg = (tuple_arg,)
         fxn(arg, tuple_arg)
 
 
-def test_main():
-    support.run_unittest(
-        TestIsInstanceExceptions,
-        TestIsSubclassExceptions,
-        TestIsInstanceIsSubclass
-    )
-
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

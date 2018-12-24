@@ -9,7 +9,10 @@ Sequence Protocol
 .. c:function:: int PySequence_Check(PyObject *o)
 
    Return ``1`` if the object provides sequence protocol, and ``0`` otherwise.
-   This function always succeeds.
+   Note that it returns ``1`` for Python classes with a :meth:`__getitem__`
+   method unless they are :class:`dict` subclasses since in general case it
+   is impossible to determine what the type of keys it supports.  This
+   function always succeeds.
 
 
 .. c:function:: Py_ssize_t PySequence_Size(PyObject *o)
@@ -17,9 +20,8 @@ Sequence Protocol
 
    .. index:: builtin: len
 
-   Returns the number of objects in sequence *o* on success, and ``-1`` on failure.
-   For objects that do not provide sequence protocol, this is equivalent to the
-   Python expression ``len(o)``.
+   Returns the number of objects in sequence *o* on success, and ``-1`` on
+   failure.  This is equivalent to the Python expression ``len(o)``.
 
 
 .. c:function:: PyObject* PySequence_Concat(PyObject *o1, PyObject *o2)
@@ -62,9 +64,13 @@ Sequence Protocol
 
 .. c:function:: int PySequence_SetItem(PyObject *o, Py_ssize_t i, PyObject *v)
 
-   Assign object *v* to the *i*\ th element of *o*.  Returns ``-1`` on failure.  This
+   Assign object *v* to the *i*\ th element of *o*.  Raise an exception
+   and return ``-1`` on failure; return ``0`` on success.  This
    is the equivalent of the Python statement ``o[i] = v``.  This function *does
    not* steal a reference to *v*.
+
+   If *v* is *NULL*, the element is deleted, however this feature is
+   deprecated in favour of using :c:func:`PySequence_DelItem`.
 
 
 .. c:function:: int PySequence_DelItem(PyObject *o, Py_ssize_t i)
@@ -107,26 +113,36 @@ Sequence Protocol
 
 .. c:function:: PyObject* PySequence_List(PyObject *o)
 
-   Return a list object with the same contents as the arbitrary sequence *o*.  The
-   returned list is guaranteed to be new.
+   Return a list object with the same contents as the sequence or iterable *o*,
+   or *NULL* on failure.  The returned list is guaranteed to be new.  This is
+   equivalent to the Python expression ``list(o)``.
 
 
 .. c:function:: PyObject* PySequence_Tuple(PyObject *o)
 
    .. index:: builtin: tuple
 
-   Return a tuple object with the same contents as the arbitrary sequence *o* or
-   *NULL* on failure.  If *o* is a tuple, a new reference will be returned,
+   Return a tuple object with the same contents as the sequence or iterable *o*,
+   or *NULL* on failure.  If *o* is a tuple, a new reference will be returned,
    otherwise a tuple will be constructed with the appropriate contents.  This is
    equivalent to the Python expression ``tuple(o)``.
 
 
 .. c:function:: PyObject* PySequence_Fast(PyObject *o, const char *m)
 
-   Return the sequence *o* as a list, unless it is already a tuple or list, in
+   Return the sequence or iterable *o* as a list, unless it is already a tuple or list, in
    which case *o* is returned.  Use :c:func:`PySequence_Fast_GET_ITEM` to access
    the members of the result.  Returns *NULL* on failure.  If the object is not
-   a sequence, raises :exc:`TypeError` with *m* as the message text.
+   a sequence or iterable, raises :exc:`TypeError` with *m* as the message text.
+
+
+.. c:function:: Py_ssize_t PySequence_Fast_GET_SIZE(PyObject *o)
+
+   Returns the length of *o*, assuming that *o* was returned by
+   :c:func:`PySequence_Fast` and that *o* is not *NULL*.  The size can also be
+   gotten by calling :c:func:`PySequence_Size` on *o*, but
+   :c:func:`PySequence_Fast_GET_SIZE` is faster because it can assume *o* is a list
+   or tuple.
 
 
 .. c:function:: PyObject* PySequence_Fast_GET_ITEM(PyObject *o, Py_ssize_t i)
@@ -151,12 +167,3 @@ Sequence Protocol
    :c:func:`PySequence_GetItem` but without checking that
    :c:func:`PySequence_Check` on *o* is true and without adjustment for negative
    indices.
-
-
-.. c:function:: Py_ssize_t PySequence_Fast_GET_SIZE(PyObject *o)
-
-   Returns the length of *o*, assuming that *o* was returned by
-   :c:func:`PySequence_Fast` and that *o* is not *NULL*.  The size can also be
-   gotten by calling :c:func:`PySequence_Size` on *o*, but
-   :c:func:`PySequence_Fast_GET_SIZE` is faster because it can assume *o* is a list
-   or tuple.

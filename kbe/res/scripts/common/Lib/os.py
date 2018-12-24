@@ -1,12 +1,12 @@
 r"""OS routines for NT or Posix depending on what system we're on.
 
 This exports:
-  - all functions from posix, nt or ce, e.g. unlink, stat, etc.
+  - all functions from posix or nt, e.g. unlink, stat, etc.
   - os.path is either posixpath or ntpath
-  - os.name is either 'posix', 'nt' or 'ce'.
-  - os.curdir is a string representing the current directory ('.' or ':')
-  - os.pardir is a string representing the parent directory ('..' or '::')
-  - os.sep is the (or a most common) pathname separator ('/' or ':' or '\\')
+  - os.name is either 'posix' or 'nt'
+  - os.curdir is a string representing the current directory (always '.')
+  - os.pardir is a string representing the parent directory (always '..')
+  - os.sep is the (or a most common) pathname separator ('/' or '\\')
   - os.extsep is the extension separator (always '.')
   - os.altsep is the alternate pathname separator (None or '/')
   - os.pathsep is the component separator used in $PATH etc
@@ -22,8 +22,8 @@ and opendir), and leave all pathname manipulation to os.path
 """
 
 #'
-
-import sys, errno
+import abc
+import sys
 import stat as st
 
 _names = sys.builtin_module_names
@@ -61,6 +61,10 @@ if 'posix' in _names:
     except ImportError:
         pass
 
+    import posix
+    __all__.extend(_get_exports_list(posix))
+    del posix
+
 elif 'nt' in _names:
     name = 'nt'
     linesep = '\r\n'
@@ -78,27 +82,6 @@ elif 'nt' in _names:
 
     try:
         from nt import _have_functions
-    except ImportError:
-        pass
-
-elif 'ce' in _names:
-    name = 'ce'
-    linesep = '\r\n'
-    from ce import *
-    try:
-        from ce import _exit
-        __all__.append('_exit')
-    except ImportError:
-        pass
-    # We can use the standard Windows path.
-    import ntpath as path
-
-    import ce
-    __all__.extend(_get_exports_list(ce))
-    del ce
-
-    try:
-        from ce import _have_functions
     except ImportError:
         pass
 
@@ -146,6 +129,7 @@ if _exists("_have_functions"):
     _add("HAVE_FCHMOD",     "chmod")
     _add("HAVE_FCHOWN",     "chown")
     _add("HAVE_FDOPENDIR",  "listdir")
+    _add("HAVE_FDOPENDIR",  "scandir")
     _add("HAVE_FEXECVE",    "execve")
     _set.add(stat) # fstat always works
     _add("HAVE_FTRUNCATE",  "truncate")
@@ -224,9 +208,9 @@ def makedirs(name, mode=0o777, exist_ok=False):
         head, tail = path.split(head)
     if head and tail and not path.exists(head):
         try:
-            makedirs(head, mode, exist_ok)
+            makedirs(head, exist_ok=exist_ok)
         except FileExistsError:
-            # be happy if someone already created the path
+            # Defeats race condition when another thread created the path
             pass
         cdir = curdir
         if isinstance(tail, bytes):
@@ -235,8 +219,10 @@ def makedirs(name, mode=0o777, exist_ok=False):
             return
     try:
         mkdir(name, mode)
-    except OSError as e:
-        if not exist_ok or e.errno != errno.EEXIST or not path.isdir(name):
+    except OSError:
+        # Cannot rely on checking for EEXIST, since the operating system
+        # could give priority to other errors like EACCES or EROFS
+        if not exist_ok or not path.isdir(name):
             raise
 
 def removedirs(name):
@@ -268,7 +254,7 @@ def renames(old, new):
     empty.  Works like rename, except creation of any intermediate
     directories needed to make the new pathname good is attempted
     first.  After the rename, directories corresponding to rightmost
-    path segments of the old name will be pruned way until either the
+    path segments of the old name will be pruned until either the
     whole path is consumed or a nonempty directory is found.
 
     Note: this function can fail with the new directory structure made
@@ -319,7 +305,7 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
     the value of topdown, the list of subdirectories is retrieved before the
     tuples for the directory and its subdirectories are generated.
 
-    By default errors from the os.listdir() call are ignored.  If
+    By default errors from the os.scandir() call are ignored.  If
     optional arg 'onerror' is specified, it should be a function; it
     will be called with one argument, an OSError instance.  It can
     report the error to continue with the walk, or raise the exception
@@ -347,8 +333,10 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
             dirs.remove('CVS')  # don't visit CVS directories
 
     """
-
-    islink, join, isdir = path.islink, path.join, path.isdir
+    top = fspath(top)
+    dirs = []
+    nondirs = []
+    walk_dirs = []
 
     # We may not have read permission for top, in which case we can't
     # get a list of the files the directory contains.  os.walk
@@ -356,33 +344,80 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
     # minor reason when (say) a thousand readable directories are still
     # left to visit.  That logic is copied here.
     try:
-        # Note that listdir is global in this module due
+        # Note that scandir is global in this module due
         # to earlier import-*.
-        names = listdir(top)
-    except OSError as err:
+        scandir_it = scandir(top)
+    except OSError as error:
         if onerror is not None:
-            onerror(err)
+            onerror(error)
         return
 
-    dirs, nondirs = [], []
-    for name in names:
-        if isdir(join(top, name)):
-            dirs.append(name)
-        else:
-            nondirs.append(name)
+    with scandir_it:
+        while True:
+            try:
+                try:
+                    entry = next(scandir_it)
+                except StopIteration:
+                    break
+            except OSError as error:
+                if onerror is not None:
+                    onerror(error)
+                return
 
+            try:
+                is_dir = entry.is_dir()
+            except OSError:
+                # If is_dir() raises an OSError, consider that the entry is not
+                # a directory, same behaviour than os.path.isdir().
+                is_dir = False
+
+            if is_dir:
+                dirs.append(entry.name)
+            else:
+                nondirs.append(entry.name)
+
+            if not topdown and is_dir:
+                # Bottom-up: recurse into sub-directory, but exclude symlinks to
+                # directories if followlinks is False
+                if followlinks:
+                    walk_into = True
+                else:
+                    try:
+                        is_symlink = entry.is_symlink()
+                    except OSError:
+                        # If is_symlink() raises an OSError, consider that the
+                        # entry is not a symbolic link, same behaviour than
+                        # os.path.islink().
+                        is_symlink = False
+                    walk_into = not is_symlink
+
+                if walk_into:
+                    walk_dirs.append(entry.path)
+
+    # Yield before recursion if going top down
     if topdown:
         yield top, dirs, nondirs
-    for name in dirs:
-        new_path = join(top, name)
-        if followlinks or not islink(new_path):
+
+        # Recurse into sub-directories
+        islink, join = path.islink, path.join
+        for dirname in dirs:
+            new_path = join(top, dirname)
+            # Issue #23605: os.path.islink() is used instead of caching
+            # entry.is_symlink() result during the loop on os.scandir() because
+            # the caller can replace the directory entry during the "yield"
+            # above.
+            if followlinks or not islink(new_path):
+                yield from walk(new_path, topdown, onerror, followlinks)
+    else:
+        # Recurse into sub-directories
+        for new_path in walk_dirs:
             yield from walk(new_path, topdown, onerror, followlinks)
-    if not topdown:
+        # Yield after recursion if going bottom up
         yield top, dirs, nondirs
 
 __all__.append("walk")
 
-if {open, stat} <= supports_dir_fd and {listdir, stat} <= supports_fd:
+if {open, stat} <= supports_dir_fd and {scandir, stat} <= supports_fd:
 
     def fwalk(top=".", topdown=True, onerror=None, *, follow_symlinks=False, dir_fd=None):
         """Directory tree generator.
@@ -417,58 +452,71 @@ if {open, stat} <= supports_dir_fd and {listdir, stat} <= supports_fd:
             if 'CVS' in dirs:
                 dirs.remove('CVS')  # don't visit CVS directories
         """
+        if not isinstance(top, int) or not hasattr(top, '__index__'):
+            top = fspath(top)
         # Note: To guard against symlink races, we use the standard
         # lstat()/open()/fstat() trick.
-        orig_st = stat(top, follow_symlinks=False, dir_fd=dir_fd)
+        if not follow_symlinks:
+            orig_st = stat(top, follow_symlinks=False, dir_fd=dir_fd)
         topfd = open(top, O_RDONLY, dir_fd=dir_fd)
         try:
             if (follow_symlinks or (st.S_ISDIR(orig_st.st_mode) and
                                     path.samestat(orig_st, stat(topfd)))):
-                yield from _fwalk(topfd, top, topdown, onerror, follow_symlinks)
+                yield from _fwalk(topfd, top, isinstance(top, bytes),
+                                  topdown, onerror, follow_symlinks)
         finally:
             close(topfd)
 
-    def _fwalk(topfd, toppath, topdown, onerror, follow_symlinks):
+    def _fwalk(topfd, toppath, isbytes, topdown, onerror, follow_symlinks):
         # Note: This uses O(depth of the directory tree) file descriptors: if
         # necessary, it can be adapted to only require O(1) FDs, see issue
         # #13734.
 
-        names = listdir(topfd)
-        dirs, nondirs = [], []
-        for name in names:
+        scandir_it = scandir(topfd)
+        dirs = []
+        nondirs = []
+        entries = None if topdown or follow_symlinks else []
+        for entry in scandir_it:
+            name = entry.name
+            if isbytes:
+                name = fsencode(name)
             try:
-                # Here, we don't use AT_SYMLINK_NOFOLLOW to be consistent with
-                # walk() which reports symlinks to directories as directories.
-                # We do however check for symlinks before recursing into
-                # a subdirectory.
-                if st.S_ISDIR(stat(name, dir_fd=topfd).st_mode):
+                if entry.is_dir():
                     dirs.append(name)
+                    if entries is not None:
+                        entries.append(entry)
                 else:
                     nondirs.append(name)
-            except FileNotFoundError:
+            except OSError:
                 try:
                     # Add dangling symlinks, ignore disappeared files
-                    if st.S_ISLNK(stat(name, dir_fd=topfd, follow_symlinks=False)
-                                .st_mode):
+                    if entry.is_symlink():
                         nondirs.append(name)
-                except FileNotFoundError:
-                    continue
+                except OSError:
+                    pass
 
         if topdown:
             yield toppath, dirs, nondirs, topfd
 
-        for name in dirs:
+        for name in dirs if entries is None else zip(dirs, entries):
             try:
-                orig_st = stat(name, dir_fd=topfd, follow_symlinks=follow_symlinks)
+                if not follow_symlinks:
+                    if topdown:
+                        orig_st = stat(name, dir_fd=topfd, follow_symlinks=False)
+                    else:
+                        assert entries is not None
+                        name, entry = name
+                        orig_st = entry.stat(follow_symlinks=False)
                 dirfd = open(name, O_RDONLY, dir_fd=topfd)
             except OSError as err:
                 if onerror is not None:
                     onerror(err)
-                return
+                continue
             try:
                 if follow_symlinks or path.samestat(orig_st, stat(dirfd)):
                     dirpath = path.join(toppath, name)
-                    yield from _fwalk(dirfd, dirpath, topdown, onerror, follow_symlinks)
+                    yield from _fwalk(dirfd, dirpath, isbytes,
+                                      topdown, onerror, follow_symlinks)
             finally:
                 close(dirfd)
 
@@ -542,12 +590,10 @@ def _execvpe(file, args, env=None):
         argrest = (args,)
         env = environ
 
-    head, tail = path.split(file)
-    if head:
+    if path.dirname(file):
         exec_func(file, *argrest)
         return
-    last_exc = saved_exc = None
-    saved_tb = None
+    saved_exc = None
     path_list = get_exec_path(env)
     if name != 'nt':
         file = fsencode(file)
@@ -556,16 +602,15 @@ def _execvpe(file, args, env=None):
         fullname = path.join(dir, file)
         try:
             exec_func(fullname, *argrest)
+        except (FileNotFoundError, NotADirectoryError) as e:
+            last_exc = e
         except OSError as e:
             last_exc = e
-            tb = sys.exc_info()[2]
-            if (e.errno != errno.ENOENT and e.errno != errno.ENOTDIR
-                and saved_exc is None):
+            if saved_exc is None:
                 saved_exc = e
-                saved_tb = tb
-    if saved_exc:
-        raise saved_exc.with_traceback(saved_tb)
-    raise last_exc.with_traceback(tb)
+    if saved_exc is not None:
+        raise saved_exc
+    raise last_exc
 
 
 def get_exec_path(env=None):
@@ -649,7 +694,9 @@ class _Environ(MutableMapping):
             raise KeyError(key) from None
 
     def __iter__(self):
-        for key in self._data:
+        # list() from dict object is an atomic operation
+        keys = list(self._data)
+        for key in keys:
             yield self.decodekey(key)
 
     def __len__(self):
@@ -751,36 +798,31 @@ if supports_bytes_environ:
 
 def _fscodec():
     encoding = sys.getfilesystemencoding()
-    if encoding == 'mbcs':
-        errors = 'strict'
-    else:
-        errors = 'surrogateescape'
+    errors = sys.getfilesystemencodeerrors()
 
     def fsencode(filename):
+        """Encode filename (an os.PathLike, bytes, or str) to the filesystem
+        encoding with 'surrogateescape' error handler, return bytes unchanged.
+        On Windows, use 'strict' error handler if the file system encoding is
+        'mbcs' (which is the default encoding).
         """
-        Encode filename to the filesystem encoding with 'surrogateescape' error
-        handler, return bytes unchanged. On Windows, use 'strict' error handler if
-        the file system encoding is 'mbcs' (which is the default encoding).
-        """
-        if isinstance(filename, bytes):
-            return filename
-        elif isinstance(filename, str):
+        filename = fspath(filename)  # Does type-checking of `filename`.
+        if isinstance(filename, str):
             return filename.encode(encoding, errors)
         else:
-            raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+            return filename
 
     def fsdecode(filename):
+        """Decode filename (an os.PathLike, bytes, or str) from the filesystem
+        encoding with 'surrogateescape' error handler, return str unchanged. On
+        Windows, use 'strict' error handler if the file system encoding is
+        'mbcs' (which is the default encoding).
         """
-        Decode filename from the filesystem encoding with 'surrogateescape' error
-        handler, return str unchanged. On Windows, use 'strict' error handler if
-        the file system encoding is 'mbcs' (which is the default encoding).
-        """
-        if isinstance(filename, str):
-            return filename
-        elif isinstance(filename, bytes):
+        filename = fspath(filename)  # Does type-checking of `filename`.
+        if isinstance(filename, bytes):
             return filename.decode(encoding, errors)
         else:
-            raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+            return filename
 
     return fsencode, fsdecode
 
@@ -801,6 +843,10 @@ if _exists("fork") and not _exists("spawnv") and _exists("execv"):
 
     def _spawnvef(mode, file, args, env, func):
         # Internal helper; func is the exec*() function to use
+        if not isinstance(args, (tuple, list)):
+            raise TypeError('argv must be a tuple or a list')
+        if not args or not args[0]:
+            raise ValueError('argv first element cannot be empty')
         pid = fork()
         if not pid:
             # Child
@@ -845,7 +891,7 @@ If mode == P_WAIT return the process's exit code if it exits normally;
 otherwise return -SIG, where SIG is the signal that killed it. """
         return _spawnvef(mode, file, args, env, execve)
 
-    # Note: spawnvp[e] is't currently supported on Windows
+    # Note: spawnvp[e] isn't currently supported on Windows
 
     def spawnvp(mode, file, args):
         """spawnvp(mode, file, args) -> integer
@@ -978,3 +1024,55 @@ def fdopen(fd, *args, **kwargs):
         raise TypeError("invalid fd type (%s, expected integer)" % type(fd))
     import io
     return io.open(fd, *args, **kwargs)
+
+
+# For testing purposes, make sure the function is available when the C
+# implementation exists.
+def _fspath(path):
+    """Return the path representation of a path-like object.
+
+    If str or bytes is passed in, it is returned unchanged. Otherwise the
+    os.PathLike interface is used to get the path representation. If the
+    path representation is not str or bytes, TypeError is raised. If the
+    provided path is not str, bytes, or os.PathLike, TypeError is raised.
+    """
+    if isinstance(path, (str, bytes)):
+        return path
+
+    # Work from the object's type to match method resolution of other magic
+    # methods.
+    path_type = type(path)
+    try:
+        path_repr = path_type.__fspath__(path)
+    except AttributeError:
+        if hasattr(path_type, '__fspath__'):
+            raise
+        else:
+            raise TypeError("expected str, bytes or os.PathLike object, "
+                            "not " + path_type.__name__)
+    if isinstance(path_repr, (str, bytes)):
+        return path_repr
+    else:
+        raise TypeError("expected {}.__fspath__() to return str or bytes, "
+                        "not {}".format(path_type.__name__,
+                                        type(path_repr).__name__))
+
+# If there is no C implementation, make the pure Python version the
+# implementation as transparently as possible.
+if not _exists('fspath'):
+    fspath = _fspath
+    fspath.__name__ = "fspath"
+
+
+class PathLike(abc.ABC):
+
+    """Abstract base class for implementing the file system path protocol."""
+
+    @abc.abstractmethod
+    def __fspath__(self):
+        """Return the file system path representation of the object."""
+        raise NotImplementedError
+
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        return hasattr(subclass, '__fspath__')

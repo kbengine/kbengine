@@ -1,25 +1,23 @@
 """Find modules used by a script, using introspection."""
 
 import dis
-import importlib._bootstrap
+import importlib._bootstrap_external
 import importlib.machinery
 import marshal
 import os
 import sys
 import types
-import struct
 import warnings
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', PendingDeprecationWarning)
+    warnings.simplefilter('ignore', DeprecationWarning)
     import imp
 
-# XXX Clean up once str8's cstor matches bytes.
-LOAD_CONST = bytes([dis.opname.index('LOAD_CONST')])
-IMPORT_NAME = bytes([dis.opname.index('IMPORT_NAME')])
-STORE_NAME = bytes([dis.opname.index('STORE_NAME')])
-STORE_GLOBAL = bytes([dis.opname.index('STORE_GLOBAL')])
-STORE_OPS = [STORE_NAME, STORE_GLOBAL]
-HAVE_ARGUMENT = bytes([dis.HAVE_ARGUMENT])
+LOAD_CONST = dis.opmap['LOAD_CONST']
+IMPORT_NAME = dis.opmap['IMPORT_NAME']
+STORE_NAME = dis.opmap['STORE_NAME']
+STORE_GLOBAL = dis.opmap['STORE_GLOBAL']
+STORE_OPS = STORE_NAME, STORE_GLOBAL
+EXTENDED_ARG = dis.EXTENDED_ARG
 
 # Modulefinder does a good job at simulating Python's, but it can not
 # handle __path__ modifications packages make at runtime.  Therefore there
@@ -223,7 +221,7 @@ class ModuleFinder:
         if not m.__path__:
             return
         modules = {}
-        # 'suffixes' used to be a list hardcoded to [".py", ".pyc", ".pyo"].
+        # 'suffixes' used to be a list hardcoded to [".py", ".pyc"].
         # But we must also collect Python extension modules - although
         # we cannot separate normal dlls from Python extensions.
         suffixes = []
@@ -289,11 +287,12 @@ class ModuleFinder:
             co = compile(fp.read()+'\n', pathname, 'exec')
         elif type == imp.PY_COMPILED:
             try:
-                marshal_data = importlib._bootstrap._validate_bytecode_header(fp.read())
+                data = fp.read()
+                importlib._bootstrap_external._classify_pyc(data, fqname, {})
             except ImportError as exc:
                 self.msgout(2, "raise ImportError: " + str(exc), pathname)
                 raise
-            co = marshal.loads(marshal_data)
+            co = marshal.loads(memoryview(data)[16:])
         else:
             co = None
         m = self.add_module(fqname)
@@ -337,38 +336,30 @@ class ModuleFinder:
                         fullname = name + "." + sub
                         self._add_badmodule(fullname, caller)
 
-    def scan_opcodes_25(self, co,
-                     unpack = struct.unpack):
+    def scan_opcodes(self, co):
         # Scan the code, and yield 'interesting' opcode combinations
-        # Python 2.5 version (has absolute and relative imports)
         code = co.co_code
         names = co.co_names
         consts = co.co_consts
-        LOAD_LOAD_AND_IMPORT = LOAD_CONST + LOAD_CONST + IMPORT_NAME
-        while code:
-            c = bytes([code[0]])
-            if c in STORE_OPS:
-                oparg, = unpack('<H', code[1:3])
+        opargs = [(op, arg) for _, op, arg in dis._unpack_opargs(code)
+                  if op != EXTENDED_ARG]
+        for i, (op, oparg) in enumerate(opargs):
+            if op in STORE_OPS:
                 yield "store", (names[oparg],)
-                code = code[3:]
                 continue
-            if code[:9:3] == LOAD_LOAD_AND_IMPORT:
-                oparg_1, oparg_2, oparg_3 = unpack('<xHxHxH', code[:9])
-                level = consts[oparg_1]
+            if (op == IMPORT_NAME and i >= 2
+                    and opargs[i-1][0] == opargs[i-2][0] == LOAD_CONST):
+                level = consts[opargs[i-2][1]]
+                fromlist = consts[opargs[i-1][1]]
                 if level == 0: # absolute import
-                    yield "absolute_import", (consts[oparg_2], names[oparg_3])
+                    yield "absolute_import", (fromlist, names[oparg])
                 else: # relative import
-                    yield "relative_import", (level, consts[oparg_2], names[oparg_3])
-                code = code[9:]
+                    yield "relative_import", (level, fromlist, names[oparg])
                 continue
-            if c >= HAVE_ARGUMENT:
-                code = code[3:]
-            else:
-                code = code[1:]
 
     def scan_code(self, co, m):
         code = co.co_code
-        scanner = self.scan_opcodes_25
+        scanner = self.scan_opcodes
         for what, args in scanner(co):
             if what == "store":
                 name, = args

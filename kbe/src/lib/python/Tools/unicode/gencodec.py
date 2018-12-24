@@ -34,14 +34,14 @@ MAX_TABLE_SIZE = 8192
 # Standard undefined Unicode code point
 UNI_UNDEFINED = chr(0xFFFE)
 
-# Placeholder for a missing codepoint
+# Placeholder for a missing code point
 MISSING_CODE = -1
 
-mapRE = re.compile('((?:0x[0-9a-fA-F]+\+?)+)'
-                   '\s+'
-                   '((?:(?:0x[0-9a-fA-Z]+|<[A-Za-z]+>)\+?)*)'
-                   '\s*'
-                   '(#.+)?')
+mapRE = re.compile(r'((?:0x[0-9a-fA-F]+\+?)+)'
+                   r'\s+'
+                   r'((?:(?:0x[0-9a-fA-Z]+|<[A-Za-z]+>)\+?)*)'
+                   r'\s*'
+                   r'(#.+)?')
 
 def parsecodes(codes, len=len, range=range):
 
@@ -127,7 +127,7 @@ def hexrepr(t, precision=4):
         return 'None'
     try:
         len(t)
-    except:
+    except TypeError:
         return '0x%0*X' % (precision, t)
     try:
         return '(' + ', '.join(['0x%0*X' % (precision, item)

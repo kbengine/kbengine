@@ -305,7 +305,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			if (PyUnicode_Check(pyResult))
 			{
 				Py_ssize_t size = 0;
-				char* data = PyUnicode_AsUTF8AndSize(pyResult, &size);
+				const char* data = PyUnicode_AsUTF8AndSize(pyResult, &size);
 
 				if (size > 0)
 				{

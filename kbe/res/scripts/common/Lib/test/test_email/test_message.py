@@ -723,24 +723,24 @@ class TestEmailMessageBase:
     def test_is_attachment(self):
         m = self._make_message()
         self.assertFalse(m.is_attachment())
-        with self.assertWarns(DeprecationWarning):
-            self.assertFalse(m.is_attachment)
         m['Content-Disposition'] = 'inline'
         self.assertFalse(m.is_attachment())
-        with self.assertWarns(DeprecationWarning):
-            self.assertFalse(m.is_attachment)
         m.replace_header('Content-Disposition', 'attachment')
         self.assertTrue(m.is_attachment())
-        with self.assertWarns(DeprecationWarning):
-            self.assertTrue(m.is_attachment)
         m.replace_header('Content-Disposition', 'AtTachMent')
         self.assertTrue(m.is_attachment())
-        with self.assertWarns(DeprecationWarning):
-            self.assertTrue(m.is_attachment)
         m.set_param('filename', 'abc.png', 'Content-Disposition')
         self.assertTrue(m.is_attachment())
-        with self.assertWarns(DeprecationWarning):
-            self.assertTrue(m.is_attachment)
+
+    def test_iter_attachments_mutation(self):
+        # We had a bug where iter_attachments was mutating the list.
+        m = self._make_message()
+        m.set_content('arbitrary text as main part')
+        m.add_related('more text as a related part')
+        m.add_related('yet more text as a second "attachment"')
+        orig = m.get_payload().copy()
+        self.assertEqual(len(list(m.iter_attachments())), 2)
+        self.assertEqual(m.get_payload(), orig)
 
 
 class TestEmailMessage(TestEmailMessageBase, TestEmailBase):
@@ -763,6 +763,26 @@ class TestEmailMessage(TestEmailMessageBase, TestEmailBase):
         self.assertNotIn('MIME-Version', m)
         m.set_content(content_manager=cm)
         self.assertEqual(m['MIME-Version'], '1.0')
+
+    def test_as_string_uses_max_header_length_by_default(self):
+        m = self._str_msg('Subject: long line' + ' ab'*50 + '\n\n')
+        self.assertEqual(len(m.as_string().strip().splitlines()), 3)
+
+    def test_as_string_allows_maxheaderlen(self):
+        m = self._str_msg('Subject: long line' + ' ab'*50 + '\n\n')
+        self.assertEqual(len(m.as_string(maxheaderlen=0).strip().splitlines()),
+                         1)
+        self.assertEqual(len(m.as_string(maxheaderlen=34).strip().splitlines()),
+                         6)
+
+    def test_str_defaults_to_policy_max_line_length(self):
+        m = self._str_msg('Subject: long line' + ' ab'*50 + '\n\n')
+        self.assertEqual(len(str(m).strip().splitlines()), 3)
+
+    def test_str_defaults_to_utf8(self):
+        m = EmailMessage()
+        m['Subject'] = 'unicöde'
+        self.assertEqual(str(m), 'Subject: unicöde\n\n')
 
 
 class TestMIMEPart(TestEmailMessageBase, TestEmailBase):

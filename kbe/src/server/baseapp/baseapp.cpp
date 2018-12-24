@@ -1070,7 +1070,7 @@ PyObject* Baseapp::__py_createEntityFromDBID(PyObject* self, PyObject* args)
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
@@ -1331,7 +1331,7 @@ void Baseapp::onCreateEntityFromDBIDCallback(Network::Channel* pChannel, KBEngin
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Baseapp::onCreateEntityFromDBID: can't found callback:{}.\n",
+				ERROR_MSG(fmt::format("Baseapp::onCreateEntityFromDBID: not found callback:{}.\n",
 					callbackID));
 			}
 
@@ -1398,7 +1398,7 @@ void Baseapp::onCreateEntityFromDBIDCallback(Network::Channel* pChannel, KBEngin
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onCreateEntityFromDBID: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onCreateEntityFromDBID: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -1409,7 +1409,7 @@ PyObject* Baseapp::__py_createEntityAnywhereFromDBID(PyObject* self, PyObject* a
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
@@ -1710,7 +1710,7 @@ void Baseapp::onCreateEntityAnywhereFromDBIDCallback(Network::Channel* pChannel,
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: can't found callback:{}.\n",
+				ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: not found callback:{}.\n",
 					callbackID));
 			}
 
@@ -1922,7 +1922,7 @@ PyObject* Baseapp::__py_createEntityRemotelyFromDBID(PyObject* self, PyObject* a
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL, *pyEntityCall = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
@@ -2193,7 +2193,7 @@ void Baseapp::onCreateEntityRemotelyFromDBIDCallback(Network::Channel* pChannel,
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Baseapp::createEntityRemotelyFromDBID: can't found callback:{}.\n",
+				ERROR_MSG(fmt::format("Baseapp::createEntityRemotelyFromDBID: not found callback:{}.\n",
 					callbackID));
 			}
 
@@ -2719,7 +2719,7 @@ void Baseapp::_onCreateEntityAnywhereCallback(Network::Channel* pChannel, CALLBA
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onCreateEntityAnywhereCallback: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onCreateEntityAnywhereCallback: not found callback:{}.\n",
 				callbackID));
 		}
 
@@ -2754,7 +2754,7 @@ void Baseapp::_onCreateEntityAnywhereCallback(Network::Channel* pChannel, CALLBA
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onCreateEntityAnywhereCallback: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onCreateEntityAnywhereCallback: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -2953,7 +2953,7 @@ void Baseapp::_onCreateEntityRemotelyCallback(Network::Channel* pChannel, CALLBA
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onCreateEntityRemotelyCallback: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onCreateEntityRemotelyCallback: not found callback:{}.\n",
 				callbackID));
 		}
 
@@ -2988,7 +2988,7 @@ void Baseapp::_onCreateEntityRemotelyCallback(Network::Channel* pChannel, CALLBA
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onCreateEntityRemotelyCallback: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onCreateEntityRemotelyCallback: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -3362,7 +3362,7 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -3534,7 +3534,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::onChargeCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::onChargeCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -5267,7 +5267,7 @@ void Baseapp::deleteEntityByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryS
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::deleteEntityByDBIDCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::deleteEntityByDBIDCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -5445,7 +5445,7 @@ void Baseapp::lookUpEntityByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryS
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Baseapp::lookUpEntityByDBIDCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Baseapp::lookUpEntityByDBIDCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}

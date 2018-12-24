@@ -25,7 +25,7 @@ Finally, Python is portable: it runs on many Unix variants, on the Mac, and on
 Windows 2000 and later.
 
 To find out more, start with :ref:`tutorial-index`.  The `Beginner's Guide to
-Python <http://wiki.python.org/moin/BeginnersGuide>`_ links to other
+Python <https://wiki.python.org/moin/BeginnersGuide>`_ links to other
 introductory tutorials and resources for learning Python.
 
 
@@ -36,11 +36,11 @@ The Python Software Foundation is an independent non-profit organization that
 holds the copyright on Python versions 2.1 and newer.  The PSF's mission is to
 advance open source technology related to the Python programming language and to
 publicize the use of Python.  The PSF's home page is at
-http://www.python.org/psf/.
+https://www.python.org/psf/.
 
 Donations to the PSF are tax-exempt in the US.  If you use Python and find it
 helpful, please contribute via `the PSF donation page
-<http://www.python.org/psf/donations/>`_.
+<https://www.python.org/psf/donations/>`_.
 
 
 Are there copyright restrictions on the use of Python?
@@ -53,12 +53,12 @@ commercial use, to sell copies of Python in source or binary form (modified or
 unmodified), or to sell products that incorporate Python in some form.  We would
 still like to know about all commercial use of Python, of course.
 
-See `the PSF license page <http://python.org/psf/license/>`_ to find further
+See `the PSF license page <https://www.python.org/psf/license/>`_ to find further
 explanations and a link to the full text of the license.
 
 The Python logo is trademarked, and in certain cases permission is required to
 use it.  Consult `the Trademark Usage Policy
-<http://www.python.org/psf/trademarks/>`__ for more information.
+<https://www.python.org/psf/trademarks/>`__ for more information.
 
 
 Why was Python created in the first place?
@@ -117,7 +117,7 @@ programming), software engineering (unit testing, logging, profiling, parsing
 Python code), and operating system interfaces (system calls, filesystems, TCP/IP
 sockets).  Look at the table of contents for :ref:`library-index` to get an idea
 of what's available.  A wide variety of third-party extensions are also
-available.  Consult `the Python Package Index <http://pypi.python.org/pypi>`_ to
+available.  Consult `the Python Package Index <https://pypi.org>`_ to
 find packages of interest to you.
 
 
@@ -146,21 +146,20 @@ labeled 2.0aN precede the versions labeled 2.0bN, which precede versions labeled
 2.0cN, and *those* precede 2.0.
 
 You may also find version numbers with a "+" suffix, e.g. "2.2+".  These are
-unreleased versions, built directly from the Subversion trunk.  In practice,
-after a final minor release is made, the Subversion trunk is incremented to the
-next minor version, which becomes the "a0" version,
-e.g. "2.4a0".
+unreleased versions, built directly from the CPython development repository.  In
+practice, after a final minor release is made, the version is incremented to the
+next minor version, which becomes the "a0" version, e.g. "2.4a0".
 
-See also the documentation for ``sys.version``, ``sys.hexversion``, and
-``sys.version_info``.
+See also the documentation for :data:`sys.version`, :data:`sys.hexversion`, and
+:data:`sys.version_info`.
 
 
 How do I obtain a copy of the Python source?
 --------------------------------------------
 
 The latest Python source distribution is always available from python.org, at
-http://www.python.org/download/.  The latest development sources can be obtained
-via anonymous Mercurial access at http://hg.python.org/cpython.
+https://www.python.org/downloads/.  The latest development sources can be obtained
+at https://github.com/python/cpython/.
 
 The source distribution is a gzipped tar file containing the complete C source,
 Sphinx-formatted documentation, Python library modules, example programs, and
@@ -168,7 +167,7 @@ several useful pieces of freely distributable software.  The source will compile
 and run out of the box on most UNIX platforms.
 
 Consult the `Getting Started section of the Python Developer's Guide
-<https://docs.python.org/devguide/setup.html>`__ for more
+<https://devguide.python.org/setup/>`__ for more
 information on getting the source code and compiling it.
 
 
@@ -178,8 +177,8 @@ How do I get documentation on Python?
 .. XXX mention py3k
 
 The standard documentation for the current stable version of Python is available
-at http://docs.python.org/.  PDF, plain text, and downloadable HTML versions are
-also available at http://docs.python.org/download.html.
+at https://docs.python.org/3/.  PDF, plain text, and downloadable HTML versions are
+also available at https://docs.python.org/3/download.html.
 
 The documentation is written in reStructuredText and processed by `the Sphinx
 documentation tool <http://sphinx-doc.org/>`__.  The reStructuredText source for
@@ -192,7 +191,7 @@ I've never programmed before. Is there a Python tutorial?
 There are numerous tutorials and books available.  The standard documentation
 includes :ref:`tutorial-index`.
 
-Consult `the Beginner's Guide <http://wiki.python.org/moin/BeginnersGuide>`_ to
+Consult `the Beginner's Guide <https://wiki.python.org/moin/BeginnersGuide>`_ to
 find information for beginning Python programmers, including lists of tutorials.
 
 
@@ -200,7 +199,7 @@ Is there a newsgroup or mailing list devoted to Python?
 -------------------------------------------------------
 
 There is a newsgroup, :newsgroup:`comp.lang.python`, and a mailing list,
-`python-list <http://mail.python.org/mailman/listinfo/python-list>`_.  The
+`python-list <https://mail.python.org/mailman/listinfo/python-list>`_.  The
 newsgroup and mailing list are gatewayed into each other -- if you can read news
 it's unnecessary to subscribe to the mailing list.
 :newsgroup:`comp.lang.python` is high-traffic, receiving hundreds of postings
@@ -209,38 +208,38 @@ every day, and Usenet readers are often more able to cope with this volume.
 Announcements of new software releases and events can be found in
 comp.lang.python.announce, a low-traffic moderated list that receives about five
 postings per day.  It's available as `the python-announce mailing list
-<http://mail.python.org/mailman/listinfo/python-announce-list>`_.
+<https://mail.python.org/mailman/listinfo/python-announce-list>`_.
 
 More info about other mailing lists and newsgroups
-can be found at http://www.python.org/community/lists/.
+can be found at https://www.python.org/community/lists/.
 
 
 How do I get a beta test version of Python?
 -------------------------------------------
 
-Alpha and beta releases are available from http://www.python.org/download/.  All
+Alpha and beta releases are available from https://www.python.org/downloads/.  All
 releases are announced on the comp.lang.python and comp.lang.python.announce
-newsgroups and on the Python home page at http://www.python.org/; an RSS feed of
+newsgroups and on the Python home page at https://www.python.org/; an RSS feed of
 news is available.
 
-You can also access the development version of Python through Subversion.  See
-http://docs.python.org/devguide/faq for details.
+You can also access the development version of Python through Git.  See
+`The Python Developer's Guide <https://devguide.python.org/>`_ for details.
 
 
 How do I submit bug reports and patches for Python?
 ---------------------------------------------------
 
 To report a bug or submit a patch, please use the Roundup installation at
-http://bugs.python.org/.
+https://bugs.python.org/.
 
 You must have a Roundup account to report bugs; this makes it possible for us to
 contact you if we have follow-up questions.  It will also enable Roundup to send
 you updates as we act on your bug. If you had previously used SourceForge to
 report bugs to Python, you can obtain your Roundup password through Roundup's
-`password reset procedure <http://bugs.python.org/user?@template=forgotten>`_.
+`password reset procedure <https://bugs.python.org/user?@template=forgotten>`_.
 
 For more information on how Python is developed, consult `the Python Developer's
-Guide <http://docs.python.org/devguide/>`_.
+Guide <https://devguide.python.org/>`_.
 
 
 Are there any published articles about Python that I can reference?
@@ -253,14 +252,14 @@ outdated.
 
     Guido van Rossum and Jelke de Boer, "Interactively Testing Remote Servers
     Using the Python Programming Language", CWI Quarterly, Volume 4, Issue 4
-    (December 1991), Amsterdam, pp 283-303.
+    (December 1991), Amsterdam, pp 283--303.
 
 
 Are there any books on Python?
 ------------------------------
 
 Yes, there are many, and more are being published.  See the python.org wiki at
-http://wiki.python.org/moin/PythonBooks for a list.
+https://wiki.python.org/moin/PythonBooks for a list.
 
 You can also search online bookstores for "Python" and filter out the Monty
 Python references; or perhaps search for "Python" and "language".
@@ -270,11 +269,12 @@ Where in the world is www.python.org located?
 ---------------------------------------------
 
 The Python project's infrastructure is located all over the world.
-`www.python.org <http://www.python.org>`_ is currently in Amsterdam, graciously
-hosted by `XS4ALL <http://www.xs4all.nl>`_.  `Upfront Systems
-<http://www.upfrontsystems.co.za>`_ hosts `bugs.python.org
-<http://bugs.python.org>`_.  Most other Python services like `PyPI
-<https://pypi.python.org>`_ and hg.python.org are hosted by `Oregon State
+`www.python.org <https://www.python.org>`_ is graciously hosted by `Rackspace
+<https://www.rackspace.com>`_, with CDN caching provided by `Fastly
+<https://www.fastly.com>`_.  `Upfront Systems
+<http://www.upfrontsoftware.co.za>`_ hosts `bugs.python.org
+<https://bugs.python.org>`_.  Many other Python services like `the Wiki
+<https://wiki.python.org>`_ are hosted by `Oregon State
 University Open Source Lab <https://osuosl.org>`_.
 
 
@@ -283,7 +283,7 @@ Why is it called Python?
 
 When he began implementing Python, Guido van Rossum was also reading the
 published scripts from `"Monty Python's Flying Circus"
-<http://pythonline.com/>`__, a BBC comedy series from the 1970s.  Van Rossum
+<https://en.wikipedia.org/wiki/Monty_Python>`__, a BBC comedy series from the 1970s.  Van Rossum
 thought he needed a name that was short, unique, and slightly mysterious, so he
 decided to call the language Python.
 
@@ -306,17 +306,19 @@ usually around 18 months between major releases.
 
 The developers issue "bugfix" releases of older versions, so the stability of
 existing releases gradually improves.  Bugfix releases, indicated by a third
-component of the version number (e.g. 2.5.3, 2.6.2), are managed for stability;
+component of the version number (e.g. 3.5.3, 3.6.2), are managed for stability;
 only fixes for known problems are included in a bugfix release, and it's
 guaranteed that interfaces will remain the same throughout a series of bugfix
 releases.
 
 The latest stable releases can always be found on the `Python download page
-<http://python.org/download/>`_.  There are two recommended production-ready
-versions at this point in time, because at the moment there are two branches of
-stable releases: 2.x and 3.x.  Python 3.x may be less useful than 2.x, since
-currently there is more third party software available for Python 2 than for
-Python 3.  Python 2 code will generally not run unchanged in Python 3.
+<https://www.python.org/downloads/>`_.  There are two production-ready version
+of Python: 2.x and 3.x, but the recommended one at this times is Python 3.x.
+Although Python 2.x is still widely used, `it will not be
+maintained after January 1, 2020 <https://www.python.org/dev/peps/pep-0373/>`_.
+Python 2.x was known for having more third-party libraries available, however,
+by the time of this writing, most of the widely used libraries support Python 3.x,
+and some are even dropping the Python 2.x support.
 
 
 How many people are using Python?
@@ -336,15 +338,15 @@ the group or even read it.
 Have any significant projects been done in Python?
 --------------------------------------------------
 
-See http://python.org/about/success for a list of projects that use Python.
+See https://www.python.org/about/success for a list of projects that use Python.
 Consulting the proceedings for `past Python conferences
-<http://python.org/community/workshops/>`_ will reveal contributions from many
+<https://www.python.org/community/workshops/>`_ will reveal contributions from many
 different companies and organizations.
 
 High-profile Python projects include `the Mailman mailing list manager
 <http://www.list.org>`_ and `the Zope application server
 <http://www.zope.org>`_.  Several Linux distributions, most notably `Red Hat
-<http://www.redhat.com>`_, have written part or all of their installer and
+<https://www.redhat.com>`_, have written part or all of their installer and
 system administration software in Python.  Companies that use Python internally
 include Google, Yahoo, and Lucasfilm Ltd.
 
@@ -352,14 +354,14 @@ include Google, Yahoo, and Lucasfilm Ltd.
 What new developments are expected for Python in the future?
 ------------------------------------------------------------
 
-See http://www.python.org/dev/peps/ for the Python Enhancement Proposals
+See https://www.python.org/dev/peps/ for the Python Enhancement Proposals
 (PEPs). PEPs are design documents describing a suggested new feature for Python,
 providing a concise technical specification and a rationale.  Look for a PEP
 titled "Python X.Y Release Schedule", where X.Y is a version that hasn't been
 publicly released yet.
 
 New development is discussed on `the python-dev mailing list
-<http://mail.python.org/mailman/listinfo/python-dev/>`_.
+<https://mail.python.org/mailman/listinfo/python-dev/>`_.
 
 
 Is it reasonable to propose incompatible changes to Python?
@@ -415,19 +417,30 @@ while they enter their program's source in another window.  If they can't
 remember the methods for a list, they can do something like this::
 
    >>> L = []
-   >>> dir(L)
-   ['append', 'count', 'extend', 'index', 'insert', 'pop', 'remove',
+   >>> dir(L) # doctest: +NORMALIZE_WHITESPACE
+   ['__add__', '__class__', '__contains__', '__delattr__', '__delitem__',
+   '__dir__', '__doc__', '__eq__', '__format__', '__ge__',
+   '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__',
+   '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__',
+   '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__',
+   '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__',
+   '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear',
+   'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove',
    'reverse', 'sort']
+   >>> [d for d in dir(L) if '__' not in d]
+   ['append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+
    >>> help(L.append)
    Help on built-in function append:
-
+   <BLANKLINE>
    append(...)
-       L.append(object) -- append object to end
+       L.append(object) -> None -- append object to end
+   <BLANKLINE>
    >>> L.append(1)
    >>> L
    [1]
 
-With the interpreter, documentation is never far from the student as he's
+With the interpreter, documentation is never far from the student as they are
 programming.
 
 There are also good IDEs for Python.  IDLE is a cross-platform IDE for Python
@@ -440,4 +453,4 @@ of Python editing environments.
 
 If you want to discuss Python's use in education, you may be interested in
 joining `the edu-sig mailing list
-<http://python.org/community/sigs/current/edu-sig>`_.
+<https://www.python.org/community/sigs/current/edu-sig>`_.

@@ -69,37 +69,37 @@ called with a non-bytes parameter.
    +===================+===============+================================+
    | :attr:`%%`        | *n/a*         | The literal % character.       |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%c`        | int           | A single character,            |
-   |                   |               | represented as an C int.       |
+   | :attr:`%c`        | int           | A single byte,                 |
+   |                   |               | represented as a C int.        |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%d`        | int           | Exactly equivalent to          |
-   |                   |               | ``printf("%d")``.              |
+   | :attr:`%d`        | int           | Equivalent to                  |
+   |                   |               | ``printf("%d")``. [1]_         |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%u`        | unsigned int  | Exactly equivalent to          |
-   |                   |               | ``printf("%u")``.              |
+   | :attr:`%u`        | unsigned int  | Equivalent to                  |
+   |                   |               | ``printf("%u")``. [1]_         |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%ld`       | long          | Exactly equivalent to          |
-   |                   |               | ``printf("%ld")``.             |
+   | :attr:`%ld`       | long          | Equivalent to                  |
+   |                   |               | ``printf("%ld")``. [1]_        |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%lu`       | unsigned long | Exactly equivalent to          |
-   |                   |               | ``printf("%lu")``.             |
+   | :attr:`%lu`       | unsigned long | Equivalent to                  |
+   |                   |               | ``printf("%lu")``. [1]_        |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%zd`       | Py_ssize_t    | Exactly equivalent to          |
-   |                   |               | ``printf("%zd")``.             |
+   | :attr:`%zd`       | Py_ssize_t    | Equivalent to                  |
+   |                   |               | ``printf("%zd")``. [1]_        |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%zu`       | size_t        | Exactly equivalent to          |
-   |                   |               | ``printf("%zu")``.             |
+   | :attr:`%zu`       | size_t        | Equivalent to                  |
+   |                   |               | ``printf("%zu")``. [1]_        |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%i`        | int           | Exactly equivalent to          |
-   |                   |               | ``printf("%i")``.              |
+   | :attr:`%i`        | int           | Equivalent to                  |
+   |                   |               | ``printf("%i")``. [1]_         |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%x`        | int           | Exactly equivalent to          |
-   |                   |               | ``printf("%x")``.              |
+   | :attr:`%x`        | int           | Equivalent to                  |
+   |                   |               | ``printf("%x")``. [1]_         |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%s`        | char\*        | A null-terminated C character  |
+   | :attr:`%s`        | const char\*  | A null-terminated C character  |
    |                   |               | array.                         |
    +-------------------+---------------+--------------------------------+
-   | :attr:`%p`        | void\*        | The hex representation of a C  |
+   | :attr:`%p`        | const void\*  | The hex representation of a C  |
    |                   |               | pointer. Mostly equivalent to  |
    |                   |               | ``printf("%p")`` except that   |
    |                   |               | it is guaranteed to start with |
@@ -109,7 +109,10 @@ called with a non-bytes parameter.
    +-------------------+---------------+--------------------------------+
 
    An unrecognized format character causes all the rest of the format string to be
-   copied as-is to the result string, and any extra arguments discarded.
+   copied as-is to the result object, and any extra arguments discarded.
+
+   .. [1] For integer specifiers (d, u, ld, lu, zd, zu, i, x): the 0-conversion
+      flag has effect even when a precision is given.
 
 
 .. c:function:: PyObject* PyBytes_FromFormatV(const char *format, va_list vargs)
@@ -136,11 +139,13 @@ called with a non-bytes parameter.
 
 .. c:function:: char* PyBytes_AsString(PyObject *o)
 
-   Return a NUL-terminated representation of the contents of *o*.  The pointer
-   refers to the internal buffer of *o*, not a copy.  The data must not be
-   modified in any way, unless the string was just created using
+   Return a pointer to the contents of *o*.  The pointer
+   refers to the internal buffer of *o*, which consists of ``len(o) + 1``
+   bytes.  The last byte in the buffer is always null, regardless of
+   whether there are any other null bytes.  The data must not be
+   modified in any way, unless the object was just created using
    ``PyBytes_FromStringAndSize(NULL, size)``. It must not be deallocated.  If
-   *o* is not a string object at all, :c:func:`PyBytes_AsString` returns *NULL*
+   *o* is not a bytes object at all, :c:func:`PyBytes_AsString` returns *NULL*
    and raises :exc:`TypeError`.
 
 
@@ -151,31 +156,37 @@ called with a non-bytes parameter.
 
 .. c:function:: int PyBytes_AsStringAndSize(PyObject *obj, char **buffer, Py_ssize_t *length)
 
-   Return a NUL-terminated representation of the contents of the object *obj*
+   Return the null-terminated contents of the object *obj*
    through the output variables *buffer* and *length*.
 
-   If *length* is *NULL*, the resulting buffer may not contain NUL characters;
-   if it does, the function returns ``-1`` and a :exc:`TypeError` is raised.
+   If *length* is *NULL*, the bytes object
+   may not contain embedded null bytes;
+   if it does, the function returns ``-1`` and a :exc:`ValueError` is raised.
 
-   The buffer refers to an internal string buffer of *obj*, not a copy. The data
-   must not be modified in any way, unless the string was just created using
+   The buffer refers to an internal buffer of *obj*, which includes an
+   additional null byte at the end (not counted in *length*).  The data
+   must not be modified in any way, unless the object was just created using
    ``PyBytes_FromStringAndSize(NULL, size)``.  It must not be deallocated.  If
-   *string* is not a string object at all, :c:func:`PyBytes_AsStringAndSize`
+   *obj* is not a bytes object at all, :c:func:`PyBytes_AsStringAndSize`
    returns ``-1`` and raises :exc:`TypeError`.
+
+   .. versionchanged:: 3.5
+      Previously, :exc:`TypeError` was raised when embedded null bytes were
+      encountered in the bytes object.
 
 
 .. c:function:: void PyBytes_Concat(PyObject **bytes, PyObject *newpart)
 
    Create a new bytes object in *\*bytes* containing the contents of *newpart*
    appended to *bytes*; the caller will own the new reference.  The reference to
-   the old value of *bytes* will be stolen.  If the new string cannot be
+   the old value of *bytes* will be stolen.  If the new object cannot be
    created, the old reference to *bytes* will still be discarded and the value
    of *\*bytes* will be set to *NULL*; the appropriate exception will be set.
 
 
 .. c:function:: void PyBytes_ConcatAndDel(PyObject **bytes, PyObject *newpart)
 
-   Create a new string object in *\*bytes* containing the contents of *newpart*
+   Create a new bytes object in *\*bytes* containing the contents of *newpart*
    appended to *bytes*.  This version decrements the reference count of
    *newpart*.
 
@@ -190,5 +201,5 @@ called with a non-bytes parameter.
    desired.  On success, *\*bytes* holds the resized bytes object and ``0`` is
    returned; the address in *\*bytes* may differ from its input value.  If the
    reallocation fails, the original bytes object at *\*bytes* is deallocated,
-   *\*bytes* is set to *NULL*, a memory exception is set, and ``-1`` is
+   *\*bytes* is set to *NULL*, :exc:`MemoryError` is set, and ``-1`` is
    returned.

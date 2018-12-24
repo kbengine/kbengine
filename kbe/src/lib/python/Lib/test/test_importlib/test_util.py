@@ -1,10 +1,13 @@
-from importlib import util
-from . import util as test_util
-frozen_init, source_init = test_util.import_importlib('importlib')
-frozen_machinery, source_machinery = test_util.import_importlib('importlib.machinery')
-frozen_util, source_util = test_util.import_importlib('importlib.util')
+from . import util
+abc = util.import_importlib('importlib.abc')
+init = util.import_importlib('importlib')
+machinery = util.import_importlib('importlib.machinery')
+importlib_util = util.import_importlib('importlib.util')
 
+import importlib.util
 import os
+import pathlib
+import string
 import sys
 from test import support
 import types
@@ -32,8 +35,88 @@ class DecodeSourceBytesTests:
         self.assertEqual(self.util.decode_source(source_bytes),
                          '\n'.join([self.source, self.source]))
 
-Frozen_DecodeSourceBytesTests, Source_DecodeSourceBytesTests = test_util.test_both(
-        DecodeSourceBytesTests, util=[frozen_util, source_util])
+
+(Frozen_DecodeSourceBytesTests,
+ Source_DecodeSourceBytesTests
+ ) = util.test_both(DecodeSourceBytesTests, util=importlib_util)
+
+
+class ModuleFromSpecTests:
+
+    def test_no_create_module(self):
+        class Loader:
+            def exec_module(self, module):
+                pass
+        spec = self.machinery.ModuleSpec('test', Loader())
+        with self.assertRaises(ImportError):
+            module = self.util.module_from_spec(spec)
+
+    def test_create_module_returns_None(self):
+        class Loader(self.abc.Loader):
+            def create_module(self, spec):
+                return None
+        spec = self.machinery.ModuleSpec('test', Loader())
+        module = self.util.module_from_spec(spec)
+        self.assertIsInstance(module, types.ModuleType)
+        self.assertEqual(module.__name__, spec.name)
+
+    def test_create_module(self):
+        name = 'already set'
+        class CustomModule(types.ModuleType):
+            pass
+        class Loader(self.abc.Loader):
+            def create_module(self, spec):
+                module = CustomModule(spec.name)
+                module.__name__ = name
+                return module
+        spec = self.machinery.ModuleSpec('test', Loader())
+        module = self.util.module_from_spec(spec)
+        self.assertIsInstance(module, CustomModule)
+        self.assertEqual(module.__name__, name)
+
+    def test___name__(self):
+        spec = self.machinery.ModuleSpec('test', object())
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__name__, spec.name)
+
+    def test___spec__(self):
+        spec = self.machinery.ModuleSpec('test', object())
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__spec__, spec)
+
+    def test___loader__(self):
+        loader = object()
+        spec = self.machinery.ModuleSpec('test', loader)
+        module = self.util.module_from_spec(spec)
+        self.assertIs(module.__loader__, loader)
+
+    def test___package__(self):
+        spec = self.machinery.ModuleSpec('test.pkg', object())
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__package__, spec.parent)
+
+    def test___path__(self):
+        spec = self.machinery.ModuleSpec('test', object(), is_package=True)
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__path__, spec.submodule_search_locations)
+
+    def test___file__(self):
+        spec = self.machinery.ModuleSpec('test', object(), origin='some/path')
+        spec.has_location = True
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__file__, spec.origin)
+
+    def test___cached__(self):
+        spec = self.machinery.ModuleSpec('test', object())
+        spec.cached = 'some/path'
+        spec.has_location = True
+        module = self.util.module_from_spec(spec)
+        self.assertEqual(module.__cached__, spec.cached)
+
+(Frozen_ModuleFromSpecTests,
+ Source_ModuleFromSpecTests
+) = util.test_both(ModuleFromSpecTests, abc=abc, machinery=machinery,
+                   util=importlib_util)
 
 
 class ModuleForLoaderTests:
@@ -70,7 +153,7 @@ class ModuleForLoaderTests:
         # Test that when no module exists in sys.modules a new module is
         # created.
         module_name = 'a.b.c'
-        with test_util.uncache(module_name):
+        with util.uncache(module_name):
             module = self.return_module(module_name)
             self.assertIn(module_name, sys.modules)
         self.assertIsInstance(module, types.ModuleType)
@@ -88,7 +171,7 @@ class ModuleForLoaderTests:
         module = types.ModuleType('a.b.c')
         module.__loader__ = 42
         module.__package__ = 42
-        with test_util.uncache(name):
+        with util.uncache(name):
             sys.modules[name] = module
             loader = FakeLoader()
             returned_module = loader.load_module(name)
@@ -100,7 +183,7 @@ class ModuleForLoaderTests:
         # Test that a module is removed from sys.modules if added but an
         # exception is raised.
         name = 'a.b.c'
-        with test_util.uncache(name):
+        with util.uncache(name):
             self.raise_exception(name)
             self.assertNotIn(name, sys.modules)
 
@@ -108,7 +191,7 @@ class ModuleForLoaderTests:
         # Test that a failure on reload leaves the module in-place.
         name = 'a.b.c'
         module = types.ModuleType(name)
-        with test_util.uncache(name):
+        with util.uncache(name):
             sys.modules[name] = module
             self.raise_exception(name)
             self.assertIs(module, sys.modules[name])
@@ -127,7 +210,7 @@ class ModuleForLoaderTests:
 
         name = 'mod'
         module = FalseModule(name)
-        with test_util.uncache(name):
+        with util.uncache(name):
             self.assertFalse(module)
             sys.modules[name] = module
             given = self.return_module(name)
@@ -146,7 +229,7 @@ class ModuleForLoaderTests:
                 return module
 
         name = 'pkg.mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             loader = FakeLoader(False)
             module = loader.load_module(name)
             self.assertEqual(module.__name__, name)
@@ -154,15 +237,17 @@ class ModuleForLoaderTests:
             self.assertEqual(module.__package__, 'pkg')
 
         name = 'pkg.sub'
-        with test_util.uncache(name):
+        with util.uncache(name):
             loader = FakeLoader(True)
             module = loader.load_module(name)
             self.assertEqual(module.__name__, name)
             self.assertIs(module.__loader__, loader)
             self.assertEqual(module.__package__, name)
 
-Frozen_ModuleForLoaderTests, Source_ModuleForLoaderTests = test_util.test_both(
-        ModuleForLoaderTests, util=[frozen_util, source_util])
+
+(Frozen_ModuleForLoaderTests,
+ Source_ModuleForLoaderTests
+ ) = util.test_both(ModuleForLoaderTests, util=importlib_util)
 
 
 class SetPackageTests:
@@ -222,18 +307,25 @@ class SetPackageTests:
         self.assertEqual(wrapped.__name__, fxn.__name__)
         self.assertEqual(wrapped.__qualname__, fxn.__qualname__)
 
-Frozen_SetPackageTests, Source_SetPackageTests = test_util.test_both(
-        SetPackageTests, util=[frozen_util, source_util])
+
+(Frozen_SetPackageTests,
+ Source_SetPackageTests
+ ) = util.test_both(SetPackageTests, util=importlib_util)
 
 
 class SetLoaderTests:
 
     """Tests importlib.util.set_loader()."""
 
-    class DummyLoader:
-        @util.set_loader
-        def load_module(self, module):
-            return self.module
+    @property
+    def DummyLoader(self):
+        # Set DummyLoader on the class lazily.
+        class DummyLoader:
+            @self.util.set_loader
+            def load_module(self, module):
+                return self.module
+        self.__class__.DummyLoader = DummyLoader
+        return DummyLoader
 
     def test_no_attribute(self):
         loader = self.DummyLoader()
@@ -262,17 +354,10 @@ class SetLoaderTests:
             warnings.simplefilter('ignore', DeprecationWarning)
             self.assertEqual(42, loader.load_module('blah').__loader__)
 
-class Frozen_SetLoaderTests(SetLoaderTests, unittest.TestCase):
-    class DummyLoader:
-        @frozen_util.set_loader
-        def load_module(self, module):
-            return self.module
 
-class Source_SetLoaderTests(SetLoaderTests, unittest.TestCase):
-    class DummyLoader:
-        @source_util.set_loader
-        def load_module(self, module):
-            return self.module
+(Frozen_SetLoaderTests,
+ Source_SetLoaderTests
+ ) = util.test_both(SetLoaderTests, util=importlib_util)
 
 
 class ResolveNameTests:
@@ -283,7 +368,7 @@ class ResolveNameTests:
         # bacon
         self.assertEqual('bacon', self.util.resolve_name('bacon', None))
 
-    def test_aboslute_within_package(self):
+    def test_absolute_within_package(self):
         # bacon in spam
         self.assertEqual('bacon', self.util.resolve_name('bacon', 'spam'))
 
@@ -307,9 +392,10 @@ class ResolveNameTests:
         with self.assertRaises(ValueError):
             self.util.resolve_name('..bacon', 'spam')
 
-Frozen_ResolveNameTests, Source_ResolveNameTests = test_util.test_both(
-        ResolveNameTests,
-        util=[frozen_util, source_util])
+
+(Frozen_ResolveNameTests,
+ Source_ResolveNameTests
+ ) = util.test_both(ResolveNameTests, util=importlib_util)
 
 
 class FindSpecTests:
@@ -320,7 +406,7 @@ class FindSpecTests:
 
     def test_sys_modules(self):
         name = 'some_mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             module = types.ModuleType(name)
             loader = 'a loader!'
             spec = self.machinery.ModuleSpec(name, loader)
@@ -332,7 +418,7 @@ class FindSpecTests:
 
     def test_sys_modules_without___loader__(self):
         name = 'some_mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             module = types.ModuleType(name)
             del module.__loader__
             loader = 'a loader!'
@@ -344,7 +430,7 @@ class FindSpecTests:
 
     def test_sys_modules_spec_is_None(self):
         name = 'some_mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             module = types.ModuleType(name)
             module.__spec__ = None
             sys.modules[name] = module
@@ -353,7 +439,7 @@ class FindSpecTests:
 
     def test_sys_modules_loader_is_None(self):
         name = 'some_mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             module = types.ModuleType(name)
             spec = self.machinery.ModuleSpec(name, None)
             module.__spec__ = spec
@@ -363,7 +449,7 @@ class FindSpecTests:
 
     def test_sys_modules_spec_is_not_set(self):
         name = 'some_mod'
-        with test_util.uncache(name):
+        with util.uncache(name):
             module = types.ModuleType(name)
             try:
                 del module.__spec__
@@ -375,19 +461,10 @@ class FindSpecTests:
 
     def test_success(self):
         name = 'some_mod'
-        with test_util.uncache(name):
-            with test_util.import_state(meta_path=[self.FakeMetaFinder]):
+        with util.uncache(name):
+            with util.import_state(meta_path=[self.FakeMetaFinder]):
                 self.assertEqual((name, None, None),
                                  self.util.find_spec(name))
-
-#    def test_success_path(self):
-#        # Searching on a path should work.
-#        name = 'some_mod'
-#        path = 'path to some place'
-#        with test_util.uncache(name):
-#            with test_util.import_state(meta_path=[self.FakeMetaFinder]):
-#                self.assertEqual((name, path, None),
-#                                 self.util.find_spec(name, path))
 
     def test_nothing(self):
         # None is returned upon failure to find a loader.
@@ -396,8 +473,8 @@ class FindSpecTests:
     def test_find_submodule(self):
         name = 'spam'
         subname = 'ham'
-        with test_util.temp_module(name, pkg=True) as pkg_dir:
-            fullname, _ = test_util.submodule(name, subname, pkg_dir)
+        with util.temp_module(name, pkg=True) as pkg_dir:
+            fullname, _ = util.submodule(name, subname, pkg_dir)
             spec = self.util.find_spec(fullname)
             self.assertIsNot(spec, None)
             self.assertIn(name, sorted(sys.modules))
@@ -409,9 +486,9 @@ class FindSpecTests:
     def test_find_submodule_parent_already_imported(self):
         name = 'spam'
         subname = 'ham'
-        with test_util.temp_module(name, pkg=True) as pkg_dir:
+        with util.temp_module(name, pkg=True) as pkg_dir:
             self.init.import_module(name)
-            fullname, _ = test_util.submodule(name, subname, pkg_dir)
+            fullname, _ = util.submodule(name, subname, pkg_dir)
             spec = self.util.find_spec(fullname)
             self.assertIsNot(spec, None)
             self.assertIn(name, sorted(sys.modules))
@@ -423,8 +500,8 @@ class FindSpecTests:
     def test_find_relative_module(self):
         name = 'spam'
         subname = 'ham'
-        with test_util.temp_module(name, pkg=True) as pkg_dir:
-            fullname, _ = test_util.submodule(name, subname, pkg_dir)
+        with util.temp_module(name, pkg=True) as pkg_dir:
+            fullname, _ = util.submodule(name, subname, pkg_dir)
             relname = '.' + subname
             spec = self.util.find_spec(relname, name)
             self.assertIsNot(spec, None)
@@ -437,24 +514,25 @@ class FindSpecTests:
     def test_find_relative_module_missing_package(self):
         name = 'spam'
         subname = 'ham'
-        with test_util.temp_module(name, pkg=True) as pkg_dir:
-            fullname, _ = test_util.submodule(name, subname, pkg_dir)
+        with util.temp_module(name, pkg=True) as pkg_dir:
+            fullname, _ = util.submodule(name, subname, pkg_dir)
             relname = '.' + subname
             with self.assertRaises(ValueError):
                 self.util.find_spec(relname)
             self.assertNotIn(name, sorted(sys.modules))
             self.assertNotIn(fullname, sorted(sys.modules))
 
+    def test_find_submodule_in_module(self):
+        # ModuleNotFoundError raised when a module is specified as
+        # a parent instead of a package.
+        with self.assertRaises(ModuleNotFoundError):
+            self.util.find_spec('module.name')
 
-class Frozen_FindSpecTests(FindSpecTests, unittest.TestCase):
-    init = frozen_init
-    machinery = frozen_machinery
-    util = frozen_util
 
-class Source_FindSpecTests(FindSpecTests, unittest.TestCase):
-    init = source_init
-    machinery = source_machinery
-    util = source_util
+(Frozen_FindSpecTests,
+ Source_FindSpecTests
+ ) = util.test_both(FindSpecTests, init=init, util=importlib_util,
+                         machinery=machinery)
 
 
 class MagicNumberTests:
@@ -467,8 +545,10 @@ class MagicNumberTests:
         # The magic number uses \r\n to come out wrong when splitting on lines.
         self.assertTrue(self.util.MAGIC_NUMBER.endswith(b'\r\n'))
 
-Frozen_MagicNumberTests, Source_MagicNumberTests = test_util.test_both(
-        MagicNumberTests, util=[frozen_util, source_util])
+
+(Frozen_MagicNumberTests,
+ Source_MagicNumberTests
+ ) = util.test_both(MagicNumberTests, util=importlib_util)
 
 
 class PEP3147Tests:
@@ -485,7 +565,8 @@ class PEP3147Tests:
         path = os.path.join('foo', 'bar', 'baz', 'qux.py')
         expect = os.path.join('foo', 'bar', 'baz', '__pycache__',
                               'qux.{}.pyc'.format(self.tag))
-        self.assertEqual(self.util.cache_from_source(path, True), expect)
+        self.assertEqual(self.util.cache_from_source(path, optimization=''),
+                         expect)
 
     def test_cache_from_source_no_cache_tag(self):
         # No cache tag means NotImplementedError.
@@ -498,44 +579,113 @@ class PEP3147Tests:
         path = os.path.join('foo.bar', 'file')
         expect = os.path.join('foo.bar', '__pycache__',
                               'file{}.pyc'.format(self.tag))
-        self.assertEqual(self.util.cache_from_source(path, True), expect)
+        self.assertEqual(self.util.cache_from_source(path, optimization=''),
+                         expect)
 
-    def test_cache_from_source_optimized(self):
-        # Given the path to a .py file, return the path to its PEP 3147
-        # defined .pyo file (i.e. under __pycache__).
+    def test_cache_from_source_debug_override(self):
+        # Given the path to a .py file, return the path to its PEP 3147/PEP 488
+        # defined .pyc file (i.e. under __pycache__).
         path = os.path.join('foo', 'bar', 'baz', 'qux.py')
-        expect = os.path.join('foo', 'bar', 'baz', '__pycache__',
-                              'qux.{}.pyo'.format(self.tag))
-        self.assertEqual(self.util.cache_from_source(path, False), expect)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(self.util.cache_from_source(path, False),
+                             self.util.cache_from_source(path, optimization=1))
+            self.assertEqual(self.util.cache_from_source(path, True),
+                             self.util.cache_from_source(path, optimization=''))
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            with self.assertRaises(DeprecationWarning):
+                self.util.cache_from_source(path, False)
+            with self.assertRaises(DeprecationWarning):
+                self.util.cache_from_source(path, True)
 
     def test_cache_from_source_cwd(self):
         path = 'foo.py'
         expect = os.path.join('__pycache__', 'foo.{}.pyc'.format(self.tag))
-        self.assertEqual(self.util.cache_from_source(path, True), expect)
+        self.assertEqual(self.util.cache_from_source(path, optimization=''),
+                         expect)
 
     def test_cache_from_source_override(self):
         # When debug_override is not None, it can be any true-ish or false-ish
         # value.
         path = os.path.join('foo', 'bar', 'baz.py')
-        partial_expect = os.path.join('foo', 'bar', '__pycache__',
-                                      'baz.{}.py'.format(self.tag))
-        self.assertEqual(self.util.cache_from_source(path, []), partial_expect + 'o')
-        self.assertEqual(self.util.cache_from_source(path, [17]),
-                         partial_expect + 'c')
         # However if the bool-ishness can't be determined, the exception
         # propagates.
         class Bearish:
             def __bool__(self): raise RuntimeError
-        with self.assertRaises(RuntimeError):
-            self.util.cache_from_source('/foo/bar/baz.py', Bearish())
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(self.util.cache_from_source(path, []),
+                             self.util.cache_from_source(path, optimization=1))
+            self.assertEqual(self.util.cache_from_source(path, [17]),
+                             self.util.cache_from_source(path, optimization=''))
+            with self.assertRaises(RuntimeError):
+                self.util.cache_from_source('/foo/bar/baz.py', Bearish())
+
+
+    def test_cache_from_source_optimization_empty_string(self):
+        # Setting 'optimization' to '' leads to no optimization tag (PEP 488).
+        path = 'foo.py'
+        expect = os.path.join('__pycache__', 'foo.{}.pyc'.format(self.tag))
+        self.assertEqual(self.util.cache_from_source(path, optimization=''),
+                         expect)
+
+    def test_cache_from_source_optimization_None(self):
+        # Setting 'optimization' to None uses the interpreter's optimization.
+        # (PEP 488)
+        path = 'foo.py'
+        optimization_level = sys.flags.optimize
+        almost_expect = os.path.join('__pycache__', 'foo.{}'.format(self.tag))
+        if optimization_level == 0:
+            expect = almost_expect + '.pyc'
+        elif optimization_level <= 2:
+            expect = almost_expect + '.opt-{}.pyc'.format(optimization_level)
+        else:
+            msg = '{!r} is a non-standard optimization level'.format(optimization_level)
+            self.skipTest(msg)
+        self.assertEqual(self.util.cache_from_source(path, optimization=None),
+                         expect)
+
+    def test_cache_from_source_optimization_set(self):
+        # The 'optimization' parameter accepts anything that has a string repr
+        # that passes str.alnum().
+        path = 'foo.py'
+        valid_characters = string.ascii_letters + string.digits
+        almost_expect = os.path.join('__pycache__', 'foo.{}'.format(self.tag))
+        got = self.util.cache_from_source(path, optimization=valid_characters)
+        # Test all valid characters are accepted.
+        self.assertEqual(got,
+                         almost_expect + '.opt-{}.pyc'.format(valid_characters))
+        # str() should be called on argument.
+        self.assertEqual(self.util.cache_from_source(path, optimization=42),
+                         almost_expect + '.opt-42.pyc')
+        # Invalid characters raise ValueError.
+        with self.assertRaises(ValueError):
+            self.util.cache_from_source(path, optimization='path/is/bad')
+
+    def test_cache_from_source_debug_override_optimization_both_set(self):
+        # Can only set one of the optimization-related parameters.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            with self.assertRaises(TypeError):
+                self.util.cache_from_source('foo.py', False, optimization='')
 
     @unittest.skipUnless(os.sep == '\\' and os.altsep == '/',
                      'test meaningful only where os.altsep is defined')
     def test_sep_altsep_and_sep_cache_from_source(self):
         # Windows path and PEP 3147 where sep is right of altsep.
         self.assertEqual(
-            self.util.cache_from_source('\\foo\\bar\\baz/qux.py', True),
+            self.util.cache_from_source('\\foo\\bar\\baz/qux.py', optimization=''),
             '\\foo\\bar\\baz\\__pycache__\\qux.{}.pyc'.format(self.tag))
+
+    @unittest.skipUnless(sys.implementation.cache_tag is not None,
+                         'requires sys.implementation.cache_tag not be None')
+    def test_source_from_cache_path_like_arg(self):
+        path = pathlib.PurePath('foo', 'bar', 'baz', 'qux.py')
+        expect = os.path.join('foo', 'bar', 'baz', '__pycache__',
+                              'qux.{}.pyc'.format(self.tag))
+        self.assertEqual(self.util.cache_from_source(path, optimization=''),
+                         expect)
 
     @unittest.skipUnless(sys.implementation.cache_tag is not None,
                          'requires sys.implementation.cache_tag to not be '
@@ -572,7 +722,12 @@ class PEP3147Tests:
             ValueError, self.util.source_from_cache, '__pycache__/foo.pyc')
 
     def test_source_from_cache_too_many_dots(self):
-        # Too many dots in final path component -> ValueError
+        with self.assertRaises(ValueError):
+            self.util.source_from_cache(
+                    '__pycache__/foo.cpython-32.opt-1.foo.pyc')
+
+    def test_source_from_cache_not_opt(self):
+        # Non-`opt-` path component -> ValueError
         self.assertRaises(
             ValueError, self.util.source_from_cache,
             '__pycache__/foo.cpython-32.foo.pyc')
@@ -583,9 +738,73 @@ class PEP3147Tests:
             ValueError, self.util.source_from_cache,
             '/foo/bar/foo.cpython-32.foo.pyc')
 
-Frozen_PEP3147Tests, Source_PEP3147Tests = test_util.test_both(
-        PEP3147Tests,
-        util=[frozen_util, source_util])
+    def test_source_from_cache_optimized_bytecode(self):
+        # Optimized bytecode is not an issue.
+        path = os.path.join('__pycache__', 'foo.{}.opt-1.pyc'.format(self.tag))
+        self.assertEqual(self.util.source_from_cache(path), 'foo.py')
+
+    def test_source_from_cache_missing_optimization(self):
+        # An empty optimization level is a no-no.
+        path = os.path.join('__pycache__', 'foo.{}.opt-.pyc'.format(self.tag))
+        with self.assertRaises(ValueError):
+            self.util.source_from_cache(path)
+
+    @unittest.skipUnless(sys.implementation.cache_tag is not None,
+                         'requires sys.implementation.cache_tag to not be '
+                         'None')
+    def test_source_from_cache_path_like_arg(self):
+        path = pathlib.PurePath('foo', 'bar', 'baz', '__pycache__',
+                                'qux.{}.pyc'.format(self.tag))
+        expect = os.path.join('foo', 'bar', 'baz', 'qux.py')
+        self.assertEqual(self.util.source_from_cache(path), expect)
+
+
+(Frozen_PEP3147Tests,
+ Source_PEP3147Tests
+ ) = util.test_both(PEP3147Tests, util=importlib_util)
+
+
+class MagicNumberTests(unittest.TestCase):
+    """
+    Test release compatibility issues relating to importlib
+    """
+    @unittest.skipUnless(
+        sys.version_info.releaselevel in ('candidate', 'final'),
+        'only applies to candidate or final python release levels'
+    )
+    def test_magic_number(self):
+        """
+        Each python minor release should generally have a MAGIC_NUMBER
+        that does not change once the release reaches candidate status.
+
+        Once a release reaches candidate status, the value of the constant
+        EXPECTED_MAGIC_NUMBER in this test should be changed.
+        This test will then check that the actual MAGIC_NUMBER matches
+        the expected value for the release.
+
+        In exceptional cases, it may be required to change the MAGIC_NUMBER
+        for a maintenance release. In this case the change should be
+        discussed in python-dev. If a change is required, community
+        stakeholders such as OS package maintainers must be notified
+        in advance. Such exceptional releases will then require an
+        adjustment to this test case.
+        """
+        EXPECTED_MAGIC_NUMBER = 3394
+        actual = int.from_bytes(importlib.util.MAGIC_NUMBER[:2], 'little')
+
+        msg = (
+            "To avoid breaking backwards compatibility with cached bytecode "
+            "files that can't be automatically regenerated by the current "
+            "user, candidate and final releases require the current  "
+            "importlib.util.MAGIC_NUMBER to match the expected "
+            "magic number in this test. Set the expected "
+            "magic number in this test to the current MAGIC_NUMBER to "
+            "continue with the release.\n\n"
+            "Changing the MAGIC_NUMBER for a maintenance release "
+            "requires discussion in python-dev and notification of "
+            "community stakeholders."
+        )
+        self.assertEqual(EXPECTED_MAGIC_NUMBER, actual, msg)
 
 
 if __name__ == '__main__':

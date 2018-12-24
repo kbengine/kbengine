@@ -3,6 +3,7 @@
 
 .. module:: wave
    :synopsis: Provide an interface to the WAV sound format.
+
 .. sectionauthor:: Moshe Zadka <moshez@zadka.site.co.il>
 .. Documentations stolen from comments in file.
 
@@ -49,6 +50,8 @@ The :mod:`wave` module defines the following function and exception:
 .. function:: openfp(file, mode)
 
    A synonym for :func:`.open`, maintained for backwards compatibility.
+
+   .. deprecated-removed:: 3.7 3.9
 
 
 .. exception:: Error
@@ -111,7 +114,7 @@ Wave_read objects, as returned by :func:`.open`, have the following methods:
 
 .. method:: Wave_read.readframes(n)
 
-   Reads and returns at most *n* frames of audio, as a string of bytes.
+   Reads and returns at most *n* frames of audio, as a :class:`bytes` object.
 
 
 .. method:: Wave_read.rewind()

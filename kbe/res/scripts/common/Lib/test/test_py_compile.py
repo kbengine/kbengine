@@ -3,6 +3,7 @@ import os
 import py_compile
 import shutil
 import stat
+import sys
 import tempfile
 import unittest
 
@@ -62,11 +63,9 @@ class PyCompileTests(unittest.TestCase):
         self.assertTrue(os.path.exists(self.cache_path))
 
     def test_cwd(self):
-        cwd = os.getcwd()
-        os.chdir(self.directory)
-        py_compile.compile(os.path.basename(self.source_path),
-                           os.path.basename(self.pyc_path))
-        os.chdir(cwd)
+        with support.change_cwd(self.directory):
+            py_compile.compile(os.path.basename(self.source_path),
+                               os.path.basename(self.pyc_path))
         self.assertTrue(os.path.exists(self.pyc_path))
         self.assertFalse(os.path.exists(self.cache_path))
 
@@ -98,6 +97,61 @@ class PyCompileTests(unittest.TestCase):
             self.assertIsNone(py_compile.compile(bad_coding, doraise=False))
         self.assertFalse(os.path.exists(
             importlib.util.cache_from_source(bad_coding)))
+
+    def test_source_date_epoch(self):
+        testtime = 123456789
+        with support.EnvironmentVarGuard() as env:
+            env["SOURCE_DATE_EPOCH"] = str(testtime)
+            py_compile.compile(self.source_path, self.pyc_path)
+        self.assertTrue(os.path.exists(self.pyc_path))
+        self.assertFalse(os.path.exists(self.cache_path))
+        with open(self.pyc_path, 'rb') as fp:
+            flags = importlib._bootstrap_external._classify_pyc(
+                fp.read(), 'test', {})
+        self.assertEqual(flags, 0b11)
+
+    @unittest.skipIf(sys.flags.optimize > 0, 'test does not work with -O')
+    def test_double_dot_no_clobber(self):
+        # http://bugs.python.org/issue22966
+        # py_compile foo.bar.py -> __pycache__/foo.cpython-34.pyc
+        weird_path = os.path.join(self.directory, 'foo.bar.py')
+        cache_path = importlib.util.cache_from_source(weird_path)
+        pyc_path = weird_path + 'c'
+        head, tail = os.path.split(cache_path)
+        penultimate_tail = os.path.basename(head)
+        self.assertEqual(
+            os.path.join(penultimate_tail, tail),
+            os.path.join(
+                '__pycache__',
+                'foo.bar.{}.pyc'.format(sys.implementation.cache_tag)))
+        with open(weird_path, 'w') as file:
+            file.write('x = 123\n')
+        py_compile.compile(weird_path)
+        self.assertTrue(os.path.exists(cache_path))
+        self.assertFalse(os.path.exists(pyc_path))
+
+    def test_optimization_path(self):
+        # Specifying optimized bytecode should lead to a path reflecting that.
+        self.assertIn('opt-2', py_compile.compile(self.source_path, optimize=2))
+
+    def test_invalidation_mode(self):
+        py_compile.compile(
+            self.source_path,
+            invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
+        )
+        with open(self.cache_path, 'rb') as fp:
+            flags = importlib._bootstrap_external._classify_pyc(
+                fp.read(), 'test', {})
+        self.assertEqual(flags, 0b11)
+        py_compile.compile(
+            self.source_path,
+            invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH,
+        )
+        with open(self.cache_path, 'rb') as fp:
+            flags = importlib._bootstrap_external._classify_pyc(
+                fp.read(), 'test', {})
+        self.assertEqual(flags, 0b1)
+
 
 if __name__ == "__main__":
     unittest.main()

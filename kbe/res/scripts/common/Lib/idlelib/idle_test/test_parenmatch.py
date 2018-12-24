@@ -1,12 +1,16 @@
-"""Test idlelib.ParenMatch."""
-# This must currently be a gui test because ParenMatch methods use
-# several text methods not defined on idlelib.idle_test.mock_tk.Text.
+"""Test parenmatch, coverage 91%.
+
+This must currently be a gui test because ParenMatch methods use
+several text methods not defined on idlelib.idle_test.mock_tk.Text.
+"""
+from idlelib.parenmatch import ParenMatch
+from test.support import requires
+requires('gui')
 
 import unittest
 from unittest.mock import Mock
-from test.support import requires
 from tkinter import Tk, Text
-from idlelib.ParenMatch import ParenMatch
+
 
 class DummyEditwin:
     def __init__(self, text):
@@ -20,8 +24,8 @@ class ParenMatchTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        requires('gui')
         cls.root = Tk()
+        cls.root.withdraw()
         cls.text = Text(cls.root)
         cls.editwin = DummyEditwin(cls.text)
         cls.editwin.text_frame = Mock()
@@ -29,52 +33,51 @@ class ParenMatchTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         del cls.text, cls.editwin
+        cls.root.update_idletasks()
         cls.root.destroy()
         del cls.root
 
     def tearDown(self):
         self.text.delete('1.0', 'end')
 
-    def test_paren_expression(self):
+    def get_parenmatch(self):
+        pm = ParenMatch(self.editwin)
+        pm.bell = lambda: None
+        return pm
+
+    def test_paren_styles(self):
         """
-        Test ParenMatch with 'expression' style.
+        Test ParenMatch with each style.
         """
         text = self.text
-        pm = ParenMatch(self.editwin)
-        pm.set_style('expression')
+        pm = self.get_parenmatch()
+        for style, range1, range2 in (
+                ('opener', ('1.10', '1.11'), ('1.10', '1.11')),
+                ('default',('1.10', '1.11'),('1.10', '1.11')),
+                ('parens', ('1.14', '1.15'), ('1.15', '1.16')),
+                ('expression', ('1.10', '1.15'), ('1.10', '1.16'))):
+            with self.subTest(style=style):
+                text.delete('1.0', 'end')
+                pm.STYLE = style
+                text.insert('insert', 'def foobar(a, b')
 
-        text.insert('insert', 'def foobar(a, b')
-        pm.flash_paren_event('event')
-        self.assertIn('<<parenmatch-check-restore>>', text.event_info())
-        self.assertTupleEqual(text.tag_prevrange('paren', 'end'),
-                             ('1.10', '1.15'))
-        text.insert('insert', ')')
-        pm.restore_event()
-        self.assertNotIn('<<parenmatch-check-restore>>', text.event_info())
-        self.assertEqual(text.tag_prevrange('paren', 'end'), ())
+                pm.flash_paren_event('event')
+                self.assertIn('<<parenmatch-check-restore>>', text.event_info())
+                if style == 'parens':
+                    self.assertTupleEqual(text.tag_nextrange('paren', '1.0'),
+                                          ('1.10', '1.11'))
+                self.assertTupleEqual(
+                        text.tag_prevrange('paren', 'end'), range1)
 
-        # paren_closed_event can only be tested as below
-        pm.paren_closed_event('event')
-        self.assertTupleEqual(text.tag_prevrange('paren', 'end'),
-                                                ('1.10', '1.16'))
+                text.insert('insert', ')')
+                pm.restore_event()
+                self.assertNotIn('<<parenmatch-check-restore>>',
+                                 text.event_info())
+                self.assertEqual(text.tag_prevrange('paren', 'end'), ())
 
-    def test_paren_default(self):
-        """
-        Test ParenMatch with 'default' style.
-        """
-        text = self.text
-        pm = ParenMatch(self.editwin)
-        pm.set_style('default')
-
-        text.insert('insert', 'def foobar(a, b')
-        pm.flash_paren_event('event')
-        self.assertIn('<<parenmatch-check-restore>>', text.event_info())
-        self.assertTupleEqual(text.tag_prevrange('paren', 'end'),
-                             ('1.10', '1.11'))
-        text.insert('insert', ')')
-        pm.restore_event()
-        self.assertNotIn('<<parenmatch-check-restore>>', text.event_info())
-        self.assertEqual(text.tag_prevrange('paren', 'end'), ())
+                pm.paren_closed_event('event')
+                self.assertTupleEqual(
+                        text.tag_prevrange('paren', 'end'), range2)
 
     def test_paren_corner(self):
         """
@@ -83,20 +86,20 @@ class ParenMatchTest(unittest.TestCase):
         These cases force conditional expression and alternate paths.
         """
         text = self.text
-        pm = ParenMatch(self.editwin)
+        pm = self.get_parenmatch()
 
         text.insert('insert', '# this is a commen)')
-        self.assertIsNone(pm.paren_closed_event('event'))
+        pm.paren_closed_event('event')
 
         text.insert('insert', '\ndef')
-        self.assertIsNone(pm.flash_paren_event('event'))
-        self.assertIsNone(pm.paren_closed_event('event'))
+        pm.flash_paren_event('event')
+        pm.paren_closed_event('event')
 
         text.insert('insert', ' a, *arg)')
-        self.assertIsNone(pm.paren_closed_event('event'))
+        pm.paren_closed_event('event')
 
     def test_handle_restore_timer(self):
-        pm = ParenMatch(self.editwin)
+        pm = self.get_parenmatch()
         pm.restore_event = Mock()
         pm.handle_restore_timer(0)
         self.assertTrue(pm.restore_event.called)

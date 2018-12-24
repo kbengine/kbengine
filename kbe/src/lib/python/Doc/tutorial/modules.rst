@@ -29,16 +29,16 @@ called :file:`fibo.py` in the current directory with the following contents::
 
    def fib(n):    # write Fibonacci series up to n
        a, b = 0, 1
-       while b < n:
-           print(b, end=' ')
+       while a < n:
+           print(a, end=' ')
            a, b = b, a+b
        print()
 
-   def fib2(n): # return Fibonacci series up to n
+   def fib2(n):   # return Fibonacci series up to n
        result = []
        a, b = 0, 1
-       while b < n:
-           result.append(b)
+       while a < n:
+           result.append(a)
            a, b = b, a+b
        return result
 
@@ -52,9 +52,9 @@ the current symbol table; it only enters the module name ``fibo`` there. Using
 the module name you can access the functions::
 
    >>> fibo.fib(1000)
-   1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987
    >>> fibo.fib2(100)
-   [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+   [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
    >>> fibo.__name__
    'fibo'
 
@@ -62,7 +62,7 @@ If you intend to use a function often you can assign it to a local name::
 
    >>> fib = fibo.fib
    >>> fib(500)
-   1 1 2 3 5 8 13 21 34 55 89 144 233 377
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
 
 
 .. _tut-moremodules:
@@ -92,7 +92,7 @@ module directly into the importing module's symbol table.  For example::
 
    >>> from fibo import fib, fib2
    >>> fib(500)
-   1 1 2 3 5 8 13 21 34 55 89 144 233 377
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
 
 This does not introduce the module name from which the imports are taken in the
 local symbol table (so in the example, ``fibo`` is not defined).
@@ -101,7 +101,7 @@ There is even a variant to import all names that a module defines::
 
    >>> from fibo import *
    >>> fib(500)
-   1 1 2 3 5 8 13 21 34 55 89 144 233 377
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
 
 This imports all names except those beginning with an underscore (``_``).
 In most cases Python programmers do not use this facility since it introduces
@@ -112,12 +112,32 @@ Note that in general the practice of importing ``*`` from a module or package is
 frowned upon, since it often causes poorly readable code. However, it is okay to
 use it to save typing in interactive sessions.
 
+If the module name is followed by :keyword:`as`, then the name
+following :keyword:`as` is bound directly to the imported module.
+
+::
+
+   >>> import fibo as fib
+   >>> fib.fib(500)
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
+
+This is effectively importing the module in the same way that ``import fibo``
+will do, with the only difference of it being available as ``fib``.
+
+It can also be used when utilising :keyword:`from` with similar effects::
+
+   >>> from fibo import fib as fibonacci
+   >>> fibonacci(500)
+   0 1 1 2 3 5 8 13 21 34 55 89 144 233 377
+
+
 .. note::
 
    For efficiency reasons, each module is only imported once per interpreter
    session.  Therefore, if you change your modules, you must restart the
    interpreter -- or, if it's just one module you want to test interactively,
-   use :func:`imp.reload`, e.g. ``import imp; imp.reload(modulename)``.
+   use :func:`importlib.reload`, e.g. ``import importlib;
+   importlib.reload(modulename)``.
 
 
 .. _tut-modulesasscripts:
@@ -139,10 +159,12 @@ the end of your module::
 
 you can make the file usable as a script as well as an importable module,
 because the code that parses the command line only runs if the module is
-executed as the "main" file::
+executed as the "main" file:
+
+.. code-block:: shell-session
 
    $ python fibo.py 50
-   1 1 2 3 5 8 13 21 34
+   0 1 1 2 3 5 8 13 21 34
 
 If the module is imported, the code is not run::
 
@@ -216,18 +238,18 @@ Some tips for experts:
   statements, the ``-OO`` switch removes both assert statements and __doc__
   strings.  Since some programs may rely on having these available, you should
   only use this option if you know what you're doing.  "Optimized" modules have
-  a .pyo rather than a .pyc suffix and are usually smaller.  Future releases may
+  an ``opt-`` tag and are usually smaller.  Future releases may
   change the effects of optimization.
 
-* A program doesn't run any faster when it is read from a ``.pyc`` or ``.pyo``
+* A program doesn't run any faster when it is read from a ``.pyc``
   file than when it is read from a ``.py`` file; the only thing that's faster
-  about ``.pyc`` or ``.pyo`` files is the speed with which they are loaded.
+  about ``.pyc`` files is the speed with which they are loaded.
 
-* The module :mod:`compileall` can create .pyc files (or .pyo files when
-  :option:`-O` is used) for all modules in a directory.
+* The module :mod:`compileall` can create .pyc files for all modules in a
+  directory.
 
 * There is more detail on this process, including a flow chart of the
-  decisions, in PEP 3147.
+  decisions, in :pep:`3147`.
 
 
 .. _tut-standardmodules:
@@ -360,7 +382,7 @@ module names".  For example, the module name :mod:`A.B` designates a submodule
 named ``B`` in a package named ``A``.  Just like the use of modules saves the
 authors of different modules from having to worry about each other's global
 variable names, the use of dotted module names saves the authors of multi-module
-packages like NumPy or the Python Imaging Library from having to worry about
+packages like NumPy or Pillow from having to worry about
 each other's module names.
 
 Suppose you want to design a collection of modules (a "package") for the uniform
@@ -498,7 +520,7 @@ when the ``from...import`` statement is executed.  (This also works when
 ``__all__`` is defined.)
 
 Although certain modules are designed to export only names that follow certain
-patterns when you use ``import *``, it is still considered bad practise in
+patterns when you use ``import *``, it is still considered bad practice in
 production code.
 
 Remember, there is nothing wrong with using ``from Package import
@@ -548,4 +570,3 @@ modules found in a package.
 .. [#] In fact function definitions are also 'statements' that are 'executed'; the
    execution of a module-level function definition enters the function name in
    the module's global symbol table.
-

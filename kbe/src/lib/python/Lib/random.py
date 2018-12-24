@@ -8,6 +8,7 @@
     ---------
            pick random element
            pick random sample
+           pick weighted random sample
            generate random permutation
 
     distributions on the real line:
@@ -43,12 +44,15 @@ from math import sqrt as _sqrt, acos as _acos, cos as _cos, sin as _sin
 from os import urandom as _urandom
 from _collections_abc import Set as _Set, Sequence as _Sequence
 from hashlib import sha512 as _sha512
+import itertools as _itertools
+import bisect as _bisect
+import os as _os
 
 __all__ = ["Random","seed","random","uniform","randint","choice","sample",
            "randrange","shuffle","normalvariate","lognormvariate",
            "expovariate","vonmisesvariate","gammavariate","triangular",
            "gauss","betavariate","paretovariate","weibullvariate",
-           "getstate","setstate", "getrandbits",
+           "getstate","setstate", "getrandbits", "choices",
            "SystemRandom"]
 
 NV_MAGICCONST = 4 * _exp(-0.5)/_sqrt(2.0)
@@ -96,28 +100,28 @@ class Random(_random.Random):
         None or no argument seeds from current time or from an operating
         system specific randomness source if available.
 
-        For version 2 (the default), all of the bits are used if *a* is a str,
-        bytes, or bytearray.  For version 1, the hash() of *a* is used instead.
-
         If *a* is an int, all bits are used.
+
+        For version 2 (the default), all of the bits are used if *a* is a str,
+        bytes, or bytearray.  For version 1 (provided for reproducing random
+        sequences from older versions of Python), the algorithm for str and
+        bytes generates a narrower range of seeds.
 
         """
 
-        if a is None:
-            try:
-                # Seed with enough bytes to span the 19937 bit
-                # state space for the Mersenne Twister
-                a = int.from_bytes(_urandom(2500), 'big')
-            except NotImplementedError:
-                import time
-                a = int(time.time() * 256) # use fractional seconds
+        if version == 1 and isinstance(a, (str, bytes)):
+            a = a.decode('latin-1') if isinstance(a, bytes) else a
+            x = ord(a[0]) << 7 if a else 0
+            for c in map(ord, a):
+                x = ((1000003 * x) ^ c) & 0xFFFFFFFFFFFFFFFF
+            x ^= len(a)
+            a = -2 if x == -1 else x
 
-        if version == 2:
-            if isinstance(a, (str, bytes, bytearray)):
-                if isinstance(a, str):
-                    a = a.encode()
-                a += _sha512(a).digest()
-                a = int.from_bytes(a, 'big')
+        if version == 2 and isinstance(a, (str, bytes, bytearray)):
+            if isinstance(a, str):
+                a = a.encode()
+            a += _sha512(a).digest()
+            a = int.from_bytes(a, 'big')
 
         super().seed(a)
         self.gauss_next = None
@@ -231,13 +235,15 @@ class Random(_random.Random):
             while r >= n:
                 r = getrandbits(k)
             return r
-        # There's an overriden random() method but no new getrandbits() method,
+        # There's an overridden random() method but no new getrandbits() method,
         # so we can only use random() from here.
         if n >= maxsize:
             _warn("Underlying random() generator does not supply \n"
                 "enough bits to choose from a population range this large.\n"
                 "To remove the range limitation, add a getrandbits() method.")
             return int(random() * n)
+        if n == 0:
+            raise ValueError("Boundary cannot be zero")
         rem = maxsize % n
         limit = (maxsize - rem) / maxsize   # int(limit * maxsize) % n == 0
         r = random()
@@ -252,7 +258,7 @@ class Random(_random.Random):
         try:
             i = self._randbelow(len(seq))
         except ValueError:
-            raise IndexError('Cannot choose from an empty sequence')
+            raise IndexError('Cannot choose from an empty sequence') from None
         return seq[i]
 
     def shuffle(self, x, random=None):
@@ -312,7 +318,7 @@ class Random(_random.Random):
         randbelow = self._randbelow
         n = len(population)
         if not 0 <= k <= n:
-            raise ValueError("Sample larger than population")
+            raise ValueError("Sample larger than population or is negative")
         result = [None] * k
         setsize = 21        # size of a small set minus size of an empty list
         if k > 5:
@@ -334,6 +340,30 @@ class Random(_random.Random):
                 selected_add(j)
                 result[i] = population[j]
         return result
+
+    def choices(self, population, weights=None, *, cum_weights=None, k=1):
+        """Return a k sized list of population elements chosen with replacement.
+
+        If the relative weights or cumulative weights are not specified,
+        the selections are made with equal probability.
+
+        """
+        random = self.random
+        if cum_weights is None:
+            if weights is None:
+                _int = int
+                total = len(population)
+                return [population[_int(random() * total)] for i in range(k)]
+            cum_weights = list(_itertools.accumulate(weights))
+        elif weights is not None:
+            raise TypeError('Cannot specify both weights and cumulative weights')
+        if len(cum_weights) != len(population):
+            raise ValueError('The number of weights does not match the population')
+        bisect = _bisect.bisect
+        total = cum_weights[-1]
+        hi = len(cum_weights) - 1
+        return [population[bisect(cum_weights, random() * total, 0, hi)]
+                for i in range(k)]
 
 ## -------------------- real-valued distributions  -------------------
 
@@ -363,7 +393,7 @@ class Random(_random.Random):
             u = 1.0 - u
             c = 1.0 - c
             low, high = high, low
-        return low + (high - low) * (u * c) ** 0.5
+        return low + (high - low) * _sqrt(u * c)
 
 ## -------------------- normal distribution --------------------
 
@@ -515,7 +545,7 @@ class Random(_random.Random):
                     return x * beta
 
         elif alpha == 1.0:
-            # expovariate(1)
+            # expovariate(1/beta)
             u = random()
             while u <= 1e-7:
                 u = random()
@@ -606,11 +636,11 @@ class Random(_random.Random):
 
         # This version due to Janne Sinkkonen, and matches all the std
         # texts (e.g., Knuth Vol 2 Ed 3 pg 134 "the beta distribution").
-        y = self.gammavariate(alpha, 1.)
+        y = self.gammavariate(alpha, 1.0)
         if y == 0:
             return 0.0
         else:
-            return y / (y + self.gammavariate(beta, 1.))
+            return y / (y + self.gammavariate(beta, 1.0))
 
 ## -------------------- Pareto --------------------
 
@@ -687,7 +717,7 @@ def _test_generator(n, func, args):
     print(round(t1-t0, 3), 'sec,', end=' ')
     avg = total/n
     stddev = _sqrt(sqsum/n - avg*avg)
-    print('avg %g, stddev %g, min %g, max %g' % \
+    print('avg %g, stddev %g, min %g, max %g\n' % \
               (avg, stddev, smallest, largest))
 
 
@@ -725,6 +755,7 @@ choice = _inst.choice
 randrange = _inst.randrange
 sample = _inst.sample
 shuffle = _inst.shuffle
+choices = _inst.choices
 normalvariate = _inst.normalvariate
 lognormvariate = _inst.lognormvariate
 expovariate = _inst.expovariate
@@ -737,6 +768,10 @@ weibullvariate = _inst.weibullvariate
 getstate = _inst.getstate
 setstate = _inst.setstate
 getrandbits = _inst.getrandbits
+
+if hasattr(_os, "fork"):
+    _os.register_at_fork(after_in_child=_inst.seed)
+
 
 if __name__ == '__main__':
     _test()
