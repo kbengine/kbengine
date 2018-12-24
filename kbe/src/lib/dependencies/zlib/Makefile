@@ -1,5 +1,14 @@
-all:
-	-@echo "Please use ./configure first.  Thank you."
 
-distclean:
-	make -f Makefile.in distclean
+all:: config.status
+
+CONFIG_ARGS =
+
+config.status:
+	@chmod -R 755 .
+	./configure
+	@make
+
+.PHONY: clean
+
+clean::
+	echo "clean"
