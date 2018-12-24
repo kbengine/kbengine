@@ -15,7 +15,7 @@ else
 	OPENSSL_CONFIG+=
 endif
 
-pyd_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/.build/lib.*)
+pyd_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/build/lib.*)
 python_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/libpython*.a)
 
 # This directory must match the directory in src/build/common.mak
