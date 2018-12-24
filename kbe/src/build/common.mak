@@ -238,11 +238,11 @@ LDLIBS += -ltmxparser
 CPPFLAGS += -DUSE_TMXPARSER
 endif
 
-ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zip
-KBE_INCLUDES += -I$(ZIP_DIR)
-ifeq ($(USE_ZIP),1)
-LDLIBS += -lzip
-CPPFLAGS += -DUSE_ZIP
+ZLIB_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zlib
+KBE_INCLUDES += -I$(ZLIB_DIR)
+ifeq ($(USE_ZLIB),1)
+LDLIBS += -lzlib
+CPPFLAGS += -DUSE_ZLIB
 endif
 
 JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc

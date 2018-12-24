@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 
+#define ZLIB_WINAPI
 #include "zip/zlib.h"
 #include "TmxUtil.h"
 #include "base64.h"
