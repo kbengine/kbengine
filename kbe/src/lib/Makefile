@@ -16,7 +16,7 @@ else
 endif
 
 pyd_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/build/lib.*)
-python_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/libpython*.a)
+python_files := $(KBE_ROOT)/kbe/src/lib/python/libpython3.7m.a
 
 # This directory must match the directory in src/build/common.mak
 LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
