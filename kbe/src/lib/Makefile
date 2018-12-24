@@ -38,7 +38,7 @@ all install clean full:
 	cd dependencies/expat && $(MAKE) $@ && if ! test -e ../../../libs/libexpat.a; then \cp -f "./.libs/libexpat.a" "../../../libs"; fi
 	cd dependencies/apr-util && $(MAKE) $@ && if ! test -e ../../../libs/libaprutil-1.a; then \cp -f ".libs/libaprutil-1.a" "../../../libs"; fi
 	cd dependencies/log4cxx && $(MAKE) $@ && if ! test -e ../../../libs/liblog4cxx.a; then \cp -f "src/main/cpp/.libs/liblog4cxx.a" "../../../libs"; fi
-	cd python && $(MAKE) $@ && cp -f ${python_files} "$(KBE_ROOT)/kbe/src/libs/libpython.a" && mkdir -p "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload/" && cp -rf ${pyd_files} "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload/"
+	cd python && $(MAKE) $@ && cp -bf ${python_files} "$(KBE_ROOT)/kbe/src/libs/libpython.a" && mkdir -p "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload/" && cp -rf ${pyd_files} "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload/"
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
 	cd db_redis && $(MAKE) $@
