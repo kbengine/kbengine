@@ -34,7 +34,7 @@
 #include "TmxMap.h"
 #include "TmxTileset.h"
 #define ZLIB_WINAPI
-#include "zip/zlib.h"
+#include "zlib/zlib.h"
 
 namespace Tmx 
 {
