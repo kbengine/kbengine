@@ -239,7 +239,7 @@ endif
 ZLIB_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zlib
 KBE_INCLUDES += -I$(ZLIB_DIR)
 ifeq ($(USE_ZLIB),1)
-LDLIBS += -lzlib
+LDLIBS += -lz
 CPPFLAGS += -DUSE_ZLIB
 endif
 
