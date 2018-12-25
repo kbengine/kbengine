@@ -541,7 +541,7 @@ class NonCallableMock(Base):
             self._mock_side_effect = None
 
         for child in self._mock_children.values():
-            if isinstance(child, _SpecState):
+            if isinstance(child, _SpecState) or child is _deleted:
                 continue
             child.reset_mock(visited)
 
@@ -955,73 +955,77 @@ class CallableMixin(Base):
         self = _mock_self
         self.called = True
         self.call_count += 1
-        _new_name = self._mock_new_name
-        _new_parent = self._mock_new_parent
 
+        # handle call_args
         _call = _Call((args, kwargs), two=True)
         self.call_args = _call
         self.call_args_list.append(_call)
-        self.mock_calls.append(_Call(('', args, kwargs)))
 
         seen = set()
-        skip_next_dot = _new_name == '()'
+
+        # initial stuff for method_calls:
         do_method_calls = self._mock_parent is not None
-        name = self._mock_name
+        method_call_name = self._mock_name
+
+        # initial stuff for mock_calls:
+        mock_call_name = self._mock_new_name
+        is_a_call = mock_call_name == '()'
+        self.mock_calls.append(_Call(('', args, kwargs)))
+
+        # follow up the chain of mocks:
+        _new_parent = self._mock_new_parent
         while _new_parent is not None:
-            this_mock_call = _Call((_new_name, args, kwargs))
-            if _new_parent._mock_new_name:
-                dot = '.'
-                if skip_next_dot:
-                    dot = ''
 
-                skip_next_dot = False
-                if _new_parent._mock_new_name == '()':
-                    skip_next_dot = True
-
-                _new_name = _new_parent._mock_new_name + dot + _new_name
-
+            # handle method_calls:
             if do_method_calls:
-                if _new_name == name:
-                    this_method_call = this_mock_call
-                else:
-                    this_method_call = _Call((name, args, kwargs))
-                _new_parent.method_calls.append(this_method_call)
-
+                _new_parent.method_calls.append(_Call((method_call_name, args, kwargs)))
                 do_method_calls = _new_parent._mock_parent is not None
                 if do_method_calls:
-                    name = _new_parent._mock_name + '.' + name
+                    method_call_name = _new_parent._mock_name + '.' + method_call_name
 
+            # handle mock_calls:
+            this_mock_call = _Call((mock_call_name, args, kwargs))
             _new_parent.mock_calls.append(this_mock_call)
+
+            if _new_parent._mock_new_name:
+                if is_a_call:
+                    dot = ''
+                else:
+                    dot = '.'
+                is_a_call = _new_parent._mock_new_name == '()'
+                mock_call_name = _new_parent._mock_new_name + dot + mock_call_name
+
+            # follow the parental chain:
             _new_parent = _new_parent._mock_new_parent
 
-            # use ids here so as not to call __hash__ on the mocks
+            # check we're not in an infinite loop:
+            # ( use ids here so as not to call __hash__ on the mocks)
             _new_parent_id = id(_new_parent)
             if _new_parent_id in seen:
                 break
             seen.add(_new_parent_id)
 
-        ret_val = DEFAULT
         effect = self.side_effect
         if effect is not None:
             if _is_exception(effect):
                 raise effect
-
-            if not _callable(effect):
+            elif not _callable(effect):
                 result = next(effect)
                 if _is_exception(result):
                     raise result
-                if result is DEFAULT:
-                    result = self.return_value
+            else:
+                result = effect(*args, **kwargs)
+
+            if result is not DEFAULT:
                 return result
 
-            ret_val = effect(*args, **kwargs)
+        if self._mock_return_value is not DEFAULT:
+            return self.return_value
 
-        if (self._mock_wraps is not None and
-             self._mock_return_value is DEFAULT):
+        if self._mock_wraps is not None:
             return self._mock_wraps(*args, **kwargs)
-        if ret_val is DEFAULT:
-            ret_val = self.return_value
-        return ret_val
+
+        return self.return_value
 
 
 
@@ -1749,7 +1753,7 @@ _all_magics = _magics | _non_defaults
 
 _unsupported_magics = {
     '__getattr__', '__setattr__',
-    '__init__', '__new__', '__prepare__'
+    '__init__', '__new__', '__prepare__',
     '__instancecheck__', '__subclasscheck__',
     '__del__'
 }
@@ -2011,9 +2015,9 @@ class _Call(tuple):
 
     def __init__(self, value=(), name=None, parent=None, two=False,
                  from_kall=True):
-        self.name = name
-        self.parent = parent
-        self.from_kall = from_kall
+        self._mock_name = name
+        self._mock_parent = parent
+        self._mock_from_kall = from_kall
 
 
     def __eq__(self, other):
@@ -2029,6 +2033,10 @@ class _Call(tuple):
             self_args, self_kwargs = self
         else:
             self_name, self_args, self_kwargs = self
+
+        if (getattr(self, '_mock_parent', None) and getattr(other, '_mock_parent', None)
+                and self._mock_parent != other._mock_parent):
+            return False
 
         other_name = ''
         if len_other == 0:
@@ -2071,17 +2079,17 @@ class _Call(tuple):
 
 
     def __call__(self, *args, **kwargs):
-        if self.name is None:
+        if self._mock_name is None:
             return _Call(('', args, kwargs), name='()')
 
-        name = self.name + '()'
-        return _Call((self.name, args, kwargs), name=name, parent=self)
+        name = self._mock_name + '()'
+        return _Call((self._mock_name, args, kwargs), name=name, parent=self)
 
 
     def __getattr__(self, attr):
-        if self.name is None:
+        if self._mock_name is None:
             return _Call(name=attr, from_kall=False)
-        name = '%s.%s' % (self.name, attr)
+        name = '%s.%s' % (self._mock_name, attr)
         return _Call(name=name, parent=self, from_kall=False)
 
 
@@ -2092,8 +2100,8 @@ class _Call(tuple):
         return self.__getattr__('index')(*args, **kwargs)
 
     def __repr__(self):
-        if not self.from_kall:
-            name = self.name or 'call'
+        if not self._mock_from_kall:
+            name = self._mock_name or 'call'
             if name.startswith('()'):
                 name = 'call%s' % name
             return name
@@ -2119,9 +2127,9 @@ class _Call(tuple):
         vals = []
         thing = self
         while thing is not None:
-            if thing.from_kall:
+            if thing._mock_from_kall:
                 vals.append(thing)
-            thing = thing.parent
+            thing = thing._mock_parent
         return _CallList(reversed(vals))
 
 
@@ -2423,15 +2431,14 @@ class PropertyMock(Mock):
 
 
 def seal(mock):
-    """Disable the automatic generation of "submocks"
+    """Disable the automatic generation of child mocks.
 
     Given an input Mock, seals it to ensure no further mocks will be generated
     when accessing an attribute that was not already defined.
 
-    Submocks are defined as all mocks which were created DIRECTLY from the
-    parent. If a mock is assigned to an attribute of an existing mock,
-    it is not considered a submock.
-
+    The operation recursively seals the mock passed in, meaning that
+    the mock itself, any mocks generated by accessing one of its attributes,
+    and all assigned mocks without a name or spec will be sealed.
     """
     mock._mock_sealed = True
     for attr in dir(mock):

@@ -4419,6 +4419,20 @@ PyEval_GetBuiltins(void)
         return current_frame->f_builtins;
 }
 
+/* Convenience function to get a builtin from its name */
+PyObject *
+_PyEval_GetBuiltinId(_Py_Identifier *name)
+{
+    PyObject *attr = _PyDict_GetItemIdWithError(PyEval_GetBuiltins(), name);
+    if (attr) {
+        Py_INCREF(attr);
+    }
+    else if (!PyErr_Occurred()) {
+        PyErr_SetObject(PyExc_AttributeError, _PyUnicode_FromId(name));
+    }
+    return attr;
+}
+
 PyObject *
 PyEval_GetLocals(void)
 {
@@ -5027,7 +5041,7 @@ unicode_concatenate(PyObject *v, PyObject *w,
             PyObject *names = f->f_code->co_names;
             PyObject *name = GETITEM(names, oparg);
             PyObject *locals = f->f_locals;
-            if (PyDict_CheckExact(locals) &&
+            if (locals && PyDict_CheckExact(locals) &&
                 PyDict_GetItem(locals, name) == v) {
                 if (PyDict_DelItem(locals, name) != 0) {
                     PyErr_Clear();
@@ -5056,7 +5070,7 @@ getarray(long a[256])
             Py_DECREF(l);
             return NULL;
         }
-        PyList_SetItem(l, i, x);
+        PyList_SET_ITEM(l, i, x);
     }
     for (i = 0; i < 256; i++)
         a[i] = 0;
@@ -5078,7 +5092,7 @@ _Py_GetDXProfile(PyObject *self, PyObject *args)
             Py_DECREF(l);
             return NULL;
         }
-        PyList_SetItem(l, i, x);
+        PyList_SET_ITEM(l, i, x);
     }
     return l;
 #endif

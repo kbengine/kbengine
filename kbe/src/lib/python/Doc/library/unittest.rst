@@ -56,7 +56,7 @@ test runner
       Kent Beck's original paper on testing frameworks using the pattern shared
       by :mod:`unittest`.
 
-   `Nose <https://nose.readthedocs.io/>`_ and `py.test <https://docs.pytest.org/>`_
+   `Nose <https://nose.readthedocs.io/>`_ and `pytest <https://docs.pytest.org/>`_
       Third-party unittest frameworks with a lighter-weight syntax for writing
       tests.  For example, ``assert func(10) == 42``.
 
@@ -585,8 +585,8 @@ The following decorators implement test skipping and expected failures:
 
 .. decorator:: expectedFailure
 
-   Mark the test as an expected failure.  If the test fails when run, the test
-   is not counted as a failure.
+   Mark the test as an expected failure.  If the test fails it will be
+   considered a success.  If the test passes, it will be considered a failure.
 
 .. exception:: SkipTest(reason)
 
@@ -607,7 +607,7 @@ Distinguishing test iterations using subtests
 
 .. versionadded:: 3.4
 
-When some of your tests differ only by a some very small differences, for
+When there are very small differences among your tests, for
 instance some parameters, unittest allows you to distinguish them inside
 the body of a test method using the :meth:`~TestCase.subTest` context manager.
 
@@ -1161,7 +1161,7 @@ Test cases
       If *delta* is supplied instead of *places* then the difference
       between *first* and *second* must be less or equal to (or greater than) *delta*.
 
-      Supplying both *delta* and *places* raises a ``TypeError``.
+      Supplying both *delta* and *places* raises a :exc:`TypeError`.
 
       .. versionchanged:: 3.2
          :meth:`assertAlmostEqual` automatically considers almost equal objects

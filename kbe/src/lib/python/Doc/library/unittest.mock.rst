@@ -680,6 +680,19 @@ the *new_callable* argument to :func:`patch`.
         unpacked as tuples to get at the individual arguments. See
         :ref:`calls as tuples <calls-as-tuples>`.
 
+        .. note::
+
+            The way :attr:`mock_calls` are recorded means that where nested
+            calls are made, the parameters of ancestor calls are not recorded
+            and so will always compare equal:
+
+                >>> mock = MagicMock()
+                >>> mock.top(a=3).bottom()
+                <MagicMock name='mock.top().bottom()' id='...'>
+                >>> mock.mock_calls
+                [call.top(a=3), call.top().bottom()]
+                >>> mock.mock_calls[-1] == call.top(a=-1).bottom()
+                True
 
     .. attribute:: __class__
 
@@ -2374,17 +2387,18 @@ Sealing mocks
 
 .. function:: seal(mock)
 
-    Seal will disable the creation of mock children by preventing getting or setting
-    of any new attribute on the sealed mock. The sealing process is performed recursively.
+    Seal will disable the automatic creation of mocks when accessing an attribute of
+    the mock being sealed or any of its attributes that are already mocks recursively.
 
-    If a mock instance is assigned to an attribute instead of being dynamically created
+    If a mock instance with a name or a spec is assigned to an attribute
     it won't be considered in the sealing chain. This allows one to prevent seal from
     fixing part of the mock object.
 
         >>> mock = Mock()
         >>> mock.submock.attribute1 = 2
-        >>> mock.not_submock = mock.Mock()
+        >>> mock.not_submock = mock.Mock(name="sample_name")
         >>> seal(mock)
+        >>> mock.new_attribute  # This will raise AttributeError.
         >>> mock.submock.attribute2  # This will raise AttributeError.
         >>> mock.not_submock.attribute2  # This won't raise.
 

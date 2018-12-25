@@ -113,7 +113,4 @@
       <Filter>Source Files</Filter>
     </CustomBuild>
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\PC\python_nt.rc" />
-  </ItemGroup>
 </Project>

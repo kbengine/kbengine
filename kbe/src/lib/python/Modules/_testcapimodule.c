@@ -943,7 +943,7 @@ test_buildvalue_N_error(const char *fmt)
 }
 
 static PyObject *
-test_buildvalue_N(PyObject *self, PyObject *noargs)
+test_buildvalue_N(PyObject *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *arg, *res;
 
@@ -2453,7 +2453,7 @@ pending_threadfunc(PyObject *self, PyObject *arg)
 
 /* Some tests of PyUnicode_FromFormat().  This needs more tests. */
 static PyObject *
-test_string_from_format(PyObject *self, PyObject *args)
+test_string_from_format(PyObject *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *result;
     char *msg;
@@ -2593,7 +2593,7 @@ typedef struct {
 } known_capsule;
 
 static PyObject *
-test_capsule(PyObject *self, PyObject *args)
+test_capsule(PyObject *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *object;
     const char *error = NULL;
@@ -2964,7 +2964,7 @@ make_memoryview_from_NULL_pointer(PyObject *self)
 }
 
 static PyObject *
-test_from_contiguous(PyObject* self, PyObject *noargs)
+test_from_contiguous(PyObject* self, PyObject *Py_UNUSED(ignored))
 {
     int data[9] = {-1,-1,-1,-1,-1,-1,-1,-1,-1};
     int init[5] = {0, 1, 2, 3, 4};
@@ -3017,7 +3017,7 @@ test_from_contiguous(PyObject* self, PyObject *noargs)
 extern PyTypeObject _PyBytesIOBuffer_Type;
 
 static PyObject *
-test_pep3118_obsolete_write_locks(PyObject* self, PyObject *noargs)
+test_pep3118_obsolete_write_locks(PyObject* self, PyObject *Py_UNUSED(ignored))
 {
     PyTypeObject *type = &_PyBytesIOBuffer_Type;
     PyObject *b;
@@ -4551,6 +4551,31 @@ new_hamt(PyObject *self, PyObject *args)
 }
 
 
+static PyObject *
+get_global_config(PyObject *self, PyObject *Py_UNUSED(args))
+{
+    return _Py_GetGlobalVariablesAsDict();
+}
+
+
+static PyObject *
+get_core_config(PyObject *self, PyObject *Py_UNUSED(args))
+{
+    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    const _PyCoreConfig *config = &interp->core_config;
+    return _PyCoreConfig_AsDict(config);
+}
+
+
+static PyObject *
+get_main_config(PyObject *self, PyObject *Py_UNUSED(args))
+{
+    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    const _PyMainInterpreterConfig *config = &interp->config;
+    return _PyMainInterpreterConfig_AsDict(config);
+}
+
+
 static PyMethodDef TestMethods[] = {
     {"raise_exception",         raise_exception,                 METH_VARARGS},
     {"raise_memoryerror",   (PyCFunction)raise_memoryerror,  METH_NOARGS},
@@ -4777,6 +4802,9 @@ static PyMethodDef TestMethods[] = {
     {"get_mapping_items", get_mapping_items, METH_O},
     {"test_pythread_tss_key_state", test_pythread_tss_key_state, METH_VARARGS},
     {"hamt", new_hamt, METH_NOARGS},
+    {"get_global_config", get_global_config, METH_NOARGS},
+    {"get_core_config", get_core_config, METH_NOARGS},
+    {"get_main_config", get_main_config, METH_NOARGS},
     {NULL, NULL} /* sentinel */
 };
 

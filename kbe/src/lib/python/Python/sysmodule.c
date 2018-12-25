@@ -1757,7 +1757,6 @@ get_warnoptions(void)
          * call optional for embedding applications, thus making this
          * reachable again.
          */
-        Py_XDECREF(warnoptions);
         warnoptions = PyList_New(0);
         if (warnoptions == NULL)
             return NULL;
@@ -1824,7 +1823,8 @@ int
 PySys_HasWarnOptions(void)
 {
     PyObject *warnoptions = _PySys_GetObjectId(&PyId_warnoptions);
-    return (warnoptions != NULL && (PyList_Size(warnoptions) > 0)) ? 1 : 0;
+    return (warnoptions != NULL && PyList_Check(warnoptions)
+            && PyList_GET_SIZE(warnoptions) > 0);
 }
 
 static PyObject *
@@ -1842,7 +1842,6 @@ get_xoptions(void)
          * call optional for embedding applications, thus making this
          * reachable again.
          */
-        Py_XDECREF(xoptions);
         xoptions = PyDict_New();
         if (xoptions == NULL)
             return NULL;
@@ -2544,7 +2543,7 @@ makepathobject(const wchar_t *path, wchar_t delim)
             Py_DECREF(v);
             return NULL;
         }
-        PyList_SetItem(v, i, w);
+        PyList_SET_ITEM(v, i, w);
         if (*p == '\0')
             break;
         path = p+1;
