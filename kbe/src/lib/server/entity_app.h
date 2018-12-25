@@ -1082,10 +1082,12 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 	PyObject *ioMod = PyImport_ImportModule("io");
 
 	// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), 
-		const_cast<char*>("ss"), 
-		const_cast<char*>(sfullpath.c_str()), 
-		fargs);
+	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"),
+		const_cast<char*>("ssis"),
+		sfullpath.c_str(),
+		fargs,
+		-1,
+		"utf-8");
 
 	Py_DECREF(ioMod);
 	
