@@ -5,7 +5,7 @@ CONFIG_ARGS =
 
 config.status:
 	@chmod -R 755 .
-	./configure
+	./configure --enable-optimizations
 	@make
 
 .PHONY: clean
