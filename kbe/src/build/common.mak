@@ -138,6 +138,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/zlib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/fmt/include
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/curl/include
@@ -150,7 +151,7 @@ LDLIBS += $(addprefix -l, $(MY_LIBS))
 LDLIBS += -lm
 LDLIBS += -lfmt
 LDLIBS += -lcurl
-LDLIBS += -lzip
+LDLIBS += -lz
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
