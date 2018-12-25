@@ -27,7 +27,9 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 
+#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #define ZLIB_WINAPI
+#endif
 #include "zlib/zlib.h"
 #include "TmxUtil.h"
 #include "base64.h"
