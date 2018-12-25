@@ -148,6 +148,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/curl/include
 # CPPFLAGS += -save-temps
 
 LDLIBS += $(addprefix -l, $(MY_LIBS))
+LDLIBS += -lcurl
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
@@ -252,7 +253,6 @@ CPPFLAGS += -DUSE_JEMALLOC
 LDLIBS += -ltinyxml
 LDLIBS += -lm
 LDLIBS += -lfmt
-LDLIBS += -lcurl
 LDLIBS += -lz
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
