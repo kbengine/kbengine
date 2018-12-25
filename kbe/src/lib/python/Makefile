@@ -5,7 +5,7 @@ CONFIG_ARGS =
 
 config.status:
 	@chmod -R 755 .
-	./configure --enable-optimizations -l=$(KBE_ROOT)/kbe/src/libs/ -I$(KBE_ROOT)/kbe/src/lib/dependencies/openssl/include
+	./configure --enable-optimizations --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 	@make
 
 .PHONY: clean
