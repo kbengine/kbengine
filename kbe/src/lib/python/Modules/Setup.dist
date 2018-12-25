@@ -216,7 +216,7 @@ _ssl _ssl.c \
 # The crypt module is now disabled by default because it breaks builds
 # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
 
-_crypt _cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
+#_crypt _cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
 
 
 # Some more UNIX dependent modules -- off by default, since these
