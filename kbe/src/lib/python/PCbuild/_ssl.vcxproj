@@ -100,7 +100,9 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\dependencies\openssl\include\openssl\applink.c" />
+    <ClCompile Include="..\..\dependencies\openssl\include\openssl\applink.c">
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="..\Modules\_ssl.c" />
   </ItemGroup>
   <ItemGroup>

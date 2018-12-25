@@ -2465,6 +2465,7 @@ class _TestPool(BaseTestCase):
             with self.Pool(2) as p:
                 r = p.map_async(sqr, L)
                 self.assertEqual(r.get(), expected)
+            p.join()
             self.assertRaises(ValueError, p.map_async, sqr, L)
 
     @classmethod
@@ -2482,6 +2483,7 @@ class _TestPool(BaseTestCase):
                     exc = e
                 else:
                     self.fail('expected RuntimeError')
+            p.join()
             self.assertIs(type(exc), RuntimeError)
             self.assertEqual(exc.args, (123,))
             cause = exc.__cause__
@@ -2506,6 +2508,7 @@ class _TestPool(BaseTestCase):
                     self.fail('expected SayWhenError')
                 self.assertIs(type(exc), SayWhenError)
                 self.assertIs(exc.__cause__, None)
+            p.join()
 
     @classmethod
     def _test_wrapped_exception(cls):
@@ -2516,6 +2519,7 @@ class _TestPool(BaseTestCase):
         with self.Pool(1) as p:
             with self.assertRaises(RuntimeError):
                 p.apply(self._test_wrapped_exception)
+        p.join()
 
     def test_map_no_failfast(self):
         # Issue #23992: the fail-fast behaviour when an exception is raised
@@ -2551,12 +2555,6 @@ class _TestPool(BaseTestCase):
         # they were released too.
         self.assertEqual(CountedObject.n_instances, 0)
 
-    def test_del_pool(self):
-        p = self.Pool(1)
-        wr = weakref.ref(p)
-        del p
-        gc.collect()
-        self.assertIsNone(wr())
 
 def raising():
     raise KeyError("key")

@@ -1422,13 +1422,19 @@ win32_error_object(const char* function, PyObject* filename)
 #endif /* MS_WINDOWS */
 
 static PyObject *
+posix_path_object_error(PyObject *path)
+{
+    return PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
+}
+
+static PyObject *
 path_object_error(PyObject *path)
 {
 #ifdef MS_WINDOWS
     return PyErr_SetExcFromWindowsErrWithFilenameObject(
                 PyExc_OSError, 0, path);
 #else
-    return PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
+    return posix_path_object_error(path);
 #endif
 }
 
@@ -1447,6 +1453,12 @@ static PyObject *
 path_error(path_t *path)
 {
     return path_object_error(path->object);
+}
+
+static PyObject *
+posix_path_error(path_t *path)
+{
+    return posix_path_object_error(path->object);
 }
 
 static PyObject *
@@ -2434,7 +2446,7 @@ class sched_param_converter(CConverter):
 os.stat
 
     path : path_t(allow_fd=True)
-        Path to be examined; can be string, bytes, path-like object or
+        Path to be examined; can be string, bytes, a path-like object or
         open-file-descriptor int.
 
     *
@@ -2462,7 +2474,7 @@ It's an error to use dir_fd or follow_symlinks when specifying path as
 
 static PyObject *
 os_stat_impl(PyObject *module, path_t *path, int dir_fd, int follow_symlinks)
-/*[clinic end generated code: output=7d4976e6f18a59c5 input=270bd64e7bb3c8f7]*/
+/*[clinic end generated code: output=7d4976e6f18a59c5 input=01d362ebcc06996b]*/
 {
     return posix_do_stat("stat", path, dir_fd, follow_symlinks);
 }
@@ -2496,7 +2508,7 @@ os_lstat_impl(PyObject *module, path_t *path, int dir_fd)
 os.access -> bool
 
     path: path_t
-        Path to be tested; can be string or bytes
+        Path to be tested; can be string, bytes, or a path-like object.
 
     mode: int
         Operating-system mode bitfield.  Can be F_OK to test existence,
@@ -2534,7 +2546,7 @@ Note that most operations will use the effective uid/gid, therefore this
 static int
 os_access_impl(PyObject *module, path_t *path, int mode, int dir_fd,
                int effective_ids, int follow_symlinks)
-/*[clinic end generated code: output=cf84158bc90b1a77 input=8e8c3a6ba791fee3]*/
+/*[clinic end generated code: output=cf84158bc90b1a77 input=3ffe4e650ee3bf20]*/
 {
     int return_value;
 
@@ -2726,7 +2738,7 @@ os_fchdir_impl(PyObject *module, int fd)
 os.chmod
 
     path: path_t(allow_fd='PATH_HAVE_FCHMOD')
-        Path to be modified.  May always be specified as a str or bytes.
+        Path to be modified.  May always be specified as a str, bytes, or a path-like object.
         On some platforms, path may also be specified as an open file descriptor.
         If this functionality is unavailable, using it raises an exception.
 
@@ -2757,7 +2769,7 @@ dir_fd and follow_symlinks may not be implemented on your platform.
 static PyObject *
 os_chmod_impl(PyObject *module, path_t *path, int mode, int dir_fd,
               int follow_symlinks)
-/*[clinic end generated code: output=5cf6a94915cc7bff input=7f1618e5e15cc196]*/
+/*[clinic end generated code: output=5cf6a94915cc7bff input=989081551c00293b]*/
 {
     int result;
 
@@ -3077,7 +3089,7 @@ os_fdatasync_impl(PyObject *module, int fd)
 os.chown
 
     path : path_t(allow_fd='PATH_HAVE_FCHOWN')
-        Path to be examined; can be string, bytes, or open-file-descriptor int.
+        Path to be examined; can be string, bytes, a path-like object, or open-file-descriptor int.
 
     uid: uid_t
 
@@ -3115,7 +3127,7 @@ dir_fd and follow_symlinks may not be implemented on your platform.
 static PyObject *
 os_chown_impl(PyObject *module, path_t *path, uid_t uid, gid_t gid,
               int dir_fd, int follow_symlinks)
-/*[clinic end generated code: output=4beadab0db5f70cd input=a61cc35574814d5d]*/
+/*[clinic end generated code: output=4beadab0db5f70cd input=b08c5ec67996a97d]*/
 {
     int result;
 
@@ -3642,7 +3654,7 @@ os.listdir
 
 Return a list containing the names of the files in the directory.
 
-path can be specified as either str or bytes.  If path is bytes,
+path can be specified as either str, bytes, or a path-like object.  If path is bytes,
   the filenames returned will also be bytes; in all other circumstances
   the filenames returned will be str.
 If path is None, uses the path='.'.
@@ -3658,7 +3670,7 @@ entries '.' and '..' even if they are present in the directory.
 
 static PyObject *
 os_listdir_impl(PyObject *module, path_t *path)
-/*[clinic end generated code: output=293045673fcd1a75 input=09e300416e3cd729]*/
+/*[clinic end generated code: output=293045673fcd1a75 input=e3f58030f538295d]*/
 {
 #if defined(MS_WINDOWS) && !defined(HAVE_OPENDIR)
     return _listdir_windows_no_opendir(path, NULL);
@@ -4633,7 +4645,6 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
     int result;
 #endif
 
-    PyObject *return_value = NULL;
     utime_t utime;
 
     memset(&utime, 0, sizeof(utime_t));
@@ -4642,7 +4653,7 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
         PyErr_SetString(PyExc_ValueError,
                      "utime: you may specify either 'times'"
                      " or 'ns' but not both");
-        goto exit;
+        return NULL;
     }
 
     if (times && (times != Py_None)) {
@@ -4652,14 +4663,14 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
             PyErr_SetString(PyExc_TypeError,
                          "utime: 'times' must be either"
                          " a tuple of two ints or None");
-            goto exit;
+            return NULL;
         }
         utime.now = 0;
         if (_PyTime_ObjectToTimespec(PyTuple_GET_ITEM(times, 0),
                                      &a_sec, &a_nsec, _PyTime_ROUND_FLOOR) == -1 ||
             _PyTime_ObjectToTimespec(PyTuple_GET_ITEM(times, 1),
                                      &m_sec, &m_nsec, _PyTime_ROUND_FLOOR) == -1) {
-            goto exit;
+            return NULL;
         }
         utime.atime_s = a_sec;
         utime.atime_ns = a_nsec;
@@ -4670,14 +4681,14 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
         if (!PyTuple_CheckExact(ns) || (PyTuple_Size(ns) != 2)) {
             PyErr_SetString(PyExc_TypeError,
                          "utime: 'ns' must be a tuple of two ints");
-            goto exit;
+            return NULL;
         }
         utime.now = 0;
         if (!split_py_long_to_s_and_ns(PyTuple_GET_ITEM(ns, 0),
                                       &utime.atime_s, &utime.atime_ns) ||
             !split_py_long_to_s_and_ns(PyTuple_GET_ITEM(ns, 1),
                                        &utime.mtime_s, &utime.mtime_ns)) {
-            goto exit;
+            return NULL;
         }
     }
     else {
@@ -4687,20 +4698,20 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
 
 #if !defined(UTIME_HAVE_NOFOLLOW_SYMLINKS)
     if (follow_symlinks_specified("utime", follow_symlinks))
-        goto exit;
+        return NULL;
 #endif
 
     if (path_and_dir_fd_invalid("utime", path, dir_fd) ||
         dir_fd_and_fd_invalid("utime", dir_fd, path->fd) ||
         fd_and_follow_symlinks_invalid("utime", path->fd, follow_symlinks))
-        goto exit;
+        return NULL;
 
 #if !defined(HAVE_UTIMENSAT)
     if ((dir_fd != DEFAULT_DIR_FD) && (!follow_symlinks)) {
         PyErr_SetString(PyExc_ValueError,
                      "utime: cannot use dir_fd and follow_symlinks "
                      "together on this platform");
-        goto exit;
+        return NULL;
     }
 #endif
 
@@ -4712,7 +4723,7 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
     Py_END_ALLOW_THREADS
     if (hFile == INVALID_HANDLE_VALUE) {
         path_error(path);
-        goto exit;
+        return NULL;
     }
 
     if (utime.now) {
@@ -4729,8 +4740,10 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
            something is wrong with the file, when it also
            could be the time stamp that gives a problem. */
         PyErr_SetFromWindowsErr(0);
-        goto exit;
+        CloseHandle(hFile);
+        return NULL;
     }
+    CloseHandle(hFile);
 #else /* MS_WINDOWS */
     Py_BEGIN_ALLOW_THREADS
 
@@ -4758,21 +4771,13 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
 
     if (result < 0) {
         /* see previous comment about not putting filename in error here */
-        return_value = posix_error();
-        goto exit;
+        posix_error();
+        return NULL;
     }
 
 #endif /* MS_WINDOWS */
 
-    Py_INCREF(Py_None);
-    return_value = Py_None;
-
-exit:
-#ifdef MS_WINDOWS
-    if (hFile != INVALID_HANDLE_VALUE)
-        CloseHandle(hFile);
-#endif
-    return return_value;
+    Py_RETURN_NONE;
 }
 
 /* Process operations */
@@ -5097,7 +5102,7 @@ os_execve_impl(PyObject *module, path_t *path, PyObject *argv, PyObject *env)
 
     /* If we get here it's definitely an error */
 
-    path_error(path);
+    posix_path_error(path);
 
     free_string_array(envlist, envc);
   fail:
@@ -6224,8 +6229,7 @@ os_getgroups_impl(PyObject *module)
     } else {
         alt_grouplist = PyMem_New(gid_t, n);
         if (alt_grouplist == NULL) {
-            errno = EINVAL;
-            return posix_error();
+            return PyErr_NoMemory();
         }
     }
 
@@ -6250,8 +6254,7 @@ os_getgroups_impl(PyObject *module)
             } else {
                 alt_grouplist = PyMem_New(gid_t, n);
                 if (alt_grouplist == NULL) {
-                    errno = EINVAL;
-                    return posix_error();
+                    return PyErr_NoMemory();
                 }
                 n = getgroups(n, alt_grouplist);
                 if (n == -1) {
@@ -8009,11 +8012,7 @@ os_read_impl(PyObject *module, int fd, Py_ssize_t length)
         return posix_error();
     }
 
-#ifdef MS_WINDOWS
-    /* On Windows, the count parameter of read() is an int */
-    if (length > INT_MAX)
-        length = INT_MAX;
-#endif
+    length = Py_MIN(length, _PY_READ_MAX);
 
     buffer = PyBytes_FromStringAndSize((char *)NULL, length);
     if (buffer == NULL)
@@ -9060,7 +9059,7 @@ os_truncate_impl(PyObject *module, path_t *path, Py_off_t length)
     _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (result < 0)
-        return path_error(path);
+        return posix_path_error(path);
 
     Py_RETURN_NONE;
 }
@@ -10961,7 +10960,7 @@ os.getxattr
 
 Return the value of extended attribute attribute on path.
 
-path may be either a string or an open file descriptor.
+path may be either a string, a path-like object, or an open file descriptor.
 If follow_symlinks is False, and the last element of the path is a symbolic
   link, getxattr will examine the symbolic link itself instead of the file
   the link points to.
@@ -10971,7 +10970,7 @@ If follow_symlinks is False, and the last element of the path is a symbolic
 static PyObject *
 os_getxattr_impl(PyObject *module, path_t *path, path_t *attribute,
                  int follow_symlinks)
-/*[clinic end generated code: output=5f2f44200a43cff2 input=8c8ea3bab78d89c2]*/
+/*[clinic end generated code: output=5f2f44200a43cff2 input=025789491708f7eb]*/
 {
     Py_ssize_t i;
     PyObject *buffer = NULL;
@@ -11033,7 +11032,7 @@ os.setxattr
 
 Set extended attribute attribute on path to value.
 
-path may be either a string or an open file descriptor.
+path may be either a string, a path-like object,  or an open file descriptor.
 If follow_symlinks is False, and the last element of the path is a symbolic
   link, setxattr will modify the symbolic link itself instead of the file
   the link points to.
@@ -11043,7 +11042,7 @@ If follow_symlinks is False, and the last element of the path is a symbolic
 static PyObject *
 os_setxattr_impl(PyObject *module, path_t *path, path_t *attribute,
                  Py_buffer *value, int flags, int follow_symlinks)
-/*[clinic end generated code: output=98b83f63fdde26bb input=f0d26833992015c2]*/
+/*[clinic end generated code: output=98b83f63fdde26bb input=c17c0103009042f0]*/
 {
     ssize_t result;
 
@@ -11081,7 +11080,7 @@ os.removexattr
 
 Remove extended attribute attribute on path.
 
-path may be either a string or an open file descriptor.
+path may be either a string, a path-like object, or an open file descriptor.
 If follow_symlinks is False, and the last element of the path is a symbolic
   link, removexattr will modify the symbolic link itself instead of the file
   the link points to.
@@ -11091,7 +11090,7 @@ If follow_symlinks is False, and the last element of the path is a symbolic
 static PyObject *
 os_removexattr_impl(PyObject *module, path_t *path, path_t *attribute,
                     int follow_symlinks)
-/*[clinic end generated code: output=521a51817980cda6 input=cdb54834161e3329]*/
+/*[clinic end generated code: output=521a51817980cda6 input=3d9a7d36fe2f7c4e]*/
 {
     ssize_t result;
 
@@ -11124,7 +11123,7 @@ os.listxattr
 
 Return a list of extended attributes on path.
 
-path may be either None, a string, or an open file descriptor.
+path may be either None, a string, a path-like object, or an open file descriptor.
 if path is None, listxattr will examine the current directory.
 If follow_symlinks is False, and the last element of the path is a symbolic
   link, listxattr will examine the symbolic link itself instead of the file
@@ -11133,7 +11132,7 @@ If follow_symlinks is False, and the last element of the path is a symbolic
 
 static PyObject *
 os_listxattr_impl(PyObject *module, path_t *path, int follow_symlinks)
-/*[clinic end generated code: output=bebdb4e2ad0ce435 input=08cca53ac0b07c13]*/
+/*[clinic end generated code: output=bebdb4e2ad0ce435 input=9826edf9fdb90869]*/
 {
     Py_ssize_t i;
     PyObject *result = NULL;
@@ -12380,7 +12379,7 @@ os.scandir
 
 Return an iterator of DirEntry objects for given path.
 
-path can be specified as either str, bytes or path-like object.  If path
+path can be specified as either str, bytes, or a path-like object.  If path
 is bytes, the names of yielded DirEntry objects will also be bytes; in
 all other circumstances they will be str.
 
@@ -12389,7 +12388,7 @@ If path is None, uses the path='.'.
 
 static PyObject *
 os_scandir_impl(PyObject *module, path_t *path)
-/*[clinic end generated code: output=6eb2668b675ca89e input=b139dc1c57f60846]*/
+/*[clinic end generated code: output=6eb2668b675ca89e input=6bdd312708fc3bb0]*/
 {
     ScandirIterator *iterator;
 #ifdef MS_WINDOWS

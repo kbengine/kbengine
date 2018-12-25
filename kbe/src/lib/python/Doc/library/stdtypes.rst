@@ -123,9 +123,9 @@ Comparisons
    pair: chaining; comparisons
    pair: operator; comparison
    operator: ==
-   operator: <
+   operator: < (less)
    operator: <=
-   operator: >
+   operator: > (greater)
    operator: >=
    operator: !=
    operator: is
@@ -248,12 +248,16 @@ and imaginary parts.
    builtin: int
    builtin: float
    builtin: complex
-   operator: +
-   operator: -
-   operator: *
-   operator: /
+   single: operator; + (plus)
+   single: + (plus); unary operator
+   single: + (plus); binary operator
+   single: operator; - (minus)
+   single: - (minus); unary operator
+   single: - (minus); binary operator
+   operator: * (asterisk)
+   operator: / (slash)
    operator: //
-   operator: %
+   operator: % (percent)
    operator: **
 
 Python fully supports mixed arithmetic: when a binary arithmetic operator has
@@ -389,12 +393,12 @@ Bitwise Operations on Integer Types
    pair: bitwise; operations
    pair: shifting; operations
    pair: masking; operations
-   operator: |
-   operator: ^
-   operator: &
+   operator: | (vertical bar)
+   operator: ^ (caret)
+   operator: & (ampersand)
    operator: <<
    operator: >>
-   operator: ~
+   operator: ~ (tilde)
 
 Bitwise operations only make sense for integers. The result of bitwise
 operations is calculated as though carried out in two's complement with an
@@ -441,7 +445,7 @@ Notes:
 (4)
    Performing these calculations with at least one extra sign extension bit in
    a finite two's complement representation (a working bit-width of
-   ``1 + max(x.bit_length(), y.bit_length()`` or more) is sufficient to get the
+   ``1 + max(x.bit_length(), y.bit_length())`` or more) is sufficient to get the
    same result as if there were an infinite number of sign bits.
 
 
@@ -2096,8 +2100,7 @@ expression support in the :mod:`re` module).
    single: string; interpolation, printf
    single: printf-style formatting
    single: sprintf-style formatting
-   single: % formatting
-   single: % interpolation
+   single: % (percent); printf-style formatting
 
 .. note::
 
@@ -2119,6 +2122,11 @@ If *format* requires a single argument, *values* may be a single non-tuple
 object. [5]_  Otherwise, *values* must be a tuple with exactly the number of
 items specified by the format string, or a single mapping object (for example, a
 dictionary).
+
+.. index::
+   single: () (parentheses); in printf-style formatting
+   single: * (asterisk); in printf-style formatting
+   single: . (dot); in printf-style formatting
 
 A conversion specifier contains two or more characters and has the following
 components, which must occur in this order:
@@ -2157,6 +2165,12 @@ In this case no ``*`` specifiers may occur in a format (since they require a
 sequential parameter list).
 
 The conversion flag characters are:
+
+.. index::
+   single: # (hash); in printf-style formatting
+   single: - (minus); in printf-style formatting
+   single: + (plus); in printf-style formatting
+   single: space; in printf-style formatting
 
 +---------+---------------------------------------------------------------------+
 | Flag    | Meaning                                                             |
@@ -3187,7 +3201,7 @@ place, and instead produce new objects.
 
    Return a copy of the sequence left filled with ASCII ``b'0'`` digits to
    make a sequence of length *width*. A leading sign prefix (``b'+'``/
-   ``b'-'`` is handled by inserting the padding *after* the sign character
+   ``b'-'``) is handled by inserting the padding *after* the sign character
    rather than before. For :class:`bytes` objects, the original sequence is
    returned if *width* is less than or equal to ``len(seq)``.
 
@@ -3210,18 +3224,17 @@ place, and instead produce new objects.
 ----------------------------------
 
 .. index::
-   single: formatting, bytes (%)
-   single: formatting, bytearray (%)
-   single: interpolation, bytes (%)
-   single: interpolation, bytearray (%)
+   single: formatting; bytes (%)
+   single: formatting; bytearray (%)
+   single: interpolation; bytes (%)
+   single: interpolation; bytearray (%)
    single: bytes; formatting
    single: bytearray; formatting
    single: bytes; interpolation
    single: bytearray; interpolation
    single: printf-style formatting
    single: sprintf-style formatting
-   single: % formatting
-   single: % interpolation
+   single: % (percent); printf-style formatting
 
 .. note::
 
@@ -3241,6 +3254,11 @@ If *format* requires a single argument, *values* may be a single non-tuple
 object. [5]_  Otherwise, *values* must be a tuple with exactly the number of
 items specified by the format bytes object, or a single mapping object (for
 example, a dictionary).
+
+.. index::
+   single: () (parentheses); in printf-style formatting
+   single: * (asterisk); in printf-style formatting
+   single: . (dot); in printf-style formatting
 
 A conversion specifier contains two or more characters and has the following
 components, which must occur in this order:
@@ -3279,6 +3297,12 @@ In this case no ``*`` specifiers may occur in a format (since they require a
 sequential parameter list).
 
 The conversion flag characters are:
+
+.. index::
+   single: # (hash); in printf-style formatting
+   single: - (minus); in printf-style formatting
+   single: + (plus); in printf-style formatting
+   single: space; in printf-style formatting
 
 +---------+---------------------------------------------------------------------+
 | Flag    | Meaning                                                             |
@@ -3743,7 +3767,7 @@ copying.
 
       ``nbytes == product(shape) * itemsize == len(m.tobytes())``. This is
       the amount of space in bytes that the array would use in a contiguous
-      representation. It is not necessarily equal to len(m)::
+      representation. It is not necessarily equal to ``len(m)``::
 
          >>> import array
          >>> a = array.array('i', [1,2,3,4,5])
@@ -4264,7 +4288,7 @@ pairs within braces, for example: ``{'jack': 4098, 'sjoerd': 4127}`` or ``{4098:
 
    .. versionchanged:: 3.7
       Dictionary order is guaranteed to be insertion order.  This behavior was
-      implementation detail of CPython from 3.6.
+      an implementation detail of CPython from 3.6.
 
 .. seealso::
    :class:`types.MappingProxyType` can be used to create a read-only view
@@ -4582,6 +4606,7 @@ supports no special operations.  There is exactly one null object, named
 It is written as ``None``.
 
 
+.. index:: single: ...; ellipsis literal
 .. _bltin-ellipsis-object:
 
 The Ellipsis Object

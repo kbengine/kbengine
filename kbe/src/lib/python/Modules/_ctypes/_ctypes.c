@@ -305,8 +305,10 @@ _ctypes_alloc_format_string_for_type(char code, int big_endian)
     }
 
     result = PyMem_Malloc(3);
-    if (result == NULL)
+    if (result == NULL) {
+        PyErr_NoMemory();
         return NULL;
+    }
 
     result[0] = big_endian ? '>' : '<';
     result[1] = pep_code;
@@ -366,8 +368,10 @@ _ctypes_alloc_format_string_with_shape(int ndim, const Py_ssize_t *shape,
     if (prefix)
         prefix_len += strlen(prefix);
     new_prefix = PyMem_Malloc(prefix_len);
-    if (new_prefix == NULL)
+    if (new_prefix == NULL) {
+        PyErr_NoMemory();
         return NULL;
+    }
     new_prefix[0] = '\0';
     if (prefix)
         strcpy(new_prefix, prefix);
@@ -1161,7 +1165,7 @@ PyTypeObject PyCPointerType_Type = {
 */
 
 static int
-CharArray_set_raw(CDataObject *self, PyObject *value)
+CharArray_set_raw(CDataObject *self, PyObject *value, void *Py_UNUSED(ignored))
 {
     char *ptr;
     Py_ssize_t size;
@@ -1187,13 +1191,13 @@ CharArray_set_raw(CDataObject *self, PyObject *value)
 }
 
 static PyObject *
-CharArray_get_raw(CDataObject *self)
+CharArray_get_raw(CDataObject *self, void *Py_UNUSED(ignored))
 {
     return PyBytes_FromStringAndSize(self->b_ptr, self->b_size);
 }
 
 static PyObject *
-CharArray_get_value(CDataObject *self)
+CharArray_get_value(CDataObject *self, void *Py_UNUSED(ignored))
 {
     Py_ssize_t i;
     char *ptr = self->b_ptr;
@@ -1204,7 +1208,7 @@ CharArray_get_value(CDataObject *self)
 }
 
 static int
-CharArray_set_value(CDataObject *self, PyObject *value)
+CharArray_set_value(CDataObject *self, PyObject *value, void *Py_UNUSED(ignored))
 {
     char *ptr;
     Py_ssize_t size;
@@ -1249,7 +1253,7 @@ static PyGetSetDef CharArray_getsets[] = {
 
 #ifdef CTYPES_UNICODE
 static PyObject *
-WCharArray_get_value(CDataObject *self)
+WCharArray_get_value(CDataObject *self, void *Py_UNUSED(ignored))
 {
     Py_ssize_t i;
     wchar_t *ptr = (wchar_t *)self->b_ptr;
@@ -1260,7 +1264,7 @@ WCharArray_get_value(CDataObject *self)
 }
 
 static int
-WCharArray_set_value(CDataObject *self, PyObject *value)
+WCharArray_set_value(CDataObject *self, PyObject *value, void *Py_UNUSED(ignored))
 {
     Py_ssize_t result = 0;
     Py_UNICODE *wstr;
@@ -1851,6 +1855,10 @@ static PyObject *CreateSwappedType(PyTypeObject *type, PyObject *args, PyObject 
 #else
         suffix = PyUnicode_InternFromString("_be");
 #endif
+    if (suffix == NULL) {
+        Py_DECREF(swapped_args);
+        return NULL;
+    }
 
     newname = PyUnicode_Concat(name, suffix);
     if (newname == NULL) {
@@ -3045,7 +3053,7 @@ GenericPyCData_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 */
 
 static int
-PyCFuncPtr_set_errcheck(PyCFuncPtrObject *self, PyObject *ob)
+PyCFuncPtr_set_errcheck(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
 {
     if (ob && !PyCallable_Check(ob)) {
         PyErr_SetString(PyExc_TypeError,
@@ -3058,7 +3066,7 @@ PyCFuncPtr_set_errcheck(PyCFuncPtrObject *self, PyObject *ob)
 }
 
 static PyObject *
-PyCFuncPtr_get_errcheck(PyCFuncPtrObject *self)
+PyCFuncPtr_get_errcheck(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     if (self->errcheck) {
         Py_INCREF(self->errcheck);
@@ -3068,7 +3076,7 @@ PyCFuncPtr_get_errcheck(PyCFuncPtrObject *self)
 }
 
 static int
-PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob)
+PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
 {
     if (ob == NULL) {
         Py_CLEAR(self->restype);
@@ -3089,7 +3097,7 @@ PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob)
 }
 
 static PyObject *
-PyCFuncPtr_get_restype(PyCFuncPtrObject *self)
+PyCFuncPtr_get_restype(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     StgDictObject *dict;
     if (self->restype) {
@@ -3107,7 +3115,7 @@ PyCFuncPtr_get_restype(PyCFuncPtrObject *self)
 }
 
 static int
-PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob)
+PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
 {
     PyObject *converters;
 
@@ -3126,7 +3134,7 @@ PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob)
 }
 
 static PyObject *
-PyCFuncPtr_get_argtypes(PyCFuncPtrObject *self)
+PyCFuncPtr_get_argtypes(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     StgDictObject *dict;
     if (self->argtypes) {
@@ -4670,7 +4678,7 @@ PyCArrayType_from_ctype(PyObject *itemtype, Py_ssize_t length)
 */
 
 static int
-Simple_set_value(CDataObject *self, PyObject *value)
+Simple_set_value(CDataObject *self, PyObject *value, void *Py_UNUSED(ignored))
 {
     PyObject *result;
     StgDictObject *dict = PyObject_stgdict((PyObject *)self);
@@ -4697,12 +4705,12 @@ Simple_init(CDataObject *self, PyObject *args, PyObject *kw)
     if (!PyArg_UnpackTuple(args, "__init__", 0, 1, &value))
         return -1;
     if (value)
-        return Simple_set_value(self, value);
+        return Simple_set_value(self, value, NULL);
     return 0;
 }
 
 static PyObject *
-Simple_get_value(CDataObject *self)
+Simple_get_value(CDataObject *self, void *Py_UNUSED(ignored))
 {
     StgDictObject *dict;
     dict = PyObject_stgdict((PyObject *)self);
@@ -4725,7 +4733,7 @@ Simple_from_outparm(PyObject *self, PyObject *args)
         return self;
     }
     /* call stgdict->getfunc */
-    return Simple_get_value((CDataObject *)self);
+    return Simple_get_value((CDataObject *)self, NULL);
 }
 
 static PyMethodDef Simple_methods[] = {
@@ -4762,7 +4770,7 @@ Simple_repr(CDataObject *self)
                                    Py_TYPE(self)->tp_name, self);
     }
 
-    val = Simple_get_value(self);
+    val = Simple_get_value(self, NULL);
     if (val == NULL)
         return NULL;
 

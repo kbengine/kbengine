@@ -1344,7 +1344,7 @@ deque_traverse(dequeobject *deque, visitproc visit, void *arg)
 }
 
 static PyObject *
-deque_reduce(dequeobject *deque)
+deque_reduce(dequeobject *deque, PyObject *Py_UNUSED(ignored))
 {
     PyObject *dict, *it;
     _Py_IDENTIFIER(__dict__);
@@ -1542,7 +1542,7 @@ deque_bool(dequeobject *deque)
 }
 
 static PyObject *
-deque_get_maxlen(dequeobject *deque)
+deque_get_maxlen(dequeobject *deque, void *Py_UNUSED(ignored))
 {
     if (deque->maxlen < 0)
         Py_RETURN_NONE;

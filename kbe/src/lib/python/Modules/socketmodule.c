@@ -360,10 +360,14 @@ remove_unusable_flags(PyObject *m)
         else {
             if (PyDict_GetItemString(
                     dict,
-                    win_runtime_flags[i].flag_name) != NULL) {
-                PyDict_DelItemString(
-                    dict,
-                    win_runtime_flags[i].flag_name);
+                    win_runtime_flags[i].flag_name) != NULL)
+            {
+                if (PyDict_DelItemString(
+                        dict,
+                        win_runtime_flags[i].flag_name))
+                {
+                    PyErr_Clear();
+                }
             }
         }
     }
@@ -2157,14 +2161,18 @@ getsockaddrarg(PySocketSockObject *s, PyObject *args,
 
         if (!PyArg_ParseTuple(args, "ss|HH:getsockaddrarg",
                                 &type, &name, &sa->salg_feat, &sa->salg_mask))
+        {
             return 0;
-        /* sockaddr_alg has fixed-sized char arrays for type and name */
-        if (strlen(type) > sizeof(sa->salg_type)) {
+        }
+        /* sockaddr_alg has fixed-sized char arrays for type, and name
+         * both must be NULL terminated.
+         */
+        if (strlen(type) >= sizeof(sa->salg_type)) {
             PyErr_SetString(PyExc_ValueError, "AF_ALG type too long.");
             return 0;
         }
         strncpy((char *)sa->salg_type, type, sizeof(sa->salg_type));
-        if (strlen(name) > sizeof(sa->salg_name)) {
+        if (strlen(name) >= sizeof(sa->salg_name)) {
             PyErr_SetString(PyExc_ValueError, "AF_ALG name too long.");
             return 0;
         }
@@ -6269,9 +6277,11 @@ socket_getaddrinfo(PyObject *self, PyObject *args, PyObject* kwargs)
         if (single == NULL)
             goto err;
 
-        if (PyList_Append(all, single))
+        if (PyList_Append(all, single)) {
+            Py_DECREF(single);
             goto err;
-        Py_XDECREF(single);
+        }
+        Py_DECREF(single);
     }
     Py_XDECREF(idna);
     if (res0)
