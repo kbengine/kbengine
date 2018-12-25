@@ -7,6 +7,7 @@
 
 #include "Python.h"
 #include "structmember.h"
+#define ZLIB_WINAPI
 #include "zlib.h"
 
 
