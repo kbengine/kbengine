@@ -976,6 +976,9 @@
     </ClCompile>
     <ClCompile Include="..\Python\context.c" />
     <ClCompile Include="..\Python\hamt.c" />
+    <ClCompile Include="..\Modules\zlibmodule.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\PC\python_nt.rc">
