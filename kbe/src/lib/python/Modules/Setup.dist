@@ -340,7 +340,7 @@ zlib zlibmodule.c -I$(KBE_ROOT)/kbe/src/lib/dependencies/zlib -L$(KBE_ROOT)/kbe/
 # Interface to the Expat XML parser
 # More information on Expat can be found at www.libexpat.org.
 #
-Modules/expat/xmlparse.c Modules/expat/xmlrole.c Modules/expat/xmltok.c Modules/pyexpat.c -I$(srcdir) -I$(srcdir)/Modules -I$(srcdir)/Include -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY=1 -DUSE_PYEXPAT_CAPI
+Modules/expat/xmlparse.c Modules/expat/xmlrole.c Modules/expat/xmltok.c Modules/pyexpat.c -I$(srcdir) -I$(srcdir)/Modules  -I$(srcdir)/Modules/expat -I$(srcdir)/Include -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY=1 -DUSE_PYEXPAT_CAPI
 
 # Hye-Shik Chang's CJKCodecs
 
