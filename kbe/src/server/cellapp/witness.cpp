@@ -293,7 +293,8 @@ void Witness::setViewRadius(float radius, float hyst)
 		ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n", 
 			pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
 		
-		return;
+		// 不返回，继续生效
+		// return;
 	}
 
 	if (viewRadius_ > 0.f && pEntity_)
