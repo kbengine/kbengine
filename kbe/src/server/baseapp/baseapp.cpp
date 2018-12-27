@@ -4159,6 +4159,12 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		accountName, pEntity->rndUUID(), pEntity->id(), flags, deadline));
 
 	SAFE_RELEASE(ptinfos);
+
+	if (!pClientChannel)
+	{
+		pEntity->onClientDeath();
+	}
+
 	Py_DECREF(pEntity);
 }
 
