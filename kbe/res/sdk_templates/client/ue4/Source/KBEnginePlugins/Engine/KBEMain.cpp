@@ -149,6 +149,7 @@ bool UKBEMain::destroyKBEngine()
 		return false;
 
 	KBEngineApp::getSingleton().destroy();
+	KBENGINE_EVENT_CLEAR();
 	return true;
 }
 
