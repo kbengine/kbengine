@@ -1,10 +1,13 @@
 
 all:: config.status
 
-ifeq ($(KBE_CONFIG), Release)
-	CONFIG_ARGS = --enable-optimizations --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+CONFIG_ARGS = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+
+ifeq ($(python-optimizations), 1)
+	echo "=>python-optimizations=1"
+	CONFIG_ARGS += --enable-optimizations 
 else
-	CONFIG_ARGS = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+	echo "=>python-optimizations=0"
 endif
 
 config.status:
