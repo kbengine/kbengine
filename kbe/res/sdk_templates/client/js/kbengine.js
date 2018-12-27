@@ -454,6 +454,12 @@ KBEngine.Event = function()
 			}
 		}
 	}
+
+	this.clear = function()
+	{
+		this._events = {};
+		this._firedEvents.splice(0, this._firedEvents.length);
+	}
 }
 
 KBEngine.Event = new KBEngine.Event();
@@ -5225,6 +5231,8 @@ KBEngine.destroy = function()
 	KBEngine.app.uninstallEvents();
 	KBEngine.app.reset();
 	KBEngine.app = undefined;
+
+	KBEngine.Event.clear();
 }
 
 try
