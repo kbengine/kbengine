@@ -81,6 +81,7 @@ public class KBEMain : MonoBehaviour
             KBEngineApp.app.destroy();
             KBEngineApp.app = null;
         }
+		KBEngine.Event.clear();
 		MonoBehaviour.print("clientapp::OnDestroy(): end");
 	}
 	
