@@ -16,6 +16,7 @@ KBEvent::~KBEvent()
 
 void KBEvent::clear()
 {
+	events_.Empty();
 	clearFiredEvents();
 }
 

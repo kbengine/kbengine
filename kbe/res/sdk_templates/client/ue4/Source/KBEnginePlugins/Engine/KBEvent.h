@@ -96,6 +96,9 @@ protected:
 // 恢复事件
 #define KBENGINE_EVENT_RESUME() KBEvent::resume();
 
+// 清除所有的事件
+#define KBENGINE_EVENT_CLEAR() KBEvent::clear();
+
 UCLASS(Blueprintable, BlueprintType)
 class KBENGINEPLUGINS_API UKBEventData_Baseapp_importClientMessages : public UKBEventData
 {
