@@ -59,6 +59,22 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>..\Modules\_ctypes\libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
