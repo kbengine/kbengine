@@ -31,3 +31,5 @@ clean::
 # OPENSSL_LDFLAGS="-L${KBE_ROOT}/kbe/src/libs"
 
 # 4:Modules/Setup.dist
+
+# 5:DEFS="BASEMODLIBS=$BASELIBS\\\\$NL$DEFS"
