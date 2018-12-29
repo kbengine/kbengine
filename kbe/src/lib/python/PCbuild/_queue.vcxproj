@@ -59,6 +59,22 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\Modules\_queuemodule.c" />
   </ItemGroup>

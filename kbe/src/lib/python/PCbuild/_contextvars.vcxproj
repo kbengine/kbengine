@@ -59,6 +59,22 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\Modules\_contextvarsmodule.c" />
   </ItemGroup>
