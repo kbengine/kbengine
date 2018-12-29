@@ -11,6 +11,8 @@ endif
 config.status:
 	@chmod -R 755 .
 	export KBE_ROOT=$(KBE_ROOT)
+	sed 's/#include "zlib.h"/#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )\n#define ZLIB_WINAPI\n#endif\n#include "zlib.h"\n/' $(KBE_ROOT)/kbe/src/lib/python/Modules/zlibmodule.c -i
+	export PYTHONHOME="$(KBE_ROOT)/kbe/src/lib/python"
 	$(SHELL) configure $(CONFIG_ARGS)
 	@make
 
@@ -18,3 +20,16 @@ config.status:
 
 clean::
 	echo "clean"
+
+# KBE modifys:
+# 1: PCbuild vcxprojs to KBE-vcxproj
+
+# 2: Modules/zlibmodule.c added 
+#	#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#	#define ZLIB_WINAPI
+#	#endif
+
+# 3: configure
+# OPENSSL_LDFLAGS="-L${KBE_ROOT}/kbe/src/libs"
+
+# 4:Modules/Setup.dist
