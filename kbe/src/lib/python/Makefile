@@ -11,7 +11,6 @@ endif
 config.status:
 	@chmod -R 755 .
 	export KBE_ROOT=$(KBE_ROOT)
-	#sed 's/#include "zlib.h"/#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )\n#define ZLIB_WINAPI\n#endif\n#include "zlib.h"\n/' $(KBE_ROOT)/kbe/src/lib/python/Modules/zlibmodule.c -i
 	export PYTHONHOME="$(KBE_ROOT)/kbe/src/lib/python"
 	$(SHELL) configure $(CONFIG_ARGS)
 	@make
