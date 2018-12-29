@@ -348,6 +348,7 @@ void ThreadPool::onMainThreadTick()
 
 	std::copy(finiTaskList_.begin(), finiTaskList_.end(), std::back_inserter(finitasks));   
 	finiTaskList_.clear();
+	finiTaskList_count_ = 0;
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 
 	std::vector<TPTask*>::iterator finiiter  = finitasks.begin();
@@ -361,19 +362,15 @@ void ThreadPool::onMainThreadTick()
 		case thread::TPTask::TPTASK_STATE_COMPLETED:
 			delete (*finiiter);
 			finiiter = finitasks.erase(finiiter);
-			--finiTaskList_count_;
 			break;
 			
 		case thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD:
 			this->addTask((*finiiter));
 			finiiter = finitasks.erase(finiiter);
-			--finiTaskList_count_;
 			break;
 			
 		case thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD:
-			THREAD_MUTEX_LOCK(finiTaskList_mutex_);
-			finiTaskList_.push_back((*finiiter));
-			THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
+			addFiniTask((*finiiter));
 			++finiiter;
 			break;
 			
