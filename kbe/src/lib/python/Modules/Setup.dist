@@ -170,22 +170,22 @@ _symtable symtablemodule.c
 
 # Modules that should always be present (non UNIX dependent):
 
-array arraymodule.c	# array objects
-cmath cmathmodule.c _math.c # -lm # complex math library functions
-math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
-_contextvars _contextvarsmodule.c  # Context Variables
-_struct _struct.c	# binary structure packing/unpacking
-_weakref _weakref.c	# basic weak reference support
-_testcapi _testcapimodule.c    # Python C API test module
-_random _randommodule.c	# Random number generator
-_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
-_pickle _pickle.c	# pickle accelerator
-_datetime _datetimemodule.c	# datetime accelerator
-_bisect _bisectmodule.c	# Bisection algorithms
-_heapq _heapqmodule.c	# Heap queue algorithm
-_asyncio _asynciomodule.c  # Fast asyncio Future
+#array arraymodule.c	# array objects
+#cmath cmathmodule.c _math.c # -lm # complex math library functions
+#math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
+#_contextvars _contextvarsmodule.c  # Context Variables
+#_struct _struct.c	# binary structure packing/unpacking
+#_weakref _weakref.c	# basic weak reference support
+#_testcapi _testcapimodule.c    # Python C API test module
+#_random _randommodule.c	# Random number generator
+#_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
+#_pickle _pickle.c	# pickle accelerator
+#_datetime _datetimemodule.c	# datetime accelerator
+#_bisect _bisectmodule.c	# Bisection algorithms
+#_heapq _heapqmodule.c	# Heap queue algorithm
+#_asyncio _asynciomodule.c  # Fast asyncio Future
 
-unicodedata unicodedata.c    # static Unicode character database
+#unicodedata unicodedata.c    # static Unicode character database
 
 
 # Modules with some UNIX dependencies -- on by default:
@@ -195,23 +195,23 @@ unicodedata unicodedata.c    # static Unicode character database
 #fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
 #spwd spwdmodule.c		# spwd(3)
 #grp grpmodule.c		# grp(3)
-select selectmodule.c	# select(2); not on ancient System V
+#select selectmodule.c	# select(2); not on ancient System V
 
 # Memory-mapped files (also works on Win32).
 #mmap mmapmodule.c
 
 # CSV file helper
-_csv _csv.c
+#_csv _csv.c
 
 # Socket module helper for socket(2)
-_socket socketmodule.c
+#_socket socketmodule.c
 
 # Socket module helper for SSL support; you must comment out the other
 # socket line above, and possibly edit the SSL variable:
-SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
-_ssl _ssl.c \
-	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-	-L$(KBE_ROOT)/kbe/src/libs -lssl -lcrypto
+#SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+#_ssl _ssl.c \
+#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+#	-L$(KBE_ROOT)/kbe/src/libs -lssl -lcrypto
 
 # The crypt module is now disabled by default because it breaks builds
 # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
@@ -226,7 +226,7 @@ _ssl _ssl.c \
 #termios termios.c	# Steen Lumholt's termios module
 #resource resource.c	# Jeremy Hylton's rlimit interface
 
-_posixsubprocess _posixsubprocess.c  # POSIX subprocess module helper
+#_posixsubprocess _posixsubprocess.c  # POSIX subprocess module helper
 
 # Multimedia modules -- off by default.
 # These don't work for 64-bit platforms!!!
@@ -242,18 +242,18 @@ _posixsubprocess _posixsubprocess.c  # POSIX subprocess module helper
 # The _md5 module implements the RSA Data Security, Inc. MD5
 # Message-Digest Algorithm, described in RFC 1321.
 
-_md5 md5module.c
+#_md5 md5module.c
 
 
 # The _sha module implements the SHA checksum algorithms.
 # (NIST's Secure Hash Algorithms.)
-_sha1 sha1module.c
-_sha256 sha256module.c
-_sha512 sha512module.c
-_sha3 _sha3/sha3module.c
+#_sha1 sha1module.c
+#_sha256 sha256module.c
+#_sha512 sha512module.c
+#_sha3 _sha3/sha3module.c
 
 # _blake module
-_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
+#_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
 
 # The _tkinter module.
 #
@@ -326,21 +326,21 @@ _blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
 
 
 # Helper module for various ascii-encoders
-binascii binascii.c
+#binascii binascii.c
 
 # Fred Drake's interface to the Python parser
-parser parsermodule.c
+#parser parsermodule.c
 
 
 # Andrew Kuchling's zlib module.
 # This require zlib 1.1.3 (or later).
 # See http://www.gzip.org/zlib/
-zlib zlibmodule.c -I$(KBE_ROOT)/kbe/src/lib/dependencies/zlib -L$(KBE_ROOT)/kbe/src/libs -lz
+#zlib zlibmodule.c -I$(KBE_ROOT)/kbe/src/lib/dependencies/zlib -L$(KBE_ROOT)/kbe/src/libs -lz
 
 # Interface to the Expat XML parser
 # More information on Expat can be found at www.libexpat.org.
 #
-Modules/expat/xmlparse.c Modules/expat/xmlrole.c Modules/expat/xmltok.c Modules/pyexpat.c -I$(srcdir) -I$(srcdir)/Modules  -I$(srcdir)/Modules/expat -I$(srcdir)/Include -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY=1 -DUSE_PYEXPAT_CAPI
+#pyexpat expat/xmlparse.c expat/xmlrole.c expat/xmltok.c pyexpat.c -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY=1 -DUSE_PYEXPAT_CAPI
 
 # Hye-Shik Chang's CJKCodecs
 
