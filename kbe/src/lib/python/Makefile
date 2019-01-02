@@ -11,7 +11,6 @@ endif
 config.status:
 	@chmod -R 755 .
 	export KBE_ROOT=$(KBE_ROOT)
-	export PYTHONPATH=$(KBE_ROOT)/kbe/src/lib/python
 	$(SHELL) configure $(CONFIG_ARGS)
 	@make
 
