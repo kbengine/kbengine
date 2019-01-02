@@ -39,6 +39,7 @@
     <RootNamespace>_testcapi</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <SupportPGO>false</SupportPGO>
+    <WindowsTargetPlatformVersion>$(DefaultWindowsSDKVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -59,6 +60,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+    <OutDir>../../../../res/scripts/common/DLLs/</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\Modules\_testcapimodule.c" />
