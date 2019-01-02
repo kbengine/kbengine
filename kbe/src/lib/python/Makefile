@@ -30,3 +30,9 @@ clean::
 # 4: setup.py
 #       system_lib_dirs = ['/lib64', '/usr/lib64', '/lib', '/usr/lib', '$(KBE_ROOT)/kbe/src/libs']
 #       system_include_dirs = ['/usr/include', '$(KBE_ROOT)/kbe/src/lib/dependencies/zlib']
+
+# 5: Modules/zlibmodule.c added(windows)
+#	#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#	#define ZLIB_WINAPI
+#	#endif
+
