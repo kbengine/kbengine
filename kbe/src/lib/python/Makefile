@@ -6,6 +6,9 @@ CONFIG_ARGS = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 ifeq ($(pythonbuild), release)
 	CONFIG_ARGS += --enable-optimizations 
 else
+ifneq (,$(findstring 64,$(KBE_CONFIG)))
+	CONFIG_ARGS += --enable-optimizations 
+endif
 endif
 
 config.status:
