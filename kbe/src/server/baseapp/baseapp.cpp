@@ -3994,6 +3994,7 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		{
 			pMBChannel->proxyID(0);
 			pMBChannel->condemn("", true);
+			proxy->onClientDeath();
 		}
 
 		entityClientEntityCall->addr(pChannel->addr());
