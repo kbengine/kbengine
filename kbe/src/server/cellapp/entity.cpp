@@ -635,11 +635,10 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
-
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
 		
 		if(pMethodDescription)
@@ -2155,6 +2154,15 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 {
 	//INFO_MSG(fmt::format("{}::onLoseWitness: {}.\n", 
 	//	this->scriptName(), this->id()));
+
+	if (!isReal())
+	{
+		// 需要做中转
+		ERROR_MSG(fmt::format("Entity::onLoseWitness(): {} is ghost, request error! spaceID={}, entityID={}!\n",
+			scriptName(), spaceID(), id()));
+
+		return;
+	}
 
 	KBE_ASSERT(this->clientEntityCall() != NULL && this->hasWitness());
 
