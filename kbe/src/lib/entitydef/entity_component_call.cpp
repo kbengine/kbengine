@@ -176,4 +176,47 @@ void EntityComponentCall::newCall(Network::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
+std::vector<EntityComponentCall*> EntityComponentCall::getComponents(const std::string& name, EntityCall* pEntityCall, ScriptDefModule* pEntityScriptDescrs)
+{
+	std::vector<EntityComponentCall*> founds;
+
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
+
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
+	for (; comps_iter != componentDescrs.end(); ++comps_iter)
+	{
+		if (name != comps_iter->second->getName())
+			continue;
+
+		if (pEntityCall->isBase())
+		{
+			if (!comps_iter->second->hasBase())
+				continue;
+		}
+		else if (pEntityCall->isCell())
+		{
+			if (!comps_iter->second->hasCell())
+				continue;
+		}
+		else
+		{
+			if (!comps_iter->second->hasClient())
+				continue;
+		}
+
+		PyObject* pyObj = PyObject_GetAttrString(pEntityCall, comps_iter->first.c_str());
+		if (pyObj)
+		{
+			founds.push_back((EntityComponentCall*)pyObj);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+
+	return founds;
+}
+
+//-------------------------------------------------------------------------------------
 }

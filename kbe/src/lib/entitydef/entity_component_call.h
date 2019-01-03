@@ -71,6 +71,8 @@ public:
 
 	virtual void newCall(Network::Bundle& bundle);
 
+	static std::vector<EntityComponentCall*> getComponents(const std::string& name, EntityCall* pEntity, ScriptDefModule* pEntityScriptDescrs);
+
 protected:
 	EntityCall*								pEntityCall_;
 	PropertyDescription*					pComponentPropertyDescription_;
