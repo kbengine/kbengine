@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"	
 #include "http_cb_handler.h"
 #include "loginapp_interface.h"
+#include "clientsdk_downloader.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -1560,6 +1561,9 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 	std::string options;
 	s >> options;
 
+	int clientWindowSize = 0;
+	s >> clientWindowSize;
+
 	// 如果ip不等于空， 那么新建一个tcp连接返回数据，否则原路返回
 	std::string callbackIP = "";
 	s >> callbackIP;
@@ -1607,31 +1611,18 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 	size = ftell(f);
 	rewind(f);
 
-	uint8* filebuf = (uint8*)malloc(size);
-
-	if (fread(filebuf, 1, size, f) != size)
+	if (size > 0)
 	{
+		uint8* filebuf = (uint8*)malloc(size);
+
+		if (fread(filebuf, 1, size, f) != (size_t)size)
+		{
+		}
+
+		new ClientSDKDownloader(networkInterface(), pChannel->addr(), clientWindowSize, filebuf, size);
 	}
 
 	fclose(f);
-
-	if (size > 0)
-	{
-		Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
-		pNewBundle->newMessage(ClientInterface::onImportClientSDK);
-		pNewBundle->appendBlob(filebuf, size);
-
-		if (callbackIP.size() == 0)
-		{
-			pChannel->send(pNewBundle);
-		}
-		else
-		{
-			//  建立一个新的tcp连接返回
-		}
-	}
-
-	free(filebuf);
 }
 
 //-------------------------------------------------------------------------------------
