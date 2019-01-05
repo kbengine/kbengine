@@ -1582,7 +1582,11 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 	std::string zipfile = "";
 
 	zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath, options);
-	system(fmt::format("cd \"{}\" && start {}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, binPath, options, zipfile).c_str());
+	if (-1 == system(fmt::format("cd \"{}\" && {}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, binPath, options, zipfile).c_str()))
+	{
+		ERROR_MSG(fmt::format("Loginapp::importClientSDK: system() error!\n"));
+		return;
+	}
 
 	// 将这些文件推送到客户端
 	FILE* f = fopen(zipfile.c_str(), "r");
@@ -1598,7 +1602,11 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 	rewind(f);
 
 	uint8* filebuf = (uint8*)malloc(size);
-	fread(filebuf, 1, size, f);
+
+	if (fread(filebuf, 1, size, f) != size)
+	{
+	}
+
 	fclose(f);
 
 	if (size > 0)
