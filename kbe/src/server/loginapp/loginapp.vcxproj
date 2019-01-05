@@ -213,6 +213,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c" />
+    <ClCompile Include="clientsdk_downloader.cpp" />
     <ClCompile Include="http_cb_handler.cpp" />
     <ClCompile Include="loginapp.cpp" />
     <ClCompile Include="loginapp_interface.cpp" />
@@ -220,6 +221,7 @@
     <ClCompile Include="profile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="clientsdk_downloader.h" />
     <ClInclude Include="http_cb_handler.h" />
     <ClInclude Include="loginapp.h" />
     <ClInclude Include="loginapp_interface.h" />
