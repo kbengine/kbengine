@@ -1060,7 +1060,7 @@ template<class E>
 PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 {
 	int argCount = (int)PyTuple_Size(args);
-	if(argCount != 2)
+	if(argCount < 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
@@ -1069,8 +1069,9 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 
 	char* respath = NULL;
 	char* fargs = NULL;
+	char* encodingArg = NULL;
 
-	if(PyArg_ParseTuple(args, "s|s", &respath, &fargs) == -1)
+	if(PyArg_ParseTuple(args, "s|ss", &respath, &fargs, &encodingArg) == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
@@ -1082,12 +1083,22 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 	PyObject *ioMod = PyImport_ImportModule("io");
 
 	// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"),
-		const_cast<char*>("ssis"),
-		sfullpath.c_str(),
-		fargs,
-		-1,
-		"utf-8");
+	PyObject *openedFile = NULL;
+	if (argCount > 1)
+	{
+		openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"),
+			const_cast<char*>("ssis"),
+			const_cast<char*>(sfullpath.c_str()),
+			fargs,
+			-1,
+			encodingArg);
+	}
+	else
+	{
+		openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"),
+			const_cast<char*>("s"),
+			const_cast<char*>(sfullpath.c_str()));
+	}
 
 	Py_DECREF(ioMod);
 	
