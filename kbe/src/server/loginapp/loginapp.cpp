@@ -1541,6 +1541,72 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
+{
+	std::string options = "";
+	s >> options;
+
+	// 如果ip不等于空， 那么新建一个tcp连接返回数据，否则原路返回
+	std::string callbackIP = "";
+	s >> callbackIP;
+
+	uint16 callbackPort = 0;
+	s >> callbackPort;
+
+	INFO_MSG(fmt::format("Loginapp::importClientSDK: options={}! reqaAdr={}, callbackAddr={}:{}\n",
+		options, pChannel->c_str(), callbackIP, callbackPort));
+
+	std::string assetsPath = Resmgr::getSingleton().getPyUserAssetsPath();
+	std::string binPath = Resmgr::getSingleton().getEnv().bin_path;
+
+	if (binPath.size() == 0)
+	{
+		ERROR_MSG(fmt::format("Loginapp::importClientSDK: KBE_BIN_PATH no set!\n"));
+		return;
+	}
+
+	std::string zipfile = "";
+	
+	zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath, options);
+	system(fmt::format("cd \"{}\" && start {}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, binPath, options, zipfile).c_str());
+
+	// 将这些文件推送到客户端
+	FILE* f = fopen(zipfile.c_str(), "r");
+	if (f == NULL)
+	{
+		ERROR_MSG(fmt::format("Loginapp::importClientSDK: open {} error!\n", zipfile));
+		return;
+	}
+
+	int size = 0;
+	fseek(f, 0, SEEK_END);
+	size = ftell(f);
+	rewind(f);
+
+	uint8* filebuf = (uint8*)malloc(size);
+	fread(filebuf, 1, size, f);
+	fclose(f);
+
+	if (size > 0)
+	{
+		Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+		pNewBundle->newMessage(ClientInterface::onImportClientSDK);
+		pNewBundle->appendBlob(filebuf, size);
+
+		if (callbackIP.size() == 0)
+		{
+			pChannel->send(pNewBundle);
+		}
+		else
+		{
+			//  建立一个新的tcp连接返回
+		}
+	}
+
+	free(filebuf);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::onBaseappInitProgress(Network::Channel* pChannel, float progress)
 {
 	if(progress > 1.f)

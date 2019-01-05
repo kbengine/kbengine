@@ -327,6 +327,11 @@ public:
 	virtual void onImportServerErrorsDescr(Network::Channel* pChannel, MemoryStream& s){}
 
 	/** 网络接口
+	接收导入sdk消息(通常是开发期使用，更新客户端sdk用)
+	*/
+	virtual void onImportClientSDK(Network::Channel* pChannel, MemoryStream& s) {}
+
+	/** 网络接口
 		重置账号密码请求返回
 	*/
 	virtual void onReqAccountResetPasswordCB(Network::Channel* pChannel, SERVER_ERROR_CODE failedcode){}

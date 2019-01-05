@@ -156,6 +156,11 @@ public:
 	*/
 	void importServerErrorsDescr(Network::Channel* pChannel);
 
+	/** 网络接口
+	客户端SDK导出
+	*/
+	void importClientSDK(Network::Channel* pChannel, MemoryStream& s);
+
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Network::Channel* pChannel);
 
