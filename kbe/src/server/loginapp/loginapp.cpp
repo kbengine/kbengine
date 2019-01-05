@@ -1543,11 +1543,18 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 {
-	std::string options;
+	std::string options = "";
 	s >> options;
 
-	INFO_MSG(fmt::format("Loginapp::importClientSDK: options={}! addr={}\n",
-		options, pChannel->c_str()));
+	// 如果ip不等于空， 那么新建一个tcp连接返回数据，否则原路返回
+	std::string callbackIP = "";
+	s >> callbackIP;
+
+	uint16 callbackPort = 0;
+	s >> callbackPort;
+
+	INFO_MSG(fmt::format("Loginapp::importClientSDK: options={}! reqaAdr={}, callbackAddr={}:{}\n",
+		options, pChannel->c_str(), callbackIP, callbackPort));
 
 	std::string assetsPath = Resmgr::getSingleton().getPyUserAssetsPath();
 	std::string binPath = Resmgr::getSingleton().getEnv().bin_path;
@@ -1585,7 +1592,15 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 		Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		pNewBundle->newMessage(ClientInterface::onImportClientSDK);
 		pNewBundle->appendBlob(filebuf, size);
-		pChannel->send(pNewBundle);
+
+		if (callbackIP.size() == 0)
+		{
+			pChannel->send(pNewBundle);
+		}
+		else
+		{
+			//  建立一个新的tcp连接返回
+		}
 	}
 
 	free(filebuf);
