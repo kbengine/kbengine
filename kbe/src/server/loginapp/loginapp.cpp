@@ -1579,10 +1579,16 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+	const char* runcmd = "start ";
+#else
+	const char* runcmd = "";
+#endif
+
 	std::string zipfile = "";
 
 	zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath, options);
-	if (-1 == system(fmt::format("cd \"{}\" && {}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, binPath, options, zipfile).c_str()))
+	if (-1 == system(fmt::format("cd \"{}\" && {}{}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, runcmd, binPath, options, zipfile).c_str()))
 	{
 		ERROR_MSG(fmt::format("Loginapp::importClientSDK: system() error!\n"));
 		return;
