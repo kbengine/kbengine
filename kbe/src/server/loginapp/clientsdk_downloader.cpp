@@ -50,10 +50,11 @@ ClientSDKDownloader::~ClientSDKDownloader()
 {
 	DEBUG_MSG(fmt::format("ClientSDKDownloader::~ClientSDKDownloader(): sent {} bytes! addr={}\n", sentSize_, addr_.c_str()));
 
-	if(datas_)
+	if (datas_)
 		free(datas_);
 
-	Loginapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
+	if (sentSize_ < datasize_)
+		Loginapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -63,10 +64,9 @@ bool ClientSDKDownloader::process()
 
 	if (pChannel && sentSize_ < datasize_)
 	{
-		bool start = true;
 		Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		pNewBundle->newMessage(ClientInterface::onImportClientSDK);
-		(*pNewBundle) << start;
+		(*pNewBundle) << (int)datasize_;
 
 		pNewBundle->appendBlob(datas_, clientWindowSize_);
 		pChannel->send(pNewBundle);
