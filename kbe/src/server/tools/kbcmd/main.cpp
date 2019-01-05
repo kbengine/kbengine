@@ -23,6 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_sdk.h"
 #include "server_assets.h"
 #include "entitydef/entitydef.h"
+#include "pyscript/py_zipfile.h"
+#include <experimental/filesystem>
 
 #undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.h"
@@ -200,10 +202,24 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	}
 
 	std::string path = "";
+	std::string zipfile = "";
 
 	PARSE_COMMAND_ARG_BEGIN();
 	PARSE_COMMAND_ARG_GET_VALUE("--outpath=", path);
 	PARSE_COMMAND_ARG_END();
+
+	PARSE_COMMAND_ARG_BEGIN();
+	PARSE_COMMAND_ARG_GET_VALUE("--zip=", zipfile);
+	PARSE_COMMAND_ARG_END();
+
+	// 如果检测到设置了zip文件，那么从zip文件得到path
+	if (zipfile.size() > 0)
+	{
+		std::vector<std::string> tmpvec;
+		KBEngine::strutil::kbe_splits(zipfile, ".", tmpvec);
+		path = tmpvec[0];
+		zipfile = tmpvec[1];
+	}
 
 	ClientSDK* pClientSDK = ClientSDK::createClientSDK(clientType);
 	
@@ -227,6 +243,20 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	{
 		ERROR_MSG(fmt::format("app::initialize(): create clientsdk error! nonsupport type={}\n", clientType));
 		ret = -1;
+	}
+
+	// 开始打包
+	if (zipfile.size() > 0)
+	{
+		if (!script::PyZipFile::compressDirectory(path, (path + "." + zipfile)))
+		{
+			ERROR_MSG("app::initialize(): compress error!\n");
+		}
+
+		std::error_code errorCode;
+		if (!std::experimental::filesystem::remove_all(path.c_str(), errorCode)) {
+			ERROR_MSG(fmt::format("app::initialize(): delete Directorys error! message={}\n", errorCode.message()));
+		}
 	}
 
 	app.finalise();
@@ -372,7 +402,7 @@ int process_help(int argc, char* argv[])
 	printf("--clientsdk:\n");
 	printf("\tAutomatically generate client code based on entity_defs file. Environment variables based on KBE.\n");
 	printf("\tkbcmd.exe --clientsdk=unity --outpath=c:/unity_kbesdk\n");
-	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk\n");
+	printf("\tkbcmd.exe --clientsdk=ue4 --zip=c:/unity_kbesdk.zip\n");
 	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
 
 	printf("\n--getuid\n");
