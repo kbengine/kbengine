@@ -184,6 +184,12 @@
         /// <para> param1(uint16): resouce id</para>
         /// </summary>
         public const string onStreamDataCompleted = "onStreamDataCompleted";
+
+        /// <summary>
+        /// The downloaded clientSDK is completed.
+        /// <para> param1(bytes[]): binary datas</para>
+        /// </summary>
+        public const string onImportClientSDK = "onImportClientSDK";
     };
 
     /// <summary>

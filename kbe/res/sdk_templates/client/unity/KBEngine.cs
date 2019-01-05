@@ -481,6 +481,13 @@
 			// 无需实现，已由插件生成静态代码
 		}
 
+		public void Client_onImportClientSDK(MemoryStream stream)
+		{
+			byte[] sdkDatas = new byte[0];
+			sdkDatas = stream.readBlob();
+			Event.fireOut(EventOutTypes.onImportClientSDK, sdkDatas);
+		}
+		
 		/*
 			引擎版本不匹配
 		*/
@@ -2010,16 +2017,19 @@
 		*/
 		public void Client_onStreamDataStarted(Int16 id, UInt32 datasize, string descr)
 		{
+			Event.fireOut(EventOutTypes.onStreamDataStarted, id, datasize, descr);
 		}
 		
 		public void Client_onStreamDataRecv(MemoryStream stream)
 		{
-			// Int16 resID = stream.readInt16();
-			// byte[] datas = stream.readBlob();
+			Int16 resID = stream.readInt16();
+			byte[] datas = stream.readBlob();
+			Event.fireOut(EventOutTypes.onStreamDataRecv, resID, datas);
 		}
 		
 		public void Client_onStreamDataCompleted(Int16 id)
 		{
+			Event.fireOut(EventOutTypes.onStreamDataCompleted, id);
 		}
 	}
 	
