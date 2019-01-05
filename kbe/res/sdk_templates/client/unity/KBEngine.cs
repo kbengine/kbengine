@@ -483,9 +483,13 @@
 
 		public void Client_onImportClientSDK(MemoryStream stream)
 		{
+			int totalSize = 0;
+			totalSize = stream.readInt32();
+
 			byte[] sdkDatas = new byte[0];
 			sdkDatas = stream.readBlob();
-			Event.fireOut(EventOutTypes.onImportClientSDK, sdkDatas);
+
+			Event.fireOut(EventOutTypes.onImportClientSDK, totalSize, sdkDatas);
 		}
 		
 		/*
