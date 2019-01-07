@@ -489,7 +489,7 @@
 			byte[] sdkDatas = new byte[0];
 			sdkDatas = stream.readBlob();
 
-			Event.fireOut(EventOutTypes.onImportClientSDK, totalSize, sdkDatas);
+			Event.fireIn("onImportClientSDK", totalSize, sdkDatas);
 		}
 
 		/*

@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "loginapp.h"
 #include "clientsdk_downloader.h"
+#include "helper/sys_info.h"
 #include "server/serverconfig.h"
 
 #include "client_lib/client_interface.h"
@@ -180,6 +181,11 @@ bool ClientSDKDownloader::loadSDKDatas()
 		lastTime_ = now;
 		return false;
 	}
+
+	// 必须kbcmd进程已经结束
+	SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(pid_);
+	if (!sysinfos.error)
+		return false;
 
 	std::string zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath_, options_);
 
