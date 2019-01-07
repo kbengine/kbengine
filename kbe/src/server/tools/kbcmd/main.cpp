@@ -6,6 +6,7 @@
 #include "server_assets.h"
 #include "entitydef/entitydef.h"
 #include "pyscript/py_zipfile.h"
+#include "pyscript/py_platform.h"
 #include <experimental/filesystem>
 
 #undef DEFINE_IN_INTERFACE
@@ -235,9 +236,8 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 			ERROR_MSG("app::initialize(): compress error!\n");
 		}
 		
-		std::error_code errorCode;
-		if (!std::experimental::filesystem::remove_all(path.c_str(), errorCode)) {
-			ERROR_MSG(fmt::format("app::initialize(): delete Directorys error! message={}\n", errorCode.message()));
+		if (!script::PyPlatform::rmdir(path)) {
+			ERROR_MSG(fmt::format("app::initialize(): delete directorys({}) error!\n", path));
 		}
 	}
 

@@ -84,6 +84,9 @@
     <ClCompile Include="py_zipfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="py_platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copy.h">
@@ -159,6 +162,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="py_zipfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
