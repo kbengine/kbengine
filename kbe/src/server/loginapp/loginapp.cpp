@@ -1583,46 +1583,7 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	const char* runcmd = "start ";
-#else
-	const char* runcmd = "";
-#endif
-
-	std::string zipfile = "";
-
-	zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath, options);
-	if (-1 == system(fmt::format("cd \"{}\" && {}{}/kbcmd.exe --clientsdk={} --zip={}", assetsPath, runcmd, binPath, options, zipfile).c_str()))
-	{
-		ERROR_MSG(fmt::format("Loginapp::importClientSDK: system() error!\n"));
-		return;
-	}
-
-	// 将这些文件推送到客户端
-	FILE* f = fopen(zipfile.c_str(), "r");
-	if (f == NULL)
-	{
-		ERROR_MSG(fmt::format("Loginapp::importClientSDK: open {} error!\n", zipfile));
-		return;
-	}
-
-	int size = 0;
-	fseek(f, 0, SEEK_END);
-	size = ftell(f);
-	rewind(f);
-
-	if (size > 0)
-	{
-		uint8* filebuf = (uint8*)malloc(size);
-
-		if (fread(filebuf, 1, size, f) != (size_t)size)
-		{
-		}
-
-		new ClientSDKDownloader(networkInterface(), pChannel->addr(), clientWindowSize, filebuf, size);
-	}
-
-	fclose(f);
+	new ClientSDKDownloader(networkInterface(), pChannel->addr(), clientWindowSize, assetsPath, binPath, options);
 }
 
 //-------------------------------------------------------------------------------------
