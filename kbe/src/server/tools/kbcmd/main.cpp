@@ -7,7 +7,6 @@
 #include "entitydef/entitydef.h"
 #include "pyscript/py_zipfile.h"
 #include "pyscript/py_platform.h"
-#include <experimental/filesystem>
 
 #undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.h"

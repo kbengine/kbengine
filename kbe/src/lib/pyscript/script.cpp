@@ -10,6 +10,7 @@
 #include "py_gc.h"
 #include "pyurl.h"
 #include "py_zipfile.h"
+#include "py_platform.h"
 #include "resmgr/resmgr.h"
 #include "thread/concurrency.h"
 
@@ -235,6 +236,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	Copy::initialize();
 	PyUrl::initialize(this);
 	PyZipFile::initialize();
+	PyPlatform::initialize();
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
@@ -252,6 +254,7 @@ bool Script::uninstall()
 	Copy::finalise();
 	PyUrl::finalise();
 	PyZipFile::finalise();
+	PyPlatform::finalise();
 	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)
