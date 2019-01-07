@@ -12,18 +12,32 @@ namespace KBEngine{
 class ClientSDKDownloader : public Task
 {
 public:
-	ClientSDKDownloader(Network::NetworkInterface & networkInterface, const Network::Address& addr, size_t clientWindowSize, uint8* datas, size_t datasize);
+	ClientSDKDownloader(Network::NetworkInterface & networkInterface, const Network::Address& addr, size_t clientWindowSize,
+		const std::string& assetsPath, const std::string& binPath, const std::string& options);
 	~ClientSDKDownloader();
 	
 	bool process();
 
 private:
+	DWORD startWindowsProcessGenSDK(const std::string& zipfile);
+	uint16 starLinuxProcessGenSDK(const std::string& zipfile);
+
+	void genSDK();
+	bool loadSDKDatas();
+
 	Network::NetworkInterface & networkInterface_;
 	Network::Address addr_;
 	uint8* datas_;
 	size_t datasize_;
 	size_t sentSize_;
 	size_t clientWindowSize_;
+	std::string assetsPath_;
+	std::string binPath_;
+	std::string options_;
+	uint64 lastTime_;
+	uint64 startTime_;
+	int64 pid_;
+
 };
 
 
