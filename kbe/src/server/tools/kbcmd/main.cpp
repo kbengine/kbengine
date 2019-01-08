@@ -5,7 +5,7 @@
 #include "client_sdk.h"
 #include "server_assets.h"
 #include "entitydef/entitydef.h"
-#include "pyscript/py_zipfile.h"
+#include "pyscript/py_compression.h"
 #include "pyscript/py_platform.h"
 
 #undef DEFINE_IN_INTERFACE
@@ -230,7 +230,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	// 开始打包
 	if (zipfile.size() > 0)
 	{
-		if (!script::PyZipFile::compressDirectory(path, (path + "." + zipfile)))
+		if (!script::PyCompression::zipCompressDirectory(path, (path + "." + zipfile)))
 		{
 			ERROR_MSG("app::initialize(): compress error!\n");
 		}

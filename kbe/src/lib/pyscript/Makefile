@@ -5,10 +5,10 @@ SRCS =					\
 	map					\
 	math				\
 	pickler				\
+	py_compression		\
 	py_gc				\
 	pyurl				\
 	py_platform			\
-	py_zipfile			\
 	pystruct			\
 	pyprofile			\
 	pyprofile_handler	\

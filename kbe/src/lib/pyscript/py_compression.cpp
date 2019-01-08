@@ -1,30 +1,30 @@
 // Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
-#include "py_zipfile.h"
+#include "py_compression.h"
 #include "resmgr/resmgr.h"
 
 namespace KBEngine{ 
 namespace script{
 
-bool PyZipFile::isInit = false;
+bool PyCompression::isInit = false;
 
 //-------------------------------------------------------------------------------------
-bool PyZipFile::initialize(void)
+bool PyCompression::initialize(void)
 {
-	if(isInit)
+	if (isInit)
 		return true;
 
 	return isInit;
 }
 
 //-------------------------------------------------------------------------------------
-void PyZipFile::finalise(void)
+void PyCompression::finalise(void)
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool PyZipFile::compressDirectory(const std::string& sourceDir, const std::string& outfile)
+bool PyCompression::zipCompressDirectory(const std::string& sourceDir, const std::string& outfile)
 {
 	std::string outpath = "", zipfile = outfile;
 
@@ -38,7 +38,7 @@ bool PyZipFile::compressDirectory(const std::string& sourceDir, const std::strin
 		PyObject* pyModule = PyImport_ImportModule("zipfile");
 		if (pyModule)
 		{
-			PyObject* zipModule  = PyObject_GetAttrString(pyModule, "ZipFile");
+			PyObject* zipModule = PyObject_GetAttrString(pyModule, "ZipFile");
 			PyObject* zipTypeOBJ = PyObject_GetAttrString(pyModule, "ZIP_DEFLATED");
 			Py_DECREF(pyModule);
 
@@ -56,7 +56,7 @@ bool PyZipFile::compressDirectory(const std::string& sourceDir, const std::strin
 			PyTuple_SET_ITEM(pyargs, 0, PyUnicode_FromString((outpath + "." + zipfile).c_str()));
 			PyTuple_SET_ITEM(pyargs, 1, PyUnicode_FromString("w"));
 			PyTuple_SET_ITEM(pyargs, 2, PyLong_FromLong(ziptype));
-			
+
 			PyObject* zipObject = PyObject_CallObject(zipModule, pyargs);
 			Py_DECREF(pyargs);
 			Py_XDECREF(zipModule);
@@ -106,7 +106,6 @@ bool PyZipFile::compressDirectory(const std::string& sourceDir, const std::strin
 
 	return false;
 }
-
 
 //-------------------------------------------------------------------------------------
 
