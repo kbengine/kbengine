@@ -217,6 +217,10 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 		compressionfile = tmpvec[1];
 	}
 
+	if (script::PyPlatform::pathExists(path) && !script::PyPlatform::rmdir(path)) {
+		ERROR_MSG(fmt::format("app::initialize(): delete directorys({}) error!\n", path));
+	}
+
 	ClientSDK* pClientSDK = ClientSDK::createClientSDK(clientType);
 	
 	int ret = 0;

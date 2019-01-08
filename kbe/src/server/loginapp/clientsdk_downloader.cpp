@@ -13,21 +13,26 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 ClientSDKDownloader::ClientSDKDownloader(Network::NetworkInterface & networkInterface, const Network::Address& addr, size_t clientWindowSize,
 	const std::string& assetsPath, const std::string& binPath, const std::string& options) :
-networkInterface_(networkInterface),
-addr_(addr),
-datas_(NULL),
-datasize_(0),
-sentSize_(0),
-clientWindowSize_(clientWindowSize),
-assetsPath_(assetsPath),
-binPath_(binPath),
-options_(options),
-lastTime_(timestamp()),
-startTime_(timestamp()),
-pid_(0)
+	networkInterface_(networkInterface),
+	addr_(addr),
+	datas_(NULL),
+	datasize_(0),
+	sentSize_(0),
+	clientWindowSize_(clientWindowSize),
+	assetsPath_(assetsPath),
+	binPath_(binPath),
+	options_(options),
+	lastTime_(timestamp()),
+	startTime_(timestamp()),
+	pid_(0),
+	sdkFiles_(),
+	loadedSDK_(false),
+	currSendFile_(),
+	out_()
 {
 	Loginapp::getSingleton().networkInterface().dispatcher().addTask(this);
 
+	out_ = fmt::format("{}/_tmp/{}", assetsPath_, options_);
 	genSDK();
 }
 
@@ -59,7 +64,7 @@ DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& file)
 	str = "\"" + str + "\"";
 
 	// 増加参数
-	str += fmt::format(" --clientsdk={} --tar={}", options_, file);
+	str += fmt::format(" --clientsdk={} --outpath={}", options_, file);
 
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
 
@@ -84,7 +89,7 @@ DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& file)
 		&pi)           // Pointer to PROCESS_INFORMATION structure
 		)
 	{
-		ERROR_MSG(fmt::format("Machine::startWindowsProcess: CreateProcess failed ({}).\n",
+		ERROR_MSG(fmt::format("ClientSDKDownloader::startWindowsProcess: CreateProcess failed ({}).\n",
 			GetLastError()));
 
 		return 0;
@@ -111,7 +116,7 @@ uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& file)
 		const char *argv[6];
 		const char **pArgv = argv;
 		std::string arg1 = fmt::format("--clientsdk={}", options_);
-		std::string arg2 = fmt::format("--tar={}", file);
+		std::string arg2 = fmt::format("--outpath={}", file);
 
 		*pArgv++ = cmdLine.c_str();
 		*pArgv++ = arg1.c_str();
@@ -123,7 +128,7 @@ uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& file)
 
 		if (result == -1)
 		{
-			ERROR_MSG(fmt::format("Machine::starLinuxProcessGenSDK: Failed to exec '{}'\n", cmdLine));
+			ERROR_MSG(fmt::format("ClientSDKDownloader::starLinuxProcessGenSDK: Failed to exec '{}'\n", cmdLine));
 		}
 
 		exit(1);
@@ -142,18 +147,14 @@ void ClientSDKDownloader::genSDK()
 	if (clientWindowSize_ <= 0)
 		clientWindowSize_ = 1024;
 
-	std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
-
-	remove(zipfile.c_str());
-
 #if KBE_PLATFORM == PLATFORM_WIN32
-	pid_ = startWindowsProcessGenSDK(zipfile);
+	pid_ = startWindowsProcessGenSDK(out_);
 #else
-	pid_ = starLinuxProcessGenSDK(zipfile);
+	pid_ = starLinuxProcessGenSDK(out_);
 #endif
 
 	if (pid_ <= 0)
-		ERROR_MSG(fmt::format("ClientSDKDownloader::genSDK({}): system() error!\n", zipfile));
+		ERROR_MSG(fmt::format("ClientSDKDownloader::genSDK({}): system() error!\n", out_));
 }
 
 //-------------------------------------------------------------------------------------
@@ -166,18 +167,40 @@ bool ClientSDKDownloader::loadSDKDatas()
 		return false;
 	}
 
-	// 必须kbcmd进程已经结束
-	SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(pid_);
-	if (!sysinfos.error)
-		return false;
-
-	std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
-
-	FILE* f = fopen(zipfile.c_str(), "r+");
-	if (f == NULL)
+	if (!loadedSDK_)
 	{
-		return false;
+		if (pid_ <= 0)
+			return false;
+
+		// 必须kbcmd进程已经结束
+		SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(pid_);
+		if (!sysinfos.error)
+			return false;
+
+		wchar_t* wpath = strutil::char2wchar(out_.c_str());
+		Resmgr::getSingleton().listPathRes(wpath, L"*", sdkFiles_);
+		loadedSDK_ = true;
 	}
+
+	if (sdkFiles_.size() == 0)
+		return false;
+
+	currSendFile_ = sdkFiles_[0];
+	sdkFiles_.erase(sdkFiles_.begin());
+
+	if (datas_)
+	{
+		datasize_ = 0;
+		free(datas_);
+		datas_ = NULL;
+	}
+
+	char* fileName = strutil::wchar2char(currSendFile_.c_str());
+	FILE* f = fopen(fileName, "r");
+	free(fileName);
+
+	if (f == NULL)
+		return false;
 
 	fseek(f, 0, SEEK_END);
 	datasize_ = ftell(f);
@@ -194,9 +217,7 @@ bool ClientSDKDownloader::loadSDKDatas()
 
 	fclose(f);
 
-	if (clientWindowSize_ > datasize_)
-		clientWindowSize_ = datasize_;
-
+	sentSize_ = 0;
 	return true;
 }
 
@@ -206,23 +227,12 @@ bool ClientSDKDownloader::process()
 	uint64 now = timestamp();
 	if (TimeStamp::toSeconds(now - startTime_) > 60.0)
 	{
-		if (!datas_)
-		{
-			std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
-			ERROR_MSG(fmt::format("ClientSDKDownloader::loadSDKDatas(): open {} error!\n", zipfile));
-		}
-
 		ERROR_MSG(fmt::format("ClientSDKDownloader::process(): timeout!\n"));
 		delete this;
 		return false;
 	}
 
-	if (pid_ <= 0)
-	{
-		return true;
-	}
-
-	if (!datas_)
+	if (currSendFile_.size() == 0)
 	{
 		if (!loadSDKDatas())
 			return true;
@@ -234,15 +244,36 @@ bool ClientSDKDownloader::process()
 	{
 		Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		pNewBundle->newMessage(ClientInterface::onImportClientSDK);
+		int remainingFiles = sdkFiles_.size();
+		(*pNewBundle) << (int)remainingFiles;
+
+		char* fileName = strutil::wchar2char(currSendFile_.c_str());
+		std::string sendFileName = fileName;
+		free(fileName);
+
+		strutil::kbe_replace(sendFileName, out_, "");
+		while (sendFileName[0] == '\\' || sendFileName[0] == '/')
+			sendFileName.erase(sendFileName.begin());
+
+		(*pNewBundle) << sendFileName;
+
 		(*pNewBundle) << (int)datasize_;
 
-		pNewBundle->appendBlob(datas_, clientWindowSize_);
+		int chunkSize = datasize_ - sentSize_;
+
+		if (chunkSize > clientWindowSize_)
+			chunkSize = clientWindowSize_;
+
+		pNewBundle->appendBlob(datas_ + sentSize_, chunkSize);
 		pChannel->send(pNewBundle);
 
-		sentSize_ += clientWindowSize_;
-		if (clientWindowSize_ > datasize_ - sentSize_)
-			clientWindowSize_ = datasize_ - sentSize_;
+		sentSize_ += chunkSize;
+		return true;
+	}
 
+	if (sdkFiles_.size() > 0)
+	{
+		currSendFile_ = L"";
 		return true;
 	}
 
