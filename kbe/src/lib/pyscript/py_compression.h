@@ -18,18 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPT_ZIPFILE_H
-#define KBE_SCRIPT_ZIPFILE_H
+#ifndef KBE_SCRIPT_COMPRESSION_H
+#define KBE_SCRIPT_COMPRESSION_H
 
 #include "common/common.h"
 #include "scriptobject.h"
 
 namespace KBEngine{ namespace script{
 
-class PyZipFile
+class PyCompression
 {						
 public:	
-	static bool compressDirectory(const std::string& sourceDir, const std::string& outfile);
+	static bool zipCompressDirectory(const std::string& sourceDir, const std::string& outfile);
 
 	/** ≥ı ºªØ */
 	static bool initialize(void);
@@ -41,4 +41,4 @@ private:
 
 }
 }
-#endif // KBE_SCRIPT_ZIPFILE_H
+#endif // KBE_SCRIPT_COMPRESSION_H
