@@ -39,8 +39,8 @@ ClientSDKDownloader::~ClientSDKDownloader()
 	if (datas_)
 		free(datas_);
 
-	if (sentSize_ < datasize_)
-		Loginapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
+	//if (sentSize_ < datasize_)
+	//	Loginapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
 }
 
 //-------------------------------------------------------------------------------------
