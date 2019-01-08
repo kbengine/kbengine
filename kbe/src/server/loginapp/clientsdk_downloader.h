@@ -37,8 +37,8 @@ public:
 	bool process();
 
 private:
-	DWORD startWindowsProcessGenSDK(const std::string& zipfile);
-	uint16 starLinuxProcessGenSDK(const std::string& zipfile);
+	DWORD startWindowsProcessGenSDK(const std::string& file);
+	uint16 starLinuxProcessGenSDK(const std::string& file);
 
 	void genSDK();
 	bool loadSDKDatas();
