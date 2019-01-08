@@ -45,7 +45,7 @@ ClientSDKDownloader::~ClientSDKDownloader()
 
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM == PLATFORM_WIN32
-DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& zipfile)
+DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& file)
 {
 	startTime_ = timestamp();
 
@@ -59,7 +59,7 @@ DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& zipfile)
 	str = "\"" + str + "\"";
 
 	// ‰ˆ¼Ó²ÎÊý
-	str += fmt::format(" --clientsdk={} --zip={}", options_, zipfile);
+	str += fmt::format(" --clientsdk={} --tar={}", options_, file);
 
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
 
@@ -97,7 +97,7 @@ DWORD ClientSDKDownloader::startWindowsProcessGenSDK(const std::string& zipfile)
 
 //-------------------------------------------------------------------------------------
 #else
-uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& zipfile)
+uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& file)
 {
 	uint16 childpid;
 
@@ -111,7 +111,7 @@ uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& zipfile)
 		const char *argv[6];
 		const char **pArgv = argv;
 		std::string arg1 = fmt::format("--clientsdk={}", options_);
-		std::string arg2 = fmt::format("--zip={}", zipfile);
+		std::string arg2 = fmt::format("--tar={}", file);
 
 		*pArgv++ = cmdLine.c_str();
 		*pArgv++ = arg1.c_str();
@@ -142,7 +142,7 @@ void ClientSDKDownloader::genSDK()
 	if (clientWindowSize_ <= 0)
 		clientWindowSize_ = 1024;
 
-	std::string zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath_, options_);
+	std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
 
 	remove(zipfile.c_str());
 
@@ -171,7 +171,7 @@ bool ClientSDKDownloader::loadSDKDatas()
 	if (!sysinfos.error)
 		return false;
 
-	std::string zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath_, options_);
+	std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
 
 	FILE* f = fopen(zipfile.c_str(), "r+");
 	if (f == NULL)
@@ -208,7 +208,7 @@ bool ClientSDKDownloader::process()
 	{
 		if (!datas_)
 		{
-			std::string zipfile = fmt::format("{}/_tmp/{}.zip", assetsPath_, options_);
+			std::string zipfile = fmt::format("{}/_tmp/{}.tgz", assetsPath_, options_);
 			ERROR_MSG(fmt::format("ClientSDKDownloader::loadSDKDatas(): open {} error!\n", zipfile));
 		}
 

@@ -12,6 +12,7 @@ class PyCompression
 {						
 public:	
 	static bool zipCompressDirectory(const std::string& sourceDir, const std::string& outfile);
+	static bool tarCompressDirectory(const std::string& sourceDir, const std::string& outfile);
 
 	/** ≥ı ºªØ */
 	static bool initialize(void);
