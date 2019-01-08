@@ -483,13 +483,19 @@
 
 		public void Client_onImportClientSDK(MemoryStream stream)
 		{
-			int totalSize = 0;
-			totalSize = stream.readInt32();
+			int remainingFiles = 0;
+			remainingFiles = stream.readInt32();
 
-			byte[] sdkDatas = new byte[0];
-			sdkDatas = stream.readBlob();
+			string fileName;
+			fileName = stream.readString();
 
-			Event.fireIn("onImportClientSDK", totalSize, sdkDatas);
+			int fileSize = 0;
+			fileSize = stream.readInt32();
+
+			byte[] fileDatas = new byte[0];
+			fileDatas = stream.readBlob();
+
+			Event.fireIn("onImportClientSDK", remainingFiles, fileName, fileSize, fileDatas);
 		}
 
 		/*

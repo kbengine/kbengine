@@ -35,6 +35,9 @@ public:
 	static bool rmdir(const std::string& path);
 	static bool rmdir(const std::wstring& path);
 
+	static bool pathExists(const std::string& path);
+	static bool pathExists(const std::wstring& path);
+
 private:
 	static bool	isInit;
 	

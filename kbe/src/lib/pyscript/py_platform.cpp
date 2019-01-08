@@ -81,6 +81,56 @@ bool PyPlatform::rmdir(const std::wstring& path)
 }
 
 //-------------------------------------------------------------------------------------
+bool PyPlatform::pathExists(const std::string& path)
+{
+	wchar_t* s = strutil::char2wchar(path.c_str());
+	bool ret = pathExists(s);
+	free(s);
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool PyPlatform::pathExists(const std::wstring& path)
+{
+	PyObject* pyModule = PyImport_ImportModule("os");
+	if (pyModule)
+	{
+		PyObject* pathModule = PyObject_GetAttrString(pyModule, "path");
+		Py_DECREF(pyModule);
+
+		if (pathModule)
+		{
+			PyObject* pyResult = PyObject_CallMethod(pathModule, const_cast<char*>("exists"), const_cast<char*>("u#"), path.c_str(), path.size());
+			Py_DECREF(pathModule);
+
+			if (pyResult != NULL)
+			{
+				bool ret = pyResult == Py_True;
+				Py_DECREF(pyResult);
+				return ret;
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+				return false;
+			}
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 
 }
 }
