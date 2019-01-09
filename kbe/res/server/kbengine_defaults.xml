@@ -527,8 +527,8 @@
 				2：智能选择模式，当同屏人数小于等于smartThreshold时使用0方式同步，否则使用1方式。
 			-->
 			<entity_posdir_updates> 
-				<type> 0 </type>
-				<smartThreshold> 20 </smartThreshold>
+				<type> 2 </type>
+				<smartThreshold> 10 </smartThreshold>
 			</entity_posdir_updates>
 		</coordinate_system>
 
