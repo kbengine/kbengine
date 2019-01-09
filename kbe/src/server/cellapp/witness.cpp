@@ -931,7 +931,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 	uint16 type = g_kbeSrvConfig.getCellApp().entity_posdir_updates_type;
 	uint16 threshold = g_kbeSrvConfig.getCellApp().entity_posdir_updates_smart_threshold;
 	bool isOptimized = true;
-	if (type == 2 && clientViewSize_ < threshold || type == 0)
+	if (type == 2 && clientViewSize_ <= threshold || type == 0)
 	{
 		isOptimized = false;
 	} 
