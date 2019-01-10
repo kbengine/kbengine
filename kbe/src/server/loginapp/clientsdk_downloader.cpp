@@ -1,4 +1,4 @@
-/*
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -29,8 +29,8 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-ClientSDKDownloader::ClientSDKDownloader(Network::NetworkInterface & networkInterface, const Network::Address& addr, size_t clientWindowSize, 
-	const std::string& assetsPath, const std::string& binPath, const std::string& options):
+ClientSDKDownloader::ClientSDKDownloader(Network::NetworkInterface & networkInterface, const Network::Address& addr, size_t clientWindowSize,
+	const std::string& assetsPath, const std::string& binPath, const std::string& options) :
 	networkInterface_(networkInterface),
 	addr_(addr),
 	datas_(NULL),
@@ -151,7 +151,7 @@ uint16 ClientSDKDownloader::starLinuxProcessGenSDK(const std::string& file)
 
 		exit(1);
 		return 0;
-}
+	}
 	else
 		return childpid;
 
