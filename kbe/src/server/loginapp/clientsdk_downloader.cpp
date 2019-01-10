@@ -196,7 +196,7 @@ bool ClientSDKDownloader::loadSDKDatas()
 	}
 
 	char* fileName = strutil::wchar2char(currSendFile_.c_str());
-	FILE* f = fopen(fileName, "r");
+	FILE* f = fopen(fileName, "rb");
 	free(fileName);
 
 	if (f == NULL)
@@ -209,6 +209,7 @@ bool ClientSDKDownloader::loadSDKDatas()
 	if (datasize_ > 0)
 	{
 		datas_ = (uint8*)malloc(datasize_ + 1);
+		memset(datas_, 0, datasize_);
 
 		if (fread(datas_, 1, datasize_, f) != (size_t)datasize_)
 		{
