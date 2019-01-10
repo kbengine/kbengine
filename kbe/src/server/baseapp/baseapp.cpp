@@ -3994,7 +3994,9 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		{
 			pMBChannel->proxyID(0);
 			pMBChannel->condemn("", true);
+			Py_INCREF(entityClientEntityCall);
 			proxy->onClientDeath();
+			proxy->clientEntityCall(entityClientEntityCall);
 		}
 
 		entityClientEntityCall->addr(pChannel->addr());
@@ -4004,10 +4006,11 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		// 创建entity的客户端entityCall
 		entityClientEntityCall = new EntityCall(proxy->pScriptModule(), 
 			&pChannel->addr(), 0, proxy->id(), ENTITYCALL_TYPE_CLIENT);
+
+		proxy->clientEntityCall(entityClientEntityCall);
 	}
 
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
-	proxy->clientEntityCall(entityClientEntityCall);
 	proxy->addr(pChannel->addr());
 	pChannel->proxyID(proxy->id());
 	proxy->rndUUID(KBEngine::genUUID64());
