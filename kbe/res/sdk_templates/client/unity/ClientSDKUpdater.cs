@@ -98,7 +98,7 @@ namespace KBEngine
             string tool_options = "Unity";
             string callbackIP = "";
             UInt16 callbackPort = 0;
-            int clientWindowSize = (int)KBEngineApp.app.getInitArgs().TCP_RECV_BUFFER_MAX;
+            int clientWindowSize = (int)KBEngineApp.app.getInitArgs().RECV_BUFFER_MAX;
 
             Bundle bundle = Bundle.createObject();
             bundle.newMessage(Messages.messages["Loginapp_importClientSDK"]);
