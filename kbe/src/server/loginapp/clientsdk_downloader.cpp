@@ -259,7 +259,7 @@ bool ClientSDKDownloader::process()
 
 		(*pNewBundle) << (int)datasize_;
 
-		int chunkSize = datasize_ - sentSize_;
+		size_t chunkSize = datasize_ - sentSize_;
 
 		if (chunkSize > clientWindowSize_)
 			chunkSize = clientWindowSize_;
