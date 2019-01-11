@@ -467,6 +467,27 @@ KBEngine.Event = new KBEngine.Event();
 /*-----------------------------------------------------------------------------------------
 												memorystream
 -----------------------------------------------------------------------------------------*/
+
+/*
+	union PackFloatXType
+	{
+		float	fv;
+		uint32	uv;
+		int		iv;
+	};	
+*/
+KBEngine.PackFloatXType = function()
+{
+	this._unionData = new ArrayBuffer(4);
+	this.fv = new Float32Array(this._unionData, 0, 1);
+	this.uv = new Uint32Array(this._unionData, 0, 1);
+	this.iv = new Int32Array(this._unionData, 0, 1);
+};
+
+KBEngine._xPackData = new KBEngine.PackFloatXType();
+KBEngine._yPackData = new KBEngine.PackFloatXType();
+KBEngine._zPackData = new KBEngine.PackFloatXType();
+
 KBEngine.MemoryStream = function(size_or_buffer)
 {
 	if(size_or_buffer instanceof ArrayBuffer)
@@ -481,22 +502,6 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	this.rpos = 0;
 	this.wpos = 0;
 	
-	/*
-		union PackFloatXType
-		{
-			float	fv;
-			uint32	uv;
-			int		iv;
-		};	
-	*/
-	KBEngine.MemoryStream.PackFloatXType = function()
-	{
-		this._unionData = new ArrayBuffer(4);
-		this.fv = new Float32Array(this._unionData, 0, 1);
-		this.uv = new Uint32Array(this._unionData, 0, 1);
-		this.iv = new Int32Array(this._unionData, 0, 1);
-	};
-			
 	//---------------------------------------------------------------------------------
 	this.readInt8 = function()
 	{
@@ -632,8 +637,8 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	
 	this.readPackXZ = function()
 	{
-		var xPackData = new KBEngine.MemoryStream.PackFloatXType();
-		var zPackData = new KBEngine.MemoryStream.PackFloatXType();
+		var xPackData = KBEngine._xPackData;
+		var zPackData = KBEngine._zPackData;
 		
 		xPackData.fv[0] = 0.0;
 		zPackData.fv[0] = 0.0;
@@ -669,7 +674,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	{
 		var v = this.readUint16();
 		
-		var yPackData = new  KBEngine.MemoryStream.PackFloatXType();
+		var yPackData = KBEngine._yPackData;
 		yPackData.uv[0] = 0x40000000;
 		yPackData.uv[0] |= (v & 0x7fff) << 12;
 		yPackData.fv[0] -= 2.0;
@@ -870,6 +875,13 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	}
 
 	//---------------------------------------------------------------------------------
+	this.setbuffer = function(buffer)
+	{
+		this.clear();
+		this.buffer = buffer;
+	}
+
+	//---------------------------------------------------------------------------------
 	this.size = function()
 	{
 		return this.buffer.byteLength;
@@ -884,7 +896,25 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		if(this.buffer.byteLength > KBEngine.PACKET_MAX_SIZE)
 			this.buffer = new ArrayBuffer(KBEngine.PACKET_MAX_SIZE);
 	}
+
+	this.reclaimObject = function()
+    {
+		this.clear();
+
+		if(KBEngine.MemoryStream._objects != undefined)
+        	KBEngine.MemoryStream._objects.push(this);
+	}
 }
+
+KBEngine.MemoryStream.createObject = function()
+{
+	if(KBEngine.MemoryStream._objects == undefined)
+		KBEngine.MemoryStream._objects = [];
+  
+	return KBEngine.MemoryStream._objects.length > 0 ? KBEngine.MemoryStream._objects.pop() : new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
+}
+
+
 
 /*-----------------------------------------------------------------------------------------
 												bundle
@@ -892,7 +922,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 KBEngine.Bundle = function()
 {
 	this.memorystreams = new Array();
-	this.stream = new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
+	this.stream = KBEngine.MemoryStream.createObject();
 	
 	this.numMessage = 0;
 	this.messageLengthBuffer = null;
@@ -960,10 +990,13 @@ KBEngine.Bundle = function()
 		{
 			var tmpStream = this.memorystreams[i];
 			network.send(tmpStream.getbuffer());
+			tmpStream.reclaimObject();
 		}
-		
+
 		this.memorystreams = new Array();
-		this.stream = new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
+		this.stream = KBEngine.MemoryStream.createObject();
+
+		this.reclaimObject();
 	}
 	
 	//---------------------------------------------------------------------------------
@@ -972,7 +1005,7 @@ KBEngine.Bundle = function()
 		if(v > this.stream.space())
 		{
 			this.memorystreams.push(this.stream);
-			this.stream = new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
+			this.stream = KBEngine.MemoryStream.createObject();
 		}
 
 		this.messageLength += v;
@@ -1050,6 +1083,32 @@ KBEngine.Bundle = function()
 		this.checkStream(v.length + 4);
 		this.stream.writeBlob(v);
 	}
+
+	this.clear = function()
+	{
+		this.stream = KBEngine.MemoryStream.createObject();
+		this.memorystreams = new Array();
+		this.numMessage = 0;
+		this.messageLengthBuffer = null;
+		this.messageLength = 0;
+		this.msgtype = null;
+	}
+
+	this.reclaimObject = function()
+    {
+		this.clear();
+
+		if(KBEngine.Bundle._objects != undefined)
+        	KBEngine.Bundle._objects.push(this);
+   	 }
+}
+
+KBEngine.Bundle.createObject = function()
+{
+  if(KBEngine.Bundle._objects == undefined)
+      KBEngine.Bundle._objects = [];
+  
+  return KBEngine.Bundle._objects.length > 0 ? KBEngine.Bundle._objects.pop() : new KBEngine.Bundle();
 }
 
 /*-----------------------------------------------------------------------------------------
@@ -1866,7 +1925,7 @@ KBEngine.EntityCall = function()
 	this.newCall = function()
 	{  
 		if(this.bundle == null)
-			this.bundle = new KBEngine.Bundle();
+			this.bundle = KBEngine.Bundle.createObject();
 		
 		if(this.type == KBEngine.ENTITYCALL_TYPE_CELL)
 			this.bundle.newMessage(KBEngine.messages.Baseapp_onRemoteCallCellMethodFromClient);
@@ -2920,6 +2979,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.fragmentDatasFlag = KBEngine.FragmentDataTypes.FRAGMENT_DATA_UNKNOW;
 	this.fragmentDatasRemain = 0;
 
+	this.msgStream = new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
+
 	this.resetSocket = function()
 	{
 		try
@@ -3019,7 +3080,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.hello = function()
 	{  
-		var bundle = new KBEngine.Bundle();
+		var bundle = KBEngine.Bundle.createObject();
 		
 		if(KBEngine.app.currserver == "loginapp")
 			bundle.newMessage(KBEngine.messages.Loginapp_hello);
@@ -3092,8 +3153,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.onmessage = function(msg)
 	{ 
-		var stream = new KBEngine.MemoryStream(msg.data);
+		var stream = KBEngine.app.msgStream;
+		stream.setbuffer(msg.data);
 		stream.wpos = msg.data.byteLength;
+
 		var app =  KBEngine.app;
 		var FragmentDataTypes = KBEngine.FragmentDataTypes;
 
@@ -3305,7 +3368,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			{
 				if(KBEngine.messages.Loginapp_onClientActiveTick != undefined)
 				{
-					var bundle = new KBEngine.Bundle();
+					var bundle = KBEngine.Bundle.createObject();
 					bundle.newMessage(KBEngine.messages.Loginapp_onClientActiveTick);
 					bundle.send(KBEngine.app);
 				}
@@ -3314,7 +3377,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			{
 				if(KBEngine.messages.Baseapp_onClientActiveTick != undefined)
 				{
-					var bundle = new KBEngine.Bundle();
+					var bundle = KBEngine.Bundle.createObject();
 					bundle.newMessage(KBEngine.messages.Baseapp_onClientActiveTick);
 					bundle.send(KBEngine.app);
 				}
@@ -3381,7 +3444,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(!KBEngine.app.loginappMessageImported)
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_importClientMessages);
 			bundle.send(KBEngine.app);
 			KBEngine.app.socket.onmessage = KBEngine.app.Client_onImportClientMessages;  
@@ -3403,7 +3466,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(!KBEngine.app.loginappMessageImported)
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_importClientMessages);
 			bundle.send(KBEngine.app);
 			KBEngine.app.socket.onmessage = KBEngine.app.Client_onImportClientMessages;  
@@ -3428,7 +3491,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			{
 				KBEngine.INFO_MSG("KBEngine::onImportClientMessagesCompleted(): send importServerErrorsDescr!");
 				KBEngine.app.serverErrorsDescrImported = true;
-				var bundle = new KBEngine.Bundle();
+				var bundle = KBEngine.Bundle.createObject();
 				bundle.newMessage(KBEngine.messages.Loginapp_importServerErrorsDescr);
 				bundle.send(KBEngine.app);
 			}
@@ -3449,7 +3512,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			if(!KBEngine.app.entitydefImported)
 			{
 				KBEngine.INFO_MSG("KBEngineApp::onImportClientMessagesCompleted: start importEntityDef ...");
-				var bundle = new KBEngine.Bundle();
+				var bundle = KBEngine.Bundle.createObject();
 				bundle.newMessage(KBEngine.messages.Baseapp_importClientEntityDef);
 				bundle.send(KBEngine.app);
 				KBEngine.Event.fire("Baseapp_importClientEntityDef");
@@ -3869,7 +3932,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_reqCreateAccount);
 			bundle.writeString(KBEngine.app.username);
 			bundle.writeString(KBEngine.app.password);
@@ -3880,7 +3943,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.bindAccountEmail = function(emailAddress)
 	{  
-		var bundle = new KBEngine.Bundle();
+		var bundle = KBEngine.Bundle.createObject();
 		bundle.newMessage(KBEngine.messages.Baseapp_reqAccountBindEmail);
 		bundle.writeInt32(KBEngine.app.entity_id);
 		bundle.writeString(KBEngine.app.password);
@@ -3890,7 +3953,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.newPassword = function(old_password, new_password)
 	{
-		var bundle = new KBEngine.Bundle();
+		var bundle = KBEngine.Bundle.createObject();
 		bundle.newMessage(KBEngine.messages.Baseapp_reqAccountNewPassword);
 		bundle.writeInt32(KBEngine.app.entity_id);
 		bundle.writeString(old_password);
@@ -3910,7 +3973,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.logout = function()
 	{
-		var bundle = new KBEngine.Bundle();
+		var bundle = KBEngine.Bundle.createObject();
 		bundle.newMessage(KBEngine.messages.Baseapp_logoutBaseapp);
 		bundle.writeUint64(KBEngine.app.entity_uuid);
 		bundle.writeInt32(KBEngine.app.entity_id);
@@ -3929,7 +3992,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_login);
 			bundle.writeInt8(KBEngine.app.args.clientType); // clientType
 			bundle.writeBlob(KBEngine.app.clientdatas);
@@ -3947,7 +4010,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(!KBEngine.app.loginappMessageImported)
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_importClientMessages);
 			bundle.send(KBEngine.app);
 			KBEngine.app.socket.onmessage = KBEngine.app.Client_onImportClientMessages;  
@@ -3978,7 +4041,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle();
 			bundle.newMessage(KBEngine.messages.Loginapp_reqAccountResetPassword);
 			bundle.writeString(KBEngine.app.username);
 			bundle.send(KBEngine.app);
@@ -3992,7 +4055,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(!KBEngine.app.baseappMessageImported)
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Baseapp_importClientMessages);
 			bundle.send(KBEngine.app);
 			KBEngine.app.socket.onmessage = KBEngine.app.Client_onImportClientMessages;  
@@ -4019,7 +4082,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Baseapp_loginBaseapp);
 			bundle.writeString(KBEngine.app.username);
 			bundle.writeString(KBEngine.app.password);
@@ -4053,7 +4116,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.INFO_MSG("KBEngineApp::onReOpenBaseapp: successfully!");
 		KBEngine.app.currserver = "baseapp";
 		
-		var bundle = new KBEngine.Bundle();
+		var bundle = KBEngine.Bundle.createObject();
 		bundle.newMessage(KBEngine.messages.Baseapp_reloginBaseapp);
 		bundle.writeString(KBEngine.app.username);
 		bundle.writeString(KBEngine.app.password);
@@ -4619,7 +4682,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			player.entityLastLocalDir.y = player.direction.y;
 			player.entityLastLocalDir.z = player.direction.z;	
 							
-			var bundle = new KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Baseapp_onUpdateDataFromClient);
 			bundle.writeFloat(player.position.x);
 			bundle.writeFloat(player.position.y);
@@ -4647,7 +4710,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				entity.entityLastLocalPos = position;
 				entity.entityLastLocalDir = direction;
 
-				var bundle = new KBEngine.Bundle();
+				var bundle = KBEngine.Bundle.createObject();
 				bundle.newMessage(KBEngine.messages.Baseapp_onUpdateDataFromClientForControlledEntity);
 				bundle.writeInt32(entity.id);
 				bundle.writeFloat(position.x);
