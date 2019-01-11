@@ -1095,20 +1095,20 @@ KBEngine.Bundle = function()
 	}
 
 	this.reclaimObject = function()
-    {
+	{
 		this.clear();
 
 		if(KBEngine.Bundle._objects != undefined)
-        	KBEngine.Bundle._objects.push(this);
-   	 }
+			KBEngine.Bundle._objects.push(this);
+	}
 }
 
 KBEngine.Bundle.createObject = function()
 {
-  if(KBEngine.Bundle._objects == undefined)
-      KBEngine.Bundle._objects = [];
-  
-  return KBEngine.Bundle._objects.length > 0 ? KBEngine.Bundle._objects.pop() : new KBEngine.Bundle();
+	if(KBEngine.Bundle._objects == undefined)
+		KBEngine.Bundle._objects = [];
+
+	return KBEngine.Bundle._objects.length > 0 ? KBEngine.Bundle._objects.pop() : new KBEngine.Bundle();
 }
 
 /*-----------------------------------------------------------------------------------------
