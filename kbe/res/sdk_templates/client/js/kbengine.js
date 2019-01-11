@@ -898,11 +898,11 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	}
 
 	this.reclaimObject = function()
-    {
+	{
 		this.clear();
 
 		if(KBEngine.MemoryStream._objects != undefined)
-        	KBEngine.MemoryStream._objects.push(this);
+			KBEngine.MemoryStream._objects.push(this);
 	}
 }
 
@@ -910,7 +910,7 @@ KBEngine.MemoryStream.createObject = function()
 {
 	if(KBEngine.MemoryStream._objects == undefined)
 		KBEngine.MemoryStream._objects = [];
-  
+
 	return KBEngine.MemoryStream._objects.length > 0 ? KBEngine.MemoryStream._objects.pop() : new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
 }
 
