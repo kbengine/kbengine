@@ -545,6 +545,18 @@ void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
 	KBENGINE_EVENT_FIRE(KBEventTypes::onScriptVersionNotMatch, pEventData);
 }
 
+void KBEngineApp::Client_onImportClientSDK(MemoryStream& stream)
+{
+	UKBEventData_onImportClientSDK* pEventData = NewObject<UKBEventData_onImportClientSDK>();
+
+	pEventData->remainingFiles = stream.readInt32();
+	pEventData->fileName = stream.readString();
+	pEventData->fileSize = stream.readInt32();
+	stream.readBlob(pEventData->fileDatas);
+
+	KBENGINE_EVENT_FIRE("onImportClientSDK", pEventData);
+}
+
 void KBEngineApp::Client_onKicked(uint16 failedcode)
 {
 	DEBUG_MSG("KBEngineApp::Client_onKicked(): failedcode=%d, %s", failedcode, *serverErr(failedcode));
