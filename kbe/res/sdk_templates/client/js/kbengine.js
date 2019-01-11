@@ -4041,7 +4041,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var bundle = KBEngine.Bundle();
+			var bundle = KBEngine.Bundle.createObject();
 			bundle.newMessage(KBEngine.messages.Loginapp_reqAccountResetPassword);
 			bundle.writeString(KBEngine.app.username);
 			bundle.send(KBEngine.app);
