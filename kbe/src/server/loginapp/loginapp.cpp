@@ -1544,6 +1544,14 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 {
+	// 防止线上被恶意调用
+	static uint8 getcount = 0;
+	if(++getcount == 0)
+	{
+		ERROR_MSG(fmt::format("Loginapp::importClientSDK: The number of requests exceeded the limit!\n"));
+		return;
+	}
+	
 	std::string options;
 	s >> options;
 
