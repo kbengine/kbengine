@@ -3370,7 +3370,16 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			KBEngine.INFO_MSG("Client_onImportServerErrorsDescr: id=" + e.id + ", name=" + e.name + ", descr=" + e.descr);
 		}
 	}
-		
+
+	this.Client_onImportClientSdk = function(stream)
+	{
+		var remainingFiles = stream.readInt32();
+		var fileName = stream.readString();
+		var fileSize = stream.readInt32();
+		var fileDatas = stream.readBlob()
+		KBEngine.Event.fire("onImportClientSDK", remainingFiles, fileName, fileSize, fileDatas);
+	}
+	
 	this.onOpenLoginapp_login = function()
 	{  
 		KBEngine.INFO_MSG("KBEngineApp::onOpenLoginapp_login: successfully!");
