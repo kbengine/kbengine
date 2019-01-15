@@ -1369,7 +1369,7 @@ void ClientObjectBase::onUpdateData(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_ypr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1386,11 +1386,11 @@ void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yp_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1404,11 +1404,11 @@ void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1422,11 +1422,11 @@ void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_pr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1440,11 +1440,11 @@ void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_y_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1455,11 +1455,11 @@ void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_p_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1470,11 +1470,11 @@ void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_r_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1485,11 +1485,11 @@ void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1498,11 +1498,11 @@ void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream&
 	s.readPackXZ(x, z);
 
 
-	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_ypr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1521,11 +1521,11 @@ void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yp_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1541,11 +1541,11 @@ void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1561,11 +1561,11 @@ void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_pr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1581,11 +1581,11 @@ void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_y_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1598,11 +1598,11 @@ void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_p_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1615,11 +1615,11 @@ void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_r_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1632,11 +1632,11 @@ void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1645,11 +1645,11 @@ void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream
 	s.readPackXZ(x, z);
 	s.readPackY(y);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, FLT_MAX, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_ypr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1671,11 +1671,11 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemorySt
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, r, p, yaw, 0);
+	_updateVolatileData(eid, x, y, z, r, p, yaw, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yp_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1694,11 +1694,11 @@ void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw, 0);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1717,11 +1717,11 @@ void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw, 0);
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_pr_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1740,11 +1740,11 @@ void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_y_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1760,11 +1760,11 @@ void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	yaw = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw, 0);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_p_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1780,11 +1780,11 @@ void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, p, FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, FLT_MAX, 0, true);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_r_optimized(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
@@ -1800,12 +1800,332 @@ void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX, 0, true);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float y, p, r;
+	s >> y;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float y, p;
+	s >> y;
+	s >> p;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float y, r;
+	s >> y;
+	s >> r;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float p, r;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float y;
+	s >> y;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float p;
+	s >> p;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float r;
+	s >> r;
+
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z;
+	s >> x;
+	s >> z;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, y, p, r;
+	s >> x;
+	s >> z;
+	s >> y;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, y, p;
+	s >> x;
+	s >> z;
+	s >> y;
+	s >> p;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, y, r;
+	s >> x;
+	s >> z;
+	s >> y;
+	s >> r;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, p, r;
+	s >> x;
+	s >> z;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, y;
+	s >> x;
+	s >> z;
+	s >> y;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, p;
+	s >> x;
+	s >> z;
+	s >> p;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, z, r;
+	s >> x;
+	s >> z;
+	s >> r;
+
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, FLT_MAX, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+	
+	float yaw, p, r;
+	s >> yaw;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, x, y, z, r, p, yaw, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float yaw, p;
+	s >> yaw;
+	s >> p;
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float yaw, r;
+	s >> yaw;
+	s >> r;
+	
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float p, r;
+	s >> p;
+	s >> r;
+
+	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float yaw;
+	s >> yaw;
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float p;
+	s >> p;
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, FLT_MAX, 0, false);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
+
+	float x, y, z;
+	s >> x;
+	s >> y;
+	s >> z;
+
+	float r;
+	s >> r;
+
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX, 0, false);
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
-										   float roll, float pitch, float yaw, int8 isOnGround)
+										   float roll, float pitch, float yaw, int8 isOnGround, bool isOptimized)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
@@ -1839,12 +2159,21 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		relativePos.x = x;
 		relativePos.y = y;
 		relativePos.z = z;
-		
-		Position3D basepos = player->serverPosition();
-		basepos += relativePos;
-		
-		// DEBUG_MSG(fmt::format("ClientObjectBase::_updateVolatileData: {}-{}-{}--{}-{}-{}-\n", x, y, z, basepos.x, basepos.y, basepos.z));
-		entity->position(basepos);
+
+		if (isOptimized)
+		{
+			Position3D basepos = player->serverPosition();
+			basepos += relativePos;
+
+			entity->position(basepos);
+		}
+		else
+		{
+			entity->position(relativePos);
+		}
+
+		// DEBUG_MSG(fmt::format("ClientObjectBase::_updateVolatileData: {}-{}-{}--{}-{}-{}-\n", 
+		//	x, y, z, entity->position().x, entity->position().y, entity->position().z));
 	}
 
 	Direction3D dir = entity->direction();
