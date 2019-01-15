@@ -76,14 +76,14 @@ Witness::~Witness()
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
 	/**
-	 * @TODO(phw): ×¢ÊÍÏÂÃæµÄÔ­Ê¼´úÂë£¬¼òµ¥ĞŞÕıÈçÏÂµÄÎÊÌâ£º
-	 * ÏëÏóÒ»ÏÂ£ºA¡¢B¡¢CÈı¸öÍæ¼Ò»¥ÏàÄÜ¿´¼û¶Ô·½£¬ÄÇÃ´ËüÃÇµÄviewEntities_ÀïÃæ±ØĞë»á»¥Ïà¼ÇÂ¼×Å¶Ô·½µÄentityID£¬
-	 * ÄÇÃ´¼ÙÈçÈı¸öÍæ¼Ò¶¼ÔÚÍ¬Ò»Ê±¼ä´«ËÍµ½ÁíÒ»¸öcellappµÄµØÍ¼µÄÍ¬Ò»µãÉÏ£¬
-	 * ÕâÊ±Èı¸öÍæ¼Ò»¹Ô­µÄÊ±ºò¶¼»áÎªÁíÁ½¸öÍæ¼ÒÉú³ÉÒ»¸öflags_ == ENTITYREF_FLAG_UNKONWNµÄEntityRefÊµÀı£¬
-	 * °ÑËüÃÇ¼ÇÂ¼ÔÚ×Ô¼ºµÄviewEntities_£¬
-	 * µ«ÊÇ£¬Witness::update()²¢Ã»ÓĞÕë¶Ôflags_ == ENTITYREF_FLAG_UNKONWNµÄÇé¿ö×öÌØÊâ´¦Àí¡ª¡ª°ÑÍæ¼ÒentityÊı¾İ·¢ËÍ¸ø¿Í»§¶Ë£¬
-	 * ËùÒÔ½øÈëÁËÄ¬ÈÏµÄupdateVolatileData()Á÷³Ì£¬
-	 * Ê¹µÃ¿Í»§¶ËÔÚÃ»ÓĞ±ğµÄÍæ¼ÒentityµÄÇé¿öÏÂ¾ÍÊÕµ½ÁË±ğµÄÍæ¼ÒµÄ×ø±ê¸üĞÂµÄĞÅÏ¢£¬µ¼ÖÂ¿Í»§¶Ë´íÎó·¢Éú¡£
+	 * @TODO(phw): æ³¨é‡Šä¸‹é¢çš„åŸå§‹ä»£ç ï¼Œç®€å•ä¿®æ­£å¦‚ä¸‹çš„é—®é¢˜ï¼š
+	 * æƒ³è±¡ä¸€ä¸‹ï¼šAã€Bã€Cä¸‰ä¸ªç©å®¶äº’ç›¸èƒ½çœ‹è§å¯¹æ–¹ï¼Œé‚£ä¹ˆå®ƒä»¬çš„viewEntities_é‡Œé¢å¿…é¡»ä¼šäº’ç›¸è®°å½•ç€å¯¹æ–¹çš„entityIDï¼Œ
+	 * é‚£ä¹ˆå‡å¦‚ä¸‰ä¸ªç©å®¶éƒ½åœ¨åŒä¸€æ—¶é—´ä¼ é€åˆ°å¦ä¸€ä¸ªcellappçš„åœ°å›¾çš„åŒä¸€ç‚¹ä¸Šï¼Œ
+	 * è¿™æ—¶ä¸‰ä¸ªç©å®¶è¿˜åŸçš„æ—¶å€™éƒ½ä¼šä¸ºå¦ä¸¤ä¸ªç©å®¶ç”Ÿæˆä¸€ä¸ªflags_ == ENTITYREF_FLAG_UNKONWNçš„EntityRefå®ä¾‹ï¼Œ
+	 * æŠŠå®ƒä»¬è®°å½•åœ¨è‡ªå·±çš„viewEntities_ï¼Œ
+	 * ä½†æ˜¯ï¼ŒWitness::update()å¹¶æ²¡æœ‰é’ˆå¯¹flags_ == ENTITYREF_FLAG_UNKONWNçš„æƒ…å†µåšç‰¹æ®Šå¤„ç†â€”â€”æŠŠç©å®¶entityæ•°æ®å‘é€ç»™å®¢æˆ·ç«¯ï¼Œ
+	 * æ‰€ä»¥è¿›å…¥äº†é»˜è®¤çš„updateVolatileData()æµç¨‹ï¼Œ
+	 * ä½¿å¾—å®¢æˆ·ç«¯åœ¨æ²¡æœ‰åˆ«çš„ç©å®¶entityçš„æƒ…å†µä¸‹å°±æ”¶åˆ°äº†åˆ«çš„ç©å®¶çš„åæ ‡æ›´æ–°çš„ä¿¡æ¯ï¼Œå¯¼è‡´å®¢æˆ·ç«¯é”™è¯¯å‘ç”Ÿã€‚
 	
 	s << viewRadius_ << viewHysteresisArea_ << clientViewSize_;	
 	
@@ -97,7 +97,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	}
 	*/
 
-	// µ±Ç°ÕâÃ´×öÄÜ½â¾öÎÊÌâ£¬µ«ÊÇÔÚspace¶àcell·Ö¸îµÄÇé¿öÏÂ½«»á³öÏÖÎÊÌâ
+	// å½“å‰è¿™ä¹ˆåšèƒ½è§£å†³é—®é¢˜ï¼Œä½†æ˜¯åœ¨spaceå¤šcellåˆ†å‰²çš„æƒ…å†µä¸‹å°†ä¼šå‡ºç°é—®é¢˜
 	s << viewRadius_ << viewHysteresisArea_ << (uint16)0;	
 	s << (uint32)0; // viewEntities_map_.size();
 }
@@ -139,7 +139,7 @@ void Witness::attach(Entity* pEntity)
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
-		// ³õÊ¼»¯Ä¬ÈÏView·¶Î§
+		// åˆå§‹åŒ–é»˜è®¤ViewèŒƒå›´
 		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 		setViewRadius(ecinfo.defaultViewRadius, ecinfo.defaultViewHysteresisArea);
 	}
@@ -155,7 +155,7 @@ void Witness::onAttach(Entity* pEntity)
 	lastBasePos_.z = -FLT_MAX;
 	lastBaseDir_.yaw(-FLT_MAX);
 
-	// Í¨Öª¿Í»§¶Ëenterworld
+	// é€šçŸ¥å®¢æˆ·ç«¯enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
 	
@@ -192,7 +192,7 @@ void Witness::detach(Entity* pEntity)
 		{
 			pChannel->send();
 
-			// Í¨Öª¿Í»§¶Ëleaveworld
+			// é€šçŸ¥å®¢æˆ·ç«¯leaveworld
 			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
 
@@ -228,9 +228,9 @@ void Witness::clear(Entity* pEntity)
 	viewHysteresisArea_ = 5.0f;
 	clientViewSize_ = 0;
 
-	// ²»ĞèÒªÏú»Ù£¬ºóÃæ»¹¿ÉÒÔÖØÓÃ
-	// ´Ë´¦Ïú»Ù¿ÉÄÜ»á²úÉú´íÎó£¬ÒòÎªenterView¹ı³ÌÖĞ¿ÉÄÜµ¼ÖÂÊµÌåÏú»Ù
-	// ÔÚpViewTrigger_Á÷³ÌÃ»×ßÍêÖ®Ç°ÕâÀïÏú»ÙÁËpViewTrigger_¾Ícrash
+	// ä¸éœ€è¦é”€æ¯ï¼Œåé¢è¿˜å¯ä»¥é‡ç”¨
+	// æ­¤å¤„é”€æ¯å¯èƒ½ä¼šäº§ç”Ÿé”™è¯¯ï¼Œå› ä¸ºenterViewè¿‡ç¨‹ä¸­å¯èƒ½å¯¼è‡´å®ä½“é”€æ¯
+	// åœ¨pViewTrigger_æµç¨‹æ²¡èµ°å®Œä¹‹å‰è¿™é‡Œé”€æ¯äº†pViewTrigger_å°±crash
 	//SAFE_RELEASE(pViewTrigger_);
 	//SAFE_RELEASE(pViewHysteresisAreaTrigger_);
 
@@ -300,9 +300,9 @@ void Witness::setViewRadius(float radius, float hyst)
 	viewRadius_ = radius;
 	viewHysteresisArea_ = hyst;
 
-	// ÓÉÓÚÎ»ÖÃÍ¬²½Ê¹ÓÃÁËÏà¶ÔÎ»ÖÃÑ¹Ëõ´«Êä£¬¿ÉÓÃ·¶Î§Îª-512~512Ö®¼ä£¬Òò´Ë³¬¹ı·¶Î§½«³öÏÖÍ¬²½´íÎó
-	// ÕâÀï×öÒ»¸öÏŞÖÆ£¬Èç¹ûĞèÒª¹ı´óµÄÊıÖµ¿Í»§¶ËÓ¦¸Ãµ÷Õû×ø±êµ¥Î»±ÈÀı£¬½«Æä·Å´óÊ¹ÓÃ¡£
-	// ²Î¿¼: MemoryStream::appendPackXZ
+	// ç”±äºä½ç½®åŒæ­¥ä½¿ç”¨äº†ç›¸å¯¹ä½ç½®å‹ç¼©ä¼ è¾“ï¼Œå¯ç”¨èŒƒå›´ä¸º-512~512ä¹‹é—´ï¼Œå› æ­¤è¶…è¿‡èŒƒå›´å°†å‡ºç°åŒæ­¥é”™è¯¯
+	// è¿™é‡Œåšä¸€ä¸ªé™åˆ¶ï¼Œå¦‚æœéœ€è¦è¿‡å¤§çš„æ•°å€¼å®¢æˆ·ç«¯åº”è¯¥è°ƒæ•´åæ ‡å•ä½æ¯”ä¾‹ï¼Œå°†å…¶æ”¾å¤§ä½¿ç”¨ã€‚
+	// å‚è€ƒ: MemoryStream::appendPackXZ
 	if(viewRadius_ + viewHysteresisArea_ > 512)
 	{
 		viewRadius_ = 512 - 5.0f;
@@ -311,7 +311,7 @@ void Witness::setViewRadius(float radius, float hyst)
 		ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n", 
 			pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
 		
-		// ²»·µ»Ø£¬¼ÌĞøÉúĞ§
+		// ä¸è¿”å›ï¼Œç»§ç»­ç”Ÿæ•ˆ
 		// return;
 	}
 
@@ -321,7 +321,7 @@ void Witness::setViewRadius(float radius, float hyst)
 		{
 			pViewTrigger_ = new ViewTrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), viewRadius_, viewRadius_);
 
-			// Èç¹ûÊµÌåÒÑ¾­ÔÚ³¡¾°ÖĞ£¬ÄÇÃ´ĞèÒª°²×°
+			// å¦‚æœå®ä½“å·²ç»åœ¨åœºæ™¯ä¸­ï¼Œé‚£ä¹ˆéœ€è¦å®‰è£…
 			if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
 				pViewTrigger_->install();
 		}
@@ -329,12 +329,12 @@ void Witness::setViewRadius(float radius, float hyst)
 		{
 			pViewTrigger_->update(viewRadius_, viewRadius_);
 
-			// Èç¹ûÊµÌåÒÑ¾­ÔÚ³¡¾°ÖĞ£¬ÄÇÃ´ĞèÒª°²×°
+			// å¦‚æœå®ä½“å·²ç»åœ¨åœºæ™¯ä¸­ï¼Œé‚£ä¹ˆéœ€è¦å®‰è£…
 			if (!pViewTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
 				pViewTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}
 
-		if (viewHysteresisArea_ > 0.01f && pEntity_/*ÉÏÃæupdateÁ÷³Ì¿ÉÄÜµ¼ÖÂÏú»Ù */)
+		if (viewHysteresisArea_ > 0.01f && pEntity_/*ä¸Šé¢updateæµç¨‹å¯èƒ½å¯¼è‡´é”€æ¯ */)
 		{
 			if (pViewHysteresisAreaTrigger_ == NULL)
 			{
@@ -348,15 +348,15 @@ void Witness::setViewRadius(float radius, float hyst)
 			{
 				pViewHysteresisAreaTrigger_->update(viewHysteresisArea_ + viewRadius_, viewHysteresisArea_ + viewRadius_);
 
-				// Èç¹ûÊµÌåÒÑ¾­ÔÚ³¡¾°ÖĞ£¬ÄÇÃ´ĞèÒª°²×°
+				// å¦‚æœå®ä½“å·²ç»åœ¨åœºæ™¯ä¸­ï¼Œé‚£ä¹ˆéœ€è¦å®‰è£…
 				if (!pViewHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
 					pViewHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 			}
 		}
 		else
 		{
-			// ×¢Òâ£º´Ë´¦Èç¹û²»Ïú»ÙpViewHysteresisAreaTrigger_Ôò±ØĞëÊÇupdate
-			// ÒòÎªÀë¿ªViewµÄÅĞ¶ÏÈç¹ûpViewHysteresisAreaTrigger_´æÔÚ£¬ÄÇÃ´±ØĞë³öÁËpViewHysteresisAreaTrigger_²ÅËã³öView
+			// æ³¨æ„ï¼šæ­¤å¤„å¦‚æœä¸é”€æ¯pViewHysteresisAreaTrigger_åˆ™å¿…é¡»æ˜¯update
+			// å› ä¸ºç¦»å¼€Viewçš„åˆ¤æ–­å¦‚æœpViewHysteresisAreaTrigger_å­˜åœ¨ï¼Œé‚£ä¹ˆå¿…é¡»å‡ºäº†pViewHysteresisAreaTrigger_æ‰ç®—å‡ºView
 			if (pViewHysteresisAreaTrigger_)
 				pViewHysteresisAreaTrigger_->update(viewHysteresisArea_ + viewRadius_, viewHysteresisArea_ + viewRadius_);
 		}
@@ -370,15 +370,15 @@ void Witness::setViewRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 {
-	// Èç¹û½øÈëµÄÊÇHysteresisÇøÓò£¬ÄÇÃ´²»²úÉú×÷ÓÃ
+	// å¦‚æœè¿›å…¥çš„æ˜¯HysteresisåŒºåŸŸï¼Œé‚£ä¹ˆä¸äº§ç”Ÿä½œç”¨
 	 if (pViewHysteresisAreaTrigger_ == pViewTrigger)
 		return;
 
-	// ÏÈÔö¼ÓÒ»¸öÒıÓÃ£¬±ÜÃâÊµÌåÔÚ»Øµ÷ÖĞ±»Ïú»ÙÔì³ÉºóĞøÅĞ¶Ï³ö´í
+	// å…ˆå¢åŠ ä¸€ä¸ªå¼•ç”¨ï¼Œé¿å…å®ä½“åœ¨å›è°ƒä¸­è¢«é”€æ¯é€ æˆåç»­åˆ¤æ–­å‡ºé”™
 	Py_INCREF(pEntity);
 
-	// ÔÚonEnteredViewºÍaddWitnessed¿ÉÄÜµ¼ÖÂ×Ô¼ºÏú»ÙÈ»ºó
-	// pEntity_½«±»ÉèÖÃÎªNULL£¬ºóÃæÃ»ÓĞ»ú»áDECREF
+	// åœ¨onEnteredViewå’ŒaddWitnessedå¯èƒ½å¯¼è‡´è‡ªå·±é”€æ¯ç„¶å
+	// pEntity_å°†è¢«è®¾ç½®ä¸ºNULLï¼Œåé¢æ²¡æœ‰æœºä¼šDECREF
 	Entity* pSelfEntity = pEntity_;
 	Py_INCREF(pSelfEntity);
 
@@ -391,9 +391,9 @@ void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 			//DEBUG_MSG(fmt::format("Witness::onEnterView: {} entity={}\n", 
 			//	pEntity_->id(), pEntity->id()));
 
-			// Èç¹ûflagsÊÇENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMAL×´Ì¬ÄÇÃ´ÎÒÃÇ
-			// Ö»ĞèÒª³·ÏúÀë¿ª×´Ì¬²¢½«Æä»¹Ô­µ½ENTITYREF_FLAG_NORMAL¼´¿É
-			// Èç¹ûÊÇENTITYREF_FLAG_LEAVE_CLIENT_PENDING×´Ì¬ÄÇÃ´´ËÊ±Ó¦¸Ã½«ËüÉèÖÃÎª½øÈë×´Ì¬ ENTITYREF_FLAG_ENTER_CLIENT_PENDING
+			// å¦‚æœflagsæ˜¯ENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMALçŠ¶æ€é‚£ä¹ˆæˆ‘ä»¬
+			// åªéœ€è¦æ’¤é”€ç¦»å¼€çŠ¶æ€å¹¶å°†å…¶è¿˜åŸåˆ°ENTITYREF_FLAG_NORMALå³å¯
+			// å¦‚æœæ˜¯ENTITYREF_FLAG_LEAVE_CLIENT_PENDINGçŠ¶æ€é‚£ä¹ˆæ­¤æ—¶åº”è¯¥å°†å®ƒè®¾ç½®ä¸ºè¿›å…¥çŠ¶æ€ ENTITYREF_FLAG_ENTER_CLIENT_PENDING
 			if ((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 			else
@@ -429,7 +429,7 @@ void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveView(ViewTrigger* pViewTrigger, Entity* pEntity)
 {
-	// Èç¹ûÉèÖÃ¹ıHysteresisÇøÓò£¬ÄÇÃ´Àë¿ªHysteresisÇøÓò²ÅËãÀë¿ªView
+	// å¦‚æœè®¾ç½®è¿‡HysteresisåŒºåŸŸï¼Œé‚£ä¹ˆç¦»å¼€HysteresisåŒºåŸŸæ‰ç®—ç¦»å¼€View
 	if (pViewHysteresisAreaTrigger_ && pViewHysteresisAreaTrigger_ != pViewTrigger)
 		return;
 
@@ -446,7 +446,7 @@ void Witness::_onLeaveView(EntityRef* pEntityRef)
 	//DEBUG_MSG(fmt::format("Witness::onLeaveView: {} entity={}\n", 
 	//	pEntity_->id(), pEntityRef->id()));
 
-	// ÕâÀï²»delete£¬ ÎÒÃÇĞèÒª´ıupdate½«´ËĞĞÎª¸üĞÂÖÁ¿Í»§¶ËÊ±ÔÙ½øĞĞ
+	// è¿™é‡Œä¸deleteï¼Œ æˆ‘ä»¬éœ€è¦å¾…updateå°†æ­¤è¡Œä¸ºæ›´æ–°è‡³å®¢æˆ·ç«¯æ—¶å†è¿›è¡Œ
 	//EntityRef::reclaimPoolObject((*iter));
 	//viewEntities_.erase(iter);
 	//viewEntities_map_.erase(iter);
@@ -487,7 +487,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
 
-	// Í¨ÖªÎ»ÖÃÇ¿ÖÆ¸Ä±ä
+	// é€šçŸ¥ä½ç½®å¼ºåˆ¶æ”¹å˜
 	Position3D &pos = pEntity_->position();
 	Direction3D &dir = pEntity_->direction();
 	ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
@@ -496,7 +496,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pSendBundle) << dir.roll() << dir.pitch() << dir.yaw();
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 	
-	// Í¨Öª½øÈëÁËĞÂµØÍ¼
+	// é€šçŸ¥è¿›å…¥äº†æ–°åœ°å›¾
 	ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
 	(*pSendBundle) << pEntity_->id();
@@ -506,7 +506,7 @@ void Witness::onEnterSpace(Space* pSpace)
 
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
-	// ·¢ËÍÏûÏ¢²¢ÇåÀí
+	// å‘é€æ¶ˆæ¯å¹¶æ¸…ç†
 	pEntity_->clientEntityCall()->sendCall(pSendBundle);
 
 	installViewTrigger();
@@ -550,18 +550,18 @@ void Witness::installViewTrigger()
 {
 	if (pViewTrigger_)
 	{
-		// ÔÚÉèÖÃView°ë¾¶Îª0ºóµôÏßÖØµÇÂ½»á³öÏÖÕâÖÖÇé¿ö
+		// åœ¨è®¾ç½®ViewåŠå¾„ä¸º0åæ‰çº¿é‡ç™»é™†ä¼šå‡ºç°è¿™ç§æƒ…å†µ
 		if (viewRadius_ <= 0.f)
 			return;
 
-		// ±ØĞëÏÈ°²×°pViewHysteresisAreaTrigger_£¬·ñÔòÒ»Ğ©¼«¶ËÇé¿ö»á³öÏÖ´íÎóµÄ½á¹û
-		// ÀıÈç£ºÒ»¸öAvatarÕıºÃ½øÈëµ½ÊÀ½ç´ËÊ±ÕıÔÚ°²×°View´¥·¢Æ÷£¬¶ø°²×°¹ı³ÌÖĞÕâ¸öÊµÌåonWitnessed´¥·¢µ¼ÖÂ×ÔÉí±»Ïú»ÙÁË
-		// ÓÉÓÚView´¥·¢Æ÷²¢Î´ÍêÈ«°²×°Íê±Ïµ¼ÖÂ´¥·¢Æ÷µÄ½Úµãold_xxµÈ¶¼Îª-FLT_MAX£¬ËùÒÔ¸ÃÊµÌåÔÚÀë¿ª×ø±ê¹ÜÀíÆ÷Ê±AvatarµÄView´¥·¢Æ÷ÅĞ¶Ï´íÎó
-		// Èç¹ûÏÈ°²×°pViewHysteresisAreaTrigger_Ôò²»»á´¥·¢ÊµÌå½øÈëViewÊÂ¼ş£¬ÕâÑùÔÚ°²×°pViewTrigger_Ê±´¥·¢ÊÂ¼şµ¼ÖÂÉÏÃæ³öÏÖµÄÎÊÌâÊ±Ò²ÄÜÖ®Ç°²¶»ñÀë¿ªÊÂ¼şÁË
-		if (pViewHysteresisAreaTrigger_ && pEntity_/*ÉÏÃæÁ÷³Ì¿ÉÄÜµ¼ÖÂÏú»Ù */)
+		// å¿…é¡»å…ˆå®‰è£…pViewHysteresisAreaTrigger_ï¼Œå¦åˆ™ä¸€äº›æç«¯æƒ…å†µä¼šå‡ºç°é”™è¯¯çš„ç»“æœ
+		// ä¾‹å¦‚ï¼šä¸€ä¸ªAvataræ­£å¥½è¿›å…¥åˆ°ä¸–ç•Œæ­¤æ—¶æ­£åœ¨å®‰è£…Viewè§¦å‘å™¨ï¼Œè€Œå®‰è£…è¿‡ç¨‹ä¸­è¿™ä¸ªå®ä½“onWitnessedè§¦å‘å¯¼è‡´è‡ªèº«è¢«é”€æ¯äº†
+		// ç”±äºViewè§¦å‘å™¨å¹¶æœªå®Œå…¨å®‰è£…å®Œæ¯•å¯¼è‡´è§¦å‘å™¨çš„èŠ‚ç‚¹old_xxç­‰éƒ½ä¸º-FLT_MAXï¼Œæ‰€ä»¥è¯¥å®ä½“åœ¨ç¦»å¼€åæ ‡ç®¡ç†å™¨æ—¶Avatarçš„Viewè§¦å‘å™¨åˆ¤æ–­é”™è¯¯
+		// å¦‚æœå…ˆå®‰è£…pViewHysteresisAreaTrigger_åˆ™ä¸ä¼šè§¦å‘å®ä½“è¿›å…¥Viewäº‹ä»¶ï¼Œè¿™æ ·åœ¨å®‰è£…pViewTrigger_æ—¶è§¦å‘äº‹ä»¶å¯¼è‡´ä¸Šé¢å‡ºç°çš„é—®é¢˜æ—¶ä¹Ÿèƒ½ä¹‹å‰æ•è·ç¦»å¼€äº‹ä»¶äº†
+		if (pViewHysteresisAreaTrigger_ && pEntity_/*ä¸Šé¢æµç¨‹å¯èƒ½å¯¼è‡´é”€æ¯ */)
 			pViewHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
-		if (pEntity_/*ÉÏÃæÁ÷³Ì¿ÉÄÜµ¼ÖÂÏú»Ù */)
+		if (pEntity_/*ä¸Šé¢æµç¨‹å¯èƒ½å¯¼è‡´é”€æ¯ */)
 			pViewTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 	else
@@ -579,7 +579,7 @@ void Witness::uninstallViewTrigger()
 	if (pViewHysteresisAreaTrigger_)
 		pViewHysteresisAreaTrigger_->uninstall();
 
-	// Í¨ÖªËùÓĞÊµÌåÀë¿ªView
+	// é€šçŸ¥æ‰€æœ‰å®ä½“ç¦»å¼€View
 	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
 	for (; iter != viewEntities_.end(); ++iter)
 	{
@@ -624,8 +624,8 @@ void Witness::_addViewEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnt
 	}
 	else
 	{
-		// ×¢Òâ£º²»¿ÉÔÚ¸ÃÄ£¿éÍâ²¿Ê¹ÓÃ£¬·ñÔò¿ÉÄÜ³öÏÖ¿Í»§¶Ë±íÕÒ²»µ½entityIDµÄÇé¿ö
-		// clientViewSize_ĞèÒªÊµÌåÕæÕıÍ¬²½µ½¿Í»§¶ËÊ±²Å»áÔö¼Ó
+		// æ³¨æ„ï¼šä¸å¯åœ¨è¯¥æ¨¡å—å¤–éƒ¨ä½¿ç”¨ï¼Œå¦åˆ™å¯èƒ½å‡ºç°å®¢æˆ·ç«¯è¡¨æ‰¾ä¸åˆ°entityIDçš„æƒ…å†µ
+		// clientViewSize_éœ€è¦å®ä½“çœŸæ­£åŒæ­¥åˆ°å®¢æˆ·ç«¯æ—¶æ‰ä¼šå¢åŠ 
 		if(clientViewSize_ > 255)
 		{
 			(*pBundle) << pEntityRef->id();
@@ -695,7 +695,7 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 		return false;
 	}
 
-	// Òç³ö
+	// æº¢å‡º
 	if (pEntityRef->aliasID() > 255)
 	{
 		aliasID = 0;
@@ -756,7 +756,7 @@ bool Witness::update()
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
-		// µÃµ½µ±Ç°pSendBundleÖĞÊÇ·ñÓĞÊı¾İ£¬Èç¹ûÓĞÊı¾İ±íÊ¾¸ÃbundleÊÇÖØÓÃµÄ»º´æµÄÊı¾İ°ü
+		// å¾—åˆ°å½“å‰pSendBundleä¸­æ˜¯å¦æœ‰æ•°æ®ï¼Œå¦‚æœæœ‰æ•°æ®è¡¨ç¤ºè¯¥bundleæ˜¯é‡ç”¨çš„ç¼“å­˜çš„æ•°æ®åŒ…
 		bool isBufferedSendBundleMessageLength = pSendBundle->packets().size() > 0 ? true : 
 			(pSendBundle->pCurrPacket() && pSendBundle->pCurrPacket()->length() > 0);
 		
@@ -770,7 +770,7 @@ bool Witness::update()
 			
 			if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 			{
-				// ÕâÀïÊ¹ÓÃid²éÕÒÒ»ÏÂ£¬ ±ÜÃâentityÔÚ½øÈëViewÊ±µÄ»Øµ÷Àï±»ÒâÍâÏú»Ù
+				// è¿™é‡Œä½¿ç”¨idæŸ¥æ‰¾ä¸€ä¸‹ï¼Œ é¿å…entityåœ¨è¿›å…¥Viewæ—¶çš„å›è°ƒé‡Œè¢«æ„å¤–é”€æ¯
 				Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
 				if(otherEntity == NULL)
 				{
@@ -852,7 +852,7 @@ bool Witness::update()
 		}
 
 		size_t pSendBundleMessageLength = pSendBundle->currMsgLength();
-		if (pSendBundleMessageLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN²úÉúµÄ»ù´¡°ü´óĞ¡*/)
+		if (pSendBundleMessageLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGINäº§ç”Ÿçš„åŸºç¡€åŒ…å¤§å°*/)
 		{
 			if(pSendBundleMessageLength > PACKET_MAX_SIZE_TCP)
 			{
@@ -865,9 +865,9 @@ bool Witness::update()
 		}
 		else
 		{
-			// Èç¹ûbundleÊÇchannel»º´æµÄ°ü
-			// È¡³öÀ´ÖØ¸´ÀûÓÃµÄÈç¹ûÏë¶ªÆú±¾´ÎÏûÏ¢·¢ËÍ
-			// ´ËÊ±Ó¦¸Ã½«NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN´ÓÆäÖĞÄ¨³ıµô
+			// å¦‚æœbundleæ˜¯channelç¼“å­˜çš„åŒ…
+			// å–å‡ºæ¥é‡å¤åˆ©ç”¨çš„å¦‚æœæƒ³ä¸¢å¼ƒæœ¬æ¬¡æ¶ˆæ¯å‘é€
+			// æ­¤æ—¶åº”è¯¥å°†NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGINä»å…¶ä¸­æŠ¹é™¤æ‰
 			if(isBufferedSendBundleMessageLength)
 			{
 				KBE_ASSERT(pSendBundleMessageLength == 8);
@@ -946,10 +946,11 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 {
 	Entity* otherEntity = pEntityRef->pEntity();
 
-	uint16 type = g_kbeSrvConfig.getCellApp().entity_posdir_updates_type;
-	uint16 threshold = g_kbeSrvConfig.getCellApp().entity_posdir_updates_smart_threshold;
+	static uint8 type = g_kbeSrvConfig.getCellApp().entity_posdir_updates_type;
+	static uint16 threshold = g_kbeSrvConfig.getCellApp().entity_posdir_updates_smart_threshold;
+	
 	bool isOptimized = true;
-	if (type == 2 && clientViewSize_ <= threshold || type == 0)
+	if ((type == 2 && clientViewSize_ <= threshold) || type == 0)
 	{
 		isOptimized = false;
 	} 
@@ -1567,9 +1568,9 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	/* Èç¹ûÄ¿±ê±»ÎÒ¿ØÖÆÁË£¬ÔòÄ¿±êµÄÎ»ÖÃ²»Í¨ÖªÎÒµÄ¿Í»§¶Ë¡£
-	   ×¢Òâ£ºµ±Õâ¸ö±»ÎÒ¿ØÖÆµÄentityÔÚ·şÎñÆ÷ÖĞÊ¹ÓÃmoveToPoint()µÈ½Ó¿ÚÒÆ¶¯Ê±£¬
-	         Ò²»áÓÉÓÚÕâ¸öÅĞ¶¨µ¼ÖÂ×ø±ê²»»áÍ¬²½µ½¿ØÖÆÕßµÄ¿Í»§¶ËÖĞ
+	/* å¦‚æœç›®æ ‡è¢«æˆ‘æ§åˆ¶äº†ï¼Œåˆ™ç›®æ ‡çš„ä½ç½®ä¸é€šçŸ¥æˆ‘çš„å®¢æˆ·ç«¯ã€‚
+	   æ³¨æ„ï¼šå½“è¿™ä¸ªè¢«æˆ‘æ§åˆ¶çš„entityåœ¨æœåŠ¡å™¨ä¸­ä½¿ç”¨moveToPoint()ç­‰æ¥å£ç§»åŠ¨æ—¶ï¼Œ
+	         ä¹Ÿä¼šç”±äºè¿™ä¸ªåˆ¤å®šå¯¼è‡´åæ ‡ä¸ä¼šåŒæ­¥åˆ°æ§åˆ¶è€…çš„å®¢æˆ·ç«¯ä¸­
 	*/
 	if (otherEntity->controlledBy() && pEntity_->id() == otherEntity->controlledBy()->id())
 		return flags;
