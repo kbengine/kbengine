@@ -1089,8 +1089,7 @@ KBEngine.Bundle = function()
 			if(this.stream != this.memorystreams[i])
 				this.memorystreams[i].reclaimObject();
 		}
-			
-		
+
 		if(this.stream)
 			this.stream.clear();
 		else
