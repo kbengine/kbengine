@@ -305,14 +305,17 @@ void Witness::setViewRadius(float radius, float hyst)
 	// 参考: MemoryStream::appendPackXZ
 	if(viewRadius_ + viewHysteresisArea_ > 512)
 	{
-		viewRadius_ = 512 - 5.0f;
-		viewHysteresisArea_ = 5.0f;
-		
-		ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n", 
-			pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
-		
-		// 不返回，继续生效
-		// return;
+		if (g_kbeSrvConfig.getCellApp().entity_posdir_updates_type > 0)
+		{
+			viewRadius_ = 512 - 5.0f;
+			viewHysteresisArea_ = 5.0f;
+
+			ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n",
+				pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
+
+			// 不返回，继续生效
+			// return;
+		}
 	}
 
 	if (viewRadius_ > 0.f && pEntity_)
