@@ -3,17 +3,17 @@
 #include "KBDebug.h"
 #include "ObjectPool.h"
 
-static ObjectPool<MemoryStream> _g_objPool;
+static ObjectPool<MemoryStream> _g_memoryStreamPool;
 
 MemoryStream* MemoryStream::createObject()
 {
-	return _g_objPool.createObject();
+	return _g_memoryStreamPool.createObject();
 }
 
 void MemoryStream::reclaimObject(MemoryStream* obj)
 {
 	obj->clear(false);
-	_g_objPool.reclaimObject(obj);
+	_g_memoryStreamPool.reclaimObject(obj);
 }
 
 void MemoryStream::print_storage()

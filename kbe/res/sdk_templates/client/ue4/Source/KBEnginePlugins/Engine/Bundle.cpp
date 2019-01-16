@@ -6,7 +6,7 @@
 #include "KBDebug.h"
 #include "ObjectPool.h"
 
-static ObjectPool<Bundle> _g_objPool;
+static ObjectPool<Bundle> _g_bundlePool;
 
 Bundle::Bundle():
 	pCurrPacket_(NULL),
@@ -37,13 +37,13 @@ Bundle::~Bundle()
 
 Bundle* Bundle::createObject()
 {
-	return _g_objPool.createObject();
+	return _g_bundlePool.createObject();
 }
 
 void Bundle::reclaimObject(Bundle* obj)
 {
 	obj->clear();
-	_g_objPool.reclaimObject(obj);
+	_g_bundlePool.reclaimObject(obj);
 }
 
 void Bundle::newMessage(Message* pMsg)
