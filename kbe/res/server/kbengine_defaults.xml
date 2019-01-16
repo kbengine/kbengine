@@ -522,9 +522,9 @@
 			<entity_posdir_additional_updates> 2 </entity_posdir_additional_updates>
 						
 			<!-- 实体位置更新方式，
-				0：非优化同步，直接同步高精度数据，View范围无限制。 
+				0：直接同步高精度浮点数据，View范围无限制。 
 				1：优化同步，降低海量同屏时带宽使用，有小许精度损耗，View范围限制在500以内。 
-				2：智能选择模式，当同屏人数小于等于smartThreshold时使用0方式同步，否则使用1方式。
+				2：智能选择模式，当同屏人数小于等于smartThreshold时使用0方式同步，否则使用1方式。View范围限制在500以内。
 			-->
 			<entity_posdir_updates> 
 				<type> 1 </type>
