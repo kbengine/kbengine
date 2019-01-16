@@ -1,15 +1,19 @@
 
 #include "MemoryStream.h"
 #include "KBDebug.h"
+#include "ObjectPool.h"
+
+static ObjectPool<MemoryStream> _g_objPool;
 
 MemoryStream* MemoryStream::createObject()
 {
-	return new MemoryStream();
+	return _g_objPool.createObject();
 }
 
 void MemoryStream::reclaimObject(MemoryStream* obj)
 {
-	delete obj;
+	obj->clear(false);
+	_g_objPool.reclaimObject(obj);
 }
 
 void MemoryStream::print_storage()
