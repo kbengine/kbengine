@@ -971,6 +971,8 @@ KBEngine.Bundle = function()
 			this.writeMsgLength(this.messageLength);
 			if(this.stream)
 				this.memorystreams.push(this.stream);
+
+			this.stream = KBEngine.MemoryStream.createObject();
 		}
 		
 		if(issend)
@@ -990,11 +992,7 @@ KBEngine.Bundle = function()
 		{
 			var tmpStream = this.memorystreams[i];
 			network.send(tmpStream.getbuffer());
-			tmpStream.reclaimObject();
 		}
-
-		this.memorystreams = new Array();
-		this.stream = KBEngine.MemoryStream.createObject();
 
 		this.reclaimObject();
 	}
@@ -1086,7 +1084,18 @@ KBEngine.Bundle = function()
 
 	this.clear = function()
 	{
-		this.stream = KBEngine.MemoryStream.createObject();
+		for(var i=0; i<this.memorystreams.length; i++)
+		{
+			if(this.stream != this.memorystreams[i])
+				this.memorystreams[i].reclaimObject();
+		}
+			
+		
+		if(this.stream)
+			this.stream.clear();
+		else
+			this.stream = KBEngine.MemoryStream.createObject();
+
 		this.memorystreams = new Array();
 		this.numMessage = 0;
 		this.messageLengthBuffer = null;
