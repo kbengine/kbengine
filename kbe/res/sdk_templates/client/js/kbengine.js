@@ -4899,129 +4899,404 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var y = stream.readInt8();
-		var p = stream.readInt8();
-		var r = stream.readInt8();
+		var y = stream.readFloat();
+		var p = stream.readFloat();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, r, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, r, -1, false);
 	}
 	
 	this.Client_onUpdateData_yp = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var y = stream.readInt8();
-		var p = stream.readInt8();
+		var y = stream.readFloat();
+		var p = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, KBEngine.KBE_FLT_MAX, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, KBEngine.KBE_FLT_MAX, -1, false);
 	}
 	
 	this.Client_onUpdateData_yr = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var y = stream.readInt8();
-		var r = stream.readInt8();
+		var y = stream.readFloat();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, r, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, r, -1, false);
 	}
 	
 	this.Client_onUpdateData_pr = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var p = stream.readInt8();
-		var r = stream.readInt8();
+		var p = stream.readFloat();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, r, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, r, -1, false);
 	}
 	
 	this.Client_onUpdateData_y = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var y = stream.readInt8();
+		var y = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, -1, false);
 	}
 	
 	this.Client_onUpdateData_p = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var p = stream.readInt8();
+		var p = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, -1, false);
 	}
 	
 	this.Client_onUpdateData_r = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var r = stream.readInt8();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, -1);
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, -1, false);
 	}
 	
 	this.Client_onUpdateData_xz = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var xz = stream.readPackXZ();
+		var x = stream.readFloat();
+		var z = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1);
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1, false);
 	}
 	
 	this.Client_onUpdateData_xz_ypr = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var xz = stream.readPackXZ();
+		var x = stream.readFloat();
+		var z = stream.readFloat();
 
-		var y = stream.readInt8();
-		var p = stream.readInt8();
-		var r = stream.readInt8();
+		var y = stream.readFloat();
+		var p = stream.readFloat();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, p, r, 1);
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, y, p, r, 1, false);
 	}
 	
 	this.Client_onUpdateData_xz_yp = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var xz = stream.readPackXZ();
+		var x = stream.readFloat();
+		var z = stream.readFloat();
 
-		var y = stream.readInt8();
-		var p = stream.readInt8();
+		var y = stream.readFloat();
+		var p = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, p, KBEngine.KBE_FLT_MAX, 1);
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, y, p, KBEngine.KBE_FLT_MAX, 1, false);
 	}
 	
 	this.Client_onUpdateData_xz_yr = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
-		var xz = stream.readPackXZ();
+		var x = stream.readFloat();
+		var z = stream.readFloat();
 
-		var y = stream.readInt8();
-		var r = stream.readInt8();
+		var y = stream.readFloat();
+		var r = stream.readFloat();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, KBEngine.KBE_FLT_MAX, r, 1);
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, y, KBEngine.KBE_FLT_MAX, r, 1, false);
 	}
 	
 	this.Client_onUpdateData_xz_pr = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
+		var x = stream.readFloat();
+		var z = stream.readFloat();
+
+		var p = stream.readFloat();
+		var r = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, KBEngine.KBE_FLT_MAX, p, r, 1, false);
+	}
+	
+	this.Client_onUpdateData_xz_y = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var z = stream.readFloat();
+
+		var y = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1, false);
+	}
+	
+	this.Client_onUpdateData_xz_p = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var z = stream.readFloat();
+
+		var p = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 1, false);
+	}
+	
+	this.Client_onUpdateData_xz_r = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var z = stream.readFloat();
+
+		var r = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, KBEngine.KBE_FLT_MAX, z, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, 1, false);
+	}
+	
+	this.Client_onUpdateData_xyz = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_ypr = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var yaw = stream.readFloat();
+		var p = stream.readFloat();
+		var r = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, yaw, p, r, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_yp = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var yaw = stream.readFloat();
+		var p = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, yaw, p, KBEngine.KBE_FLT_MAX, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_yr = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var yaw = stream.readFloat();
+		var r = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, yaw, KBEngine.KBE_FLT_MAX, r, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_pr = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var p = stream.readFloat();
+		var r = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, KBEngine.KBE_FLT_MAX, p, r, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_y = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var yaw = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, yaw, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_p = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var p = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 0, false);
+	}
+	
+	this.Client_onUpdateData_xyz_r = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var x = stream.readFloat();
+		var y = stream.readFloat();
+		var z = stream.readFloat();
+		
+		var p = stream.readFloat();
+		
+		KBEngine.app._updateVolatileData(eid, x, y, z, r, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, false);
+	}
+	
+	//--------------------optiom------------------------//
+	this.Client_onUpdateData_ypr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, r, -1, true);
+	}
+	
+	this.Client_onUpdateData_yp_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, p, KBEngine.KBE_FLT_MAX, -1, true);
+	}
+	
+	this.Client_onUpdateData_yr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var y = stream.readInt8();
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, r, -1, true);
+	}
+	
+	this.Client_onUpdateData_pr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, r, -1, true);
+	}
+	
+	this.Client_onUpdateData_y_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var y = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, -1, true);
+	}
+	
+	this.Client_onUpdateData_p_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var p = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, -1, true);
+	}
+	
+	this.Client_onUpdateData_r_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, -1, true);
+	}
+	
+	this.Client_onUpdateData_xz_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var xz = stream.readPackXZ();
+		
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1, true);
+	}
+	
+	this.Client_onUpdateData_xz_ypr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, p, r, 1, true);
+	}
+	
+	this.Client_onUpdateData_xz_yp_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, p, KBEngine.KBE_FLT_MAX, 1, true);
+	}
+	
+	this.Client_onUpdateData_xz_yr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var r = stream.readInt8();
+		
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, KBEngine.KBE_FLT_MAX, r, 1, true);
+	}
+	
+	this.Client_onUpdateData_xz_pr_optimized = function(stream)
+	{
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
+		
 		var xz = stream.readPackXZ();
 
 		var p = stream.readInt8();
 		var r = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, p, r, 1);
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, p, r, 1, true);
 	}
 	
-	this.Client_onUpdateData_xz_y = function(stream)
+	this.Client_onUpdateData_xz_y_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5029,10 +5304,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 		var y = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1);
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], y, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 1, true);
 	}
 	
-	this.Client_onUpdateData_xz_p = function(stream)
+	this.Client_onUpdateData_xz_p_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5040,10 +5315,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 		var p = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 1);
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 1, true);
 	}
 	
-	this.Client_onUpdateData_xz_r = function(stream)
+	this.Client_onUpdateData_xz_r_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5051,20 +5326,20 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 		var r = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, 1);
+		KBEngine.app._updateVolatileData(eid, xz[0], KBEngine.KBE_FLT_MAX, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, r, 1, true);
 	}
 	
-	this.Client_onUpdateData_xyz = function(stream)
+	this.Client_onUpdateData_xyz_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_ypr = function(stream)
+	this.Client_onUpdateData_xyz_ypr_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5075,10 +5350,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var p = stream.readInt8();
 		var r = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, r, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, r, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_yp = function(stream)
+	this.Client_onUpdateData_xyz_yp_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5088,10 +5363,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var yaw = stream.readInt8();
 		var p = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBEngine.KBE_FLT_MAX, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBEngine.KBE_FLT_MAX, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_yr = function(stream)
+	this.Client_onUpdateData_xyz_yr_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5101,10 +5376,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var yaw = stream.readInt8();
 		var r = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEngine.KBE_FLT_MAX, r, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEngine.KBE_FLT_MAX, r, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_pr = function(stream)
+	this.Client_onUpdateData_xyz_pr_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5114,10 +5389,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var p = stream.readInt8();
 		var r = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, x, y, z, KBEngine.KBE_FLT_MAX, p, r, 0);
+		KBEngine.app._updateVolatileData(eid, x, y, z, KBEngine.KBE_FLT_MAX, p, r, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_y = function(stream)
+	this.Client_onUpdateData_xyz_y_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5126,10 +5401,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		var yaw = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_p = function(stream)
+	this.Client_onUpdateData_xyz_p_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5138,10 +5413,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		var p = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], KBEngine.KBE_FLT_MAX, p, KBEngine.KBE_FLT_MAX, 0, true);
 	}
 	
-	this.Client_onUpdateData_xyz_r = function(stream)
+	this.Client_onUpdateData_xyz_r_optimized = function(stream)
 	{
 		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
@@ -5150,10 +5425,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		var p = stream.readInt8();
 		
-		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], r, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0);
+		KBEngine.app._updateVolatileData(eid, xz[0], y, xz[1], r, KBEngine.KBE_FLT_MAX, KBEngine.KBE_FLT_MAX, 0, true);
 	}
-	
-	this._updateVolatileData = function(entityID, x, y, z, yaw, pitch, roll, isOnGround)
+
+	this._updateVolatileData = function(entityID, x, y, z, yaw, pitch, roll, isOnGround, isOptimized)
 	{
 		var entity = KBEngine.app.entities[entityID];
 		if(entity == undefined)
@@ -5208,9 +5483,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
         
 		if(positionChanged)
 		{
-			entity.position.x = x + KBEngine.app.entityServerPos.x;
-			entity.position.y = y + KBEngine.app.entityServerPos.y;
-			entity.position.z = z + KBEngine.app.entityServerPos.z;
+			if(isOptimized)
+			{
+				entity.position.x = x + KBEngine.app.entityServerPos.x;
+				entity.position.y = y + KBEngine.app.entityServerPos.y;
+				entity.position.z = z + KBEngine.app.entityServerPos.z;
+			}
+			else
+			{
+				entity.position.x = x;
+				entity.position.y = y;
+				entity.position.z = z;
+			}
+			
 			
 			done = true;
 			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
