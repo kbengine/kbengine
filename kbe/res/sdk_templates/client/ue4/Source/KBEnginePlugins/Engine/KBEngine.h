@@ -321,8 +321,32 @@ public:
 	void Client_onUpdateData_xyz_p(MemoryStream& stream);
 	void Client_onUpdateData_xyz_r(MemoryStream& stream);
 
+	void Client_onUpdateData_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_r_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_r_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_r_optimized(MemoryStream& stream);
+
 private:
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround, bool isOptimized);
 
 	bool initNetwork();
 
