@@ -499,7 +499,7 @@
 				2：智能选择模式，当同屏人数小于等于smartThreshold时使用0方式同步，否则使用1方式。View范围限制在500以内。
 			-->
 			<entity_posdir_updates> 
-				<type> 1 </type>
+				<type> 2 </type>
 				<smartThreshold> 10 </smartThreshold>
 			</entity_posdir_updates>
 		</coordinate_system>
