@@ -27,7 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pystruct.h"
 #include "py_gc.h"
 #include "pyurl.h"
-#include "py_zipfile.h"
+#include "py_compression.h"
+#include "py_platform.h"
 #include "resmgr/resmgr.h"
 #include "thread/concurrency.h"
 
@@ -252,7 +253,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	PyStruct::initialize();
 	Copy::initialize();
 	PyUrl::initialize(this);
-	PyZipFile::initialize();
+	PyCompression::initialize();
+	PyPlatform::initialize();
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
@@ -269,7 +271,8 @@ bool Script::uninstall()
 	PyStruct::finalise();
 	Copy::finalise();
 	PyUrl::finalise();
-	PyZipFile::finalise();
+	PyCompression::finalise();
+	PyPlatform::finalise();
 	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)

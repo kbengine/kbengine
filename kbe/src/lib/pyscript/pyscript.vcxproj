@@ -188,7 +188,8 @@
     <ClCompile Include="pyprofile_handler.cpp" />
     <ClCompile Include="pystruct.cpp" />
     <ClCompile Include="pywatcher.cpp" />
-    <ClCompile Include="py_zipfile.cpp" />
+    <ClCompile Include="py_platform.cpp" />
+    <ClCompile Include="py_compression.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="scriptobject.cpp" />
     <ClCompile Include="scriptstderr.cpp" />
@@ -215,7 +216,8 @@
     <ClInclude Include="pystruct.h" />
     <ClInclude Include="pythread_lock.h" />
     <ClInclude Include="pywatcher.h" />
-    <ClInclude Include="py_zipfile.h" />
+    <ClInclude Include="py_platform.h" />
+    <ClInclude Include="py_compression.h" />
     <ClInclude Include="script.h" />
     <ClInclude Include="scriptobject.h" />
     <ClInclude Include="scriptstderr.h" />

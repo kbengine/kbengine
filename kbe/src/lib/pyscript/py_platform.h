@@ -18,27 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPT_ZIPFILE_H
-#define KBE_SCRIPT_ZIPFILE_H
+#ifndef KBE_PY_PLATFORM_H
+#define KBE_PY_PLATFORM_H
 
 #include "common/common.h"
 #include "scriptobject.h"
 
 namespace KBEngine{ namespace script{
 
-class PyZipFile
+class PyPlatform
 {						
 public:	
-	static bool compressDirectory(const std::string& sourceDir, const std::string& outfile);
-
-	/** 初始化 */
 	static bool initialize(void);
 	static void finalise(void);
 
+	static bool rmdir(const std::string& path);
+	static bool rmdir(const std::wstring& path);
+
+	static bool pathExists(const std::string& path);
+	static bool pathExists(const std::wstring& path);
+
 private:
-	static bool	isInit;										// 是否已经被初始化
+	static bool	isInit;
+	
 } ;
 
 }
 }
-#endif // KBE_SCRIPT_ZIPFILE_H
+
+#endif // KBE_PY_PLATFORM_H

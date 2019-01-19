@@ -98,6 +98,8 @@ public:
 		// 无需实现，已由插件生成静态代码
 	}
 
+	void Client_onImportClientSDK(MemoryStream& stream);
+	
 	/**
 		插件的主循环处理函数
 	*/
