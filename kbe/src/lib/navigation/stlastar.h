@@ -277,6 +277,7 @@ public: // methods
 				m_Successors.clear(); // empty vector of successor nodes to n
 
 				// free up everything else we allocated
+				FreeNode( (n) );
 				FreeAllNodes();
 
 				m_State = SEARCH_STATE_OUT_OF_MEMORY;
@@ -352,42 +353,74 @@ public: // methods
 				(*successor)->h = (*successor)->m_UserState.GoalDistanceEstimate( m_Goal->m_UserState );
 				(*successor)->f = (*successor)->g + (*successor)->h;
 
-				// Remove successor from closed if it was on it
+				// Successor in closed list
+				// 1 - Update old version of this node in closed list
+				// 2 - Move it from closed to open list
+				// 3 - Sort heap again in open list
 
 				if( closedlist_result != m_ClosedList.end() )
 				{
-					// remove it from Closed
-					FreeNode(  (*closedlist_result) ); 
+					// Update closed node with successor node AStar data
+					//*(*closedlist_result) = *(*successor);
+					(*closedlist_result)->parent = (*successor)->parent;
+					(*closedlist_result)->g      = (*successor)->g;
+					(*closedlist_result)->h      = (*successor)->h;
+					(*closedlist_result)->f      = (*successor)->f;
+
+					// Free successor node
+					FreeNode( (*successor) );
+
+					// Push closed node into open list 
+					m_OpenList.push_back( (*closedlist_result) );
+
+					// Remove closed node from closed list
 					m_ClosedList.erase( closedlist_result );
+
+					// Sort back element into heap
+					push_heap( m_OpenList.begin(), m_OpenList.end(), HeapCompare_f() );
 
 					// Fix thanks to ...
 					// Greg Douglas <gregdouglasmail@gmail.com>
 					// who noticed that this code path was incorrect
 					// Here we have found a new state which is already CLOSED
-					// anus
-					
+
 				}
 
-				// Update old version of this node
-				if( openlist_result != m_OpenList.end() )
-				{	   
+				// Successor in open list
+				// 1 - Update old version of this node in open list
+				// 2 - sort heap again in open list
 
-					FreeNode( (*openlist_result) ); 
-			   		m_OpenList.erase( openlist_result );
+				else if( openlist_result != m_OpenList.end() )
+				{
+					// Update open node with successor node AStar data
+					//*(*openlist_result) = *(*successor);
+					(*openlist_result)->parent = (*successor)->parent;
+					(*openlist_result)->g      = (*successor)->g;
+					(*openlist_result)->h      = (*successor)->h;
+					(*openlist_result)->f      = (*successor)->f;
+
+					// Free successor node
+					FreeNode( (*successor) );
 
 					// re-make the heap 
 					// make_heap rather than sort_heap is an essential bug fix
 					// thanks to Mike Ryynanen for pointing this out and then explaining
 					// it in detail. sort_heap called on an invalid heap does not work
 					make_heap( m_OpenList.begin(), m_OpenList.end(), HeapCompare_f() );
-			
 				}
 
-				// heap now unsorted
-				m_OpenList.push_back( (*successor) );
+				// New successor
+				// 1 - Move it from successors to open list
+				// 2 - sort heap again in open list
 
-				// sort back element into heap
-				push_heap( m_OpenList.begin(), m_OpenList.end(), HeapCompare_f() );
+				else
+				{
+					// Push successor node into open list
+					m_OpenList.push_back( (*successor) );
+
+					// Sort back element into heap
+					push_heap( m_OpenList.begin(), m_OpenList.end(), HeapCompare_f() );
+				}
 
 			}
 
@@ -714,6 +747,7 @@ private: // methods
 	{
 
 #if !USE_FSA_MEMORY
+		m_AllocateNodeCount ++;
 		Node *p = new Node;
 		return p;
 #else
