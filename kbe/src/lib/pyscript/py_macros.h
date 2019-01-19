@@ -389,7 +389,7 @@ namespace KBEngine{ namespace script{
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6))													\
 			{																														\
 				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,							\
-							#ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6);											\
+							#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6);								\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\

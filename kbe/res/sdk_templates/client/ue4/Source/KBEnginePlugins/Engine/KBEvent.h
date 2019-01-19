@@ -607,3 +607,22 @@ public:
 	int resID;
 };
 
+UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_onImportClientSDK : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int remainingFiles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int fileSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FString fileName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	TArray<uint8> fileDatas;
+};
+

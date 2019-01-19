@@ -1,17 +1,18 @@
 // Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
-#ifndef KBE_SCRIPT_ZIPFILE_H
-#define KBE_SCRIPT_ZIPFILE_H
+#ifndef KBE_SCRIPT_COMPRESSION_H
+#define KBE_SCRIPT_COMPRESSION_H
 
 #include "common/common.h"
 #include "scriptobject.h"
 
 namespace KBEngine{ namespace script{
 
-class PyZipFile
+class PyCompression
 {						
 public:	
-	static bool compressDirectory(const std::string& sourceDir, const std::string& outfile);
+	static bool zipCompressDirectory(const std::string& sourceDir, const std::string& outfile);
+	static bool tarCompressDirectory(const std::string& sourceDir, const std::string& outfile);
 
 	/** ≥ı ºªØ */
 	static bool initialize(void);
@@ -23,4 +24,4 @@ private:
 
 }
 }
-#endif // KBE_SCRIPT_ZIPFILE_H
+#endif // KBE_SCRIPT_COMPRESSION_H

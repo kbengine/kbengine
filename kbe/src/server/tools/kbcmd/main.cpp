@@ -5,8 +5,8 @@
 #include "client_sdk.h"
 #include "server_assets.h"
 #include "entitydef/entitydef.h"
-#include "pyscript/py_zipfile.h"
-#include <experimental/filesystem>
+#include "pyscript/py_compression.h"
+#include "pyscript/py_platform.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.h"
@@ -184,23 +184,41 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	}
 
 	std::string path = "";
-	std::string zipfile = "";
+	std::string compressionfile = "";
+	int compressionType = 0;
 
 	PARSE_COMMAND_ARG_BEGIN();
 	PARSE_COMMAND_ARG_GET_VALUE("--outpath=", path);
 	PARSE_COMMAND_ARG_END();
 
 	PARSE_COMMAND_ARG_BEGIN();
-	PARSE_COMMAND_ARG_GET_VALUE("--zip=", zipfile);
+	PARSE_COMMAND_ARG_GET_VALUE("--zip=", compressionfile);
 	PARSE_COMMAND_ARG_END();
 
+	if (compressionfile.size() == 0)
+	{
+		PARSE_COMMAND_ARG_BEGIN();
+		PARSE_COMMAND_ARG_GET_VALUE("--tar=", compressionfile);
+		PARSE_COMMAND_ARG_END();
+
+		compressionType = 2;
+	}
+	else
+	{
+		compressionType = 1;
+	}
+
 	// 如果检测到设置了zip文件，那么从zip文件得到path
-	if (zipfile.size() > 0)
+	if (compressionfile.size() > 0)
 	{
 		std::vector<std::string> tmpvec;
-		KBEngine::strutil::kbe_splits(zipfile, ".", tmpvec);
+		KBEngine::strutil::kbe_splits(compressionfile, ".", tmpvec);
 		path = tmpvec[0];
-		zipfile = tmpvec[1];
+		compressionfile = tmpvec[1];
+	}
+
+	if (script::PyPlatform::pathExists(path) && !script::PyPlatform::rmdir(path)) {
+		ERROR_MSG(fmt::format("app::initialize(): delete directorys({}) error!\n", path));
 	}
 
 	ClientSDK* pClientSDK = ClientSDK::createClientSDK(clientType);
@@ -228,16 +246,29 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	}
 
 	// 开始打包
-	if (zipfile.size() > 0)
+	if (compressionfile.size() > 0)
 	{
-		if (!script::PyZipFile::compressDirectory(path, (path + "." + zipfile)))
+		if (compressionType == 1)
 		{
-			ERROR_MSG("app::initialize(): compress error!\n");
+			if (!script::PyCompression::zipCompressDirectory(path, (path + "." + compressionfile)))
+			{
+				ERROR_MSG("app::initialize(): compress zip error!\n");
+			}
 		}
-		
-		std::error_code errorCode;
-		if (!std::experimental::filesystem::remove_all(path.c_str(), errorCode)) {
-			ERROR_MSG(fmt::format("app::initialize(): delete Directorys error! message={}\n", errorCode.message()));
+		else if (compressionType == 2)
+		{
+			if (!script::PyCompression::tarCompressDirectory(path, (path + "." + compressionfile)))
+			{
+				ERROR_MSG("app::initialize(): compress tar error!\n");
+			}
+		}
+		else
+		{
+
+		}
+
+		if (!script::PyPlatform::rmdir(path)) {
+			ERROR_MSG(fmt::format("app::initialize(): delete directorys({}) error!\n", path));
 		}
 	}
 
@@ -385,6 +416,7 @@ int process_help(int argc, char* argv[])
 	printf("\tAutomatically generate client code based on entity_defs file. Environment variables based on KBE.\n");
 	printf("\tkbcmd.exe --clientsdk=unity --outpath=c:/unity_kbesdk\n");
 	printf("\tkbcmd.exe --clientsdk=ue4 --zip=c:/unity_kbesdk.zip\n");
+	printf("\tkbcmd.exe --clientsdk=ue4 --tar=c:/unity_kbesdk.tgz\n");
 	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
 
 	printf("\n--getuid\n");

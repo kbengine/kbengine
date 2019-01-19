@@ -3994,7 +3994,9 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		{
 			pMBChannel->proxyID(0);
 			pMBChannel->condemn("", true);
+			Py_INCREF(entityClientEntityCall);
 			proxy->onClientDeath();
+			proxy->clientEntityCall(entityClientEntityCall);
 		}
 
 		entityClientEntityCall->addr(pChannel->addr());

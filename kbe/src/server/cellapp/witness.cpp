@@ -287,14 +287,17 @@ void Witness::setViewRadius(float radius, float hyst)
 	// 参考: MemoryStream::appendPackXZ
 	if(viewRadius_ + viewHysteresisArea_ > 512)
 	{
-		viewRadius_ = 512 - 5.0f;
-		viewHysteresisArea_ = 5.0f;
-		
-		ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n", 
-			pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
-		
-		// 不返回，继续生效
-		// return;
+		if (g_kbeSrvConfig.getCellApp().entity_posdir_updates_type > 0)
+		{
+			viewRadius_ = 512 - 5.0f;
+			viewHysteresisArea_ = 5.0f;
+
+			ERROR_MSG(fmt::format("Witness::setViewRadius({}): viewRadius({}) cannot be greater than 512! Beyond 512, please set kbengine[_defaults].xml->entity_posdir_updates->type to 0.\n",
+				pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
+
+			// 不返回，继续生效
+			// return;
+		}
 	}
 
 	if (viewRadius_ > 0.f && pEntity_)
@@ -928,10 +931,11 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 {
 	Entity* otherEntity = pEntityRef->pEntity();
 
-	uint16 type = g_kbeSrvConfig.getCellApp().entity_posdir_updates_type;
-	uint16 threshold = g_kbeSrvConfig.getCellApp().entity_posdir_updates_smart_threshold;
+	static uint8 type = g_kbeSrvConfig.getCellApp().entity_posdir_updates_type;
+	static uint16 threshold = g_kbeSrvConfig.getCellApp().entity_posdir_updates_smart_threshold;
+	
 	bool isOptimized = true;
-	if (type == 2 && clientViewSize_ <= threshold || type == 0)
+	if ((type == 2 && clientViewSize_ <= threshold) || type == 0)
 	{
 		isOptimized = false;
 	} 

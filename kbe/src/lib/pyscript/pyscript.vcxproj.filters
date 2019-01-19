@@ -81,7 +81,10 @@
     <ClCompile Include="pyurl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="py_zipfile.cpp">
+    <ClCompile Include="py_platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="py_compression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -158,7 +161,10 @@
     <ClInclude Include="pyurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="py_zipfile.h">
+    <ClInclude Include="py_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_compression.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
