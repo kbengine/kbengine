@@ -1458,6 +1458,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 				else
 				{
 					PyObject* pyGetMethodArgsResult = PyObject_GetAttrString(pyGetMethodArgs, const_cast<char *>("args"));
+					Py_DECREF(pyGetMethodArgs);
+
 					if (!pyGetMethodArgsResult)
 					{
 						SCRIPT_ERROR_CHECK();
@@ -1502,8 +1504,6 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 							}
 						}
 					}
-
-					Py_DECREF(pyGetMethodArgs);
 				}
 			}
 
