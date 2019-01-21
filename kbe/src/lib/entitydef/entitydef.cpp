@@ -5,6 +5,7 @@
 #include "scriptdef_module.h"
 #include "datatypes.h"
 #include "common.h"
+#include "py_entitydef.h"
 #include "entity_component.h"
 #include "pyscript/py_memorystream.h"
 #include "resmgr/resmgr.h"
@@ -113,6 +114,9 @@ PyObject* EntityDef::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID)
 void EntityDef::reload(bool fullReload)
 {
 	g_isReload = true;
+
+	script::entitydef::reload(fullReload);
+
 	if(fullReload)
 	{
 		EntityDef::__oldScriptModules.clear();
@@ -229,7 +233,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return script::entitydef::initialize(scriptBaseTypes, loadComponentType) && loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1125,7 +1129,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				std::transform(indexType.begin(), indexType.end(), 
 					indexType.begin(), toupper);
 			}
-			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
@@ -2330,6 +2333,7 @@ bool EntityDef::installScript(PyObject* mod)
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
 	VolatileInfo::installScript(NULL);
+	script::entitydef::installModule("Def");
 
 	_isInit = true;
 	return true;
@@ -2346,15 +2350,16 @@ bool EntityDef::uninstallScript()
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
 		VolatileInfo::uninstallScript();
+		script::entitydef::uninstallModule();
 	}
 
-	return EntityDef::finalise();
+	return script::entitydef::finalise() && EntityDef::finalise();
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::initializeWatcher()
 {
-	return true;
+	return script::entitydef::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
