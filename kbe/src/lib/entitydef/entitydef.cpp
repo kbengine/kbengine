@@ -770,7 +770,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				std::transform(indexType.begin(), indexType.end(), 
 					indexType.begin(), toupper);
 			}
-			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
