@@ -243,7 +243,7 @@ ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& module
 	if (!pScriptModule)
 	{
 		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
-		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
+		pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
 		EntityDef::__scriptModules.push_back(pScriptModule);
 	}
 
