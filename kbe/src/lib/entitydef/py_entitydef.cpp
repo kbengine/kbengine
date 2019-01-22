@@ -1,6 +1,7 @@
 // Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "pyscript/copy.h"
+#include "entitydef.h"
 #include "py_entitydef.h"
 #include "pyscript/pyobject_pointer.h"
 #include <stack>
@@ -16,14 +17,22 @@ struct CallContext
 
 struct DefContext
 {
+	enum InheritEngineModuleType
+	{
+		INHERIT_MODULE_TYPE_UNKNOWN = 0,
+		INHERIT_MODULE_TYPE_ENTITY = 1,
+		INHERIT_MODULE_TYPE_COMPONENT = 2,
+		INHERIT_MODULE_TYPE_INTERFACE = 3,
+	};
+
 	DefContext()
 	{
 		optionName = "";
 
-		pyModuleName = "";
-		pyAttrName = "";
-		pyMethodArgs = "";
-		pyReturnType = "";
+		moduleName = "";
+		attrName = "";
+		methodArgs = "";
+		returnType = "";
 
 		isModuleScope = false;
 
@@ -36,14 +45,16 @@ struct DefContext
 		propertyIndex = "";
 
 		implementedBy = "";
+
+		inheritEngineModuleType = INHERIT_MODULE_TYPE_UNKNOWN;
 	}
 
 	std::string optionName;
 
-	std::string pyModuleName;
-	std::string pyAttrName;
-	std::string pyMethodArgs;
-	std::string pyReturnType;
+	std::string moduleName;
+	std::string attrName;
+	std::string methodArgs;
+	std::string returnType;
 
 	std::vector< std::string > argsvecs;
 	std::map< std::string, std::string > annotationsMaps;
@@ -59,69 +70,91 @@ struct DefContext
 	std::string propertyIndex;
 
 	std::string implementedBy;
+
+	std::vector< std::string > baseClasses;
+
+	InheritEngineModuleType inheritEngineModuleType;
+
+	std::vector< DefContext > methods;
+	std::vector< DefContext > propertys;
+	std::vector< std::string > components;
+	std::vector< std::string > interfaces;
 };
 
 static std::stack<CallContext> g_callContexts;
 static std::string pyDefModuleName = "";
 
-//-------------------------------------------------------------------------------------
-static void onDefRename(DefContext& context)
-{
+typedef std::map< std::string, DefContext> DEF_CONTEXT_MAP;
+static DEF_CONTEXT_MAP g_allScriptDefContexts;
 
+//-------------------------------------------------------------------------------------
+static bool onDefRename(DefContext& defContext)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefFixedDict(DefContext& context)
+static bool onDefFixedDict(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefFixedArray(DefContext& context)
+static bool onDefFixedArray(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefFixedItem(DefContext& context)
+static bool onDefFixedItem(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefProperty(DefContext& context)
+static bool onDefProperty(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefMethod(DefContext& context)
+static bool onDefMethod(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefClientMethod(DefContext& context)
+static bool onDefClientMethod(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefEntity(DefContext& context)
+static bool onDefEntity(DefContext& defContext)
 {
+//	ScriptDefModule* pScriptDefModule = EntityDef::registerNewScriptDefModule(context.moduleName);
+//	KBE_ASSERT(pScriptDefModule);
 
+	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContexts.find(defContext.moduleName);
+	if (iter != g_allScriptDefContexts.end())
+	{
+		PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n", defContext.optionName.c_str(), defContext.moduleName);
+		return false;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefInterface(DefContext& context)
+static bool onDefInterface(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-static void onDefComponent(DefContext& context)
+static bool onDefComponent(DefContext& defContext)
 {
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -252,6 +285,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	else if (defContext.optionName == "interface")
 	{
 		defContext.isModuleScope = true;
+		defContext.inheritEngineModuleType = DefContext::INHERIT_MODULE_TYPE_INTERFACE;
 	}
 	else if (defContext.optionName == "component")
 	{
@@ -296,7 +330,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else if (defContext.optionName == "rename")
 	{
-		defContext.isModuleScope = true;
+		defContext.isModuleScope = false;
 	}
 	else
 	{
@@ -328,14 +362,27 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		if (qualname)
 			strutil::kbe_splits(qualname, ".", outs);
 
-		if (outs.size() != 2)
+		if (defContext.optionName != "rename")
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", defContext.optionName.c_str(), qualname);
-			return NULL;
-		}
+			if (outs.size() != 2)
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", defContext.optionName.c_str(), qualname);
+				return NULL;
+			}
 
-		defContext.pyModuleName = outs[0];
-		defContext.pyAttrName = outs[1];
+			defContext.moduleName = outs[0];
+			defContext.attrName = outs[1];
+		}
+		else
+		{
+			if (outs.size() != 1)
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: error! such as: @Def.rename()\n\tdef ENTITY_ID() -> int: pass\n", defContext.optionName.c_str());
+				return NULL;
+			}
+
+			defContext.moduleName = outs[0];
+		}
 
 		PyObject* pyInspectModule =
 			PyImport_ImportModule(const_cast<char*>("inspect"));
@@ -381,27 +428,30 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				Py_DECREF(pyGetMethodArgsResult);
 				Py_DECREF(pyGetMethodAnnotationsResult);
 
-				Py_ssize_t argsSize = PyList_Size(pyGetMethodArgsResult);
-				if (argsSize == 0)
+				if (defContext.optionName != "rename")
 				{
-					PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), qualname);
-					return NULL;
-				}
-
-				for (Py_ssize_t i = 1; i < argsSize; ++i)
-				{
-					PyObject* pyItem = PyList_GetItem(pyGetMethodArgsResult, i);
-
-					const char* ccattr = PyUnicode_AsUTF8AndSize(pyItem, NULL);
-					if (!ccattr)
+					Py_ssize_t argsSize = PyList_Size(pyGetMethodArgsResult);
+					if (argsSize == 0)
 					{
+						PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), qualname);
 						return NULL;
 					}
 
-					defContext.argsvecs.push_back(ccattr);
+					for (Py_ssize_t i = 1; i < argsSize; ++i)
+					{
+						PyObject* pyItem = PyList_GetItem(pyGetMethodArgsResult, i);
 
-					PyErr_Format(PyExc_AssertionError, "Def.%s: -------arg---------------- %s!\n", defContext.optionName.c_str(), ccattr);
-					PyErr_PrintEx(0);
+						const char* ccattr = PyUnicode_AsUTF8AndSize(pyItem, NULL);
+						if (!ccattr)
+						{
+							return NULL;
+						}
+
+						defContext.argsvecs.push_back(ccattr);
+
+						PyErr_Format(PyExc_AssertionError, "Def.%s: -------arg---------------- %s!\n", defContext.optionName.c_str(), ccattr);
+						PyErr_PrintEx(0);
+					}
 				}
 
 				PyObject *key, *value;
@@ -436,7 +486,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 					}
 
 					if (std::string(skey) == "return")
-						defContext.pyReturnType = svalue;
+						defContext.returnType = svalue;
 					else
 						defContext.annotationsMaps[skey] = svalue;
 
@@ -448,46 +498,61 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else
 	{
-		defContext.pyModuleName = qualname;
+		defContext.moduleName = qualname;
 
-		if (defContext.optionName != "rename")
+		PyObject* pyBases = PyObject_GetAttrString(pyFunc, "__bases__");
+		if (!pyBases)
+			return NULL;
+
+		Py_ssize_t basesSize = PyTuple_Size(pyBases);
+		if (basesSize == 0)
 		{
-			PyObject* pyBases = PyObject_GetAttrString(pyFunc, "__bases__");
-			if (!pyBases)
-				return NULL;
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), qualname);
+			Py_XDECREF(pyBases);
+			return NULL;
+		}
 
-			Py_ssize_t basesSize = PyTuple_Size(pyBases);
-			if (basesSize == 0)
+		for (Py_ssize_t i = 0; i < basesSize; ++i)
+		{
+			PyObject* pyClass = PyTuple_GetItem(pyBases, i);
+
+			PyObject* pyQualname = PyObject_GetAttrString(pyClass, "__qualname__");
+			if (!pyQualname)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), qualname);
 				Py_XDECREF(pyBases);
 				return NULL;
 			}
 
-			for (Py_ssize_t i = 0; i < basesSize; ++i)
+			std::string parentClass = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
+			Py_DECREF(pyQualname);
+
+			if (parentClass == "object")
 			{
-				PyObject* pyClass = PyTuple_GetItem(pyBases, i);
-
-				PyObject* pyQualname = PyObject_GetAttrString(pyClass, "__qualname__");
-				if (!pyQualname)
-				{
-					Py_XDECREF(pyBases);
-					return NULL;
-				}
-
-				std::string parentClass = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
-				Py_DECREF(pyQualname);
-
-
-				PyErr_Format(PyExc_AssertionError, "Def.%s: -------parentclass---------------- %s!\n", defContext.optionName.c_str(), parentClass.c_str());
-				PyErr_PrintEx(0);
+				continue;
+			}
+			else if (parentClass == "Entity")
+			{
+				defContext.inheritEngineModuleType = DefContext::INHERIT_MODULE_TYPE_ENTITY;
+				continue;
+			}
+			else if (parentClass == "EntityComponent")
+			{
+				defContext.inheritEngineModuleType = DefContext::INHERIT_MODULE_TYPE_COMPONENT;
+				continue;
 			}
 
-			Py_XDECREF(pyBases);
+			defContext.baseClasses.push_back(parentClass);
+			PyErr_Format(PyExc_AssertionError, "Def.%s: -------parentclass---------------- %s!\n", defContext.optionName.c_str(), parentClass.c_str());
+			PyErr_PrintEx(0);
 		}
+
+		Py_XDECREF(pyBases);
+
 		PyErr_Format(PyExc_AssertionError, "Def.%s: -------class---------------- %s--%d!\n", defContext.optionName.c_str(), qualname, defContext.hasClient);
 		PyErr_PrintEx(0);
 	}
+
+	bool noerror = true;
 
 	if (defContext.optionName == "method" || defContext.optionName == "clientmethod")
 	{
@@ -498,42 +563,45 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		}
 
 		if (defContext.optionName == "method")
-			onDefMethod(defContext);
+			noerror = onDefMethod(defContext);
 		else
-			onDefClientMethod(defContext);
+			noerror = onDefClientMethod(defContext);
 	}
 	else if (defContext.optionName == "rename")
 	{
-		onDefRename(defContext);
+		noerror = onDefRename(defContext);
 	}
 	else if (defContext.optionName == "property")
 	{
-		onDefProperty(defContext);
+		noerror = onDefProperty(defContext);
 	}
 	else if (defContext.optionName == "entity")
 	{
-		onDefEntity(defContext);
+		noerror = onDefEntity(defContext);
 	}
 	else if (defContext.optionName == "interface")
 	{
-		onDefInterface(defContext);
+		noerror = onDefInterface(defContext);
 	}
 	else if (defContext.optionName == "component")
 	{
-		onDefComponent(defContext);
+		noerror = onDefComponent(defContext);
 	}
 	else if (defContext.optionName == "fixed_dict")
 	{
-		onDefFixedDict(defContext);
+		noerror = onDefFixedDict(defContext);
 	}
 	else if (defContext.optionName == "fixed_array")
 	{
-		onDefFixedArray(defContext);
+		noerror = onDefFixedArray(defContext);
 	}
 	else if (defContext.optionName == "fixed_item")
 	{
-		onDefFixedItem(defContext);
+		noerror = onDefFixedItem(defContext);
 	}
+
+	if (!noerror)
+		return NULL;
 
 	Py_INCREF(pyFunc);
 	return pyFunc;
@@ -543,7 +611,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_def_parse, METH_VARARGS, 0 };
 
 #define PY_DEF_HOOK(NAME)	\
-	static PyObject* __py_def_##NAME(PyObject *self, PyObject* args, PyObject * kwargs)	\
+	static PyObject* __py_def_##NAME(PyObject* self, PyObject* args, PyObject* kwargs)	\
 	{	\
 		CallContext cc;	\
 		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));	\
@@ -556,6 +624,60 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 		return PyCFunction_New(&__call_def_parse, self);	\
 	}
 
+static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwargs)
+	{
+		CallContext cc;
+		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
+		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+		cc.optionName = "rename";
+		g_callContexts.push(cc);
+		Py_XDECREF(cc.pyArgs.get());
+		Py_XDECREF(cc.pyKwargs.get());
+
+		// 类似这种定义方式 Def.rename(ENTITY_ID=int)
+		if (kwargs)
+		{
+			PyObject *key, *value;
+			Py_ssize_t pos = 0;
+
+			while (PyDict_Next(kwargs, &pos, &key, &value)) {
+				if (!PyType_Check(value))
+				{
+					PyErr_Format(PyExc_AssertionError, "Def.%s: arg2 not legal type! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+					return NULL;
+				}
+
+				PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
+				if (!pyQualname)
+				{
+					PyErr_Format(PyExc_AssertionError, "Def.%s: arg2 get __qualname__ error! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+					return NULL;
+				}
+
+				std::string typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
+				Py_DECREF(pyQualname);
+
+				if (!PyUnicode_Check(key))
+				{
+					PyErr_Format(PyExc_AssertionError, "Def.%s: arg1 must be a string! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+					return NULL;
+				}
+
+				DefContext defContext;
+				defContext.optionName = cc.optionName;
+				defContext.moduleName = PyUnicode_AsUTF8AndSize(key, NULL);
+				defContext.returnType = typeName;
+				onDefRename(defContext);
+			}
+
+			S_Return;
+		}
+
+		// @Def.rename()
+		// def ENTITY_ID() -> int: pass
+		return PyCFunction_New(&__call_def_parse, self);
+	}
+
 #define PY_ADD_METHOD(NAME, DOCS) APPEND_SCRIPT_MODULE_METHOD(entitydefModule, NAME, __py_def_##NAME, METH_VARARGS | METH_KEYWORDS, 0);
 
 #ifdef interface
@@ -566,7 +688,6 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 #undef property
 #endif
 
-PY_DEF_HOOK(rename)
 PY_DEF_HOOK(method)
 PY_DEF_HOOK(clientmethod)
 PY_DEF_HOOK(property)

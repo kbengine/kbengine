@@ -189,9 +189,8 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	XML_FOR_BEGIN(node)
 	{
 		std::string moduleName = xml.get()->getKey(node);
-		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
-		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
-		EntityDef::__scriptModules.push_back(pScriptModule);
+
+		ScriptDefModule* pScriptModule = registerNewScriptDefModule(moduleName);
 
 		std::string deffile = defFilePath + moduleName + ".def";
 		SmartPointer<XML> defxml(new XML());
@@ -234,6 +233,21 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		return true;
 
 	return script::entitydef::initialize(scriptBaseTypes, loadComponentType) && loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+}
+
+//-------------------------------------------------------------------------------------
+ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& moduleName)
+{
+	ScriptDefModule* pScriptModule = findScriptModule(moduleName.c_str(), false);
+	
+	if (pScriptModule)
+	{
+		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
+		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
+		EntityDef::__scriptModules.push_back(pScriptModule);
+	}
+
+	return pScriptModule;
 }
 
 //-------------------------------------------------------------------------------------
@@ -618,12 +632,9 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 
 		if (!pCompScriptDefModule)
 		{
-			__scriptTypeMappingUType[componentTypeName] = g_scriptUtype;
-			pCompScriptDefModule = new ScriptDefModule(componentTypeName, g_scriptUtype++);
+			pCompScriptDefModule = registerNewScriptDefModule(componentTypeName);
 			pCompScriptDefModule->isPersistent(false);
 			pCompScriptDefModule->isComponentModule(true);
-
-			EntityDef::__scriptModules.push_back(pCompScriptDefModule);
 		}
 		else
 		{

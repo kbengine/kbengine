@@ -229,6 +229,8 @@ public:
 		return __context;
 	}
 
+	static ScriptDefModule* registerNewScriptDefModule(const std::string& moduleName);
+
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 	static SCRIPT_MODULES __oldScriptModules;									// reload时旧的模块会放到这里用于判断
