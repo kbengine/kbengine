@@ -30,7 +30,9 @@ However, when the pickle file that you want to examine comes from an
 untrusted source, ``-m pickletools`` is a safer option because it does
 not execute pickle bytecode.
 
-For example, with a tuple ``(1, 2)`` pickled in file ``x.pickle``::
+For example, with a tuple ``(1, 2)`` pickled in file ``x.pickle``:
+
+.. code-block:: shell-session
 
     $ python -m pickle x.pickle
     (1, 2)
@@ -90,8 +92,8 @@ Programmatic Interface
    a short description.  The value of *annotate* is used as a hint for
    the column where annotation should start.
 
-  .. versionadded:: 3.2
-     The *annotate* argument.
+   .. versionadded:: 3.2
+      The *annotate* argument.
 
 .. function:: genops(pickle)
 
@@ -106,4 +108,3 @@ Programmatic Interface
    Returns a new equivalent pickle string after eliminating unused ``PUT``
    opcodes. The optimized pickle is shorter, takes less transmission time,
    requires less storage space, and unpickles more efficiently.
-

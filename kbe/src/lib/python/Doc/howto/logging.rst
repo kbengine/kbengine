@@ -103,10 +103,12 @@ A simple example
 A very simple example is::
 
    import logging
-   logging.warning('Watch out!') # will print a message to the console
-   logging.info('I told you so') # will not print anything
+   logging.warning('Watch out!')  # will print a message to the console
+   logging.info('I told you so')  # will not print anything
 
-If you type these lines into a script and run it, you'll see::
+If you type these lines into a script and run it, you'll see:
+
+.. code-block:: none
 
    WARNING:root:Watch out!
 
@@ -132,7 +134,9 @@ interpreter, and don't just continue from the session described above::
    logging.warning('And this, too')
 
 And now if we open the file and look at what we have, we should find the log
-messages::
+messages:
+
+.. code-block:: none
 
    DEBUG:root:This message should go to the log file
    INFO:root:So should this
@@ -142,7 +146,9 @@ This example also shows how you can set the logging level which acts as the
 threshold for tracking. In this case, because we set the threshold to
 ``DEBUG``, all of the messages were printed.
 
-If you want to set the logging level from a command-line option such as::
+If you want to set the logging level from a command-line option such as:
+
+.. code-block:: none
 
    --log=INFO
 
@@ -206,7 +212,9 @@ could organize logging in it::
    def do_something():
        logging.info('Doing something')
 
-If you run *myapp.py*, you should see this in *myapp.log*::
+If you run *myapp.py*, you should see this in *myapp.log*:
+
+.. code-block:: none
 
    INFO:root:Started
    INFO:root:Doing something
@@ -230,7 +238,9 @@ append the variable data as arguments. For example::
    import logging
    logging.warning('%s before you %s', 'Look', 'leap!')
 
-will display::
+will display:
+
+.. code-block:: none
 
    WARNING:root:Look before you leap!
 
@@ -254,7 +264,9 @@ specify the format you want to use::
    logging.info('So should this')
    logging.warning('And this, too')
 
-which would print::
+which would print:
+
+.. code-block:: none
 
    DEBUG:This message should appear on the console
    INFO:So should this
@@ -278,19 +290,23 @@ your format string::
    logging.basicConfig(format='%(asctime)s %(message)s')
    logging.warning('is when this event was logged.')
 
-which should print something like this::
+which should print something like this:
+
+.. code-block:: none
 
    2010-12-12 11:41:42,612 is when this event was logged.
 
-The default format for date/time display (shown above) is ISO8601. If you need
-more control over the formatting of the date/time, provide a *datefmt*
-argument to ``basicConfig``, as in this example::
+The default format for date/time display (shown above) is like ISO8601 or
+:rfc:`3339`. If you need more control over the formatting of the date/time, provide
+a *datefmt* argument to ``basicConfig``, as in this example::
 
    import logging
    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
    logging.warning('is when this event was logged.')
 
-which would display something like this::
+which would display something like this:
+
+.. code-block:: none
 
    12/12/2010 11:46:36 AM is when this event was logged.
 
@@ -310,7 +326,7 @@ favourite beverage and carry on.
 If your logging needs are simple, then use the above examples to incorporate
 logging into your own scripts, and if you run into problems or don't
 understand something, please post a question on the comp.lang.python Usenet
-group (available at http://groups.google.com/group/comp.lang.python) and you
+group (available at https://groups.google.com/forum/#!forum/comp.lang.python) and you
 should receive help before too long.
 
 Still here? You can carry on reading the next few sections, which provide a
@@ -372,7 +388,9 @@ if no destination is set; and if one is not set, they will set a destination
 of the console (``sys.stderr``) and a default format for the displayed
 message before delegating to the root logger to do the actual message output.
 
-The default format set by :func:`basicConfig` for messages is::
+The default format set by :func:`basicConfig` for messages is:
+
+.. code-block:: none
 
    severity:logger name:message
 
@@ -460,7 +478,7 @@ ancestor loggers. Because of this, it is unnecessary to define and configure
 handlers for all the loggers an application uses. It is sufficient to
 configure handlers for a top-level logger and create child loggers as needed.
 (You can, however, turn off propagation by setting the *propagate*
-attribute of a logger to *False*.)
+attribute of a logger to ``False``.)
 
 
 .. _handler-basic:
@@ -518,7 +536,9 @@ indicator.
 .. method:: logging.Formatter.__init__(fmt=None, datefmt=None, style='%')
 
 If there is no message format string, the default is to use the
-raw message.  If there is no date format string, the default date format is::
+raw message.  If there is no date format string, the default date format is:
+
+.. code-block:: none
 
     %Y-%m-%d %H:%M:%S
 
@@ -594,7 +614,9 @@ logger, a console handler, and a simple formatter using Python code::
     logger.error('error message')
     logger.critical('critical message')
 
-Running this module from the command line produces the following output::
+Running this module from the command line produces the following output:
+
+.. code-block:: shell-session
 
     $ python simple_logging_module.py
     2005-03-19 15:10:26,618 - simple_example - DEBUG - debug message
@@ -622,7 +644,9 @@ the names of the objects::
     logger.error('error message')
     logger.critical('critical message')
 
-Here is the logging.conf file::
+Here is the logging.conf file:
+
+.. code-block:: ini
 
     [loggers]
     keys=root,simpleExample
@@ -653,7 +677,9 @@ Here is the logging.conf file::
     format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
     datefmt=
 
-The output is nearly identical to that of the non-config-file-based example::
+The output is nearly identical to that of the non-config-file-based example:
+
+.. code-block:: shell-session
 
     $ python simple_logging_config.py
     2005-03-19 15:38:55,977 - simpleExample - DEBUG - debug message
@@ -705,7 +731,9 @@ construct the dictionary in Python code, receive it in pickled form over a
 socket, or use whatever approach makes sense for your application.
 
 Here's an example of the same configuration as above, in YAML format for
-the new dictionary-based approach::
+the new dictionary-based approach:
+
+.. code-block:: yaml
 
     version: 1
     formatters:
@@ -739,10 +767,10 @@ circumstances is dependent on the Python version.
 
 For versions of Python prior to 3.2, the behaviour is as follows:
 
-* If *logging.raiseExceptions* is *False* (production mode), the event is
+* If *logging.raiseExceptions* is ``False`` (production mode), the event is
   silently dropped.
 
-* If *logging.raiseExceptions* is *True* (development mode), a message
+* If *logging.raiseExceptions* is ``True`` (development mode), a message
   'No handlers could be found for logger X.Y.Z' is printed once.
 
 In Python 3.2 and later, the behaviour is as follows:
@@ -756,7 +784,7 @@ In Python 3.2 and later, the behaviour is as follows:
   The handler's level is set to ``WARNING``, so all events at this and
   greater severities will be output.
 
-To obtain the pre-3.2 behaviour, ``logging.lastResort`` can be set to *None*.
+To obtain the pre-3.2 behaviour, ``logging.lastResort`` can be set to ``None``.
 
 .. _library-config:
 
@@ -943,7 +971,7 @@ provided:
 
 The :class:`NullHandler`, :class:`StreamHandler` and :class:`FileHandler`
 classes are defined in the core logging package. The other handlers are
-defined in a sub- module, :mod:`logging.handlers`. (There is also another
+defined in a sub-module, :mod:`logging.handlers`. (There is also another
 sub-module, :mod:`logging.config`, for configuration functionality.)
 
 Logged messages are formatted for presentation through instances of the
@@ -1073,4 +1101,3 @@ take up any memory.
       Useful handlers included with the logging module.
 
    :ref:`A logging cookbook <logging-cookbook>`
-

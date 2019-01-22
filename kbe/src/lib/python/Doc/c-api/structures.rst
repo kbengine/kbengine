@@ -21,53 +21,66 @@ the definition of all other Python objects.
    All object types are extensions of this type.  This is a type which
    contains the information Python needs to treat a pointer to an object as an
    object.  In a normal "release" build, it contains only the object's
-   reference count and a pointer to the corresponding type object.  It
-   corresponds to the fields defined by the expansion of the ``PyObject_HEAD``
-   macro.
+   reference count and a pointer to the corresponding type object.
+   Nothing is actually declared to be a :c:type:`PyObject`, but every pointer
+   to a Python object can be cast to a :c:type:`PyObject*`.  Access to the
+   members must be done by using the macros :c:macro:`Py_REFCNT` and
+   :c:macro:`Py_TYPE`.
 
 
 .. c:type:: PyVarObject
 
    This is an extension of :c:type:`PyObject` that adds the :attr:`ob_size`
    field.  This is only used for objects that have some notion of *length*.
-   This type does not often appear in the Python/C API.  It corresponds to the
-   fields defined by the expansion of the ``PyObject_VAR_HEAD`` macro.
+   This type does not often appear in the Python/C API.
+   Access to the members must be done by using the macros
+   :c:macro:`Py_REFCNT`, :c:macro:`Py_TYPE`, and :c:macro:`Py_SIZE`.
 
-These macros are used in the definition of :c:type:`PyObject` and
-:c:type:`PyVarObject`:
-
-.. XXX need to document PEP 3123 changes here
 
 .. c:macro:: PyObject_HEAD
 
-   This is a macro which expands to the declarations of the fields of the
-   :c:type:`PyObject` type; it is used when declaring new types which represent
-   objects without a varying length.  The specific fields it expands to depend
-   on the definition of :c:macro:`Py_TRACE_REFS`.  By default, that macro is
-   not defined, and :c:macro:`PyObject_HEAD` expands to::
+   This is a macro used when declaring new types which represent objects
+   without a varying length.  The PyObject_HEAD macro expands to::
 
-      Py_ssize_t ob_refcnt;
-      PyTypeObject *ob_type;
+      PyObject ob_base;
 
-   When :c:macro:`Py_TRACE_REFS` is defined, it expands to::
-
-      PyObject *_ob_next, *_ob_prev;
-      Py_ssize_t ob_refcnt;
-      PyTypeObject *ob_type;
+   See documentation of :c:type:`PyObject` above.
 
 
 .. c:macro:: PyObject_VAR_HEAD
 
-   This is a macro which expands to the declarations of the fields of the
-   :c:type:`PyVarObject` type; it is used when declaring new types which
-   represent objects with a length that varies from instance to instance.
-   This macro always expands to::
+   This is a macro used when declaring new types which represent objects
+   with a length that varies from instance to instance.
+   The PyObject_VAR_HEAD macro expands to::
 
-      PyObject_HEAD
-      Py_ssize_t ob_size;
+      PyVarObject ob_base;
 
-   Note that :c:macro:`PyObject_HEAD` is part of the expansion, and that its own
-   expansion varies depending on the definition of :c:macro:`Py_TRACE_REFS`.
+   See documentation of :c:type:`PyVarObject` above.
+
+
+.. c:macro:: Py_TYPE(o)
+
+   This macro is used to access the :attr:`ob_type` member of a Python object.
+   It expands to::
+
+      (((PyObject*)(o))->ob_type)
+
+
+.. c:macro:: Py_REFCNT(o)
+
+   This macro is used to access the :attr:`ob_refcnt` member of a Python
+   object.
+   It expands to::
+
+      (((PyObject*)(o))->ob_refcnt)
+
+
+.. c:macro:: Py_SIZE(o)
+
+   This macro is used to access the :attr:`ob_size` member of a Python object.
+   It expands to::
+
+      (((PyVarObject*)(o))->ob_size)
 
 
 .. c:macro:: PyObject_HEAD_INIT(type)
@@ -112,34 +125,33 @@ These macros are used in the definition of :c:type:`PyObject` and
    Structure used to describe a method of an extension type.  This structure has
    four fields:
 
-   +------------------+-------------+-------------------------------+
-   | Field            | C Type      | Meaning                       |
-   +==================+=============+===============================+
-   | :attr:`ml_name`  | char \*     | name of the method            |
-   +------------------+-------------+-------------------------------+
-   | :attr:`ml_meth`  | PyCFunction | pointer to the C              |
-   |                  |             | implementation                |
-   +------------------+-------------+-------------------------------+
-   | :attr:`ml_flags` | int         | flag bits indicating how the  |
-   |                  |             | call should be constructed    |
-   +------------------+-------------+-------------------------------+
-   | :attr:`ml_doc`   | char \*     | points to the contents of the |
-   |                  |             | docstring                     |
-   +------------------+-------------+-------------------------------+
+   +------------------+---------------+-------------------------------+
+   | Field            | C Type        | Meaning                       |
+   +==================+===============+===============================+
+   | :attr:`ml_name`  | const char \* | name of the method            |
+   +------------------+---------------+-------------------------------+
+   | :attr:`ml_meth`  | PyCFunction   | pointer to the C              |
+   |                  |               | implementation                |
+   +------------------+---------------+-------------------------------+
+   | :attr:`ml_flags` | int           | flag bits indicating how the  |
+   |                  |               | call should be constructed    |
+   +------------------+---------------+-------------------------------+
+   | :attr:`ml_doc`   | const char \* | points to the contents of the |
+   |                  |               | docstring                     |
+   +------------------+---------------+-------------------------------+
 
 The :attr:`ml_meth` is a C function pointer.  The functions may be of different
 types, but they always return :c:type:`PyObject\*`.  If the function is not of
 the :c:type:`PyCFunction`, the compiler will require a cast in the method table.
 Even though :c:type:`PyCFunction` defines the first parameter as
-:c:type:`PyObject\*`, it is common that the method implementation uses a the
+:c:type:`PyObject\*`, it is common that the method implementation uses the
 specific C type of the *self* object.
 
 The :attr:`ml_flags` field is a bitfield which can include the following flags.
 The individual flags indicate either a calling convention or a binding
 convention.  Of the calling convention flags, only :const:`METH_VARARGS` and
-:const:`METH_KEYWORDS` can be combined (but note that :const:`METH_KEYWORDS`
-alone is equivalent to ``METH_VARARGS | METH_KEYWORDS``). Any of the calling
-convention flags can be combined with a binding flag.
+:const:`METH_KEYWORDS` can be combined. Any of the calling convention flags
+can be combined with a binding flag.
 
 
 .. data:: METH_VARARGS
@@ -156,7 +168,7 @@ convention flags can be combined with a binding flag.
 
    Methods with these flags must be of type :c:type:`PyCFunctionWithKeywords`.
    The function expects three parameters: *self*, *args*, and a dictionary of
-   all the keyword arguments.  The flag is typically combined with
+   all the keyword arguments.  The flag must be combined with
    :const:`METH_VARARGS`, and the parameters are typically processed using
    :c:func:`PyArg_ParseTupleAndKeywords`.
 
@@ -224,27 +236,27 @@ definition with the same method name.
    Structure which describes an attribute of a type which corresponds to a C
    struct member.  Its fields are:
 
-   +------------------+-------------+-------------------------------+
-   | Field            | C Type      | Meaning                       |
-   +==================+=============+===============================+
-   | :attr:`name`     | char \*     | name of the member            |
-   +------------------+-------------+-------------------------------+
-   | :attr:`type`     | int         | the type of the member in the |
-   |                  |             | C struct                      |
-   +------------------+-------------+-------------------------------+
-   | :attr:`offset`   | Py_ssize_t  | the offset in bytes that the  |
-   |                  |             | member is located on the      |
-   |                  |             | type's object struct          |
-   +------------------+-------------+-------------------------------+
-   | :attr:`flags`    | int         | flag bits indicating if the   |
-   |                  |             | field should be read-only or  |
-   |                  |             | writable                      |
-   +------------------+-------------+-------------------------------+
-   | :attr:`doc`      | char \*     | points to the contents of the |
-   |                  |             | docstring                     |
-   +------------------+-------------+-------------------------------+
+   +------------------+---------------+-------------------------------+
+   | Field            | C Type        | Meaning                       |
+   +==================+===============+===============================+
+   | :attr:`name`     | const char \* | name of the member            |
+   +------------------+---------------+-------------------------------+
+   | :attr:`!type`    | int           | the type of the member in the |
+   |                  |               | C struct                      |
+   +------------------+---------------+-------------------------------+
+   | :attr:`offset`   | Py_ssize_t    | the offset in bytes that the  |
+   |                  |               | member is located on the      |
+   |                  |               | type's object struct          |
+   +------------------+---------------+-------------------------------+
+   | :attr:`flags`    | int           | flag bits indicating if the   |
+   |                  |               | field should be read-only or  |
+   |                  |               | writable                      |
+   +------------------+---------------+-------------------------------+
+   | :attr:`doc`      | const char \* | points to the contents of the |
+   |                  |               | docstring                     |
+   +------------------+---------------+-------------------------------+
 
-   :attr:`type` can be one of many ``T_`` macros corresponding to various C
+   :attr:`!type` can be one of many ``T_`` macros corresponding to various C
    types.  When the member is accessed in Python, it will be converted to the
    equivalent Python type.
 
@@ -256,7 +268,7 @@ definition with the same method name.
    T_LONG          long
    T_FLOAT         float
    T_DOUBLE        double
-   T_STRING        char \*
+   T_STRING        const char \*
    T_OBJECT        PyObject \*
    T_OBJECT_EX     PyObject \*
    T_CHAR          char
@@ -278,7 +290,48 @@ definition with the same method name.
    handles use of the :keyword:`del` statement on that attribute more correctly
    than :c:macro:`T_OBJECT`.
 
-   :attr:`flags` can be 0 for write and read access or :c:macro:`READONLY` for
+   :attr:`flags` can be ``0`` for write and read access or :c:macro:`READONLY` for
    read-only access.  Using :c:macro:`T_STRING` for :attr:`type` implies
-   :c:macro:`READONLY`.  Only :c:macro:`T_OBJECT` and :c:macro:`T_OBJECT_EX`
+   :c:macro:`READONLY`.  :c:macro:`T_STRING` data is interpreted as UTF-8.
+   Only :c:macro:`T_OBJECT` and :c:macro:`T_OBJECT_EX`
    members can be deleted.  (They are set to *NULL*).
+
+
+.. c:type:: PyGetSetDef
+
+   Structure to define property-like access for a type. See also description of
+   the :c:member:`PyTypeObject.tp_getset` slot.
+
+   +-------------+------------------+-----------------------------------+
+   | Field       | C Type           | Meaning                           |
+   +=============+==================+===================================+
+   | name        | const char \*    | attribute name                    |
+   +-------------+------------------+-----------------------------------+
+   | get         | getter           | C Function to get the attribute   |
+   +-------------+------------------+-----------------------------------+
+   | set         | setter           | optional C function to set or     |
+   |             |                  | delete the attribute, if omitted  |
+   |             |                  | the attribute is readonly         |
+   +-------------+------------------+-----------------------------------+
+   | doc         | const char \*    | optional docstring                |
+   +-------------+------------------+-----------------------------------+
+   | closure     | void \*          | optional function pointer,        |
+   |             |                  | providing additional data for     |
+   |             |                  | getter and setter                 |
+   +-------------+------------------+-----------------------------------+
+
+   The ``get`` function takes one :c:type:`PyObject\*` parameter (the
+   instance) and a function pointer (the associated ``closure``)::
+
+      typedef PyObject *(*getter)(PyObject *, void *);
+
+   It should return a new reference on success or *NULL* with a set exception
+   on failure.
+
+   ``set`` functions take two :c:type:`PyObject\*` parameters (the instance and
+   the value to be set) and a function pointer (the associated ``closure``)::
+
+      typedef int (*setter)(PyObject *, PyObject *, void *);
+
+   In case the attribute should be deleted the second parameter is *NULL*.
+   Should return ``0`` on success or ``-1`` with a set exception on failure.

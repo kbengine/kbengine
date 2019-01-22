@@ -4,9 +4,11 @@
 .. module:: resource
    :platform: Unix
    :synopsis: An interface to provide resource usage information on the current process.
+
 .. moduleauthor:: Jeremy Hylton <jeremy@alum.mit.edu>
 .. sectionauthor:: Jeremy Hylton <jeremy@alum.mit.edu>
 
+--------------
 
 This module provides basic mechanisms for measuring and controlling system
 resources utilized by a program.
@@ -45,7 +47,7 @@ this module for those platforms.
 
 .. data:: RLIM_INFINITY
 
-   Constant used to represent the the limit for an unlimited resource.
+   Constant used to represent the limit for an unlimited resource.
 
 
 .. function:: getrlimit(resource)
@@ -90,7 +92,7 @@ this module for those platforms.
    :exc:`PermissionError` when the user doesn't have ``CAP_SYS_RESOURCE`` for
    the process.
 
-   Availability: Linux 2.6.36 or later with glibc 2.13 or later
+   .. availability:: Linux 2.6.36 or later with glibc 2.13 or later.
 
    .. versionadded:: 3.4
 
@@ -123,8 +125,7 @@ platform.
 
 .. data:: RLIMIT_FSIZE
 
-   The maximum size of a file which the process may create.  This only affects the
-   stack of the main thread in a multi-threaded process.
+   The maximum size of a file which the process may create.
 
 
 .. data:: RLIMIT_DATA
@@ -134,7 +135,8 @@ platform.
 
 .. data:: RLIMIT_STACK
 
-   The maximum size (in bytes) of the call stack for the current process.
+   The maximum size (in bytes) of the call stack for the current process.  This only
+   affects the stack of the main thread in a multi-threaded process.
 
 
 .. data:: RLIMIT_RSS
@@ -176,7 +178,7 @@ platform.
 
    The number of bytes that can be allocated for POSIX message queues.
 
-   Availability: Linux 2.6.8 or later.
+   .. availability:: Linux 2.6.8 or later.
 
    .. versionadded:: 3.4
 
@@ -185,7 +187,7 @@ platform.
 
    The ceiling for the process's nice level (calculated as 20 - rlim_cur).
 
-   Availability: Linux 2.6.12 or later.
+   .. availability:: Linux 2.6.12 or later.
 
    .. versionadded:: 3.4
 
@@ -194,7 +196,7 @@ platform.
 
    The ceiling of the real-time priority.
 
-   Availability: Linux 2.6.12 or later.
+   .. availability:: Linux 2.6.12 or later.
 
    .. versionadded:: 3.4
 
@@ -204,7 +206,7 @@ platform.
    The time limit (in microseconds) on CPU time that a process can spend
    under real-time scheduling without making a blocking syscall.
 
-   Availability: Linux 2.6.25 or later.
+   .. availability:: Linux 2.6.25 or later.
 
    .. versionadded:: 3.4
 
@@ -213,7 +215,7 @@ platform.
 
    The number of signals which the process may queue.
 
-   Availability: Linux 2.6.8 or later.
+   .. availability:: Linux 2.6.8 or later.
 
    .. versionadded:: 3.4
 
@@ -223,7 +225,7 @@ platform.
    This limits the amount of network memory, and hence the amount of mbufs,
    that this user may hold at any time.
 
-   Availability: FreeBSD 9 or later.
+   .. availability:: FreeBSD 9 or later.
 
    .. versionadded:: 3.4
 
@@ -234,7 +236,7 @@ platform.
    This limit is enforced only if bit 1 of the vm.overcommit sysctl is set.
    Please see :manpage:`tuning(7)` for a complete description of this sysctl.
 
-   Availability: FreeBSD 9 or later.
+   .. availability:: FreeBSD 9 or later.
 
    .. versionadded:: 3.4
 
@@ -242,7 +244,7 @@ platform.
 
    The maximum number of pseudo-terminals created by this user id.
 
-   Availability: FreeBSD 9 or later.
+   .. availability:: FreeBSD 9 or later.
 
    .. versionadded:: 3.4
 
@@ -316,10 +318,7 @@ These functions are used to retrieve resource usage information:
 .. function:: getpagesize()
 
    Returns the number of bytes in a system page. (This need not be the same as the
-   hardware page size.) This function is useful for determining the number of bytes
-   of memory a process is using. The third element of the tuple returned by
-   :func:`getrusage` describes memory usage in pages; multiplying by page size
-   produces number of bytes.
+   hardware page size.)
 
 The following :const:`RUSAGE_\*` symbols are passed to the :func:`getrusage`
 function to specify which processes information should be provided for.

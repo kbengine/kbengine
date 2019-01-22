@@ -2,12 +2,13 @@ LIB =	pyscript
 
 SRCS =					\
 	copy				\
-	install_py_dlls		\
 	map					\
 	math				\
 	pickler				\
+	py_compression		\
 	py_gc				\
 	pyurl				\
+	py_platform			\
 	pystruct			\
 	pyprofile			\
 	pyprofile_handler	\

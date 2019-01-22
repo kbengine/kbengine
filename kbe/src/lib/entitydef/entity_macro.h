@@ -201,9 +201,9 @@ namespace KBEngine{
 #define DEBUG_CREATE_ENTITY_NAMESPACE																		\
 		if(g_debugEntity)																					\
 		{																									\
-			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);				\
+			const char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);			\
 			PyObject* pytsval = PyObject_Str(value);														\
-			char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);										\
+			const char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);								\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
 												scriptName(),												\
@@ -217,7 +217,7 @@ namespace KBEngine{
 #define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
 		if(g_debugEntity)																					\
 		{																									\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);						\
+			const char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);					\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",							\
 												scriptName(),												\
 												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
@@ -347,9 +347,35 @@ public:																										\
 																											\
 		Py_ssize_t pos = 0;																					\
 		PyObject *key, *value;																				\
+																											\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
 		if(cellDataDict == NULL)																			\
+		{																									\
 			PyErr_Clear();																					\
+		}																									\
+		else																								\
+		{																									\
+			PyObject* cellDataDictNew = PyDict_GetItemString(dictData, "cellData");							\
+			if (cellDataDictNew)																			\
+			{																								\
+				if(PyDict_Check(cellDataDictNew))															\
+				{																							\
+					PyDict_Update(cellDataDict, cellDataDictNew);											\
+				}																							\
+				else																						\
+				{																							\
+					ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "					\
+						"cellData is not a dict.\n",														\
+						scriptName(), id_));																\
+				}																							\
+																											\
+				PyDict_DelItemString(dictData, "cellData");													\
+			}																								\
+			else																							\
+			{																								\
+				PyErr_Clear();																				\
+			}																								\
+		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
@@ -576,7 +602,7 @@ public:																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
-		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);											\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(pPropertyDescrs_)																				\
@@ -608,7 +634,7 @@ public:																										\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
-		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);											\
 																											\
 		if(pPropertyDescrs_)																				\
 		{																									\

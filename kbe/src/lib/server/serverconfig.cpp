@@ -571,6 +571,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				_cellAppInfo.entity_posdir_additional_updates = xml->getValInt(childnode);
 			}
+
+			childnode = xml->enterNode(node, "entity_posdir_updates");
+			if (childnode)
+			{
+				TiXmlNode* node = xml->enterNode(childnode, "type");
+				if (node)
+					_cellAppInfo.entity_posdir_updates_type = xml->getValInt(node);
+
+				node = xml->enterNode(childnode, "smartThreshold");
+				if (node)
+					_cellAppInfo.entity_posdir_updates_smart_threshold = xml->getValInt(node);
+			}
 		}
 
 		node = xml->enterNode(rootNode, "telnet_service");
@@ -863,8 +875,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "enable");
 			if (childnode)
 			{
-				if(xml->getValStr(childnode) != "true")
+				if (xml->getValStr(childnode) != "true")
+				{
 					interfacesAddrs_.clear();
+					g_dbmgr_addDefaultAddress = false;
+				}
 			}
 		}
 

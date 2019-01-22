@@ -3,6 +3,7 @@
 
 .. module:: xml.dom.pulldom
    :synopsis: Support for building partial DOM trees from SAX events.
+
 .. moduleauthor:: Paul Prescod <paul@prescod.net>
 
 **Source code:** :source:`Lib/xml/dom/pulldom.py`
@@ -23,6 +24,20 @@ events until either processing is finished or an error condition occurs.
    The :mod:`xml.dom.pulldom` module is not secure against
    maliciously constructed data.  If you need to parse untrusted or
    unauthenticated data see :ref:`xml-vulnerabilities`.
+
+.. versionchanged:: 3.7.1
+
+   The SAX parser no longer processes general external entities by default to
+   increase security by default. To enable processing of external entities,
+   pass a custom parser instance in::
+
+      from xml.dom.pulldom import parse
+      from xml.sax import make_parser
+      from xml.sax.handler import feature_external_ges
+
+      parser = make_parser()
+      parser.setFeature(feature_external_ges, True)
+      parse(filename, parser=parser)
 
 
 Example::
@@ -47,7 +62,7 @@ Example::
 * :data:`PROCESSING_INSTRUCTION`
 * :data:`IGNORABLE_WHITESPACE`
 
-``node`` is a object of type :class:`xml.dom.minidom.Document`,
+``node`` is an object of type :class:`xml.dom.minidom.Document`,
 :class:`xml.dom.minidom.Element` or :class:`xml.dom.minidom.Text`.
 
 Since the document is treated as a "flat" stream of events, the document "tree"
@@ -73,7 +88,7 @@ and switch to DOM-related processing.
 .. function:: parse(stream_or_string, parser=None, bufsize=None)
 
    Return a :class:`DOMEventStream` from the given input. *stream_or_string* may be
-   either a file name, or a file-like object. *parser*, if given, must be a
+   either a file name, or a file-like object. *parser*, if given, must be an
    :class:`~xml.sax.xmlreader.XMLReader` object. This function will change the
    document handler of the
    parser and activate namespace support; other parser configuration (like
@@ -107,12 +122,14 @@ DOMEventStream Objects
       :class:`xml.dom.minidom.Element` if event equals :data:`START_ELEMENT` or
       :data:`END_ELEMENT` or :class:`xml.dom.minidom.Text` if event equals
       :data:`CHARACTERS`.
-      The current node does not contain informations about its children, unless
+      The current node does not contain information about its children, unless
       :func:`expandNode` is called.
 
    .. method:: expandNode(node)
 
       Expands all children of *node* into *node*. Example::
+
+          from xml.dom import pulldom
 
           xml = '<html><title>Foo</title> <p>Some text <div>and more</div></p> </html>'
           doc = pulldom.parseString(xml)
@@ -120,7 +137,7 @@ DOMEventStream Objects
               if event == pulldom.START_ELEMENT and node.tagName == 'p':
                   # Following statement only prints '<p/>'
                   print(node.toxml())
-                  doc.exandNode(node)
+                  doc.expandNode(node)
                   # Following statement prints node with all its children '<p>Some text <div>and more</div></p>'
                   print(node.toxml())
 

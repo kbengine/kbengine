@@ -68,9 +68,9 @@ included in 2.7.
 This article doesn't attempt to provide a complete specification of
 the new features, but instead provides a convenient overview.  For
 full details, you should refer to the documentation for Python 2.7 at
-http://docs.python.org. If you want to understand the rationale for
+https://docs.python.org. If you want to understand the rationale for
 the design and implementation, refer to the PEP for a particular new
-feature or the issue on http://bugs.python.org in which a change was
+feature or the issue on https://bugs.python.org in which a change was
 discussed.  Whenever possible, "What's New in Python" links to the
 bug/patch item for each change.
 
@@ -104,7 +104,7 @@ Some key consequences of the long-term significance of 2.7 are:
   when compared to earlier 2.x versions. Python 2.7 is currently expected to
   remain supported by the core development team (receiving security updates
   and other bug fixes) until at least 2020 (10 years after its initial
-  release, compared to the more typical support period of 18-24 months).
+  release, compared to the more typical support period of 18--24 months).
 
 * As the Python 2.7 standard library ages, making effective use of the
   Python Package Index (either directly or via a redistributor) becomes
@@ -198,8 +198,8 @@ Other new Python3-mode warnings include:
 
 * :func:`operator.isCallable` and :func:`operator.sequenceIncludes`,
   which are not supported in 3.x, now trigger warnings.
-* The :option:`-3` switch now automatically
-  enables the :option:`-Qwarn <-Q>` switch that causes warnings
+* The :option:`!-3` switch now automatically
+  enables the :option:`!-Qwarn` switch that causes warnings
   about using classic division with integers and long integers.
 
 
@@ -245,8 +245,8 @@ Deleting an entry and reinserting it will move it to the end::
     [('first', 1), ('third', 3), ('second', 5)]
 
 The :meth:`~collections.OrderedDict.popitem` method has an optional *last*
-argument that defaults to True.  If *last* is True, the most recently
-added key is returned and removed; if it's False, the
+argument that defaults to ``True``.  If *last* is true, the most recently
+added key is returned and removed; if it's false, the
 oldest key is selected::
 
     >>> od = OrderedDict([(x,0) for x in range(20)])
@@ -390,7 +390,7 @@ Here's an example::
     args = parser.parse_args()
     print args.__dict__
 
-Unless you override it, :option:`-h` and :option:`--help` switches
+Unless you override it, :option:`!-h` and :option:`!--help` switches
 are automatically added, and produce neatly formatted output::
 
     -> ./python.exe argparse-example.py --help
@@ -532,7 +532,7 @@ implemented by Vinay Sajip, are:
   calling ``log.getChild('network.listen')`` is equivalent to
   ``getLogger('app.network.listen')``.
 
-* The :class:`~logging.LoggerAdapter` class gained a
+* The :class:`~logging.LoggerAdapter` class gained an
   :meth:`~logging.LoggerAdapter.isEnabledFor` method that takes a
   *level* and returns whether the underlying logger would
   process a message of that level of importance.
@@ -613,6 +613,9 @@ PEP 3137: The memoryview Object
 The :class:`memoryview` object provides a view of another object's
 memory content that matches the :class:`bytes` type's interface.
 
+.. doctest::
+    :options: +SKIP
+
     >>> import string
     >>> m = memoryview(string.letters)
     >>> m
@@ -628,6 +631,9 @@ memory content that matches the :class:`bytes` type's interface.
 The content of the view can be converted to a string of bytes or
 a list of integers:
 
+.. doctest::
+    :options: +SKIP
+
     >>> m2.tobytes()
     'abcdefghijklmnopqrstuvwxyz'
     >>> m2.tolist()
@@ -636,6 +642,9 @@ a list of integers:
 
 :class:`memoryview` objects allow modifying the underlying object if
 it's a mutable object.
+
+.. doctest::
+    :options: +SKIP
 
     >>> m2[0] = 75
     Traceback (most recent call last):
@@ -671,6 +680,9 @@ Some smaller changes made to the core Python language are:
   ``{}`` continues to represent an empty dictionary; use
   ``set()`` for an empty set.
 
+  .. doctest::
+    :options: +SKIP
+
     >>> {1, 2, 3, 4, 5}
     set([1, 2, 3, 4, 5])
     >>> set() # empty set
@@ -683,6 +695,9 @@ Some smaller changes made to the core Python language are:
 * Dictionary and set comprehensions are another feature backported from
   3.x, generalizing list/generator comprehensions to use
   the literal syntax for sets and dictionaries.
+
+  .. doctest::
+    :options: +SKIP
 
     >>> {x: x*x for x in range(6)}
     {0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25}
@@ -708,7 +723,7 @@ Some smaller changes made to the core Python language are:
   The :func:`contextlib.nested` function provides a very similar
   function, so it's no longer necessary and has been deprecated.
 
-  (Proposed in http://codereview.appspot.com/53094; implemented by
+  (Proposed in https://codereview.appspot.com/53094; implemented by
   Georg Brandl.)
 
 * Conversions between floating-point numbers and strings are
@@ -945,7 +960,7 @@ Several performance enhancements have been added:
   benchmark results on 32-bit machines have been mixed.  Therefore,
   the default is to use base 2**30 on 64-bit machines and base 2**15
   on 32-bit machines; on Unix, there's a new configure option
-  :option:`--enable-big-digits` that can be used to override this default.
+  :option:`!--enable-big-digits` that can be used to override this default.
 
   Apart from the performance improvements this change should be
   invisible to end users, with one exception: for testing and
@@ -974,7 +989,7 @@ Several performance enhancements have been added:
   Gregory Smith; :issue:`1087418`).
 
 * The implementation of ``%`` checks for the left-side operand being
-  a Python string and special-cases it; this results in a 1-3%
+  a Python string and special-cases it; this results in a 1--3%
   performance increase for applications that frequently use ``%``
   with strings, such as templating libraries.
   (Implemented by Collin Winter; :issue:`5176`.)
@@ -1029,7 +1044,7 @@ changes, or look through the Subversion logs for all the details.
 
 * Updated module: the :mod:`bsddb` module has been updated from 4.7.2devel9
   to version 4.8.4 of
-  `the pybsddb package <http://www.jcea.es/programacion/pybsddb.htm>`__.
+  `the pybsddb package <https://www.jcea.es/programacion/pybsddb.htm>`__.
   The new version features better Python 3.x compatibility, various bug fixes,
   and adds several new BerkeleyDB flags and methods.
   (Updated by Jesús Cea Avión; :issue:`8156`.  The pybsddb
@@ -1052,7 +1067,7 @@ changes, or look through the Subversion logs for all the details.
      >>> for letter in 'here is a sample of english text':
      ...   c[letter] += 1
      ...
-     >>> c
+     >>> c # doctest: +SKIP
      Counter({' ': 6, 'e': 5, 's': 3, 'a': 2, 'i': 2, 'h': 2,
      'l': 2, 't': 2, 'g': 1, 'f': 1, 'm': 1, 'o': 1, 'n': 1,
      'p': 1, 'r': 1, 'x': 1})
@@ -1118,7 +1133,7 @@ changes, or look through the Subversion logs for all the details.
   (Fixed by Daniel Stutzbach; :issue:`8729`.)
 
 * Constructors for the parsing classes in the :mod:`ConfigParser` module now
-  take a *allow_no_value* parameter, defaulting to false; if true,
+  take an *allow_no_value* parameter, defaulting to false; if true,
   options without values will be allowed.  For example::
 
     >>> import ConfigParser, StringIO
@@ -1157,7 +1172,7 @@ changes, or look through the Subversion logs for all the details.
 * The :mod:`ctypes` module now always converts ``None`` to a C NULL
   pointer for arguments declared as pointers.  (Changed by Thomas
   Heller; :issue:`4606`.)  The underlying `libffi library
-  <http://sourceware.org/libffi/>`__ has been updated to version
+  <https://sourceware.org/libffi/>`__ has been updated to version
   3.0.9, containing various fixes for different platforms.  (Updated
   by Matthias Klose; :issue:`8142`.)
 
@@ -1503,7 +1518,7 @@ changes, or look through the Subversion logs for all the details.
 * The :mod:`SocketServer` module's :class:`~SocketServer.TCPServer` class now
   supports socket timeouts and disabling the Nagle algorithm.
   The :attr:`~SocketServer.TCPServer.disable_nagle_algorithm` class attribute
-  defaults to False; if overridden to be True,
+  defaults to ``False``; if overridden to be true,
   new request connections will have the TCP_NODELAY option set to
   prevent buffering many small sends into a single TCP packet.
   The :attr:`~SocketServer.BaseServer.timeout` class attribute can hold
@@ -1513,7 +1528,7 @@ changes, or look through the Subversion logs for all the details.
   (Contributed by Kristján Valur Jónsson; :issue:`6192` and :issue:`6267`.)
 
 * Updated module: the :mod:`sqlite3` module has been updated to
-  version 2.6.0 of the `pysqlite package <http://code.google.com/p/pysqlite/>`__. Version 2.6.0 includes a number of bugfixes, and adds
+  version 2.6.0 of the `pysqlite package <https://github.com/ghaering/pysqlite>`__. Version 2.6.0 includes a number of bugfixes, and adds
   the ability to load SQLite extensions from shared libraries.
   Call the ``enable_load_extension(True)`` method to enable extensions,
   and then call :meth:`~sqlite3.Connection.load_extension` to load a particular shared library.
@@ -1530,7 +1545,7 @@ changes, or look through the Subversion logs for all the details.
   *ciphers* argument that's a string listing the encryption algorithms
   to be allowed; the format of the string is described
   `in the OpenSSL documentation
-  <http://www.openssl.org/docs/apps/ciphers.html#CIPHER_LIST_FORMAT>`__.
+  <https://www.openssl.org/docs/manmaster/man1/ciphers.html#CIPHER-LIST-FORMAT>`__.
   (Added by Antoine Pitrou; :issue:`8322`.)
 
   Another change makes the extension load all of OpenSSL's ciphers and
@@ -1638,11 +1653,17 @@ changes, or look through the Subversion logs for all the details.
   worked around the old behaviour.  For example, Python 2.6.4 or 2.5
   will return the following:
 
+  .. doctest::
+    :options: +SKIP
+
     >>> import urlparse
     >>> urlparse.urlsplit('invented://host/filename?query')
     ('invented', '', '//host/filename?query', '', '')
 
   Python 2.7 (and Python 2.6.5) will return:
+
+  .. doctest::
+    :options: +SKIP
 
     >>> import urlparse
     >>> urlparse.urlsplit('invented://host/filename?query')
@@ -1652,7 +1673,10 @@ changes, or look through the Subversion logs for all the details.
   returns a named tuple instead of a standard tuple.)
 
   The :mod:`urlparse` module also supports IPv6 literal addresses as defined by
-  :rfc:`2732` (contributed by Senthil Kumaran; :issue:`2987`). ::
+  :rfc:`2732` (contributed by Senthil Kumaran; :issue:`2987`).
+
+  .. doctest::
+    :options: +SKIP
 
     >>> urlparse.urlparse('http://[1080::8:800:200C:417A]/foo')
     ParseResult(scheme='http', netloc='[1080::8:800:200C:417A]',
@@ -1767,7 +1791,7 @@ a complete list of functions.
 
 The Distutils package and :mod:`sysconfig` are now maintained by Tarek
 Ziadé, who has also started a Distutils2 package (source repository at
-http://hg.python.org/distutils2/) for developing a next-generation
+https://hg.python.org/distutils2/) for developing a next-generation
 version of Distutils.
 
 
@@ -1783,9 +1807,9 @@ on being added to Tcl/Tck release 8.5.
 To learn more, read the :mod:`ttk` module documentation.  You may also
 wish to read the Tcl/Tk manual page describing the
 Ttk theme engine, available at
-http://www.tcl.tk/man/tcl8.5/TkCmd/ttk_intro.htm. Some
+https://www.tcl.tk/man/tcl8.5/TkCmd/ttk_intro.htm. Some
 screenshots of the Python/Ttk code in use are at
-http://code.google.com/p/python-ttk/wiki/Screenshots.
+https://code.google.com/archive/p/python-ttk/wikis/Screenshots.wiki.
 
 The :mod:`ttk` module was written by Guilherme Polo and added in
 :issue:`2983`.  An alternate version called ``Tile.py``, written by
@@ -1804,12 +1828,12 @@ new features were added.  Most of these features were implemented
 by Michael Foord, unless otherwise noted.  The enhanced version of
 the module is downloadable separately for use with Python versions 2.4 to 2.6,
 packaged as the :mod:`unittest2` package, from
-http://pypi.python.org/pypi/unittest2.
+https://pypi.org/project/unittest2.
 
 When used from the command line, the module can automatically discover
 tests.  It's not as fancy as `py.test <http://pytest.org>`__ or
-`nose <http://code.google.com/p/python-nose/>`__, but provides a simple way
-to run tests kept within a set of package directories.  For example,
+`nose <https://nose.readthedocs.io/>`__, but provides a
+simple way to run tests kept within a set of package directories.  For example,
 the following command will search the :file:`test/` subdirectory for
 any importable test files named ``test*.py``::
 
@@ -1820,12 +1844,12 @@ Consult the :mod:`unittest` module documentation for more details.
 
 The :func:`~unittest.main` function supports some other new options:
 
-* :option:`-b` or :option:`--buffer` will buffer the standard output
+* :option:`-b <unittest -b>` or :option:`!--buffer` will buffer the standard output
   and standard error streams during each test.  If the test passes,
   any resulting output will be discarded; on failure, the buffered
   output will be displayed.
 
-* :option:`-c` or :option:`--catch` will cause the control-C interrupt
+* :option:`-c <unittest -c>` or :option:`!--catch` will cause the control-C interrupt
   to be handled more gracefully.  Instead of interrupting the test
   process immediately, the currently running test will be completed
   and then the partial results up to the interruption will be reported.
@@ -1839,7 +1863,7 @@ The :func:`~unittest.main` function supports some other new options:
   :func:`~unittest.removeHandler` decorator that can be used to mark tests that
   should have the control-C handling disabled.
 
-* :option:`-f` or :option:`--failfast` makes
+* :option:`-f <unittest -f>` or :option:`!--failfast` makes
   test execution stop immediately when a test fails instead of
   continuing to execute further tests.  (Suggested by Cliff Dyer and
   implemented by Michael Foord; :issue:`8074`.)
@@ -1855,7 +1879,7 @@ The error messages for :meth:`~unittest.TestCase.assertEqual`,
 :meth:`~unittest.TestCase.assertTrue`, and :meth:`~unittest.TestCase.assertFalse`
 failures now provide more information.  If you set the
 :attr:`~unittest.TestCase.longMessage` attribute of your :class:`~unittest.TestCase` classes to
-True, both the standard error message and any additional message you
+true, both the standard error message and any additional message you
 provide will be printed for failures.  (Added by Michael Foord; :issue:`5663`.)
 
 The :meth:`~unittest.TestCase.assertRaises` method now
@@ -1962,7 +1986,7 @@ GvR worked on merging them into Python's version of :mod:`unittest`.
   sequence comparison methods do.
 
 :func:`unittest.main` now takes an optional ``exit`` argument.  If
-False, :func:`~unittest.main` doesn't call :func:`sys.exit`, allowing
+false, :func:`~unittest.main` doesn't call :func:`sys.exit`, allowing
 :func:`~unittest.main` to be used from the interactive interpreter.
 (Contributed by J. Pablo Fernández; :issue:`3379`.)
 
@@ -2079,7 +2103,7 @@ Changes to Python's build process and to the C API include:
 
 * The latest release of the GNU Debugger, GDB 7, can be `scripted
   using Python
-  <http://sourceware.org/gdb/current/onlinedocs/gdb/Python.html>`__.
+  <https://sourceware.org/gdb/current/onlinedocs/gdb/Python.html>`__.
   When you begin debugging an executable program P, GDB will look for
   a file named ``P-gdb.py`` and automatically read it.  Dave Malcolm
   contributed a :file:`python-gdb.py` that adds a number of
@@ -2149,7 +2173,7 @@ Changes to Python's build process and to the C API include:
   with *updatepath* set to false.
 
   Security issue reported as `CVE-2008-5983
-  <http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-5983>`_;
+  <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-5983>`_;
   discussed in :issue:`5753`, and fixed by Antoine Pitrou.
 
 * New macros: the Python header files now define the following macros:
@@ -2214,19 +2238,19 @@ Changes to Python's build process and to the C API include:
   with ``Py``, or with ``_ctypes``.  (Implemented by Thomas
   Heller; :issue:`3102`.)
 
-* New configure option: the :option:`--with-system-expat` switch allows
+* New configure option: the :option:`!--with-system-expat` switch allows
   building the :mod:`pyexpat` module to use the system Expat library.
   (Contributed by Arfrever Frehtes Taifersar Arahesis; :issue:`7609`.)
 
 * New configure option: the
-  :option:`--with-valgrind` option will now disable the pymalloc
+  :option:`!--with-valgrind` option will now disable the pymalloc
   allocator, which is difficult for the Valgrind memory-error detector
   to analyze correctly.
   Valgrind will therefore be better at detecting memory leaks and
   overruns. (Contributed by James Henstridge; :issue:`2422`.)
 
 * New configure option: you can now supply an empty string to
-  :option:`--with-dbmliborder=` in order to disable all of the various
+  :option:`!--with-dbmliborder=` in order to disable all of the various
   DBM modules.  (Added by Arfrever Frehtes Taifersar Arahesis;
   :issue:`6491`.)
 
@@ -2266,7 +2290,9 @@ There is an existing data type already used for this,
 written in pure Python could cause a segmentation fault by taking a
 :c:type:`PyCObject` from module A and somehow substituting it for the
 :c:type:`PyCObject` in module B.   Capsules know their own name,
-and getting the pointer requires providing the name::
+and getting the pointer requires providing the name:
+
+.. code-block:: c
 
    void *vtable;
 
@@ -2320,7 +2346,7 @@ Port-Specific Changes: Windows
 * The :func:`os.kill` function now works on Windows.  The signal value
   can be the constants :const:`CTRL_C_EVENT`,
   :const:`CTRL_BREAK_EVENT`, or any integer.  The first two constants
-  will send Control-C and Control-Break keystroke events to
+  will send :kbd:`Control-C` and :kbd:`Control-Break` keystroke events to
   subprocesses; any other value will use the :c:func:`TerminateProcess`
   API.  (Contributed by Miki Tebeka; :issue:`1220212`.)
 
@@ -2340,6 +2366,18 @@ Port-Specific Changes: Mac OS X
   ``sys.path``, in order to share added packages between the system
   installation and a user-installed copy of the same version.
   (Changed by Ronald Oussoren; :issue:`4865`.)
+
+   .. versionchanged:: 2.7.13
+
+     As of 2.7.13, this change was removed.
+     ``/Library/Python/2.7/site-packages``, the site-packages directory
+     used by the Apple-supplied system Python 2.7 is no longer appended to
+     ``sys.path`` for user-installed Pythons such as from the python.org
+     installers.  As of macOS 10.12, Apple changed how the system
+     site-packages directory is configured, which could cause installation
+     of pip components, like setuptools, to fail.  Packages installed for
+     the system Python will no longer be shared with user-installed
+     Pythons. (:issue:`28440`)
 
 Port-Specific Changes: FreeBSD
 -----------------------------------
@@ -2371,19 +2409,19 @@ Other Changes and Fixes
   renamed, moved, or is accessed through different paths.  (Patch by
   Ziga Seilnacht and Jean-Paul Calderone; :issue:`1180193`.)
 
-* The :file:`regrtest.py` script now takes a :option:`--randseed=`
+* The :file:`regrtest.py` script now takes a :option:`!--randseed=`
   switch that takes an integer that will be used as the random seed
-  for the :option:`-r` option that executes tests in random order.
-  The :option:`-r` option also reports the seed that was used
+  for the :option:`!-r` option that executes tests in random order.
+  The :option:`!-r` option also reports the seed that was used
   (Added by Collin Winter.)
 
-* Another :file:`regrtest.py` switch is :option:`-j`, which
+* Another :file:`regrtest.py` switch is :option:`!-j`, which
   takes an integer specifying how many tests run in parallel. This
   allows reducing the total runtime on multi-core machines.
   This option is compatible with several other options, including the
-  :option:`-R` switch which is known to produce long runtimes.
+  :option:`!-R` switch which is known to produce long runtimes.
   (Added by Antoine Pitrou, :issue:`6152`.)  This can also be used
-  with a new :option:`-F` switch that runs selected tests in a loop
+  with a new :option:`!-F` switch that runs selected tests in a loop
   until they fail.  (Added by Antoine Pitrou; :issue:`7312`.)
 
 * When executed as a script, the :file:`py_compile.py` module now
@@ -2475,11 +2513,17 @@ In the standard library:
   worked around the old behaviour.  For example, Python 2.6.4 or 2.5
   will return the following:
 
+  .. doctest::
+    :options: +SKIP
+
     >>> import urlparse
     >>> urlparse.urlsplit('invented://host/filename?query')
     ('invented', '', '//host/filename?query', '', '')
 
   Python 2.7 (and Python 2.6.5) will return:
+
+  .. doctest::
+    :options: +SKIP
 
     >>> import urlparse
     >>> urlparse.urlsplit('invented://host/filename?query')
@@ -2526,6 +2570,21 @@ exemption allowing new ``-3`` warnings to be added in any Python 2.7
 maintenance release.
 
 
+Two new environment variables for debug mode
+--------------------------------------------
+
+In debug mode, the ``[xxx refs]`` statistic is not written by default, the
+:envvar:`PYTHONSHOWREFCOUNT` environment variable now must also be set.
+(Contributed by Victor Stinner; :issue:`31733`.)
+
+When Python is compiled with ``COUNT_ALLOC`` defined, allocation counts are no
+longer dumped by default anymore: the :envvar:`PYTHONSHOWALLOCCOUNT` environment
+variable must now also be set. Moreover, allocation counts are now dumped into
+stderr, rather than stdout. (Contributed by Victor Stinner; :issue:`31692`.)
+
+.. versionadded:: 2.7.15
+
+
 PEP 434: IDLE Enhancement Exception for All Branches
 ----------------------------------------------------
 
@@ -2570,10 +2629,162 @@ with the first of those changes appearing in the Python 2.7.7 release.
   certificate store, the :class:`~ssl.SSLContext` class, and other
   features. (Contributed by Alex Gaynor and David Reid; :issue:`21308`.)
 
+  Refer to the "Version added: 2.7.9" notes in the module documentation for
+  specific details.
+
 * :func:`os.urandom` was changed to cache a file descriptor to ``/dev/urandom``
   instead of reopening ``/dev/urandom`` on every call. (Contributed by Alex
   Gaynor; :issue:`21305`.)
 
+* :data:`hashlib.algorithms_guaranteed` and
+  :data:`hashlib.algorithms_available` were backported from Python 3 to make
+  it easier for Python 2 applications to select the strongest available hash
+  algorithm. (Contributed by Alex Gaynor in :issue:`21307`)
+
+
+PEP 477: Backport ensurepip (PEP 453) to Python 2.7
+---------------------------------------------------
+
+:pep:`477` approves the inclusion of the :pep:`453` ensurepip module and the
+improved documentation that was enabled by it in the Python 2.7 maintenance
+releases, appearing first in the Python 2.7.9 release.
+
+
+Bootstrapping pip By Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The new :mod:`ensurepip` module (defined in :pep:`453`) provides a standard
+cross-platform mechanism to bootstrap the pip installer into Python
+installations. The version of ``pip`` included with Python 2.7.9 is ``pip``
+1.5.6, and future 2.7.x maintenance releases will update the bundled version to
+the latest version of ``pip`` that is available at the time of creating the
+release candidate.
+
+By default, the commands ``pip``, ``pipX`` and ``pipX.Y`` will be installed on
+all platforms (where X.Y stands for the version of the Python installation),
+along with the ``pip`` Python package and its dependencies.
+
+For CPython :ref:`source builds on POSIX systems <building-python-on-unix>`,
+the ``make install`` and ``make altinstall`` commands do not bootstrap ``pip``
+by default.  This behaviour can be controlled through configure options, and
+overridden through Makefile options.
+
+On Windows and Mac OS X, the CPython installers now default to installing
+``pip`` along with CPython itself (users may opt out of installing it
+during the installation process). Window users will need to opt in to the
+automatic ``PATH`` modifications to have ``pip`` available from the command
+line by default, otherwise it can still be accessed through the Python
+launcher for Windows as ``py -m pip``.
+
+As `discussed in the PEP`__, platform packagers may choose not to install
+these commands by default, as long as, when invoked, they provide clear and
+simple directions on how to install them on that platform (usually using
+the system package manager).
+
+__ https://www.python.org/dev/peps/pep-0477/#disabling-ensurepip-by-downstream-distributors
+
+
+Documentation Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+As part of this change, the :ref:`installing-index` and
+:ref:`distributing-index` sections of the documentation have been
+completely redesigned as short getting started and FAQ documents. Most
+packaging documentation has now been moved out to the Python Packaging
+Authority maintained `Python Packaging User Guide
+<http://packaging.python.org>`__ and the documentation of the individual
+projects.
+
+However, as this migration is currently still incomplete, the legacy
+versions of those guides remaining available as :ref:`install-index`
+and :ref:`distutils-index`.
+
+.. seealso::
+
+   :pep:`453` -- Explicit bootstrapping of pip in Python installations
+      PEP written by Donald Stufft and Nick Coghlan, implemented by
+      Donald Stufft, Nick Coghlan, Martin von Löwis and Ned Deily.
+
+PEP 476: Enabling certificate verification by default for stdlib http clients
+-----------------------------------------------------------------------------
+
+:pep:`476` updated :mod:`httplib` and modules which use it, such as
+:mod:`urllib2` and :mod:`xmlrpclib`, to now verify that the server
+presents a certificate which is signed by a Certificate Authority in the
+platform trust store and whose hostname matches the hostname being requested
+by default, significantly improving security for many applications. This
+change was made in the Python 2.7.9 release.
+
+For applications which require the old previous behavior, they can pass an
+alternate context::
+
+    import urllib2
+    import ssl
+
+    # This disables all verification
+    context = ssl._create_unverified_context()
+
+    # This allows using a specific certificate for the host, which doesn't need
+    # to be in the trust store
+    context = ssl.create_default_context(cafile="/path/to/file.crt")
+
+    urllib2.urlopen("https://invalid-cert", context=context)
+
+
+PEP 493: HTTPS verification migration tools for Python 2.7
+----------------------------------------------------------
+
+:pep:`493` provides additional migration tools to support a more incremental
+infrastructure upgrade process for environments containing applications and
+services relying on the historically permissive processing of server
+certificates when establishing client HTTPS connections.  These additions were
+made in the Python 2.7.12 release.
+
+These tools are intended for use in cases where affected applications and
+services can't be modified to explicitly pass a more permissive SSL context
+when establishing the connection.
+
+For applications and services which can't be modified at all, the new
+``PYTHONHTTPSVERIFY`` environment variable may be set to ``0`` to revert an
+entire Python process back to the default permissive behaviour of Python 2.7.8
+and earlier.
+
+For cases where the connection establishment code can't be modified, but the
+overall application can be, the new :func:`ssl._https_verify_certificates`
+function can be used to adjust the default behaviour at runtime.
+
+
+New ``make regen-all`` build target
+-----------------------------------
+
+To simplify cross-compilation, and to ensure that CPython can reliably be
+compiled without requiring an existing version of Python to already be
+available, the autotools-based build system no longer attempts to implicitly
+recompile generated files based on file modification times.
+
+Instead, a new ``make regen-all`` command has been added to force regeneration
+of these files when desired (e.g. after an initial version of Python has
+already been built based on the pregenerated versions).
+
+More selective regeneration targets are also defined - see
+:source:`Makefile.pre.in` for details.
+
+(Contributed by Victor Stinner in :issue:`23404`.)
+
+.. versionadded:: 2.7.14
+
+
+Removal of ``make touch`` build target
+--------------------------------------
+
+The ``make touch`` build target previously used to request implicit regeneration
+of generated files by updating their modification times has been removed.
+
+It has been replaced by the new ``make regen-all`` target.
+
+(Contributed by Victor Stinner in :issue:`23404`.)
+
+.. versionchanged:: 2.7.14
 
 .. ======================================================================
 
@@ -2586,4 +2797,3 @@ The author would like to thank the following people for offering
 suggestions, corrections and assistance with various drafts of this
 article: Nick Coghlan, Philip Jenvey, Ryan Lovett, R. David Murray,
 Hugh Secker-Walker.
-

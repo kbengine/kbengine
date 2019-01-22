@@ -3,6 +3,7 @@
 
 .. module:: functools
    :synopsis: Higher-order functions and operations on callable objects.
+
 .. moduleauthor:: Peter Harris <scav@blueyonder.co.uk>
 .. moduleauthor:: Raymond Hettinger <python@rcn.com>
 .. moduleauthor:: Nick Coghlan <ncoghlan@gmail.com>
@@ -21,8 +22,8 @@ The :mod:`functools` module defines the following functions:
 
 .. function:: cmp_to_key(func)
 
-   Transform an old-style comparison function to a key function.  Used with
-   tools that accept key functions (such as :func:`sorted`, :func:`min`,
+   Transform an old-style comparison function to a :term:`key function`.  Used
+   with tools that accept key functions (such as :func:`sorted`, :func:`min`,
    :func:`max`, :func:`heapq.nlargest`, :func:`heapq.nsmallest`,
    :func:`itertools.groupby`).  This function is primarily used as a transition
    tool for programs being converted from Python 2 which supported the use of
@@ -31,12 +32,13 @@ The :mod:`functools` module defines the following functions:
    A comparison function is any callable that accept two arguments, compares them,
    and returns a negative number for less-than, zero for equality, or a positive
    number for greater-than.  A key function is a callable that accepts one
-   argument and returns another value indicating the position in the desired
-   collation sequence.
+   argument and returns another value to be used as the sort key.
 
    Example::
 
        sorted(iterable, key=cmp_to_key(locale.strcoll))  # locale-aware sort order
+
+   For sorting examples and a brief sorting tutorial, see :ref:`sortinghowto`.
 
    .. versionadded:: 3.2
 
@@ -50,11 +52,16 @@ The :mod:`functools` module defines the following functions:
    Since a dictionary is used to cache results, the positional and keyword
    arguments to the function must be hashable.
 
-   If *maxsize* is set to None, the LRU feature is disabled and the cache can
+   Distinct argument patterns may be considered to be distinct calls with
+   separate cache entries.  For example, `f(a=1, b=2)` and `f(b=2, a=1)`
+   differ in their keyword argument order and may have two separate cache
+   entries.
+
+   If *maxsize* is set to ``None``, the LRU feature is disabled and the cache can
    grow without bound.  The LRU feature performs best when *maxsize* is a
    power-of-two.
 
-   If *typed* is set to True, function arguments of different types will be
+   If *typed* is set to true, function arguments of different types will be
    cached separately.  For example, ``f(3)`` and ``f(3.0)`` will be treated
    as distinct calls with distinct results.
 
@@ -72,11 +79,16 @@ The :mod:`functools` module defines the following functions:
    bypassing the cache, or for rewrapping the function with a different cache.
 
    An `LRU (least recently used) cache
-   <http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used>`_ works
+   <https://en.wikipedia.org/wiki/Cache_algorithms#Examples>`_ works
    best when the most recent calls are the best predictors of upcoming calls (for
    example, the most popular articles on a news server tend to change each day).
    The cache's size limit assures that the cache does not grow without bound on
    long-running processes such as web servers.
+
+   In general, the LRU cache should only be used when you want to reuse
+   previously computed values.  Accordingly, it doesn't make sense to cache
+   functions with side-effects, functions that need to create distinct mutable
+   objects on each call, or impure functions such as time() or random().
 
    Example of an LRU cache for static web content::
 
@@ -98,9 +110,9 @@ The :mod:`functools` module defines the following functions:
         CacheInfo(hits=3, misses=8, maxsize=32, currsize=8)
 
    Example of efficiently computing
-   `Fibonacci numbers <http://en.wikipedia.org/wiki/Fibonacci_number>`_
+   `Fibonacci numbers <https://en.wikipedia.org/wiki/Fibonacci_number>`_
    using a cache to implement a
-   `dynamic programming <http://en.wikipedia.org/wiki/Dynamic_programming>`_
+   `dynamic programming <https://en.wikipedia.org/wiki/Dynamic_programming>`_
    technique::
 
         @lru_cache(maxsize=None)
@@ -165,17 +177,18 @@ The :mod:`functools` module defines the following functions:
 
 .. function:: partial(func, *args, **keywords)
 
-   Return a new :class:`partial` object which when called will behave like *func*
-   called with the positional arguments *args* and keyword arguments *keywords*. If
-   more arguments are supplied to the call, they are appended to *args*. If
-   additional keyword arguments are supplied, they extend and override *keywords*.
+   Return a new :ref:`partial object<partial-objects>` which when called
+   will behave like *func* called with the positional arguments *args*
+   and keyword arguments *keywords*. If more arguments are supplied to the
+   call, they are appended to *args*. If additional keyword arguments are
+   supplied, they extend and override *keywords*.
    Roughly equivalent to::
 
       def partial(func, *args, **keywords):
           def newfunc(*fargs, **fkeywords):
               newkeywords = keywords.copy()
               newkeywords.update(fkeywords)
-              return func(*(args + fargs), **newkeywords)
+              return func(*args, *fargs, **newkeywords)
           newfunc.func = func
           newfunc.args = args
           newfunc.keywords = keywords
@@ -207,7 +220,7 @@ The :mod:`functools` module defines the following functions:
    :func:`classmethod`, :func:`staticmethod`, :func:`abstractmethod` or
    another instance of :class:`partialmethod`), calls to ``__get__`` are
    delegated to the underlying descriptor, and an appropriate
-   :class:`partial` object returned as the result.
+   :ref:`partial object<partial-objects>` returned as the result.
 
    When *func* is a non-descriptor callable, an appropriate bound method is
    created dynamically. This behaves like a normal Python function when
@@ -249,7 +262,7 @@ The :mod:`functools` module defines the following functions:
    a default when the sequence is empty.  If *initializer* is not given and
    *sequence* contains only one item, the first item is returned.
 
-   Equivalent to::
+   Roughly equivalent to::
 
       def reduce(function, iterable, initializer=None):
           it = iter(iterable)
@@ -262,9 +275,9 @@ The :mod:`functools` module defines the following functions:
           return value
 
 
-.. decorator:: singledispatch(default)
+.. decorator:: singledispatch
 
-   Transforms a function into a :term:`single-dispatch <single
+   Transform a function into a :term:`single-dispatch <single
    dispatch>` :term:`generic function`.
 
    To define a generic function, decorate it with the ``@singledispatch``
@@ -279,22 +292,33 @@ The :mod:`functools` module defines the following functions:
      ...     print(arg)
 
    To add overloaded implementations to the function, use the :func:`register`
-   attribute of the generic function.  It is a decorator, taking a type
-   parameter and decorating a function implementing the operation for that
-   type::
+   attribute of the generic function.  It is a decorator.  For functions
+   annotated with types, the decorator will infer the type of the first
+   argument automatically::
 
-     >>> @fun.register(int)
-     ... def _(arg, verbose=False):
+     >>> @fun.register
+     ... def _(arg: int, verbose=False):
      ...     if verbose:
      ...         print("Strength in numbers, eh?", end=" ")
      ...     print(arg)
      ...
-     >>> @fun.register(list)
-     ... def _(arg, verbose=False):
+     >>> @fun.register
+     ... def _(arg: list, verbose=False):
      ...     if verbose:
      ...         print("Enumerate this:")
      ...     for i, elem in enumerate(arg):
      ...         print(i, elem)
+
+   For code which doesn't use type annotations, the appropriate type
+   argument can be passed explicitly to the decorator itself::
+
+     >>> @fun.register(complex)
+     ... def _(arg, verbose=False):
+     ...     if verbose:
+     ...         print("Better than complicated.", end=" ")
+     ...     print(arg.real, arg.imag)
+     ...
+
 
    To enable registering lambdas and pre-existing functions, the
    :func:`register` attribute can be used in a functional form::
@@ -366,6 +390,9 @@ The :mod:`functools` module defines the following functions:
 
    .. versionadded:: 3.4
 
+   .. versionchanged:: 3.7
+      The :func:`register` attribute supports using type annotations.
+
 
 .. function:: update_wrapper(wrapper, wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES)
 
@@ -374,10 +401,10 @@ The :mod:`functools` module defines the following functions:
    assigned directly to the matching attributes on the wrapper function and which
    attributes of the wrapper function are updated with the corresponding attributes
    from the original function. The default values for these arguments are the
-   module level constants *WRAPPER_ASSIGNMENTS* (which assigns to the wrapper
-   function's *__name__*, *__module__*, *__annotations__* and *__doc__*, the
-   documentation string) and *WRAPPER_UPDATES* (which updates the wrapper
-   function's *__dict__*, i.e. the instance dictionary).
+   module level constants ``WRAPPER_ASSIGNMENTS`` (which assigns to the wrapper
+   function's ``__module__``, ``__name__``, ``__qualname__``, ``__annotations__``
+   and ``__doc__``, the documentation string) and ``WRAPPER_UPDATES`` (which
+   updates the wrapper function's ``__dict__``, i.e. the instance dictionary).
 
    To allow access to the original function for introspection and other purposes
    (e.g. bypassing a caching decorator such as :func:`lru_cache`), this function
@@ -472,7 +499,7 @@ have three read-only attributes:
 
 :class:`partial` objects are like :class:`function` objects in that they are
 callable, weak referencable, and can have attributes.  There are some important
-differences.  For instance, the :attr:`__name__` and :attr:`__doc__` attributes
+differences.  For instance, the :attr:`~definition.__name__` and :attr:`__doc__` attributes
 are not created automatically.  Also, :class:`partial` objects defined in
 classes behave like static methods and do not transform into bound methods
 during instance attribute look-up.

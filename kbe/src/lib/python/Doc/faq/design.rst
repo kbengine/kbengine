@@ -2,6 +2,11 @@
 Design and History FAQ
 ======================
 
+.. only:: html
+
+   .. contents::
+
+
 Why does Python use indentation for grouping of statements?
 -----------------------------------------------------------
 
@@ -31,7 +36,7 @@ least slightly uneasy when reading (or being required to write) another style.
 Many coding styles place begin/end brackets on a line by themselves.  This makes
 programs considerably longer and wastes valuable screen space, making it harder
 to get a good overview of a program.  Ideally, a function should fit on one
-screen (say, 20-30 lines).  20 lines of Python can do a lot more work than 20
+screen (say, 20--30 lines).  20 lines of Python can do a lot more work than 20
 lines of C.  This is not solely due to the lack of begin/end brackets -- the
 lack of declarations and the high-level data types are also responsible -- but
 the indentation-based syntax certainly helps.
@@ -49,7 +54,7 @@ Why are floating-point calculations so inaccurate?
 Users are often surprised by results like this::
 
     >>> 1.2 - 1.0
-    0.199999999999999996
+    0.19999999999999996
 
 and think it is a bug in Python.  It's not.  This has little to do with Python,
 and much more to do with how the underlying platform handles floating-point
@@ -77,7 +82,7 @@ which is exactly::
 
     1.1999999999999999555910790149937383830547332763671875 (decimal)
 
-The typical precision of 53 bits provides Python floats with 15-16
+The typical precision of 53 bits provides Python floats with 15--16
 decimal digits of accuracy.
 
 For a fuller explanation, please see the :ref:`floating point arithmetic
@@ -158,7 +163,7 @@ where in Python you're forced to write this::
        line = f.readline()
        if not line:
            break
-       ... # do something with line
+       ...  # do something with line
 
 The reason for not allowing assignment in Python expressions is a common,
 hard-to-find bug in those other languages, caused by this construct:
@@ -190,7 +195,7 @@ generally less robust than the "while True" solution::
 
    line = f.readline()
    while line:
-       ... # do something with line...
+       ...  # do something with line...
        line = f.readline()
 
 The problem with this is that if you change your mind about exactly how you get
@@ -203,31 +208,32 @@ objects using the ``for`` statement.  For example, :term:`file objects
 <file object>` support the iterator protocol, so you can write simply::
 
    for line in f:
-       ... # do something with line...
+       ...  # do something with line...
 
 
 
 Why does Python use methods for some functionality (e.g. list.index()) but functions for other (e.g. len(list))?
 ----------------------------------------------------------------------------------------------------------------
 
-The major reason is history. Functions were used for those operations that were
-generic for a group of types and which were intended to work even for objects
-that didn't have methods at all (e.g. tuples).  It is also convenient to have a
-function that can readily be applied to an amorphous collection of objects when
-you use the functional features of Python (``map()``, ``zip()`` et al).
+As Guido said:
 
-In fact, implementing ``len()``, ``max()``, ``min()`` as a built-in function is
-actually less code than implementing them as methods for each type.  One can
-quibble about individual cases but it's a part of Python, and it's too late to
-make such fundamental changes now. The functions have to remain to avoid massive
-code breakage.
+    (a) For some operations, prefix notation just reads better than
+    postfix -- prefix (and infix!) operations have a long tradition in
+    mathematics which likes notations where the visuals help the
+    mathematician thinking about a problem. Compare the easy with which we
+    rewrite a formula like x*(a+b) into x*a + x*b to the clumsiness of
+    doing the same thing using a raw OO notation.
 
-.. XXX talk about protocols?
+    (b) When I read code that says len(x) I *know* that it is asking for
+    the length of something. This tells me two things: the result is an
+    integer, and the argument is some kind of container. To the contrary,
+    when I read x.len(), I have to already know that x is some kind of
+    container implementing an interface or inheriting from a class that
+    has a standard len(). Witness the confusion we occasionally have when
+    a class that is not implementing a mapping has a get() or keys()
+    method, or something that isn't a file has a write() method.
 
-.. note::
-
-   For string operations, Python has moved from external functions (the
-   ``string`` module) to methods.  However, ``len()`` is still a function.
+    -- https://mail.python.org/pipermail/python-3000/2006-November/004643.html
 
 
 Why is join() a string method instead of a list or tuple method?
@@ -343,7 +349,7 @@ each Python stack frame.  Also, extensions can call back into Python at almost
 random moments.  Therefore, a complete threads implementation requires thread
 support for C.
 
-Answer 2: Fortunately, there is `Stackless Python <http://www.stackless.com>`_,
+Answer 2: Fortunately, there is `Stackless Python <https://github.com/stackless-dev/stackless/wiki>`_,
 which has a completely redesigned interpreter loop that avoids the C stack.
 
 
@@ -366,33 +372,11 @@ is exactly the same type of object that a lambda expression yields) is assigned!
 Can Python be compiled to machine code, C or some other language?
 -----------------------------------------------------------------
 
-Practical answer:
-
-`Cython <http://cython.org/>`_ and `Pyrex <http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/>`_
-compile a modified version of Python with optional annotations into C
-extensions.  `Weave <http://www.scipy.org/Weave>`_ makes it easy to
-intermingle Python and C code in various ways to increase performance.
-`Nuitka <http://www.nuitka.net/>`_ is an up-and-coming compiler of Python
-into C++ code, aiming to support the full Python language.
-
-Theoretical answer:
-
-   .. XXX not sure what to make of this
-
-Not trivially.  Python's high level data types, dynamic typing of objects and
-run-time invocation of the interpreter (using :func:`eval` or :func:`exec`)
-together mean that a naïvely "compiled" Python program would probably consist
-mostly of calls into the Python run-time system, even for seemingly simple
-operations like ``x+1``.
-
-Several projects described in the Python newsgroup or at past `Python
-conferences <http://python.org/community/workshops/>`_ have shown that this
-approach is feasible, although the speedups reached so far are only modest
-(e.g. 2x).  Jython uses the same strategy for compiling to Java bytecode.  (Jim
-Hugunin has demonstrated that in combination with whole-program analysis,
-speedups of 1000x are feasible for small demo programs.  See the proceedings
-from the `1997 Python conference
-<http://python.org/workshops/1997-10/proceedings/>`_ for more information.)
+`Cython <http://cython.org/>`_ compiles a modified version of Python with
+optional annotations into C extensions.  `Nuitka <http://www.nuitka.net/>`_ is
+an up-and-coming compiler of Python into C++ code, aiming to support the full
+Python language. For compiling to Java you can consider
+`VOC <https://voc.readthedocs.io>`_.
 
 
 How does Python manage memory?
@@ -487,10 +471,10 @@ you can always change a list's elements.  Only immutable elements can be used as
 dictionary keys, and hence only tuples and not lists can be used as keys.
 
 
-How are lists implemented?
---------------------------
+How are lists implemented in CPython?
+-------------------------------------
 
-Python's lists are really variable-length arrays, not Lisp-style linked lists.
+CPython's lists are really variable-length arrays, not Lisp-style linked lists.
 The implementation uses a contiguous array of references to other objects, and
 keeps a pointer to this array and the array's length in a list head structure.
 
@@ -503,10 +487,10 @@ when the array must be grown, some extra space is allocated so the next few
 times don't require an actual resize.
 
 
-How are dictionaries implemented?
----------------------------------
+How are dictionaries implemented in CPython?
+--------------------------------------------
 
-Python's dictionaries are implemented as resizable hash tables.  Compared to
+CPython's dictionaries are implemented as resizable hash tables.  Compared to
 B-trees, this gives better performance for lookup (the most common operation by
 far) under most circumstances, and the implementation is simpler.
 
@@ -517,11 +501,7 @@ on the key and a per-process seed; for example, "Python" could hash to
 to 1142331976.  The hash code is then used to calculate a location in an
 internal array where the value will be stored.  Assuming that you're storing
 keys that all have different hash values, this means that dictionaries take
-constant time -- O(1), in computer science notation -- to retrieve a key.  It
-also means that no sorted order of the keys is maintained, and traversing the
-array as the ``.keys()`` and ``.items()`` do will output the dictionary's
-content in some arbitrary jumbled order that can change with every invocation of
-a program.
+constant time -- O(1), in Big-O notation -- to retrieve a key.
 
 
 Why must dictionary keys be immutable?
@@ -548,7 +528,7 @@ Some unacceptable solutions that have been proposed:
      mydict = {[1, 2]: '12'}
      print(mydict[[1, 2]])
 
-  would raise a KeyError exception because the id of the ``[1, 2]`` used in the
+  would raise a :exc:`KeyError` exception because the id of the ``[1, 2]`` used in the
   second line differs from that in the first line.  In other words, dictionary
   keys should be compared using ``==``, not using :keyword:`is`.
 
@@ -577,8 +557,10 @@ other structure). ::
    class ListWrapper:
        def __init__(self, the_list):
            self.the_list = the_list
+
        def __eq__(self, other):
            return self.the_list == other.the_list
+
        def __hash__(self):
            l = self.the_list
            result = 98767 - len(l)*555
@@ -619,7 +601,7 @@ it and returns it.  For example, here's how to iterate over the keys of a
 dictionary in sorted order::
 
    for key in sorted(mydict):
-       ... # do whatever with mydict[key]...
+       ...  # do whatever with mydict[key]...
 
 
 How do you specify and enforce an interface spec in Python?
@@ -675,11 +657,11 @@ languages.  For example::
    class label(Exception): pass  # declare a label
 
    try:
-        ...
-        if condition: raise label()  # goto label
-        ...
+       ...
+       if condition: raise label()  # goto label
+       ...
    except label:  # where to goto
-        pass
+       pass
    ...
 
 This doesn't allow you to jump into the middle of a loop, but that's usually

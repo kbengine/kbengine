@@ -13,8 +13,8 @@ import weakref
 from . import heap
 from . import get_context
 
-from .context import assert_spawning
-from .reduction import ForkingPickler
+from .context import reduction, assert_spawning
+_ForkingPickler = reduction.ForkingPickler
 
 __all__ = ['RawValue', 'RawArray', 'Value', 'Array', 'copy', 'synchronized']
 
@@ -23,12 +23,13 @@ __all__ = ['RawValue', 'RawArray', 'Value', 'Array', 'copy', 'synchronized']
 #
 
 typecode_to_type = {
-    'c': ctypes.c_char,  'u': ctypes.c_wchar,
-    'b': ctypes.c_byte,  'B': ctypes.c_ubyte,
-    'h': ctypes.c_short, 'H': ctypes.c_ushort,
-    'i': ctypes.c_int,   'I': ctypes.c_uint,
-    'l': ctypes.c_long,  'L': ctypes.c_ulong,
-    'f': ctypes.c_float, 'd': ctypes.c_double
+    'c': ctypes.c_char,     'u': ctypes.c_wchar,
+    'b': ctypes.c_byte,     'B': ctypes.c_ubyte,
+    'h': ctypes.c_short,    'H': ctypes.c_ushort,
+    'i': ctypes.c_int,      'I': ctypes.c_uint,
+    'l': ctypes.c_long,     'L': ctypes.c_ulong,
+    'q': ctypes.c_longlong, 'Q': ctypes.c_ulonglong,
+    'f': ctypes.c_float,    'd': ctypes.c_double
     }
 
 #
@@ -77,7 +78,7 @@ def Value(typecode_or_type, *args, lock=True, ctx=None):
         ctx = ctx or get_context()
         lock = ctx.RLock()
     if not hasattr(lock, 'acquire'):
-        raise AttributeError("'%r' has no method 'acquire'" % lock)
+        raise AttributeError("%r has no method 'acquire'" % lock)
     return synchronized(obj, lock, ctx=ctx)
 
 def Array(typecode_or_type, size_or_initializer, *, lock=True, ctx=None):
@@ -91,7 +92,7 @@ def Array(typecode_or_type, size_or_initializer, *, lock=True, ctx=None):
         ctx = ctx or get_context()
         lock = ctx.RLock()
     if not hasattr(lock, 'acquire'):
-        raise AttributeError("'%r' has no method 'acquire'" % lock)
+        raise AttributeError("%r has no method 'acquire'" % lock)
     return synchronized(obj, lock, ctx=ctx)
 
 def copy(obj):
@@ -115,7 +116,7 @@ def synchronized(obj, lock=None, ctx=None):
             scls = class_cache[cls]
         except KeyError:
             names = [field[0] for field in cls._fields_]
-            d = dict((name, make_property(name)) for name in names)
+            d = {name: make_property(name) for name in names}
             classname = 'Synchronized' + cls.__name__
             scls = class_cache[cls] = type(classname, (SynchronizedBase,), d)
         return scls(obj, lock, ctx)
@@ -134,7 +135,7 @@ def reduce_ctype(obj):
 def rebuild_ctype(type_, wrapper, length):
     if length is not None:
         type_ = type_ * length
-    ForkingPickler.register(type_, reduce_ctype)
+    _ForkingPickler.register(type_, reduce_ctype)
     buf = wrapper.create_memoryview()
     obj = type_.from_buffer(buf)
     obj._wrapper = wrapper
@@ -188,6 +189,12 @@ class SynchronizedBase(object):
         self.acquire = self._lock.acquire
         self.release = self._lock.release
 
+    def __enter__(self):
+        return self._lock.__enter__()
+
+    def __exit__(self, *args):
+        return self._lock.__exit__(*args)
+
     def __reduce__(self):
         assert_spawning(self)
         return synchronized, (self._obj, self._lock)
@@ -212,32 +219,20 @@ class SynchronizedArray(SynchronizedBase):
         return len(self._obj)
 
     def __getitem__(self, i):
-        self.acquire()
-        try:
+        with self:
             return self._obj[i]
-        finally:
-            self.release()
 
     def __setitem__(self, i, value):
-        self.acquire()
-        try:
+        with self:
             self._obj[i] = value
-        finally:
-            self.release()
 
     def __getslice__(self, start, stop):
-        self.acquire()
-        try:
+        with self:
             return self._obj[start:stop]
-        finally:
-            self.release()
 
     def __setslice__(self, start, stop, values):
-        self.acquire()
-        try:
+        with self:
             self._obj[start:stop] = values
-        finally:
-            self.release()
 
 
 class SynchronizedString(SynchronizedArray):

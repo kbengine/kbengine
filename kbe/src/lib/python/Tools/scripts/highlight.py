@@ -3,11 +3,12 @@
 
 __author__ = 'Raymond Hettinger'
 
-import keyword, tokenize, cgi, re, functools
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+import builtins
+import functools
+import html as html_module
+import keyword
+import re
+import tokenize
 
 #### Analyze Python Source #################################
 
@@ -101,7 +102,7 @@ def html_highlight(classified_text,opener='<pre class="python">\n', closer='</pr
     for kind, text in classified_text:
         if kind:
             result.append('<span class="%s">' % kind)
-        result.append(cgi.escape(text))
+        result.append(html_module.escape(text))
         if kind:
             result.append('</span>')
     result.append(closer)
@@ -140,20 +141,20 @@ def build_html_page(classified_text, title='python',
     'Create a complete HTML page with colorized source code'
     css_str = '\n'.join(['%s %s' % item for item in css.items()])
     result = html_highlight(classified_text)
-    title = cgi.escape(title)
+    title = html_module.escape(title)
     return html.format(title=title, css=css_str, body=result)
 
 #### LaTeX Output ##########################################
 
 default_latex_commands = {
-    'comment': '{\color{red}#1}',
-    'string': '{\color{ForestGreen}#1}',
-    'docstring': '{\emph{\color{ForestGreen}#1}}',
-    'keyword': '{\color{orange}#1}',
-    'builtin': '{\color{purple}#1}',
-    'definition': '{\color{orange}#1}',
-    'defname': '{\color{blue}#1}',
-    'operator': '{\color{brown}#1}',
+    'comment': r'{\color{red}#1}',
+    'string': r'{\color{ForestGreen}#1}',
+    'docstring': r'{\emph{\color{ForestGreen}#1}}',
+    'keyword': r'{\color{orange}#1}',
+    'builtin': r'{\color{purple}#1}',
+    'definition': r'{\color{orange}#1}',
+    'defname': r'{\color{blue}#1}',
+    'operator': r'{\color{brown}#1}',
 }
 
 default_latex_document = r'''
@@ -193,7 +194,11 @@ def latex_highlight(classified_text, title = 'python',
 
 
 if __name__ == '__main__':
-    import sys, argparse, webbrowser, os, textwrap
+    import argparse
+    import os.path
+    import sys
+    import textwrap
+    import webbrowser
 
     parser = argparse.ArgumentParser(
             description = 'Add syntax highlighting to Python source code',

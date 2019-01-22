@@ -4,8 +4,9 @@
 .. module:: array
    :synopsis: Space efficient arrays of uniformly typed numeric values.
 
-
 .. index:: single: arrays
+
+--------------
 
 This module defines an object type which can compactly represent an array of
 basic values: characters, integers, floating point numbers.  Arrays are sequence
@@ -91,7 +92,7 @@ Array objects support the ordinary sequence operations of indexing, slicing,
 concatenation, and multiplication.  When using slice assignment, the assigned
 value must be an array object with the same type code; in all other cases,
 :exc:`TypeError` is raised. Array objects also implement the buffer interface,
-and may be used wherever :term:`bytes-like object`\ s are supported.
+and may be used wherever :term:`bytes-like objects <bytes-like object>` are supported.
 
 The following data items and methods are also supported:
 
@@ -253,7 +254,7 @@ When an array object is printed or converted to a string, it is represented as
 empty, otherwise it is a string if the *typecode* is ``'u'``, otherwise it is a
 list of numbers.  The string is guaranteed to be able to be converted back to an
 array with the same type and value using :func:`eval`, so long as the
-:func:`array` function has been imported using ``from array import array``.
+:class:`~array.array` class has been imported using ``from array import array``.
 Examples::
 
    array('l')
@@ -271,7 +272,7 @@ Examples::
       Packing and unpacking of External Data Representation (XDR) data as used in some
       remote procedure call systems.
 
-   `The Numerical Python Documentation <http://docs.scipy.org/doc/>`_
+   `The Numerical Python Documentation <https://docs.scipy.org/doc/>`_
       The Numeric Python extension (NumPy) defines another array type; see
       http://www.numpy.org/ for further information about Numerical Python.
 

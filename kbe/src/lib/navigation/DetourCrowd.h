@@ -143,10 +143,10 @@ struct dtCrowdAgent
 	float desiredSpeed;
 
 	float npos[3];		///< The current agent position. [(x, y, z)]
-	float disp[3];
-	float dvel[3];		///< The desired velocity of the agent. [(x, y, z)]
-	float nvel[3];
-	float vel[3];		///< The actual velocity of the agent. [(x, y, z)]
+	float disp[3];		///< A temporary value used to accumulate agent displacement during iterative collision resolution. [(x, y, z)]
+	float dvel[3];		///< The desired velocity of the agent. Based on the current path, calculated from scratch each frame. [(x, y, z)]
+	float nvel[3];		///< The desired velocity adjusted by obstacle avoidance, calculated from scratch each frame. [(x, y, z)]
+	float vel[3];		///< The actual velocity of the agent. The change from nvel -> vel is constrained by max acceleration. [(x, y, z)]
 
 	/// The agent's configuration parameters.
 	dtCrowdAgentParams params;
@@ -217,7 +217,7 @@ class dtCrowd
 	dtPolyRef* m_pathResult;
 	int m_maxPathResult;
 	
-	float m_ext[3];
+	float m_agentPlacementHalfExtents[3];
 
 	dtQueryFilter m_filters[DT_CROWD_MAX_QUERY_FILTER_TYPE];
 
@@ -325,9 +325,13 @@ public:
 	/// @return The filter used by the crowd.
 	inline dtQueryFilter* getEditableFilter(const int i) { return (i >= 0 && i < DT_CROWD_MAX_QUERY_FILTER_TYPE) ? &m_filters[i] : 0; }
 
-	/// Gets the search extents [(x, y, z)] used by the crowd for query operations. 
-	/// @return The search extents used by the crowd. [(x, y, z)]
-	const float* getQueryExtents() const { return m_ext; }
+	/// Gets the search halfExtents [(x, y, z)] used by the crowd for query operations. 
+	/// @return The search halfExtents used by the crowd. [(x, y, z)]
+	const float* getQueryHalfExtents() const { return m_agentPlacementHalfExtents; }
+
+	/// Same as getQueryHalfExtents. Left to maintain backwards compatibility.
+	/// @return The search halfExtents used by the crowd. [(x, y, z)]
+	const float* getQueryExtents() const { return m_agentPlacementHalfExtents; }
 	
 	/// Gets the velocity sample count.
 	/// @return The velocity sample count.
@@ -343,6 +347,11 @@ public:
 
 	/// Gets the query object used by the crowd.
 	const dtNavMeshQuery* getNavMeshQuery() const { return m_navquery; }
+
+private:
+	// Explicitly disabled copy constructor and copy assignment operator.
+	dtCrowd(const dtCrowd&);
+	dtCrowd& operator=(const dtCrowd&);
 };
 
 /// Allocates a crowd object using the Detour allocator.
@@ -448,3 +457,4 @@ A higher value will result in agents trying to stay farther away from each other
 the cost of more difficult steering in tight spaces.
 
 */
+

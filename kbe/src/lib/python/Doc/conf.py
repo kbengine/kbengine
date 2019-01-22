@@ -7,25 +7,18 @@
 # that aren't pickleable (module imports are okay, they're removed automatically).
 
 import sys, os, time
-sys.path.append(os.path.abspath('tools/sphinxext'))
+sys.path.append(os.path.abspath('tools/extensions'))
+sys.path.append(os.path.abspath('includes'))
 
 # General configuration
 # ---------------------
 
 extensions = ['sphinx.ext.coverage', 'sphinx.ext.doctest',
-              'pyspecific', 'c_annotations']
-templates_path = ['tools/sphinxext']
+              'pyspecific', 'c_annotations', 'escape4chm']
 
 # General substitutions.
 project = 'Python'
-copyright = '1990-%s, Python Software Foundation' % time.strftime('%Y')
-
-# The default replacements for |version| and |release|.
-#
-# The short X.Y version.
-# version = '2.6'
-# The full version, including alpha/beta/rc tags.
-# release = '2.6a0'
+copyright = '2001-%s, Python Software Foundation' % time.strftime('%Y')
 
 # We look for the Include/patchlevel.h file in the current Python source tree
 # and replace the values accordingly.
@@ -38,52 +31,46 @@ today = ''
 # Else, today_fmt is used as the format for a strftime call.
 today_fmt = '%B %d, %Y'
 
-# List of files that shouldn't be included in the build.
-unused_docs = [
-    'maclib/scrap',
-    'library/xmllib',
-    'library/xml.etree',
-]
-
-# Ignore .rst in Sphinx its self.
-exclude_trees = ['tools/sphinx']
-
-# Relative filename of the reference count data file.
-refcount_file = 'data/refcounts.dat'
-
-# If true, '()' will be appended to :func: etc. cross-reference text.
-add_function_parentheses = True
-
-# If true, the current module name will be prepended to all description
-# unit titles (such as .. function::).
-add_module_names = True
-
 # By default, highlight as Python 3.
 highlight_language = 'python3'
 
-needs_sphinx = '1.1'
+# Require Sphinx 1.6.6 for build.
+needs_sphinx = "1.6.6"
+
+# Ignore any .rst files in the venv/ directory.
+venvdir = os.getenv('VENVDIR', 'venv')
+exclude_patterns = [venvdir+'/*', 'README.rst']
+
+# Disable Docutils smartquotes for several translations
+smartquotes_excludes = {
+    'languages': ['ja', 'fr', 'zh_TW', 'zh_CN'], 'builders': ['man', 'text'],
+}
 
 
 # Options for HTML output
 # -----------------------
 
+# Use our custom theme.
 html_theme = 'pydoctheme'
-html_theme_path = ['tools/sphinxext']
+html_theme_path = ['tools']
 html_theme_options = {'collapsiblesidebar': True}
 
+# Short title used e.g. for <title> HTML tags.
 html_short_title = '%s Documentation' % release
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-html_use_smartypants = True
+# Path to find HTML templates.
+templates_path = ['tools/templates']
 
 # Custom sidebar templates, filenames relative to this file.
 html_sidebars = {
-    'index': 'indexsidebar.html',
+    # Defaults taken from http://www.sphinx-doc.org/en/stable/config.html#confval-html_sidebars
+    # Removes the quick search block
+    '**': ['localtoc.html', 'relations.html', 'customsourcelink.html'],
+    'index': ['indexsidebar.html'],
 }
 
 # Additional templates that should be rendered to pages.
@@ -93,10 +80,10 @@ html_additional_pages = {
 }
 
 # Output an OpenSearch description file.
-html_use_opensearch = 'http://docs.python.org/' + version
+html_use_opensearch = 'https://docs.python.org/' + version
 
 # Additional static files.
-html_static_path = ['tools/sphinxext/static']
+html_static_path = ['tools/static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'python' + release.replace('.', '')
@@ -108,15 +95,31 @@ html_split_index = True
 # Options for LaTeX output
 # ------------------------
 
+latex_engine = 'xelatex'
+
+# Get LaTeX to handle Unicode correctly
+latex_elements = {
+}
+
+# Additional stuff for the LaTeX preamble.
+latex_elements['preamble'] = r'''
+\authoraddress{
+  \sphinxstrong{Python Software Foundation}\\
+  Email: \sphinxemail{docs@python.org}
+}
+\let\Verbatim=\OriginalVerbatim
+\let\endVerbatim=\endOriginalVerbatim
+'''
+
 # The paper size ('letter' or 'a4').
-latex_paper_size = 'a4'
+latex_elements['papersize'] = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
-latex_font_size = '10pt'
+latex_elements['pointsize'] = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-_stdauthor = r'Guido van Rossum\\Fred L. Drake, Jr., editor'
+_stdauthor = r'Guido van Rossum\\and the Python development team'
 latex_documents = [
     ('c-api/index', 'c-api.tex',
      'The Python/C API', _stdauthor, 'manual'),
@@ -145,21 +148,14 @@ latex_documents.extend(('howto/' + fn[:-4], 'howto-' + fn[:-4] + '.tex',
                        for fn in os.listdir('howto')
                        if fn.endswith('.rst') and fn != 'index.rst')
 
-# Additional stuff for the LaTeX preamble.
-latex_preamble = r'''
-\authoraddress{
-  \strong{Python Software Foundation}\\
-  Email: \email{docs@python.org}
-}
-\let\Verbatim=\OriginalVerbatim
-\let\endVerbatim=\endOriginalVerbatim
-'''
-
 # Documents to append as an appendix to all manuals.
 latex_appendices = ['glossary', 'about', 'license', 'copyright']
 
-# Get LaTeX to handle Unicode correctly
-latex_elements = {'inputenc': r'\usepackage[utf8x]{inputenc}', 'utf8extra': ''}
+# Options for Epub output
+# -----------------------
+
+epub_author = 'Python Documentation Authors'
+epub_publisher = 'Python Software Foundation'
 
 # Options for the coverage checker
 # --------------------------------
@@ -196,3 +192,19 @@ coverage_c_regexes = {
 coverage_ignore_c_items = {
 #    'cfunction': [...]
 }
+
+
+# Options for the link checker
+# ----------------------------
+
+# Ignore certain URLs.
+linkcheck_ignore = [r'https://bugs.python.org/(issue)?\d+',
+                    # Ignore PEPs for now, they all have permanent redirects.
+                    r'http://www.python.org/dev/peps/pep-\d+']
+
+
+# Options for extensions
+# ----------------------
+
+# Relative filename of the reference count data file.
+refcount_file = 'data/refcounts.dat'

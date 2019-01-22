@@ -770,7 +770,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				std::transform(indexType.begin(), indexType.end(), 
 					indexType.begin(), toupper);
 			}
-			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
@@ -1458,6 +1457,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 				else
 				{
 					PyObject* pyGetMethodArgsResult = PyObject_GetAttrString(pyGetMethodArgs, const_cast<char *>("args"));
+					Py_DECREF(pyGetMethodArgs);
+
 					if (!pyGetMethodArgsResult)
 					{
 						SCRIPT_ERROR_CHECK();
@@ -1494,7 +1495,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 
 						if (iter->second->isExposed())
 						{
-							if (iter->second->isExposed() != MethodDescription::EXPOSED_AND_CALLER_CHECK)
+							if (iter->second->isExposed() != MethodDescription::EXPOSED_AND_CALLER_CHECK && iter->second->isCell())
 							{
 								WARNING_MSG(fmt::format("EntityDef::checkDefMethod: exposed of method: {}.{}{}!\n",
 									moduleName.c_str(), iter->first.c_str(), (iter->second->isExposed() == MethodDescription::EXPOSED_AND_CALLER_CHECK ?
@@ -1502,8 +1503,6 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 							}
 						}
 					}
-
-					Py_DECREF(pyGetMethodArgs);
 				}
 			}
 
@@ -1577,9 +1576,13 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
 			std::string pyModulePath = "";
 			
-			const char *pModulePath = PyModule_GetFilename(pyModule);
-			if (pModulePath)
-				pyModulePath = pModulePath;
+			PyObject *fileobj = NULL;
+
+			fileobj = PyModule_GetFilenameObject(pyModule);
+			if (fileobj)
+				pyModulePath = PyUnicode_AsUTF8(fileobj);
+
+			Py_DECREF(fileobj);
 
 			strutil::kbe_replace(userScriptsPath, "/", "");
 			strutil::kbe_replace(userScriptsPath, "\\", "");

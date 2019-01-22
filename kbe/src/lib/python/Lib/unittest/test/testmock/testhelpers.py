@@ -1,3 +1,5 @@
+import time
+import types
 import unittest
 
 from unittest.mock import (
@@ -6,6 +8,7 @@ from unittest.mock import (
 )
 
 from datetime import datetime
+from functools import partial
 
 class SomeClass(object):
     def one(self, a, b):
@@ -267,6 +270,22 @@ class CallTest(unittest.TestCase):
         self.assertEqual(mock.mock_calls, last_call.call_list())
 
 
+    def test_extended_not_equal(self):
+        a = call(x=1).foo
+        b = call(x=2).foo
+        self.assertEqual(a, a)
+        self.assertEqual(b, b)
+        self.assertNotEqual(a, b)
+
+
+    def test_nested_calls_not_equal(self):
+        a = call(x=1).foo().bar
+        b = call(x=2).foo().bar
+        self.assertEqual(a, a)
+        self.assertEqual(b, b)
+        self.assertNotEqual(a, b)
+
+
     def test_call_list(self):
         mock = MagicMock()
         mock(1)
@@ -305,6 +324,11 @@ class CallTest(unittest.TestCase):
 
         other_args = _Call(((1, 2), {'a': 3}))
         self.assertEqual(args, other_args)
+
+    def test_call_with_name(self):
+        self.assertEqual(_Call((), 'foo')[0], 'foo')
+        self.assertEqual(_Call((('bar', 'barz'),),)[0], '')
+        self.assertEqual(_Call((('bar', 'barz'), {'hello': 'world'}),)[0], '')
 
 
 class SpecSignatureTest(unittest.TestCase):
@@ -802,35 +826,79 @@ class SpecSignatureTest(unittest.TestCase):
         a.f.assert_called_with(self=10)
 
 
-    def test_autospec_property(self):
+    def test_autospec_data_descriptor(self):
+        class Descriptor(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __get__(self, obj, cls=None):
+                if obj is None:
+                    return self
+                return self.value
+
+            def __set__(self, obj, value):
+                pass
+
+        class MyProperty(property):
+            pass
+
         class Foo(object):
+            __slots__ = ['slot']
+
             @property
-            def foo(self):
+            def prop(self):
                 return 3
 
-        foo = create_autospec(Foo)
-        mock_property = foo.foo
+            @MyProperty
+            def subprop(self):
+                return 4
 
-        # no spec on properties
-        self.assertIsInstance(mock_property, MagicMock)
-        mock_property(1, 2, 3)
-        mock_property.abc(4, 5, 6)
-        mock_property.assert_called_once_with(1, 2, 3)
-        mock_property.abc.assert_called_once_with(4, 5, 6)
-
-
-    def test_autospec_slots(self):
-        class Foo(object):
-            __slots__ = ['a']
+            desc = Descriptor(42)
 
         foo = create_autospec(Foo)
-        mock_slot = foo.a
 
-        # no spec on slots
-        mock_slot(1, 2, 3)
-        mock_slot.abc(4, 5, 6)
-        mock_slot.assert_called_once_with(1, 2, 3)
-        mock_slot.abc.assert_called_once_with(4, 5, 6)
+        def check_data_descriptor(mock_attr):
+            # Data descriptors don't have a spec.
+            self.assertIsInstance(mock_attr, MagicMock)
+            mock_attr(1, 2, 3)
+            mock_attr.abc(4, 5, 6)
+            mock_attr.assert_called_once_with(1, 2, 3)
+            mock_attr.abc.assert_called_once_with(4, 5, 6)
+
+        # property
+        check_data_descriptor(foo.prop)
+        # property subclass
+        check_data_descriptor(foo.subprop)
+        # class __slot__
+        check_data_descriptor(foo.slot)
+        # plain data descriptor
+        check_data_descriptor(foo.desc)
+
+
+    def test_autospec_on_bound_builtin_function(self):
+        meth = types.MethodType(time.ctime, time.time())
+        self.assertIsInstance(meth(), str)
+        mocked = create_autospec(meth)
+
+        # no signature, so no spec to check against
+        mocked()
+        mocked.assert_called_once_with()
+        mocked.reset_mock()
+        mocked(4, 5, 6)
+        mocked.assert_called_once_with(4, 5, 6)
+
+
+    def test_autospec_getattr_partial_function(self):
+        # bpo-32153 : getattr returning partial functions without
+        # __name__ should not create AttributeError in create_autospec
+        class Foo:
+
+            def __getattr__(self, attribute):
+                return partial(lambda name: name, attribute)
+
+        proxy = Foo()
+        autospec = create_autospec(proxy)
+        self.assertFalse(hasattr(autospec, '__name__'))
 
 
 class TestCallList(unittest.TestCase):

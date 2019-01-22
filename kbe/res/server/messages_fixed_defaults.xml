@@ -77,6 +77,11 @@
 		<arg>UINT8_ARRAY</arg> <!-- 二进制流， 具体由开发者来解析 -->
 	</Loginapp::reqCreateMailAccount>
 	
+	<Loginapp::importClientSDK>
+		<id>7</id>
+		<descr>客户端SDK导出。</descr>
+	</Loginapp::importClientSDK>
+	
 	<Baseapp::hello>
 		<id>200</id>
 		<descr>hello。</descr>

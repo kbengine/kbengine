@@ -10,13 +10,8 @@ import re
 __all__ = ['TextWrapper', 'wrap', 'fill', 'dedent', 'indent', 'shorten']
 
 # Hardcode the recognized whitespace characters to the US-ASCII
-# whitespace characters.  The main reason for doing this is that in
-# ISO-8859-1, 0xa0 is non-breaking whitespace, so in certain locales
-# that character winds up in string.whitespace.  Respecting
-# string.whitespace in those cases would 1) make textwrap treat 0xa0 the
-# same as any other whitespace char, which is clearly wrong (it's a
-# *non-breaking* space), 2) possibly cause problems with Unicode,
-# since 0xa0 is not in range(128).
+# whitespace characters.  The main reason for doing this is that
+# some Unicode spaces (like \u00a0) are non-breaking whitespaces.
 _whitespace = '\t\n\x0b\x0c\r '
 
 class TextWrapper:
@@ -79,16 +74,36 @@ class TextWrapper:
     # splits into
     #   Hello/ /there/ /--/ /you/ /goof-/ball,/ /use/ /the/ /-b/ /option!
     # (after stripping out empty strings).
-    wordsep_re = re.compile(
-        r'(\s+|'                                  # any whitespace
-        r'[^\s\w]*\w+[^0-9\W]-(?=\w+[^0-9\W])|'   # hyphenated words
-        r'(?<=[\w\!\"\'\&\.\,\?])-{2,}(?=\w))')   # em-dash
+    word_punct = r'[\w!"\'&.,?]'
+    letter = r'[^\d\W]'
+    whitespace = r'[%s]' % re.escape(_whitespace)
+    nowhitespace = '[^' + whitespace[1:]
+    wordsep_re = re.compile(r'''
+        ( # any whitespace
+          %(ws)s+
+        | # em-dash between words
+          (?<=%(wp)s) -{2,} (?=\w)
+        | # word, possibly hyphenated
+          %(nws)s+? (?:
+            # hyphenated word
+              -(?: (?<=%(lt)s{2}-) | (?<=%(lt)s-%(lt)s-))
+              (?= %(lt)s -? %(lt)s)
+            | # end of word
+              (?=%(ws)s|\Z)
+            | # em-dash
+              (?<=%(wp)s) (?=-{2,}\w)
+            )
+        )''' % {'wp': word_punct, 'lt': letter,
+                'ws': whitespace, 'nws': nowhitespace},
+        re.VERBOSE)
+    del word_punct, letter, nowhitespace
 
     # This less funky little regex just split on recognized spaces. E.g.
     #   "Hello there -- you goof-ball, use the -b option!"
     # splits into
     #   Hello/ /there/ /--/ /you/ /goof-ball,/ /use/ /the/ /-b/ /option!/
-    wordsep_simple_re = re.compile(r'(\s+)')
+    wordsep_simple_re = re.compile(r'(%s+)' % whitespace)
+    del whitespace
 
     # XXX this is not locale- or charset-aware -- string.lowercase
     # is US-ASCII only (and therefore English-only)
@@ -96,7 +111,6 @@ class TextWrapper:
                                  r'[\.\!\?]'          # sentence-ending punct.
                                  r'[\"\']?'           # optional end-of-quote
                                  r'\Z')               # end of chunk
-
 
     def __init__(self,
                  width=70,
@@ -133,7 +147,7 @@ class TextWrapper:
         """_munge_whitespace(text : string) -> string
 
         Munge whitespace in text: expand tabs and convert all other
-        whitespace characters to spaces.  Eg. " foo\tbar\n\nbaz"
+        whitespace characters to spaces.  Eg. " foo\\tbar\\n\\nbaz"
         becomes " foo    bar  baz".
         """
         if self.expand_tabs:
@@ -169,7 +183,7 @@ class TextWrapper:
         """_fix_sentence_endings(chunks : [string])
 
         Correct for sentence endings buried in 'chunks'.  Eg. when the
-        original text contains "... foo.\nBar ...", munge_whitespace()
+        original text contains "... foo.\\nBar ...", munge_whitespace()
         and split() will convert that to [..., "foo.", " ", "Bar", ...]
         which has one too few spaces; this method simply changes the one
         space to two.
@@ -405,7 +419,7 @@ def dedent(text):
     in indented form.
 
     Note that tabs and spaces are both treated as whitespace, but they
-    are not equal: the lines "  hello" and "\thello" are
+    are not equal: the lines "  hello" and "\\thello" are
     considered to have no common leading whitespace.  (This behaviour is
     new in Python 2.5; older versions of this module incorrectly
     expanded tabs before searching for common leading whitespace.)
@@ -429,11 +443,13 @@ def dedent(text):
         elif margin.startswith(indent):
             margin = indent
 
-        # Current line and previous winner have no common whitespace:
-        # there is no margin.
+        # Find the largest common whitespace between current line and previous
+        # winner.
         else:
-            margin = ""
-            break
+            for i, (x, y) in enumerate(zip(margin, indent)):
+                if x != y:
+                    margin = margin[:i]
+                    break
 
     # sanity check (testing/debugging only)
     if 0 and margin:

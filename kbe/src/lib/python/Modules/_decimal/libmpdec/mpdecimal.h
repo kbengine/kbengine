@@ -48,6 +48,8 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #ifdef _MSC_VER
   #include "vccompat.h"
@@ -59,12 +61,6 @@ extern "C" {
   #define MPD_HIDE_SYMBOLS_END
   #define EXTINLINE extern inline
 #else
-  #ifdef HAVE_STDINT_H
-    #include <stdint.h>
-  #endif
-  #ifdef HAVE_INTTYPES_H
-    #include <inttypes.h>
-  #endif
   #ifndef __GNUC_STDC_INLINE__
     #define __GNUC_STDC_INLINE__ 1
   #endif
@@ -108,9 +104,9 @@ MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
 
 #define MPD_MAJOR_VERSION 2
 #define MPD_MINOR_VERSION 4
-#define MPD_MICRO_VERSION 1
+#define MPD_MICRO_VERSION 2
 
-#define MPD_VERSION "2.4.1"
+#define MPD_VERSION "2.4.2"
 
 #define MPD_VERSION_HEX ((MPD_MAJOR_VERSION << 24) | \
                          (MPD_MINOR_VERSION << 16) | \
@@ -822,12 +818,12 @@ void *mpd_sh_alloc(mpd_size_t struct_size, mpd_size_t nmemb, mpd_size_t size);
 mpd_t *mpd_qnew(void);
 mpd_t *mpd_new(mpd_context_t *ctx);
 mpd_t *mpd_qnew_size(mpd_ssize_t size);
-void mpd_del(mpd_t *dec);
+EXTINLINE void mpd_del(mpd_t *dec);
 
-void mpd_uint_zero(mpd_uint_t *dest, mpd_size_t len);
-int mpd_qresize(mpd_t *result, mpd_ssize_t size, uint32_t *status);
-int mpd_qresize_zero(mpd_t *result, mpd_ssize_t size, uint32_t *status);
-void mpd_minalloc(mpd_t *result);
+EXTINLINE void mpd_uint_zero(mpd_uint_t *dest, mpd_size_t len);
+EXTINLINE int mpd_qresize(mpd_t *result, mpd_ssize_t size, uint32_t *status);
+EXTINLINE int mpd_qresize_zero(mpd_t *result, mpd_ssize_t size, uint32_t *status);
+EXTINLINE void mpd_minalloc(mpd_t *result);
 
 int mpd_resize(mpd_t *result, mpd_ssize_t size, mpd_context_t *ctx);
 int mpd_resize_zero(mpd_t *result, mpd_ssize_t size, mpd_context_t *ctx);

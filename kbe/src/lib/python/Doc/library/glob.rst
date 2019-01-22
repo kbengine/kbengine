@@ -4,21 +4,28 @@
 .. module:: glob
    :synopsis: Unix shell style pathname pattern expansion.
 
+**Source code:** :source:`Lib/glob.py`
 
 .. index:: single: filenames; pathname expansion
 
-**Source code:** :source:`Lib/glob.py`
-
 --------------
 
+.. index::
+   single: * (asterisk); in glob-style wildcards
+   single: ? (question mark); in glob-style wildcards
+   single: [] (square brackets); in glob-style wildcards
+   single: ! (exclamation); in glob-style wildcards
+   single: - (minus); in glob-style wildcards
+   single: . (dot); in glob-style wildcards
+
 The :mod:`glob` module finds all the pathnames matching a specified pattern
-according to the rules used by the Unix shell.  No tilde expansion is done, but
-``*``, ``?``, and character ranges expressed with ``[]`` will be correctly
-matched.  This is done by using the :func:`os.listdir` and
-:func:`fnmatch.fnmatch` functions in concert, and not by actually invoking a
-subshell.  Note that unlike :func:`fnmatch.fnmatch`, :mod:`glob` treats
-filenames beginning with a dot (``.``) as special cases.  (For tilde and shell
-variable expansion, use :func:`os.path.expanduser` and
+according to the rules used by the Unix shell, although results are returned in
+arbitrary order.  No tilde expansion is done, but ``*``, ``?``, and character
+ranges expressed with ``[]`` will be correctly matched.  This is done by using
+the :func:`os.scandir` and :func:`fnmatch.fnmatch` functions in concert, and
+not by actually invoking a subshell.  Note that unlike :func:`fnmatch.fnmatch`,
+:mod:`glob` treats filenames beginning with a dot (``.``) as special cases.
+(For tilde and shell variable expansion, use :func:`os.path.expanduser` and
 :func:`os.path.expandvars`.)
 
 For a literal match, wrap the meta-characters in brackets.
@@ -29,7 +36,7 @@ For example, ``'[?]'`` matches the character ``'?'``.
    The :mod:`pathlib` module offers high-level path objects.
 
 
-.. function:: glob(pathname)
+.. function:: glob(pathname, *, recursive=False)
 
    Return a possibly-empty list of path names that match *pathname*, which must be
    a string containing a path specification. *pathname* can be either absolute
@@ -37,8 +44,22 @@ For example, ``'[?]'`` matches the character ``'?'``.
    :file:`../../Tools/\*/\*.gif`), and can contain shell-style wildcards. Broken
    symlinks are included in the results (as in the shell).
 
+   .. index::
+      single: **; in glob-style wildcards
 
-.. function:: iglob(pathname)
+   If *recursive* is true, the pattern "``**``" will match any files and zero or
+   more directories and subdirectories.  If the pattern is followed by an
+   ``os.sep``, only directories and subdirectories match.
+
+   .. note::
+      Using the "``**``" pattern in large directory trees may consume
+      an inordinate amount of time.
+
+   .. versionchanged:: 3.5
+      Support for recursive globs using "``**``".
+
+
+.. function:: iglob(pathname, *, recursive=False)
 
    Return an :term:`iterator` which yields the same values as :func:`glob`
    without actually storing them all simultaneously.
@@ -55,8 +76,9 @@ For example, ``'[?]'`` matches the character ``'?'``.
    .. versionadded:: 3.4
 
 
-For example, consider a directory containing only the following files:
-:file:`1.gif`, :file:`2.txt`, and :file:`card.gif`.  :func:`glob` will produce
+For example, consider a directory containing the following files:
+:file:`1.gif`, :file:`2.txt`, :file:`card.gif` and a subdirectory :file:`sub`
+which contains only the file :file:`3.txt`.  :func:`glob` will produce
 the following results.  Notice how any leading components of the path are
 preserved. ::
 
@@ -67,6 +89,10 @@ preserved. ::
    ['1.gif', 'card.gif']
    >>> glob.glob('?.gif')
    ['1.gif']
+   >>> glob.glob('**/*.txt', recursive=True)
+   ['2.txt', 'sub/3.txt']
+   >>> glob.glob('./**/', recursive=True)
+   ['./', './sub/']
 
 If the directory contains files starting with ``.`` they won't be matched by
 default. For example, consider a directory containing :file:`card.gif` and

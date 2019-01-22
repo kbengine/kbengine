@@ -48,6 +48,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
 #include "math/math.h"
+#include "common/sha1.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
@@ -137,9 +138,10 @@ pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
-isDirty_(true),
 pCustomVolatileinfo_(NULL)
 {
+	setDirty();
+
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
 	pPyPosition_ = new script::ScriptVector3(&position(), &pyPositionChangedCallback_);
@@ -220,7 +222,6 @@ void Entity::onDestroy(bool callScript)
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
 		if(baseEntityCall_ != NULL)
 		{
-			setDirty();
 			this->backupCellData();
 
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -645,11 +646,10 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
-		
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
 		
 		if(pMethodDescription)
@@ -659,13 +659,6 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 	}
 	else
 	{
-		// 如果访问了def持久化类容器属性
-		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
-		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
-		if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
-		{
-			setDirty();
-		}
 	}
 	
 	return ScriptObject::onScriptGetAttribute(attr);
@@ -1047,34 +1040,51 @@ void Entity::backupCellData()
 
 	if(baseEntityCall_ != NULL)
 	{
+		MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
+		try
+		{
+			addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("{}::backupCellData({}): {}\n",
+				scriptName(), id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(s);
+			return;
+		}
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+
+		sha.Input(s->data(), s->length());
+		sha.Result(digest);
+
+		bool dataDirty = memcmp((void*)&persistentDigest_[0], (void*)&digest[0], sizeof(persistentDigest_)) != 0;
+
+		// 检查数据是否有变化，有变化则将数据备份并且记录数据hash
+		if (!dataDirty)
+		{
+			MemoryStream::reclaimPoolObject(s);
+		}
+		else
+		{
+			setDirty((uint32*)&digest[0]);
+		}
+
 		// 将当前的cell部分数据打包一起发送给base部分备份
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-		(*pBundle) << isDirty();
-		
-		if(isDirty())
+		(*pBundle) << dataDirty;
+
+		if (dataDirty)
 		{
-			MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
-
-			try
-			{
-				addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
-			}
-			catch (MemoryStreamWriteOverflow & err)
-			{
-				ERROR_MSG(fmt::format("{}::backupCellData({}): {}\n",
-					scriptName(), id(), err.what()));
-
-				MemoryStream::reclaimPoolObject(s);
-				Network::Bundle::reclaimPoolObject(pBundle);
-				return;
-			}
-
 			(*pBundle).append(s);
 			MemoryStream::reclaimPoolObject(s);
 		}
-		
+
 		baseEntityCall_->sendCall(pBundle);
 	}
 	else
@@ -1084,8 +1094,6 @@ void Entity::backupCellData()
 	}
 
 	SCRIPT_ERROR_CHECK();
-	
-	setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1153,8 +1161,8 @@ void Entity::onWriteToDB()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
-		this->scriptName(), this->id()));
+	//DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
+	//	this->scriptName(), this->id()));
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"), false);
 }
@@ -1983,6 +1991,15 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 	//INFO_MSG(fmt::format("{}::onLoseWitness: {}.\n", 
 	//	this->scriptName(), this->id()));
 
+	if (!isReal())
+	{
+		// 需要做中转
+		ERROR_MSG(fmt::format("Entity::onLoseWitness(): {} is ghost, request error! spaceID={}, entityID={}!\n",
+			scriptName(), spaceID(), id()));
+
+		return;
+	}
+
 	KBE_ASSERT(this->clientEntityCall() != NULL && this->hasWitness());
 
 	clientEntityCall()->addr(Network::Address::NONE);
@@ -2681,8 +2698,6 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 
 	bufferOrExeCallback(const_cast<char*>("onMove"),
 		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
-
-	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2701,8 +2716,6 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 
 	bufferOrExeCallback(const_cast<char*>("onMoveOver"),
 		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
-	
-	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2721,8 +2734,6 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 
 	bufferOrExeCallback(const_cast<char*>("onMoveFailure"),
 		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
-	
-	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2839,8 +2850,6 @@ void Entity::onTurn(uint32 controllerId, PyObject* userarg)
 
 	bufferOrExeCallback(const_cast<char*>("onTurn"),
 		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
-
-	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3062,7 +3071,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	char* pEntityType = NULL;
+	const char* pEntityType = NULL;
 	Position3D originpos;
 
 	// 将坐标信息提取出来
@@ -3841,6 +3850,8 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
 		layer_ << baseEntityCallComponentID << hasCustomVolatileinfo << controlledByID;
 
+	s << persistentDigest_[0] << persistentDigest_[1] << persistentDigest_[2] << persistentDigest_[3] << persistentDigest_[4];
+
 	if (pCustomVolatileinfo_)
 		pCustomVolatileinfo_->addToStream(s);
 
@@ -3864,6 +3875,8 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
 		topSpeedY_ >> layer_ >> baseEntityCallComponentID >> hasCustomVolatileinfo >> controlledByID;
+
+	s >> persistentDigest_[0] >> persistentDigest_[1] >> persistentDigest_[2] >> persistentDigest_[3] >> persistentDigest_[4];
 
 	if (hasCustomVolatileinfo)
 	{
@@ -3913,7 +3926,6 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createTimersFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
-	setDirty();
 }
 
 //-------------------------------------------------------------------------------------

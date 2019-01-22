@@ -112,8 +112,6 @@ class Font:
         try:
             if self.delete_font:
                 self._call("font", "delete", self.name)
-        except (KeyboardInterrupt, SystemExit):
-            raise
         except Exception:
             pass
 
@@ -153,7 +151,7 @@ class Font:
         args = (text,)
         if displayof:
             args = ('-displayof', displayof, text)
-        return int(self._call("font", "measure", self.name, *args))
+        return self._tk.getint(self._call("font", "measure", self.name, *args))
 
     def metrics(self, *options, **kw):
         """Return font metrics.
@@ -166,13 +164,13 @@ class Font:
             args = ('-displayof', displayof)
         if options:
             args = args + self._get(options)
-            return int(
+            return self._tk.getint(
                 self._call("font", "metrics", self.name, *args))
         else:
             res = self._split(self._call("font", "metrics", self.name, *args))
             options = {}
             for i in range(0, len(res), 2):
-                options[res[i][1:]] = int(res[i+1])
+                options[res[i][1:]] = self._tk.getint(res[i+1])
             return options
 
 

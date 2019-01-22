@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,29 +23,30 @@
     <ProjectGuid>{1BAD0518-F2BB-42F5-83E7-9E1804FAD7C1}</ProjectGuid>
     <RootNamespace>baseappmgr</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -98,7 +99,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/jsoncpp/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -125,7 +126,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/jsoncpp/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -152,7 +153,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/jsoncpp/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -181,7 +182,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/jsoncpp/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPPMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

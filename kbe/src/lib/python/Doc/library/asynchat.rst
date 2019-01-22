@@ -3,10 +3,14 @@
 
 .. module:: asynchat
    :synopsis: Support for asynchronous command/response protocols.
+
 .. moduleauthor:: Sam Rushing <rushing@nightmare.com>
 .. sectionauthor:: Steve Holden <sholden@holdenweb.com>
 
 **Source code:** :source:`Lib/asynchat.py`
+
+.. deprecated:: 3.6
+   Please use :mod:`asyncio` instead.
 
 --------------
 
@@ -57,13 +61,13 @@ connection requests.
       The asynchronous output buffer size (default ``4096``).
 
    Unlike :class:`asyncore.dispatcher`, :class:`async_chat` allows you to
-   define a first-in-first-out queue (fifo) of *producers*. A producer need
+   define a :abbr:`FIFO (first-in, first-out)` queue of *producers*. A producer need
    have only one method, :meth:`more`, which should return data to be
    transmitted on the channel.
    The producer indicates exhaustion (*i.e.* that it contains no more data) by
    having its :meth:`more` method return the empty bytes object. At this point
-   the :class:`async_chat` object removes the producer from the fifo and starts
-   using the next producer, if any. When the producer fifo is empty the
+   the :class:`async_chat` object removes the producer from the queue and starts
+   using the next producer, if any. When the producer queue is empty the
    :meth:`handle_write` method does nothing. You use the channel object's
    :meth:`set_terminator` method to describe how to recognize the end of, or
    an important breakpoint in, an incoming transmission from the remote
@@ -77,8 +81,8 @@ connection requests.
 
 .. method:: async_chat.close_when_done()
 
-   Pushes a ``None`` on to the producer fifo. When this producer is popped off
-   the fifo it causes the channel to be closed.
+   Pushes a ``None`` on to the producer queue. When this producer is popped off
+   the queue it causes the channel to be closed.
 
 
 .. method:: async_chat.collect_incoming_data(data)
@@ -91,7 +95,7 @@ connection requests.
 .. method:: async_chat.discard_buffers()
 
    In emergencies this method will discard any data held in the input and/or
-   output buffers and the producer fifo.
+   output buffers and the producer queue.
 
 
 .. method:: async_chat.found_terminator()
@@ -109,7 +113,7 @@ connection requests.
 
 .. method:: async_chat.push(data)
 
-   Pushes data on to the channel's fifo to ensure its transmission.
+   Pushes data on to the channel's queue to ensure its transmission.
    This is all you need to do to have the channel write the data out to the
    network, although it is possible to use your own producers in more complex
    schemes to implement encryption and chunking, for example.
@@ -117,7 +121,7 @@ connection requests.
 
 .. method:: async_chat.push_with_producer(producer)
 
-   Takes a producer object and adds it to the producer fifo associated with
+   Takes a producer object and adds it to the producer queue associated with
    the channel.  When all currently-pushed producers have been exhausted the
    channel will consume this producer's data by calling its :meth:`more`
    method and send the data to the remote endpoint.
@@ -145,40 +149,6 @@ connection requests.
 
    Note that any data following the terminator will be available for reading
    by the channel after :meth:`found_terminator` is called.
-
-
-asynchat - Auxiliary Classes
-------------------------------------------
-
-.. class:: fifo(list=None)
-
-   A :class:`fifo` holding data which has been pushed by the application but
-   not yet popped for writing to the channel.  A :class:`fifo` is a list used
-   to hold data and/or producers until they are required.  If the *list*
-   argument is provided then it should contain producers or data items to be
-   written to the channel.
-
-
-   .. method:: is_empty()
-
-      Returns ``True`` if and only if the fifo is empty.
-
-
-   .. method:: first()
-
-      Returns the least-recently :meth:`push`\ ed item from the fifo.
-
-
-   .. method:: push(data)
-
-      Adds the given data (which may be a string or a producer object) to the
-      producer fifo.
-
-
-   .. method:: pop()
-
-      If the fifo is not empty, returns ``True, first()``, deleting the popped
-      item.  Returns ``False, None`` for an empty fifo.
 
 
 .. _asynchat-example:
@@ -236,7 +206,7 @@ any extraneous data sent by the web client are ignored. ::
                    self.set_terminator(None)
                    self.handle_request()
            elif not self.handling:
-               self.set_terminator(None) # browsers sometimes over-send
+               self.set_terminator(None)  # browsers sometimes over-send
                self.cgi_data = parse(self.headers, b"".join(self.ibuffer))
                self.handling = True
                self.ibuffer = []

@@ -133,41 +133,41 @@ bool KBEngineApp::initialize(KBEngineArgs* pArgs)
 
 void KBEngineApp::installEvents()
 {
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("login", "login", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::login, KBEventTypes::login, [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_login& data = static_cast<const UKBEventData_login&>(*pEventData);
 		login(data.username, data.password, data.datas);
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("logout", "logout", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::logout, KBEventTypes::logout, [this](const UKBEventData* pEventData)
 	{
 		logout();
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("createAccount", "createAccount", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::createAccount, KBEventTypes::createAccount, [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_createAccount& data = static_cast<const UKBEventData_createAccount&>(*pEventData);
 		createAccount(data.username, data.password, data.datas);
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("reloginBaseapp", "reloginBaseapp", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::reloginBaseapp, KBEventTypes::reloginBaseapp, [this](const UKBEventData* pEventData)
 	{
 		reloginBaseapp();
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("resetPassword", "resetPassword", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::resetPassword, KBEventTypes::resetPassword, [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_resetPassword& data = static_cast<const UKBEventData_resetPassword&>(*pEventData);
 		resetPassword(data.username);
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("bindAccountEmail", "bindAccountEmail", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::bindAccountEmail, KBEventTypes::bindAccountEmail, [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_bindAccountEmail& data = static_cast<const UKBEventData_bindAccountEmail&>(*pEventData);
 		bindAccountEmail(data.email);
 	});
 
-	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("newPassword", "newPassword", [this](const UKBEventData* pEventData)
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(KBEventTypes::newPassword, KBEventTypes::newPassword, [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_newPassword& data = static_cast<const UKBEventData_newPassword&>(*pEventData);
 		newPassword(data.old_password, data.new_password);
@@ -486,7 +486,7 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
 			pEventData->clientVersion = clientVersion_;
 			pEventData->serverVersion = serverVersion_;
-			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+			KBENGINE_EVENT_FIRE(KBEventTypes::onVersionNotMatch, pEventData);
 			return;
 		}
 		*/
@@ -498,7 +498,7 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
 			pEventData->clientVersion = clientVersion_;
 			pEventData->serverVersion = serverVersion_;
-			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+			KBENGINE_EVENT_FIRE(KBEventTypes::onVersionNotMatch, pEventData);
 			return;
 		}
 	}
@@ -530,7 +530,7 @@ void KBEngineApp::Client_onVersionNotMatch(MemoryStream& stream)
 	UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
 	pEventData->clientVersion = clientVersion_;
 	pEventData->serverVersion = serverVersion_;
-	KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onVersionNotMatch, pEventData);
 }
 
 void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
@@ -542,7 +542,19 @@ void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
 	UKBEventData_onScriptVersionNotMatch* pEventData = NewObject<UKBEventData_onScriptVersionNotMatch>();
 	pEventData->clientScriptVersion = clientScriptVersion_;
 	pEventData->serverScriptVersion = serverScriptVersion_;
-	KBENGINE_EVENT_FIRE("onScriptVersionNotMatch", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onScriptVersionNotMatch, pEventData);
+}
+
+void KBEngineApp::Client_onImportClientSDK(MemoryStream& stream)
+{
+	UKBEventData_onImportClientSDK* pEventData = NewObject<UKBEventData_onImportClientSDK>();
+
+	pEventData->remainingFiles = stream.readInt32();
+	pEventData->fileName = stream.readString();
+	pEventData->fileSize = stream.readInt32();
+	stream.readBlob(pEventData->fileDatas);
+
+	KBENGINE_EVENT_FIRE("onImportClientSDK", pEventData);
 }
 
 void KBEngineApp::Client_onKicked(uint16 failedcode)
@@ -552,7 +564,7 @@ void KBEngineApp::Client_onKicked(uint16 failedcode)
 	UKBEventData_onKicked* pEventData = NewObject<UKBEventData_onKicked>();
 	pEventData->failedcode = failedcode;
 	pEventData->errorStr = serverErr(failedcode);
-	KBENGINE_EVENT_FIRE("onKicked", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onKicked, pEventData);
 }
 
 void KBEngineApp::onServerDigest()
@@ -679,7 +691,7 @@ void KBEngineApp::Client_onLoginFailed(MemoryStream& stream)
 	UKBEventData_onLoginFailed* pEventData = NewObject<UKBEventData_onLoginFailed>();
 	pEventData->failedcode = failedcode;
 	pEventData->errorStr = serverErr(failedcode);
-	KBENGINE_EVENT_FIRE("onLoginFailed", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onLoginFailed, pEventData);
 }
 
 void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
@@ -701,7 +713,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 {
 	if (noconnect)
 	{
-		KBENGINE_EVENT_FIRE("onLoginBaseapp", NewObject<UKBEventData_onLoginBaseapp>());
+		KBENGINE_EVENT_FIRE(KBEventTypes::onLoginBaseapp, NewObject<UKBEventData_onLoginBaseapp>());
 
 		pNetworkInterface_->destroy();
 		pNetworkInterface_ = NULL;
@@ -751,7 +763,7 @@ void KBEngineApp::reloginBaseapp()
 		return;
 
 	UKBEventData_onReloginBaseapp* pEventData = NewObject<UKBEventData_onReloginBaseapp>();
-	KBENGINE_EVENT_FIRE("KBEngineApp::reloginBaseapp(): onReloginBaseapp", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onReloginBaseapp, pEventData);
 
 	pNetworkInterface_->connectTo(baseappIP_, baseappPort_, this, 3);
 }
@@ -784,7 +796,7 @@ void KBEngineApp::Client_onLoginBaseappFailed(uint16 failedcode)
 	UKBEventData_onLoginBaseappFailed* pEventData = NewObject<UKBEventData_onLoginBaseappFailed>();
 	pEventData->failedcode = failedcode;
 	pEventData->errorStr = serverErr(failedcode);
-	KBENGINE_EVENT_FIRE("onLoginBaseappFailed", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onLoginBaseappFailed, pEventData);
 }
 
 void KBEngineApp::Client_onReloginBaseappFailed(uint16 failedcode)
@@ -794,7 +806,7 @@ void KBEngineApp::Client_onReloginBaseappFailed(uint16 failedcode)
 	UKBEventData_onReloginBaseappFailed* pEventData = NewObject<UKBEventData_onReloginBaseappFailed>();
 	pEventData->failedcode = failedcode;
 	pEventData->errorStr = serverErr(failedcode);
-	KBENGINE_EVENT_FIRE("onReloginBaseappFailed", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onReloginBaseappFailed, pEventData);
 }
 
 void KBEngineApp::Client_onReloginBaseappSuccessfully(MemoryStream& stream)
@@ -802,7 +814,7 @@ void KBEngineApp::Client_onReloginBaseappSuccessfully(MemoryStream& stream)
 	stream >> entity_uuid_;
 	ERROR_MSG("KBEngineApp::Client_onReloginBaseappSuccessfully(): name(%s)!", *username_);
 	UKBEventData_onReloginBaseappSuccessfully* pEventData = NewObject<UKBEventData_onReloginBaseappSuccessfully>();
-	KBENGINE_EVENT_FIRE("onReloginBaseappSuccessfully", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onReloginBaseappSuccessfully, pEventData);
 }
 
 void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& entityType)
@@ -984,7 +996,7 @@ void KBEngineApp::Client_onEntityDestroyed(int32 eid)
 
 		UKBEventData_onLoseControlledEntity* pEventData = NewObject<UKBEventData_onLoseControlledEntity>();
 		pEventData->entityID = pEntity->id();
-		KBENGINE_EVENT_FIRE("onLoseControlledEntity", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::onLoseControlledEntity, pEventData);
 	}
 
 	entities_.Remove(eid);
@@ -1065,7 +1077,7 @@ void KBEngineApp::Client_setSpaceData(uint32 spaceID, const FString& key, const 
 	pEventData->spaceID = spaceID_;
 	pEventData->key = key;
 	pEventData->value = value;
-	KBENGINE_EVENT_FIRE("onSetSpaceData", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onSetSpaceData, pEventData);
 }
 
 void KBEngineApp::Client_delSpaceData(uint32 spaceID, const FString& key)
@@ -1077,7 +1089,7 @@ void KBEngineApp::Client_delSpaceData(uint32 spaceID, const FString& key)
 	UKBEventData_onDelSpaceData* pEventData = NewObject<UKBEventData_onDelSpaceData>();
 	pEventData->spaceID = spaceID_;
 	pEventData->key = key;
-	KBENGINE_EVENT_FIRE("onDelSpaceData", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onDelSpaceData, pEventData);
 }
 
 void KBEngineApp::addSpaceGeometryMapping(uint32 uspaceID, const FString& respath)
@@ -1090,7 +1102,7 @@ void KBEngineApp::addSpaceGeometryMapping(uint32 uspaceID, const FString& respat
 
 	UKBEventData_addSpaceGeometryMapping* pEventData = NewObject<UKBEventData_addSpaceGeometryMapping>();
 	pEventData->spaceResPath = spaceResPath_;
-	KBENGINE_EVENT_FIRE("addSpaceGeometryMapping", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::addSpaceGeometryMapping, pEventData);
 }
 
 FString KBEngineApp::getSpaceData(const FString& key)
@@ -1241,7 +1253,7 @@ void KBEngineApp::Client_onCreateAccountResult(MemoryStream& stream)
 	pEventData->errorCode = retcode;
 	pEventData->errorStr = serverErr(retcode);
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("onCreateAccountResult", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onCreateAccountResult, pEventData);
 
 	if (retcode != 0)
 	{
@@ -1374,7 +1386,7 @@ void KBEngineApp::Client_onControlEntity(ENTITY_ID eid, int8 isControlled)
 	UKBEventData_onControlled* pEventData = NewObject<UKBEventData_onControlled>();
 	pEventData->entityID = (*pEntityFind)->id();
 	pEventData->isControlled = isCont;
-	KBENGINE_EVENT_FIRE("onControlled", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onControlled, pEventData);
 }
 
 void KBEngineApp::Client_onStreamDataStarted(int16 id, uint32 datasize, FString descr)
@@ -1383,7 +1395,7 @@ void KBEngineApp::Client_onStreamDataStarted(int16 id, uint32 datasize, FString 
 	pEventData->resID = id;
 	pEventData->dataSize = datasize;
 	pEventData->dataDescr = descr;
-	KBENGINE_EVENT_FIRE("onStreamDataStarted", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onStreamDataStarted, pEventData);
 }
 
 void KBEngineApp::Client_onStreamDataRecv(MemoryStream& stream)
@@ -1394,14 +1406,14 @@ void KBEngineApp::Client_onStreamDataRecv(MemoryStream& stream)
 	pEventData->resID = id;
 	stream.readBlob(pEventData->data);
 
-	KBENGINE_EVENT_FIRE("onStreamDataRecv", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onStreamDataRecv, pEventData);
 }
 
 void KBEngineApp::Client_onStreamDataCompleted(int16 id)
 {
 	UKBEventData_onStreamDataCompleted* pEventData = NewObject<UKBEventData_onStreamDataCompleted>();
 	pEventData->resID = id;
-	KBENGINE_EVENT_FIRE("onStreamDataCompleted", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onStreamDataCompleted, pEventData);
 }
 
 void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
@@ -1541,7 +1553,7 @@ void KBEngineApp::Client_onEntityLeaveWorld(ENTITY_ID eid)
 
 			UKBEventData_onLoseControlledEntity* pEventData = NewObject<UKBEventData_onLoseControlledEntity>();
 			pEventData->entityID = pEntity->id();
-			KBENGINE_EVENT_FIRE("onLoseControlledEntity", pEventData);
+			KBENGINE_EVENT_FIRE(KBEventTypes::onLoseControlledEntity, pEventData);
 		}
 
 		entities_.Remove(eid);
@@ -1606,7 +1618,7 @@ void KBEngineApp::Client_onUpdateBasePos(float x, float y, float z)
 		KBDir2UE4Dir(pEventData->direction, pEntity->direction);
 		pEventData->entityID = pEntity->id();
 		pEventData->moveSpeed = pEntity->velocity();
-		KBENGINE_EVENT_FIRE("updatePosition", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::updatePosition, pEventData);
 
 		pEntity->onUpdateVolatileData();
 	}
@@ -1628,7 +1640,7 @@ void KBEngineApp::Client_onUpdateBasePosXZ(float x, float z)
 		KBDir2UE4Dir(pEventData->direction, pEntity->direction);
 		pEventData->entityID = pEntity->id();
 		pEventData->moveSpeed = pEntity->velocity();
-		KBENGINE_EVENT_FIRE("updatePosition", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::updatePosition, pEventData);
 
 		pEntity->onUpdateVolatileData();
 	}
@@ -1647,7 +1659,7 @@ void KBEngineApp::Client_onUpdateBaseDir(MemoryStream& stream)
 		UKBEventData_set_direction* pEventData = NewObject<UKBEventData_set_direction>();
 		KBDir2UE4Dir(pEventData->direction, pEntity->direction);
 		pEventData->entityID = pEntity->id();
-		KBENGINE_EVENT_FIRE("set_direction", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::set_direction, pEventData);
 
 		pEntity->onUpdateVolatileData();
 	}
@@ -1703,227 +1715,501 @@ void KBEngineApp::Client_onUpdateData_ypr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float y = stream.read<float>();
+	float p = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, r, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, r, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_yp(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
+	float y = stream.read<float>();
+	float p = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, KBE_FLT_MAX, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, KBE_FLT_MAX, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_yr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 y = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float y = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, r, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, r, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_pr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 p = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float p = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, r, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, r, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_y(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 y = stream.read<int8>();
+	float y = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, KBE_FLT_MAX, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, KBE_FLT_MAX, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_p(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 p = stream.read<int8>();
+	float p = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, KBE_FLT_MAX, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, KBE_FLT_MAX, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_r(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	int8 r = stream.read<int8>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, r, -1);
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, r, -1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_ypr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float y = stream.read<float>();
+	float p = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, p, r, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, y, p, r, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_yp(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
+	float y = stream.read<float>();
+	float p = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, p, KBE_FLT_MAX, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, y, p, KBE_FLT_MAX, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_yr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float y = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, KBE_FLT_MAX, r, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, y, KBE_FLT_MAX, r, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_pr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 p = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float p = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, p, r, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, KBE_FLT_MAX, p, r, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_y(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
+	float y = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, KBE_FLT_MAX, KBE_FLT_MAX, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, y, KBE_FLT_MAX, KBE_FLT_MAX, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_p(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 p = stream.read<int8>();
+	float p = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, p, KBE_FLT_MAX, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, KBE_FLT_MAX, p, KBE_FLT_MAX, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xz_r(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
+	float x = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 r = stream.read<int8>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, r, 1);
+	_updateVolatileData(eid, x, KBE_FLT_MAX, z, KBE_FLT_MAX, KBE_FLT_MAX, r, 1, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xyz(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
-	stream.readPackY(xz.Y);
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 0, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xyz_ypr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
-	stream.readPackY(xz.Y);
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float yaw = stream.read<float>();
+	float p = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, p, r, 0);
+	_updateVolatileData(eid, x, y, z, yaw, p, r, 0, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xyz_yp(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
-	stream.readPackY(xz.Y);
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 p = stream.read<int8>();
+	float yaw = stream.read<float>();
+	float p = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, p, KBE_FLT_MAX, 0);
+	_updateVolatileData(eid, x, y, z, yaw, p, KBE_FLT_MAX, 0, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xyz_yr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
-	FVector xz;
-	stream.readPackXZ(xz.X, xz.Z);
-	stream.readPackY(xz.Y);
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
 
-	int8 y = stream.read<int8>();
-	int8 r = stream.read<int8>();
+	float yaw = stream.read<float>();
+	float r = stream.read<float>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, KBE_FLT_MAX, r, 0);
+	_updateVolatileData(eid, x, y, z, yaw, KBE_FLT_MAX, r, 0, false);
 }
 
 void KBEngineApp::Client_onUpdateData_xyz_pr(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
+
+	float p = stream.read<float>();
+	float r = stream.read<float>();
+
+	_updateVolatileData(eid, x, y, z, KBE_FLT_MAX, p, r, 0, false);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_y(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
+
+	float yaw = stream.read<float>();
+
+	_updateVolatileData(eid, x, y, z, yaw, KBE_FLT_MAX, KBE_FLT_MAX, 0, false);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_p(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
+
+	float p = stream.read<float>();
+
+	_updateVolatileData(eid, x, y, z, KBE_FLT_MAX, p, KBE_FLT_MAX, 0, false);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_r(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	float x = stream.read<float>();
+	float y = stream.read<float>();
+	float z = stream.read<float>();
+
+	float r = stream.read<float>();
+
+	_updateVolatileData(eid, x, y, z, KBE_FLT_MAX, KBE_FLT_MAX, r, 0, false);
+}
+
+void KBEngineApp::Client_onUpdateData_ypr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, r, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_yp_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, p, KBE_FLT_MAX, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_yr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 y = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, r, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_pr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 p = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, r, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_y_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 y = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, y, KBE_FLT_MAX, KBE_FLT_MAX, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_p_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 p = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, p, KBE_FLT_MAX, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_r_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, r, -1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_ypr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, p, r, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_yp_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, p, KBE_FLT_MAX, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_yr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 y = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, KBE_FLT_MAX, r, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_pr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 p = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, p, r, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_y_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 y = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, y, KBE_FLT_MAX, KBE_FLT_MAX, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_p_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 p = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, p, KBE_FLT_MAX, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xz_r_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, KBE_FLT_MAX, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, r, 1, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+	stream.readPackY(xz.Y);
+
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX, 0, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_ypr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+	stream.readPackY(xz.Y);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, p, r, 0, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_yp_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+	stream.readPackY(xz.Y);
+
+	int8 y = stream.read<int8>();
+	int8 p = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, p, KBE_FLT_MAX, 0, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_yr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
+	FVector xz;
+	stream.readPackXZ(xz.X, xz.Z);
+	stream.readPackY(xz.Y);
+
+	int8 y = stream.read<int8>();
+	int8 r = stream.read<int8>();
+
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, KBE_FLT_MAX, r, 0, true);
+}
+
+void KBEngineApp::Client_onUpdateData_xyz_pr_optimized(MemoryStream& stream)
+{
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
+
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
 	stream.readPackY(xz.Y);
@@ -1931,10 +2217,10 @@ void KBEngineApp::Client_onUpdateData_xyz_pr(MemoryStream& stream)
 	int8 p = stream.read<int8>();
 	int8 r = stream.read<int8>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, p, r, 0);
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, p, r, 0, true);
 }
 
-void KBEngineApp::Client_onUpdateData_xyz_y(MemoryStream& stream)
+void KBEngineApp::Client_onUpdateData_xyz_y_optimized(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
@@ -1944,10 +2230,10 @@ void KBEngineApp::Client_onUpdateData_xyz_y(MemoryStream& stream)
 
 	int8 y = stream.read<int8>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, KBE_FLT_MAX, KBE_FLT_MAX, 0);
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, y, KBE_FLT_MAX, KBE_FLT_MAX, 0, true);
 }
 
-void KBEngineApp::Client_onUpdateData_xyz_p(MemoryStream& stream)
+void KBEngineApp::Client_onUpdateData_xyz_p_optimized(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
@@ -1957,10 +2243,10 @@ void KBEngineApp::Client_onUpdateData_xyz_p(MemoryStream& stream)
 
 	int8 p = stream.read<int8>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, p, KBE_FLT_MAX, 0);
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, p, KBE_FLT_MAX, 0, true);
 }
 
-void KBEngineApp::Client_onUpdateData_xyz_r(MemoryStream& stream)
+void KBEngineApp::Client_onUpdateData_xyz_r_optimized(MemoryStream& stream)
 {
 	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
@@ -1970,10 +2256,10 @@ void KBEngineApp::Client_onUpdateData_xyz_r(MemoryStream& stream)
 
 	int8 r = stream.read<int8>();
 
-	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, r, 0);
+	_updateVolatileData(eid, xz.X, xz.Y, xz.Z, KBE_FLT_MAX, KBE_FLT_MAX, r, 0, true);
 }
 
-void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround)
+void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround, bool isOptimized)
 {
 	Entity** pEntityFind = entities_.Find(entityID);
 
@@ -2020,7 +2306,7 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 		UKBEventData_set_direction* pEventData = NewObject<UKBEventData_set_direction>();
 		KBDir2UE4Dir(pEventData->direction, entity.direction);
 		pEventData->entityID = entity.id();
-		KBENGINE_EVENT_FIRE("set_direction", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::set_direction, pEventData);
 
 		done = true;
 	}
@@ -2032,7 +2318,7 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 	            
 	if (positionChanged)
 	{
-		entity.position = FVector(x + entityServerPos_.X, y + entityServerPos_.Y, z + entityServerPos_.Z);
+		entity.position = isOptimized ? FVector(x + entityServerPos_.X, y + entityServerPos_.Y, z + entityServerPos_.Z) : FVector(x, y, z);
 		done = true;
 
 		UKBEventData_updatePosition* pEventData = NewObject<UKBEventData_updatePosition>();
@@ -2041,7 +2327,7 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 		pEventData->entityID = entity.id();
 		pEventData->moveSpeed = entity.velocity();
 		pEventData->isOnGround = entity.isOnGround();
-		KBENGINE_EVENT_FIRE("updatePosition", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::updatePosition, pEventData);
 	}
 
 	if (done)

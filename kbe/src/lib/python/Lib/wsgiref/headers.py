@@ -26,10 +26,10 @@ def _formatparam(param, value=None, quote=1):
 
 
 class Headers:
-
     """Manage a collection of HTTP response headers"""
 
-    def __init__(self,headers):
+    def __init__(self, headers=None):
+        headers = headers if headers is not None else []
         if type(headers) is not list:
             raise TypeError("Headers must be a list of name/value tuples")
         self._headers = headers
@@ -69,7 +69,7 @@ class Headers:
         Return None if the header is missing instead of raising an exception.
 
         Note that if the header appeared multiple times, the first exactly which
-        occurrance gets returned is undefined.  Use getall() to get all
+        occurrence gets returned is undefined.  Use getall() to get all
         the values matching a header field name.
         """
         return self.get(name)
@@ -131,7 +131,7 @@ class Headers:
         return self._headers[:]
 
     def __repr__(self):
-        return "Headers(%r)" % self._headers
+        return "%s(%r)" % (self.__class__.__name__, self._headers)
 
     def __str__(self):
         """str() returns the formatted headers, complete with end line,

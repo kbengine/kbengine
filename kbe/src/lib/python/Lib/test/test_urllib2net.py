@@ -7,10 +7,6 @@ import socket
 import urllib.error
 import urllib.request
 import sys
-try:
-    import ssl
-except ImportError:
-    ssl = None
 
 support.requires("network")
 
@@ -24,14 +20,19 @@ def _retry_thrice(func, exc, *args, **kwargs):
         except exc as e:
             last_exc = e
             continue
-        except:
-            raise
     raise last_exc
 
 def _wrap_with_retry_thrice(func, exc):
     def wrapped(*args, **kwargs):
         return _retry_thrice(func, exc, *args, **kwargs)
     return wrapped
+
+# bpo-35411: FTP tests of test_urllib2net randomly fail
+# with "425 Security: Bad IP connecting" on Travis CI
+skip_ftp_test_on_travis = unittest.skipIf('TRAVIS' in os.environ,
+                                          'bpo-35411: skip FTP test '
+                                          'on Travis CI')
+
 
 # Connecting to remote hosts is flaky.  Make it more robust by retrying
 # the connection several times.
@@ -101,13 +102,12 @@ class OtherNetworkTests(unittest.TestCase):
     # XXX The rest of these tests aren't very good -- they don't check much.
     # They do sometimes catch some major disasters, though.
 
+    @skip_ftp_test_on_travis
     def test_ftp(self):
         urls = [
-            'ftp://ftp.debian.org/debian/README',
-            ('ftp://ftp.debian.org/debian/non-existent-file',
+            'ftp://www.pythontest.net/README',
+            ('ftp://www.pythontest.net/non-existent-file',
              None, urllib.error.URLError),
-            'ftp://gatekeeper.research.compaq.com/pub/DEC/SRC'
-                '/research-reports/00README-Legal-Rules-Regs',
             ]
         self._test_urls(urls, self._extra_handlers())
 
@@ -157,20 +157,20 @@ class OtherNetworkTests(unittest.TestCase):
 ##             self._test_urls(urls, self._extra_handlers()+[bauth, dauth])
 
     def test_urlwithfrag(self):
-        urlwith_frag = "https://docs.python.org/2/glossary.html#glossary"
+        urlwith_frag = "http://www.pythontest.net/index.html#frag"
         with support.transient_internet(urlwith_frag):
             req = urllib.request.Request(urlwith_frag)
             res = urllib.request.urlopen(req)
             self.assertEqual(res.geturl(),
-                    "https://docs.python.org/2/glossary.html#glossary")
+                    "http://www.pythontest.net/index.html#frag")
 
     def test_redirect_url_withfrag(self):
-        redirect_url_with_frag = "http://bit.ly/1iSHToT"
+        redirect_url_with_frag = "http://www.pythontest.net/redir/with_frag/"
         with support.transient_internet(redirect_url_with_frag):
             req = urllib.request.Request(redirect_url_with_frag)
             res = urllib.request.urlopen(req)
             self.assertEqual(res.geturl(),
-                    "https://docs.python.org/3.4/glossary.html#term-global-interpreter-lock")
+                    "http://www.pythontest.net/elsewhere/#frag")
 
     def test_custom_headers(self):
         url = "http://www.example.com"
@@ -185,6 +185,7 @@ class OtherNetworkTests(unittest.TestCase):
             opener.open(request)
             self.assertEqual(request.get_header('User-agent'),'Test-Agent')
 
+    @unittest.skip('XXX: http://www.imdb.com is gone')
     def test_sites_no_connection_close(self):
         # Some sites do not send Connection: close header.
         # Verify that those work properly. (#issue12576)
@@ -224,17 +225,12 @@ class OtherNetworkTests(unittest.TestCase):
                 with support.transient_internet(url):
                     try:
                         f = urlopen(url, req, TIMEOUT)
+                    # urllib.error.URLError is a subclass of OSError
                     except OSError as err:
                         if expected_err:
                             msg = ("Didn't get expected error(s) %s for %s %s, got %s: %s" %
                                    (expected_err, url, req, type(err), err))
                             self.assertIsInstance(err, expected_err, msg)
-                        else:
-                            raise
-                    except urllib.error.URLError as err:
-                        if isinstance(err[0], socket.timeout):
-                            print("<timeout: %s>" % url, file=sys.stderr)
-                            continue
                         else:
                             raise
                     else:
@@ -300,8 +296,9 @@ class TimeoutTest(unittest.TestCase):
             self.addCleanup(u.close)
             self.assertEqual(u.fp.raw._sock.gettimeout(), 120)
 
-    FTP_HOST = "ftp://ftp.mirror.nl/pub/gnu/"
+    FTP_HOST = 'ftp://www.pythontest.net/'
 
+    @skip_ftp_test_on_travis
     def test_ftp_basic(self):
         self.assertIsNone(socket.getdefaulttimeout())
         with support.transient_internet(self.FTP_HOST, timeout=None):
@@ -309,6 +306,7 @@ class TimeoutTest(unittest.TestCase):
             self.addCleanup(u.close)
             self.assertIsNone(u.fp.fp.raw._sock.gettimeout())
 
+    @skip_ftp_test_on_travis
     def test_ftp_default_timeout(self):
         self.assertIsNone(socket.getdefaulttimeout())
         with support.transient_internet(self.FTP_HOST):
@@ -320,6 +318,7 @@ class TimeoutTest(unittest.TestCase):
                 socket.setdefaulttimeout(None)
             self.assertEqual(u.fp.fp.raw._sock.gettimeout(), 60)
 
+    @skip_ftp_test_on_travis
     def test_ftp_no_timeout(self):
         self.assertIsNone(socket.getdefaulttimeout())
         with support.transient_internet(self.FTP_HOST):
@@ -331,6 +330,7 @@ class TimeoutTest(unittest.TestCase):
                 socket.setdefaulttimeout(None)
             self.assertIsNone(u.fp.fp.raw._sock.gettimeout())
 
+    @skip_ftp_test_on_travis
     def test_ftp_timeout(self):
         with support.transient_internet(self.FTP_HOST):
             u = _urlopen_with_retry(self.FTP_HOST, timeout=60)

@@ -38,6 +38,65 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 static DATATYPE_UID _g_dataTypeUID = 1;
 
+static bool isVecotr(std::string str, std::size_t n, std::vector<float>& nums)
+{
+	if (str.empty())
+	{
+		return false;
+	}
+
+	if (n < 2)
+	{
+		return false;
+	}
+
+	std::string strtemp = str;
+
+	strutil::kbe_replace(strtemp, " ", "");
+	strutil::kbe_replace(strtemp, "(", "");
+	strutil::kbe_replace(strtemp, ")", "");
+
+	std::vector<std::string> result;
+	strutil::kbe_splits(strtemp, ",", result);
+
+	if (result.size() != n)
+	{
+		return false;
+	}
+
+	nums.clear();
+	for (auto ite = result.begin(); ite != result.end(); ite++)
+	{
+		try
+		{
+			float num = 0.f;
+			StringConv::str2value(num, (*ite).c_str());
+			nums.push_back(num);
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool isVector2(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 2, nums);
+}
+
+static bool isVector3(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 3, nums);
+}
+
+static bool isVector4(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 4, nums);
+}
+
 //-------------------------------------------------------------------------------------
 DataType::DataType(DATATYPE_UID did):
 id_(did),
@@ -663,11 +722,18 @@ PyObject* Vector2Type::parseDefaultStr(std::string defaultVal)
 {
 	float x = 0.0f, y = 0.0f;
 
-	if(!defaultVal.empty())
+	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y;
+		std::vector<float> result;
+		if (isVector2(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			return new script::ScriptVector2(float(x), float(y));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector2::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector2(float(x), float(y));
@@ -761,9 +827,17 @@ PyObject* Vector3Type::parseDefaultStr(std::string defaultVal)
 
 	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y >> z;
+		std::vector<float> result;
+		if (isVector3(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			z = result[2];
+			return new script::ScriptVector3(float(x), float(y), float(z));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector3::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector3(float(x), float(y), float(z));
@@ -857,9 +931,18 @@ PyObject* Vector4Type::parseDefaultStr(std::string defaultVal)
 
 	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y >> z >> w;
+		std::vector<float> result;
+		if (isVector4(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			z = result[2];
+			w = result[3];
+			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector4::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector4(float(x), float(y), float(z), float(w));
@@ -972,7 +1055,7 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
+	const char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
 
 	if (s == NULL)
 	{
@@ -1052,7 +1135,7 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	Py_ssize_t size;
-	char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
+	const char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
 
 	if (s == NULL)
 	{
@@ -1129,8 +1212,16 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 
 		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
 		
-		return PyRun_String(const_cast<char*>(defaultVal.c_str()), 
-							Py_eval_input, mdict, mdict);
+		PyObject* result = PyRun_String(const_cast<char*>(defaultVal.c_str()),
+			Py_eval_input, mdict, mdict);
+
+		if (result == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			S_Return;
+		}
+
+		return result;
 	}
 		
 	S_Return;
@@ -1457,7 +1548,7 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
 
-					char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
+					const char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
 
 					Py_DECREF(pyClass);
 					Py_DECREF(pyClassName);
@@ -1666,7 +1757,7 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 {
 	FixedArray* pFixedArray = new FixedArray(this);
-	pFixedArray->initialize("");
+	pFixedArray->initialize(defaultVal);
 	return pFixedArray;
 }
 
@@ -1813,6 +1904,31 @@ std::string FixedDictType::debugInfos(void)
 		retstr.erase(retstr.size() - 2, 2);
 
 	return retstr;
+}
+
+//-------------------------------------------------------------------------------------
+std::string FixedDictType::getNotFoundKeys(PyObject* dict)
+{
+	std::string notFoundKeys = "";
+
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for (; iter != keyTypes_.end(); ++iter)
+	{
+		PyObject* pyObject = PyDict_GetItemString(dict, const_cast<char*>(iter->first.c_str()));
+		if (pyObject == NULL)
+		{
+			notFoundKeys += iter->first.c_str();
+			notFoundKeys += ", ";
+
+			if (PyErr_Occurred())
+				PyErr_Clear();
+		}
+	}
+
+	if (notFoundKeys.size() > 0)
+		notFoundKeys.erase(notFoundKeys.size() - 2, 2);
+
+	return notFoundKeys;
 }
 
 //-------------------------------------------------------------------------------------
@@ -2201,10 +2317,10 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
-		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s].", 
-			this->aliasName(), dictSize, keyTypes_.size(), 
-			debugInfos().c_str());
+		PyErr_Format(PyExc_TypeError,
+			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s], notFoundKeys=[%s].",
+			this->aliasName(), dictSize, keyTypes_.size(),
+			debugInfos().c_str(), getNotFoundKeys(pyValue).c_str());
 		
 		PyErr_PrintEx(0);
 		return false;
@@ -2214,15 +2330,24 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	for(; iter != keyTypes_.end(); ++iter)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
-		if(pyObject == NULL || !iter->second->dataType->isSameType(pyObject))
+		if (pyObject == NULL)
 		{
-				PyErr_Format(PyExc_TypeError, 
-					"set FIXED_DICT(%s) error! at key: %s(%s), keyNames=[%s].", 
-					this->aliasName(), 
-					iter->first.c_str(),
-					(pyObject == NULL ? "NULL" : pyObject->ob_type->tp_name),
-					debugInfos().c_str());
-			
+			PyErr_Format(PyExc_TypeError,
+				"set FIXED_DICT(%s) error! keys[%s] not found, allKeyNames=[%s].",
+				this->aliasName(), getNotFoundKeys(pyValue).c_str(), debugInfos().c_str());
+
+			PyErr_PrintEx(0);
+			return false;
+		}
+		else if (!iter->second->dataType->isSameType(pyObject))
+		{
+			PyErr_Format(PyExc_TypeError,
+				"set FIXED_DICT(%s) error! at key: %s(%s), allKeyNames=[%s].",
+				this->aliasName(),
+				iter->first.c_str(),
+				pyObject->ob_type->tp_name,
+				debugInfos().c_str());
+
 			PyErr_PrintEx(0);
 			return false;
 		}
@@ -2234,27 +2359,16 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 {
-	PyObject* val = PyDict_New();
-
-	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); ++iter)
-	{
-		PyObject* item = iter->second->dataType->parseDefaultStr("");
-		PyDict_SetItemString(val, iter->first.c_str(), item);
-		Py_DECREF(item);
-	}
-
 	FixedDict* pydict = new FixedDict(this);
-	pydict->initialize(val);
-	Py_DECREF(val);
+	pydict->initialize(defaultVal);
 
-	if(hasImpl())
+	if (hasImpl())
 	{
 		PyObject* pyValue = impl_createObjFromDict(pydict);
 		Py_DECREF(pydict);
 		return pyValue;
 	}
-	
+
 	return pydict;
 }
 

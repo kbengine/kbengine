@@ -5,11 +5,15 @@
 
 .. module:: doctest
    :synopsis: Test pieces of code within docstrings.
+
 .. moduleauthor:: Tim Peters <tim@python.org>
 .. sectionauthor:: Tim Peters <tim@python.org>
 .. sectionauthor:: Moshe Zadka <moshez@debian.org>
 .. sectionauthor:: Edward Loper <edloper@users.sourceforge.net>
 
+**Source code:** :source:`Lib/doctest.py`
+
+--------------
 
 The :mod:`doctest` module searches for pieces of text that look like interactive
 Python sessions, and then executes those sessions to verify that they work
@@ -84,14 +88,18 @@ Here's a complete but small example module::
        doctest.testmod()
 
 If you run :file:`example.py` directly from the command line, :mod:`doctest`
-works its magic::
+works its magic:
+
+.. code-block:: shell-session
 
    $ python example.py
    $
 
 There's no output!  That's normal, and it means all the examples worked.  Pass
 ``-v`` to the script, and :mod:`doctest` prints a detailed log of what
-it's trying, and prints a summary at the end::
+it's trying, and prints a summary at the end:
+
+.. code-block:: shell-session
 
    $ python example.py -v
    Trying:
@@ -105,7 +113,9 @@ it's trying, and prints a summary at the end::
        [1, 1, 2, 6, 24, 120]
    ok
 
-And so on, eventually ending with::
+And so on, eventually ending with:
+
+.. code-block:: none
 
    Trying:
        factorial(1e100)
@@ -192,7 +202,9 @@ file.  This can be done with the :func:`testfile` function::
 That short script executes and verifies any interactive Python examples
 contained in the file :file:`example.txt`.  The file content is treated as if it
 were a single giant docstring; the file doesn't need to contain a Python
-program!   For example, perhaps :file:`example.txt` contains this::
+program!   For example, perhaps :file:`example.txt` contains this:
+
+.. code-block:: none
 
    The ``example`` module
    ======================
@@ -309,6 +321,10 @@ but doctest isn't trying to do an exact emulation of any specific Python shell.
    NO!!!
    >>>
 
+.. index::
+   single: >>>; interpreter prompt
+   single: ...; interpreter prompt
+
 Any expected output must immediately follow the final ``'>>> '`` or ``'... '``
 line containing the code, and the expected output (if any) extends to the next
 ``'>>> '`` or all-whitespace line.
@@ -396,7 +412,7 @@ Simple example::
 
    >>> [1, 2, 3].remove(42)
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    ValueError: list.remove(x): x not in list
 
 That doctest succeeds if :exc:`ValueError` is raised, with the ``list.remove(x):
@@ -420,7 +436,7 @@ multi-line detail::
 
    >>> raise ValueError('multi\n    line\ndetail')
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    ValueError: multi
        line
    detail
@@ -469,6 +485,8 @@ Some details you should read once, but won't need to remember:
   to test a :exc:`SyntaxError` that omits the traceback header, you will need to
   manually add the traceback header line to your test example.
 
+.. index:: single: ^ (caret); marker
+
 * For some :exc:`SyntaxError`\ s, Python displays the character position of the
   syntax error, using a ``^`` marker::
 
@@ -498,9 +516,9 @@ Option Flags
 
 A number of option flags control various aspects of doctest's behavior.
 Symbolic names for the flags are supplied as module constants, which can be
-or'ed together and passed to various functions.  The names can also be used in
-:ref:`doctest directives <doctest-directives>`, and may be passed to the
-doctest command line interface via the ``-o`` option.
+:ref:`bitwise ORed <bitwise>` together and passed to various functions.
+The names can also be used in :ref:`doctest directives <doctest-directives>`,
+and may be passed to the doctest command line interface via the ``-o`` option.
 
 .. versionadded:: 3.4
    The ``-o`` command line option.
@@ -520,6 +538,7 @@ doctest decides whether actual output matches an example's expected output:
    option will probably go away, but not for several years.
 
 
+.. index:: single: <BLANKLINE>
 .. data:: DONT_ACCEPT_BLANKLINE
 
    By default, if an expected output block contains a line containing only the
@@ -539,6 +558,7 @@ doctest decides whether actual output matches an example's expected output:
    your source.
 
 
+.. index:: single: ...; in doctests
 .. data:: ELLIPSIS
 
    When specified, an ellipsis marker (``...``) in the expected output can match
@@ -579,7 +599,7 @@ doctest decides whether actual output matches an example's expected output:
 
       >>> (1, 2)[3] = 'moo'
       Traceback (most recent call last):
-        File "<stdin>", line 1, in ?
+        File "<stdin>", line 1, in <module>
       TypeError: object doesn't support item assignment
 
    passes under Python 2.3 and later Python versions with the flag specified,
@@ -674,6 +694,10 @@ useful unless you intend to extend :mod:`doctest` internals via subclassing:
       MY_FLAG = register_optionflag('MY_FLAG')
 
 
+.. index::
+   single: # (hash); in doctests
+   single: + (plus); in doctests
+   single: - (minus); in doctests
 .. _doctest-directives:
 
 Directives
@@ -865,8 +889,9 @@ and :ref:`doctest-simple-testfile`.
    nothing at the end.  In verbose mode, the summary is detailed, else the summary
    is very brief (in fact, empty if all tests passed).
 
-   Optional argument *optionflags* or's together option flags.  See section
-   :ref:`doctest-options`.
+   Optional argument *optionflags* (default value 0) takes the
+   :ref:`bitwise OR <bitwise>` of option flags.
+   See section :ref:`doctest-options`.
 
    Optional argument *raise_on_error* defaults to false.  If true, an exception is
    raised upon the first failure or unexpected exception in an example.  This
@@ -914,15 +939,10 @@ and :ref:`doctest-simple-testfile`.
    above, except that *globs* defaults to ``m.__dict__``.
 
 
-There's also a function to run the doctests associated with a single object.
-This function is provided for backward compatibility.  There are no plans to
-deprecate it, but it's rarely useful:
-
-
 .. function:: run_docstring_examples(f, globs, verbose=False, name="NoName", compileflags=None, optionflags=0)
 
-   Test examples associated with object *f*; for example, *f* may be a module,
-   function, or class object.
+   Test examples associated with object *f*; for example, *f* may be a string,
+   a module, a function, or a class object.
 
    A shallow copy of dictionary argument *globs* is used for the execution context.
 
@@ -1058,15 +1078,9 @@ from text files and modules with doctests:
 
    This function uses the same search technique as :func:`testmod`.
 
-   .. note::
-      Unlike :func:`testmod` and :class:`DocTestFinder`, this function raises
-      a :exc:`ValueError` if *module* contains no docstrings.  You can prevent
-      this error by passing a :class:`DocTestFinder` instance as the
-      *test_finder* argument with its *exclude_empty* keyword argument set
-      to ``False``::
-
-         >>> finder = doctest.DocTestFinder(exclude_empty=False)
-         >>> suite = doctest.DocTestSuite(test_finder=finder)
+   .. versionchanged:: 3.5
+      :func:`DocTestSuite` returns an empty :class:`unittest.TestSuite` if *module*
+      contains no docstrings instead of raising :exc:`ValueError`.
 
 
 Under the covers, :func:`DocTestSuite` creates a :class:`unittest.TestSuite` out
@@ -1097,18 +1111,19 @@ reporting flags specific to :mod:`unittest` support, via this function:
 
    Set the :mod:`doctest` reporting flags to use.
 
-   Argument *flags* or's together option flags.  See section
-   :ref:`doctest-options`.  Only "reporting flags" can be used.
+   Argument *flags* takes the :ref:`bitwise OR <bitwise>` of option flags.  See
+   section :ref:`doctest-options`.  Only "reporting flags" can be used.
 
    This is a module-global setting, and affects all future doctests run by module
    :mod:`unittest`:  the :meth:`runTest` method of :class:`DocTestCase` looks at
    the option flags specified for the test case when the :class:`DocTestCase`
    instance was constructed.  If no reporting flags were specified (which is the
    typical and expected case), :mod:`doctest`'s :mod:`unittest` reporting flags are
-   or'ed into the option flags, and the option flags so augmented are passed to the
-   :class:`DocTestRunner` instance created to run the doctest.  If any reporting
-   flags were specified when the :class:`DocTestCase` instance was constructed,
-   :mod:`doctest`'s :mod:`unittest` reporting flags are ignored.
+   :ref:`bitwise ORed <bitwise>` into the option flags, and the option flags
+   so augmented are passed to the :class:`DocTestRunner` instance created to
+   run the doctest.  If any reporting flags were specified when the
+   :class:`DocTestCase` instance was constructed, :mod:`doctest`'s
+   :mod:`unittest` reporting flags are ignored.
 
    The value of the :mod:`unittest` reporting flags in effect before the function
    was called is returned by the function.
@@ -1214,7 +1229,7 @@ DocTest Objects
 
    .. attribute:: docstring
 
-      The string that the test was extracted from, or 'None' if the string is
+      The string that the test was extracted from, or ``None`` if the string is
       unavailable, or if the test was not extracted from a string.
 
 
@@ -1319,7 +1334,7 @@ DocTestFinder objects
       not specified, then ``obj.__name__`` is used.
 
       The optional parameter *module* is the module that contains the given object.
-      If the module is not specified or is None, then the test finder will attempt
+      If the module is not specified or is ``None``, then the test finder will attempt
       to automatically determine the correct module.  The object's module is used:
 
       * As a default namespace, if *globs* is not specified.
@@ -1820,6 +1835,27 @@ several options for organizing tests:
 
 * Define a ``__test__`` dictionary mapping from regression test topics to
   docstrings containing test cases.
+
+When you have placed your tests in a module, the module can itself be the test
+runner.  When a test fails, you can arrange for your test runner to re-run only
+the failing doctest while you debug the problem.  Here is a minimal example of
+such a test runner::
+
+    if __name__ == '__main__':
+        import doctest
+        flags = doctest.REPORT_NDIFF|doctest.FAIL_FAST
+        if len(sys.argv) > 1:
+            name = sys.argv[1]
+            if name in globals():
+                obj = globals()[name]
+            else:
+                obj = __test__[name]
+            doctest.run_docstring_examples(obj, globals(), name=name,
+                                           optionflags=flags)
+        else:
+            fail, total = doctest.testmod(optionflags=flags)
+            print("{} failures out of {} tests".format(fail, total))
+
 
 .. rubric:: Footnotes
 

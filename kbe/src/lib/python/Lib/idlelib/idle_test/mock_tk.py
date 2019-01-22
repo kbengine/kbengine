@@ -1,6 +1,6 @@
 """Classes that replace tkinter gui objects used by an object being tested.
 
-A gui object is anything with a master or parent paramenter, which is
+A gui object is anything with a master or parent parameter, which is
 typically required in spite of what the doc strings say.
 """
 
@@ -116,7 +116,7 @@ class Text:
         """Return a (line, char) tuple of int indexes into self.data.
 
         This implements .index without converting the result back to a string.
-        The result is contrained by the number of lines and linelengths of
+        The result is constrained by the number of lines and linelengths of
         self.data. For many indexes, the result is initially (1, 0).
 
         The input index may have any of several possible forms:
@@ -260,7 +260,7 @@ class Text:
         elif op == '!=':
             return line1 != line2 or  char1 != char2
         else:
-            raise TclError('''bad comparison operator "%s":'''
+            raise TclError('''bad comparison operator "%s": '''
                                   '''must be <, <=, ==, >=, >, or !=''' % op)
 
     # The following Text methods normally do something and return None.
@@ -295,4 +295,9 @@ class Text:
 
     def bind(sequence=None, func=None, add=None):
         "Bind to this widget at event sequence a call to function func."
+        pass
+
+class Entry:
+    "Mock for tkinter.Entry."
+    def focus_set(self):
         pass

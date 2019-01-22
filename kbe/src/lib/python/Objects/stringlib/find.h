@@ -11,8 +11,7 @@ STRINGLIB(find)(const STRINGLIB_CHAR* str, Py_ssize_t str_len,
 {
     Py_ssize_t pos;
 
-    if (str_len < 0)
-        return -1;
+    assert(str_len >= 0);
     if (sub_len == 0)
         return offset;
 
@@ -31,8 +30,7 @@ STRINGLIB(rfind)(const STRINGLIB_CHAR* str, Py_ssize_t str_len,
 {
     Py_ssize_t pos;
 
-    if (str_len < 0)
-        return -1;
+    assert(str_len >= 0);
     if (sub_len == 0)
         return str_len + offset;
 
@@ -44,27 +42,11 @@ STRINGLIB(rfind)(const STRINGLIB_CHAR* str, Py_ssize_t str_len,
     return pos;
 }
 
-/* helper macro to fixup start/end slice values */
-#define ADJUST_INDICES(start, end, len)         \
-    if (end > len)                              \
-        end = len;                              \
-    else if (end < 0) {                         \
-        end += len;                             \
-        if (end < 0)                            \
-            end = 0;                            \
-    }                                           \
-    if (start < 0) {                            \
-        start += len;                           \
-        if (start < 0)                          \
-            start = 0;                          \
-    }
-
 Py_LOCAL_INLINE(Py_ssize_t)
 STRINGLIB(find_slice)(const STRINGLIB_CHAR* str, Py_ssize_t str_len,
                      const STRINGLIB_CHAR* sub, Py_ssize_t sub_len,
                      Py_ssize_t start, Py_ssize_t end)
 {
-    ADJUST_INDICES(start, end, str_len);
     return STRINGLIB(find)(str + start, end - start, sub, sub_len, start);
 }
 
@@ -73,7 +55,6 @@ STRINGLIB(rfind_slice)(const STRINGLIB_CHAR* str, Py_ssize_t str_len,
                       const STRINGLIB_CHAR* sub, Py_ssize_t sub_len,
                       Py_ssize_t start, Py_ssize_t end)
 {
-    ADJUST_INDICES(start, end, str_len);
     return STRINGLIB(rfind)(str + start, end - start, sub, sub_len, start);
 }
 
@@ -136,85 +117,3 @@ STRINGLIB(parse_args_finds)(const char * function_name, PyObject *args,
 }
 
 #undef FORMAT_BUFFER_SIZE
-
-#if STRINGLIB_IS_UNICODE
-
-/*
-Wraps stringlib_parse_args_finds() and additionally ensures that the
-first argument is a unicode object.
-
-Note that we receive a pointer to the pointer of the substring object,
-so when we create that object in this function we don't DECREF it,
-because it continues living in the caller functions (those functions,
-after finishing using the substring, must DECREF it).
-*/
-
-Py_LOCAL_INLINE(int)
-STRINGLIB(parse_args_finds_unicode)(const char * function_name, PyObject *args,
-                                   PyObject **substring,
-                                   Py_ssize_t *start, Py_ssize_t *end)
-{
-    PyObject *tmp_substring;
-
-    if(STRINGLIB(parse_args_finds)(function_name, args, &tmp_substring,
-                                  start, end)) {
-        tmp_substring = PyUnicode_FromObject(tmp_substring);
-        if (!tmp_substring)
-            return 0;
-        *substring = tmp_substring;
-        return 1;
-    }
-    return 0;
-}
-
-#else /* !STRINGLIB_IS_UNICODE */
-
-/*
-Wraps stringlib_parse_args_finds() and additionally checks whether the
-first argument is an integer in range(0, 256).
-
-If this is the case, writes the integer value to the byte parameter
-and sets subobj to NULL. Otherwise, sets the first argument to subobj
-and doesn't touch byte. The other parameters are similar to those of
-stringlib_parse_args_finds().
-*/
-
-Py_LOCAL_INLINE(int)
-STRINGLIB(parse_args_finds_byte)(const char *function_name, PyObject *args,
-                                 PyObject **subobj, char *byte,
-                                 Py_ssize_t *start, Py_ssize_t *end)
-{
-    PyObject *tmp_subobj;
-    Py_ssize_t ival;
-    PyObject *err;
-
-    if(!STRINGLIB(parse_args_finds)(function_name, args, &tmp_subobj,
-                                    start, end))
-        return 0;
-
-    if (!PyNumber_Check(tmp_subobj)) {
-        *subobj = tmp_subobj;
-        return 1;
-    }
-
-    ival = PyNumber_AsSsize_t(tmp_subobj, PyExc_OverflowError);
-    if (ival == -1) {
-        err = PyErr_Occurred();
-        if (err && !PyErr_GivenExceptionMatches(err, PyExc_OverflowError)) {
-            PyErr_Clear();
-            *subobj = tmp_subobj;
-            return 1;
-        }
-    }
-
-    if (ival < 0 || ival > 255) {
-        PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)");
-        return 0;
-    }
-
-    *subobj = NULL;
-    *byte = (char)ival;
-    return 1;
-}
-
-#endif /* STRINGLIB_IS_UNICODE */

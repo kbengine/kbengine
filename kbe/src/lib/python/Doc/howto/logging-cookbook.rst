@@ -63,6 +63,7 @@ Here is the auxiliary module::
         def __init__(self):
             self.logger = logging.getLogger('spam_application.auxiliary.Auxiliary')
             self.logger.info('creating an instance of Auxiliary')
+
         def do_something(self):
             self.logger.info('doing something')
             a = 1 + 1
@@ -71,7 +72,9 @@ Here is the auxiliary module::
     def some_function():
         module_logger.info('received a call to "some_function"')
 
-The output looks like this::
+The output looks like this:
+
+.. code-block:: none
 
     2005-03-23 23:47:11,663 - spam_application - INFO -
        creating an instance of auxiliary_module.Auxiliary
@@ -93,6 +96,63 @@ The output looks like this::
        received a call to 'some_function'
     2005-03-23 23:47:11,673 - spam_application - INFO -
        done with auxiliary_module.some_function()
+
+Logging from multiple threads
+-----------------------------
+
+Logging from multiple threads requires no special effort. The following example
+shows logging from the main (initial) thread and another thread::
+
+    import logging
+    import threading
+    import time
+
+    def worker(arg):
+        while not arg['stop']:
+            logging.debug('Hi from myfunc')
+            time.sleep(0.5)
+
+    def main():
+        logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
+        info = {'stop': False}
+        thread = threading.Thread(target=worker, args=(info,))
+        thread.start()
+        while True:
+            try:
+                logging.debug('Hello from main')
+                time.sleep(0.75)
+            except KeyboardInterrupt:
+                info['stop'] = True
+                break
+        thread.join()
+
+    if __name__ == '__main__':
+        main()
+
+When run, the script should print something like the following:
+
+.. code-block:: none
+
+     0 Thread-1 Hi from myfunc
+     3 MainThread Hello from main
+   505 Thread-1 Hi from myfunc
+   755 MainThread Hello from main
+  1007 Thread-1 Hi from myfunc
+  1507 MainThread Hello from main
+  1508 Thread-1 Hi from myfunc
+  2010 Thread-1 Hi from myfunc
+  2258 MainThread Hello from main
+  2512 Thread-1 Hi from myfunc
+  3009 MainThread Hello from main
+  3013 Thread-1 Hi from myfunc
+  3515 Thread-1 Hi from myfunc
+  3761 MainThread Hello from main
+  4017 Thread-1 Hi from myfunc
+  4513 MainThread Hello from main
+  4518 Thread-1 Hi from myfunc
+
+This shows the logging output interspersed as one might expect. This approach
+works for more threads than shown here, of course.
 
 Multiple handlers and formatters
 --------------------------------
@@ -184,14 +244,18 @@ messages should not. Here's how you can achieve this::
    logger2.warning('Jail zesty vixen who grabbed pay from quack.')
    logger2.error('The five boxing wizards jump quickly.')
 
-When you run this, on the console you will see ::
+When you run this, on the console you will see
+
+.. code-block:: none
 
    root        : INFO     Jackdaws love my big sphinx of quartz.
    myapp.area1 : INFO     How quickly daft jumping zebras vex.
    myapp.area2 : WARNING  Jail zesty vixen who grabbed pay from quack.
    myapp.area2 : ERROR    The five boxing wizards jump quickly.
 
-and in the file you will see something like ::
+and in the file you will see something like
+
+.. code-block:: none
 
    10-22 22:19 root         INFO     Jackdaws love my big sphinx of quartz.
    10-22 22:19 myapp.area1  DEBUG    Quick zephyrs blow, vexing daft Jim.
@@ -305,7 +369,7 @@ classes, which would eat up one thread per handler for no particular benefit.
 
 An example of using these two classes follows (imports omitted)::
 
-    que = queue.Queue(-1) # no limit on size
+    que = queue.Queue(-1)  # no limit on size
     queue_handler = QueueHandler(que)
     handler = logging.StreamHandler()
     listener = QueueListener(que, handler)
@@ -321,10 +385,21 @@ An example of using these two classes follows (imports omitted)::
     root.warning('Look out!')
     listener.stop()
 
-which, when run, will produce::
+which, when run, will produce:
+
+.. code-block:: none
 
     MainThread: Look out!
 
+.. versionchanged:: 3.5
+   Prior to Python 3.5, the :class:`QueueListener` always passed every message
+   received from the queue to every handler it was initialized with. (This was
+   because it was assumed that level filtering was all done on the other side,
+   where the queue is filled.) From 3.5 onwards, this behaviour can be changed
+   by passing a keyword argument ``respect_handler_level=True`` to the
+   listener's constructor. When this is done, the listener compares the level
+   of each message with the handler's level, and only passes a message to a
+   handler if it's appropriate to do so.
 
 .. _network-logging:
 
@@ -448,7 +523,9 @@ module. Here is a basic working example::
        main()
 
 First run the server, and then the client. On the client side, nothing is
-printed on the console; on the server side, you should see something like::
+printed on the console; on the server side, you should see something like:
+
+.. code-block:: none
 
    About to start TCP server...
       59 root            INFO     Jackdaws love my big sphinx of quartz.
@@ -592,23 +669,25 @@ script::
             return True
 
     if __name__ == '__main__':
-       levels = (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL)
-       logging.basicConfig(level=logging.DEBUG,
-                           format='%(asctime)-15s %(name)-5s %(levelname)-8s IP: %(ip)-15s User: %(user)-8s %(message)s')
-       a1 = logging.getLogger('a.b.c')
-       a2 = logging.getLogger('d.e.f')
+        levels = (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL)
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)-15s %(name)-5s %(levelname)-8s IP: %(ip)-15s User: %(user)-8s %(message)s')
+        a1 = logging.getLogger('a.b.c')
+        a2 = logging.getLogger('d.e.f')
 
-       f = ContextFilter()
-       a1.addFilter(f)
-       a2.addFilter(f)
-       a1.debug('A debug message')
-       a1.info('An info message with %s', 'some parameters')
-       for x in range(10):
-           lvl = choice(levels)
-           lvlname = logging.getLevelName(lvl)
-           a2.log(lvl, 'A message at %s level with %d %s', lvlname, 2, 'parameters')
+        f = ContextFilter()
+        a1.addFilter(f)
+        a2.addFilter(f)
+        a1.debug('A debug message')
+        a1.info('An info message with %s', 'some parameters')
+        for x in range(10):
+            lvl = choice(levels)
+            lvlname = logging.getLevelName(lvl)
+            a2.log(lvl, 'A message at %s level with %d %s', lvlname, 2, 'parameters')
 
-which, when run, produces something like::
+which, when run, produces something like:
+
+.. code-block:: none
 
     2010-09-06 22:38:15,292 a.b.c DEBUG    IP: 123.231.231.123 User: fred     A debug message
     2010-09-06 22:38:15,300 a.b.c INFO     IP: 192.168.0.1     User: sheila   An info message with some parameters
@@ -649,7 +728,7 @@ file from your processes. The existing :class:`FileHandler` and subclasses do
 not make use of :mod:`multiprocessing` at present, though they may do so in the
 future. Note that at present, the :mod:`multiprocessing` module does not provide
 working lock functionality on all platforms (see
-http://bugs.python.org/issue3770).
+https://bugs.python.org/issue3770).
 
 .. currentmodule:: logging.handlers
 
@@ -700,10 +779,10 @@ the basis for code meeting your own specific requirements::
         while True:
             try:
                 record = queue.get()
-                if record is None: # We send this as a sentinel to tell the listener to quit.
+                if record is None:  # We send this as a sentinel to tell the listener to quit.
                     break
                 logger = logging.getLogger(record.name)
-                logger.handle(record) # No level or filter logic applied - just do it!
+                logger.handle(record)  # No level or filter logic applied - just do it!
             except Exception:
                 import sys, traceback
                 print('Whoops! Problem:', file=sys.stderr)
@@ -726,10 +805,11 @@ the basis for code meeting your own specific requirements::
     # Note that on Windows you can't rely on fork semantics, so each process
     # will run the logging configuration code when it starts.
     def worker_configurer(queue):
-        h = logging.handlers.QueueHandler(queue) # Just the one handler needed
+        h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
         root = logging.getLogger()
         root.addHandler(h)
-        root.setLevel(logging.DEBUG) # send all messages, for demo; no other level or filter logic applied.
+        # send all messages, for demo; no other level or filter logic applied.
+        root.setLevel(logging.DEBUG)
 
     # This is the worker process top-level loop, which just logs ten events with
     # random intervening delays before terminating.
@@ -757,7 +837,7 @@ the basis for code meeting your own specific requirements::
         workers = []
         for i in range(10):
             worker = multiprocessing.Process(target=worker_process,
-                                           args=(queue, worker_configurer))
+                                             args=(queue, worker_configurer))
             workers.append(worker)
             worker.start()
         for w in workers:
@@ -873,7 +953,7 @@ Using file rotation
 -------------------
 
 .. sectionauthor:: Doug Hellmann, Vinay Sajip (changes)
-.. (see <http://blog.doughellmann.com/2007/05/pymotw-logging.html>)
+.. (see <https://pymotw.com/3/logging/>)
 
 Sometimes you want to let a log file grow to a certain size, then open a new
 file and log to that. You may want to keep a certain number of these files, and
@@ -908,7 +988,9 @@ logging package provides a :class:`~handlers.RotatingFileHandler`::
        print(filename)
 
 The result should be 6 separate files, each with part of the log history for the
-application::
+application:
+
+.. code-block:: none
 
    logging_rotatingfile_example.out
    logging_rotatingfile_example.out.1
@@ -987,7 +1069,7 @@ to indicate additional contextual information to be added to the log). So
 you cannot directly make logging calls using :meth:`str.format` or
 :class:`string.Template` syntax, because internally the logging package
 uses %-formatting to merge the format string and the variable arguments.
-There would no changing this while preserving backward compatibility, since
+There would be no changing this while preserving backward compatibility, since
 all logging calls which are out there in existing code will be using %-format
 strings.
 
@@ -1020,7 +1102,7 @@ $-formatting to be used to build the actual "message" part which appears in the
 formatted log output in place of "%(message)s" or "{message}" or "$message".
 It's a little unwieldy to use the class names whenever you want to log
 something, but it's quite palatable if you use an alias such as __ (double
-underscore – not to be confused with _, the single underscore used as a
+underscore --- not to be confused with _, the single underscore used as a
 synonym/alias for :func:`gettext.gettext` or its brethren).
 
 The above classes are not included in Python, though they're easy enough to
@@ -1141,7 +1223,7 @@ do simply by adding new packages or modules and doing ::
 at module level). It's probably one too many things to think about. Developers
 could also add the filter to a :class:`~logging.NullHandler` attached to their
 top-level logger, but this would not be invoked if an application developer
-attached a handler to a lower-level library logger – so output from that
+attached a handler to a lower-level library logger --- so output from that
 handler would not reflect the intentions of the library developer.
 
 In Python 3.2 and later, :class:`~logging.LogRecord` creation is done through a
@@ -1181,17 +1263,17 @@ You can use a :class:`QueueHandler` subclass to send messages to other kinds
 of queues, for example a ZeroMQ 'publish' socket. In the example below,the
 socket is created separately and passed to the handler (as its 'queue')::
 
-    import zmq # using pyzmq, the Python binding for ZeroMQ
-    import json # for serializing records portably
+    import zmq   # using pyzmq, the Python binding for ZeroMQ
+    import json  # for serializing records portably
 
     ctx = zmq.Context()
-    sock = zmq.Socket(ctx, zmq.PUB) # or zmq.PUSH, or other suitable value
-    sock.bind('tcp://*:5556') # or wherever
+    sock = zmq.Socket(ctx, zmq.PUB)  # or zmq.PUSH, or other suitable value
+    sock.bind('tcp://*:5556')        # or wherever
 
     class ZeroMQSocketHandler(QueueHandler):
         def enqueue(self, record):
-            data = json.dumps(record.__dict__)
-            self.queue.send(data)
+            self.queue.send_json(record.__dict__)
+
 
     handler = ZeroMQSocketHandler(sock)
 
@@ -1204,11 +1286,10 @@ data needed by the handler to create the socket::
             self.ctx = ctx or zmq.Context()
             socket = zmq.Socket(self.ctx, socktype)
             socket.bind(uri)
-            QueueHandler.__init__(self, socket)
+            super().__init__(socket)
 
         def enqueue(self, record):
-            data = json.dumps(record.__dict__)
-            self.queue.send(data)
+            self.queue.send_json(record.__dict__)
 
         def close(self):
             self.queue.close()
@@ -1224,12 +1305,13 @@ of queues, for example a ZeroMQ 'subscribe' socket. Here's an example::
         def __init__(self, uri, *handlers, **kwargs):
             self.ctx = kwargs.get('ctx') or zmq.Context()
             socket = zmq.Socket(self.ctx, zmq.SUB)
-            socket.setsockopt(zmq.SUBSCRIBE, '') # subscribe to everything
+            socket.setsockopt_string(zmq.SUBSCRIBE, '')  # subscribe to everything
             socket.connect(uri)
+            super().__init__(socket, *handlers, **kwargs)
 
         def dequeue(self):
-            msg = self.queue.recv()
-            return logging.makeLogRecord(json.loads(msg))
+            msg = self.queue.recv_json()
+            return logging.makeLogRecord(msg)
 
 
 .. seealso::
@@ -1252,7 +1334,7 @@ An example dictionary-based configuration
 -----------------------------------------
 
 Below is an example of a logging configuration dictionary - it's taken from
-the `documentation on the Django project <https://docs.djangoproject.com/en/1.3/topics/logging/#configuring-logging>`_.
+the `documentation on the Django project <https://docs.djangoproject.com/en/1.9/topics/logging/#configuring-logging>`_.
 This dictionary is passed to :func:`~config.dictConfig` to put the configuration into effect::
 
     LOGGING = {
@@ -1308,7 +1390,7 @@ This dictionary is passed to :func:`~config.dictConfig` to put the configuration
     }
 
 For more information about this configuration, you can see the `relevant
-section <https://docs.djangoproject.com/en/1.6/topics/logging/#configuring-logging>`_
+section <https://docs.djangoproject.com/en/1.9/topics/logging/#configuring-logging>`_
 of the Django documentation.
 
 .. _cookbook-rotator-namer:
@@ -1408,7 +1490,7 @@ works::
     def worker_process(config):
         """
         A number of these are spawned for the purpose of illustration. In
-        practice, they could be a heterogenous bunch of processes rather than
+        practice, they could be a heterogeneous bunch of processes rather than
         ones which are identical to each other.
 
         This initialises logging according to the specified configuration,
@@ -1570,11 +1652,11 @@ works::
 Inserting a BOM into messages sent to a SysLogHandler
 -----------------------------------------------------
 
-`RFC 5424 <http://tools.ietf.org/html/rfc5424>`_ requires that a
+:rfc:`5424` requires that a
 Unicode message be sent to a syslog daemon as a set of bytes which have the
 following structure: an optional pure-ASCII component, followed by a UTF-8 Byte
-Order Mark (BOM), followed by Unicode encoded using UTF-8. (See the `relevant
-section of the specification <http://tools.ietf.org/html/rfc5424#section-6>`_.)
+Order Mark (BOM), followed by Unicode encoded using UTF-8. (See the
+:rfc:`relevant section of the specification <5424#section-6>`.)
 
 In Python 3.1, code was added to
 :class:`~logging.handlers.SysLogHandler` to insert a BOM into the message, but
@@ -1584,7 +1666,7 @@ appear before it.
 
 As this behaviour is broken, the incorrect BOM insertion code is being removed
 from Python 3.2.4 and later. However, it is not being replaced, and if you
-want to produce RFC 5424-compliant messages which include a BOM, an optional
+want to produce :rfc:`5424`-compliant messages which include a BOM, an optional
 pure-ASCII sequence before it and arbitrary Unicode after it, encoded using
 UTF-8, then you need to do the following:
 
@@ -1607,7 +1689,7 @@ UTF-8, then you need to do the following:
 
 The formatted message *will* be encoded using UTF-8 encoding by
 ``SysLogHandler``. If you follow the above rules, you should be able to produce
-RFC 5424-compliant messages. If you don't, logging may not complain, but your
+:rfc:`5424`-compliant messages. If you don't, logging may not complain, but your
 messages will not be RFC 5424-compliant, and your syslog daemon may complain.
 
 
@@ -1615,7 +1697,7 @@ Implementing structured logging
 -------------------------------
 
 Although most logging messages are intended for reading by humans, and thus not
-readily machine-parseable, there might be cirumstances where you want to output
+readily machine-parseable, there might be circumstances where you want to output
 messages in a structured format which *is* capable of being parsed by a program
 (without needing complex regular expressions to parse the log message). This is
 straightforward to achieve using the logging package. There are a number of
@@ -1638,7 +1720,9 @@ which uses JSON to serialise the event in a machine-parseable manner::
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     logging.info(_('message 1', foo='bar', bar='baz', num=123, fnum=123.456))
 
-If the above script is run, it prints::
+If the above script is run, it prints:
+
+.. code-block:: none
 
     message 1 >>> {"fnum": 123.456, "num": 123, "bar": "baz", "foo": "bar"}
 
@@ -1680,12 +1764,14 @@ as in the following complete example::
 
     def main():
         logging.basicConfig(level=logging.INFO, format='%(message)s')
-        logging.info(_('message 1', set_value=set([1, 2, 3]), snowman='\u2603'))
+        logging.info(_('message 1', set_value={1, 2, 3}, snowman='\u2603'))
 
     if __name__ == '__main__':
         main()
 
-When the above script is run, it prints::
+When the above script is run, it prints:
+
+.. code-block:: none
 
     message 1 >>> {"snowman": "\u2603", "set_value": [1, 2, 3]}
 
@@ -1794,7 +1880,9 @@ script, ``chowntest.py``::
     logger = logging.getLogger('mylogger')
     logger.debug('A debug message')
 
-To run this, you will probably need to run as ``root``::
+To run this, you will probably need to run as ``root``:
+
+.. code-block:: shell-session
 
     $ sudo python3.3 chowntest.py
     $ cat chowntest.log
@@ -2013,7 +2101,9 @@ most obvious, but you can provide any callable which returns a
 
 This example shows how you can pass configuration data to the callable which
 constructs the instance, in the form of keyword parameters. When run, the above
-script will print::
+script will print:
+
+.. code-block:: none
 
     changed: hello
 
@@ -2033,3 +2123,429 @@ A couple of extra points to note:
   information on how logging supports using user-defined objects in its
   configuration, and see the other cookbook recipe :ref:`custom-handlers` above.
 
+
+.. _custom-format-exception:
+
+Customized exception formatting
+-------------------------------
+
+There might be times when you want to do customized exception formatting - for
+argument's sake, let's say you want exactly one line per logged event, even
+when exception information is present. You can do this with a custom formatter
+class, as shown in the following example::
+
+    import logging
+
+    class OneLineExceptionFormatter(logging.Formatter):
+        def formatException(self, exc_info):
+            """
+            Format an exception so that it prints on a single line.
+            """
+            result = super(OneLineExceptionFormatter, self).formatException(exc_info)
+            return repr(result)  # or format into one line however you want to
+
+        def format(self, record):
+            s = super(OneLineExceptionFormatter, self).format(record)
+            if record.exc_text:
+                s = s.replace('\n', '') + '|'
+            return s
+
+    def configure_logging():
+        fh = logging.FileHandler('output.txt', 'w')
+        f = OneLineExceptionFormatter('%(asctime)s|%(levelname)s|%(message)s|',
+                                      '%d/%m/%Y %H:%M:%S')
+        fh.setFormatter(f)
+        root = logging.getLogger()
+        root.setLevel(logging.DEBUG)
+        root.addHandler(fh)
+
+    def main():
+        configure_logging()
+        logging.info('Sample message')
+        try:
+            x = 1 / 0
+        except ZeroDivisionError as e:
+            logging.exception('ZeroDivisionError: %s', e)
+
+    if __name__ == '__main__':
+        main()
+
+When run, this produces a file with exactly two lines:
+
+.. code-block:: none
+
+    28/01/2015 07:21:23|INFO|Sample message|
+    28/01/2015 07:21:23|ERROR|ZeroDivisionError: integer division or modulo by zero|'Traceback (most recent call last):\n  File "logtest7.py", line 30, in main\n    x = 1 / 0\nZeroDivisionError: integer division or modulo by zero'|
+
+While the above treatment is simplistic, it points the way to how exception
+information can be formatted to your liking. The :mod:`traceback` module may be
+helpful for more specialized needs.
+
+.. _spoken-messages:
+
+Speaking logging messages
+-------------------------
+
+There might be situations when it is desirable to have logging messages rendered
+in an audible rather than a visible format. This is easy to do if you have
+text-to-speech (TTS) functionality available in your system, even if it doesn't have
+a Python binding. Most TTS systems have a command line program you can run, and
+this can be invoked from a handler using :mod:`subprocess`. It's assumed here
+that TTS command line programs won't expect to interact with users or take a
+long time to complete, and that the frequency of logged messages will be not so
+high as to swamp the user with messages, and that it's acceptable to have the
+messages spoken one at a time rather than concurrently, The example implementation
+below waits for one message to be spoken before the next is processed, and this
+might cause other handlers to be kept waiting. Here is a short example showing
+the approach, which assumes that the ``espeak`` TTS package is available::
+
+    import logging
+    import subprocess
+    import sys
+
+    class TTSHandler(logging.Handler):
+        def emit(self, record):
+            msg = self.format(record)
+            # Speak slowly in a female English voice
+            cmd = ['espeak', '-s150', '-ven+f3', msg]
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            # wait for the program to finish
+            p.communicate()
+
+    def configure_logging():
+        h = TTSHandler()
+        root = logging.getLogger()
+        root.addHandler(h)
+        # the default formatter just returns the message
+        root.setLevel(logging.DEBUG)
+
+    def main():
+        logging.info('Hello')
+        logging.debug('Goodbye')
+
+    if __name__ == '__main__':
+        configure_logging()
+        sys.exit(main())
+
+When run, this script should say "Hello" and then "Goodbye" in a female voice.
+
+The above approach can, of course, be adapted to other TTS systems and even
+other systems altogether which can process messages via external programs run
+from a command line.
+
+
+.. _buffered-logging:
+
+Buffering logging messages and outputting them conditionally
+------------------------------------------------------------
+
+There might be situations where you want to log messages in a temporary area
+and only output them if a certain condition occurs. For example, you may want to
+start logging debug events in a function, and if the function completes without
+errors, you don't want to clutter the log with the collected debug information,
+but if there is an error, you want all the debug information to be output as well
+as the error.
+
+Here is an example which shows how you could do this using a decorator for your
+functions where you want logging to behave this way. It makes use of the
+:class:`logging.handlers.MemoryHandler`, which allows buffering of logged events
+until some condition occurs, at which point the buffered events are ``flushed``
+- passed to another handler (the ``target`` handler) for processing. By default,
+the ``MemoryHandler`` flushed when its buffer gets filled up or an event whose
+level is greater than or equal to a specified threshold is seen. You can use this
+recipe with a more specialised subclass of ``MemoryHandler`` if you want custom
+flushing behavior.
+
+The example script has a simple function, ``foo``, which just cycles through
+all the logging levels, writing to ``sys.stderr`` to say what level it's about
+to log at, and then actually logging a message at that level. You can pass a
+parameter to ``foo`` which, if true, will log at ERROR and CRITICAL levels -
+otherwise, it only logs at DEBUG, INFO and WARNING levels.
+
+The script just arranges to decorate ``foo`` with a decorator which will do the
+conditional logging that's required. The decorator takes a logger as a parameter
+and attaches a memory handler for the duration of the call to the decorated
+function. The decorator can be additionally parameterised using a target handler,
+a level at which flushing should occur, and a capacity for the buffer. These
+default to a :class:`~logging.StreamHandler` which writes to ``sys.stderr``,
+``logging.ERROR`` and ``100`` respectively.
+
+Here's the script::
+
+    import logging
+    from logging.handlers import MemoryHandler
+    import sys
+
+    logger = logging.getLogger(__name__)
+    logger.addHandler(logging.NullHandler())
+
+    def log_if_errors(logger, target_handler=None, flush_level=None, capacity=None):
+        if target_handler is None:
+            target_handler = logging.StreamHandler()
+        if flush_level is None:
+            flush_level = logging.ERROR
+        if capacity is None:
+            capacity = 100
+        handler = MemoryHandler(capacity, flushLevel=flush_level, target=target_handler)
+
+        def decorator(fn):
+            def wrapper(*args, **kwargs):
+                logger.addHandler(handler)
+                try:
+                    return fn(*args, **kwargs)
+                except Exception:
+                    logger.exception('call failed')
+                    raise
+                finally:
+                    super(MemoryHandler, handler).flush()
+                    logger.removeHandler(handler)
+            return wrapper
+
+        return decorator
+
+    def write_line(s):
+        sys.stderr.write('%s\n' % s)
+
+    def foo(fail=False):
+        write_line('about to log at DEBUG ...')
+        logger.debug('Actually logged at DEBUG')
+        write_line('about to log at INFO ...')
+        logger.info('Actually logged at INFO')
+        write_line('about to log at WARNING ...')
+        logger.warning('Actually logged at WARNING')
+        if fail:
+            write_line('about to log at ERROR ...')
+            logger.error('Actually logged at ERROR')
+            write_line('about to log at CRITICAL ...')
+            logger.critical('Actually logged at CRITICAL')
+        return fail
+
+    decorated_foo = log_if_errors(logger)(foo)
+
+    if __name__ == '__main__':
+        logger.setLevel(logging.DEBUG)
+        write_line('Calling undecorated foo with False')
+        assert not foo(False)
+        write_line('Calling undecorated foo with True')
+        assert foo(True)
+        write_line('Calling decorated foo with False')
+        assert not decorated_foo(False)
+        write_line('Calling decorated foo with True')
+        assert decorated_foo(True)
+
+When this script is run, the following output should be observed:
+
+.. code-block:: none
+
+    Calling undecorated foo with False
+    about to log at DEBUG ...
+    about to log at INFO ...
+    about to log at WARNING ...
+    Calling undecorated foo with True
+    about to log at DEBUG ...
+    about to log at INFO ...
+    about to log at WARNING ...
+    about to log at ERROR ...
+    about to log at CRITICAL ...
+    Calling decorated foo with False
+    about to log at DEBUG ...
+    about to log at INFO ...
+    about to log at WARNING ...
+    Calling decorated foo with True
+    about to log at DEBUG ...
+    about to log at INFO ...
+    about to log at WARNING ...
+    about to log at ERROR ...
+    Actually logged at DEBUG
+    Actually logged at INFO
+    Actually logged at WARNING
+    Actually logged at ERROR
+    about to log at CRITICAL ...
+    Actually logged at CRITICAL
+
+As you can see, actual logging output only occurs when an event is logged whose
+severity is ERROR or greater, but in that case, any previous events at lower
+severities are also logged.
+
+You can of course use the conventional means of decoration::
+
+    @log_if_errors(logger)
+    def foo(fail=False):
+        ...
+
+
+.. _utc-formatting:
+
+Formatting times using UTC (GMT) via configuration
+--------------------------------------------------
+
+Sometimes you want to format times using UTC, which can be done using a class
+such as `UTCFormatter`, shown below::
+
+    import logging
+    import time
+
+    class UTCFormatter(logging.Formatter):
+        converter = time.gmtime
+
+and you can then use the ``UTCFormatter`` in your code instead of
+:class:`~logging.Formatter`. If you want to do that via configuration, you can
+use the :func:`~logging.config.dictConfig` API with an approach illustrated by
+the following complete example::
+
+    import logging
+    import logging.config
+    import time
+
+    class UTCFormatter(logging.Formatter):
+        converter = time.gmtime
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'utc': {
+                '()': UTCFormatter,
+                'format': '%(asctime)s %(message)s',
+            },
+            'local': {
+                'format': '%(asctime)s %(message)s',
+            }
+        },
+        'handlers': {
+            'console1': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'utc',
+            },
+            'console2': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'local',
+            },
+        },
+        'root': {
+            'handlers': ['console1', 'console2'],
+       }
+    }
+
+    if __name__ == '__main__':
+        logging.config.dictConfig(LOGGING)
+        logging.warning('The local time is %s', time.asctime())
+
+When this script is run, it should print something like:
+
+.. code-block:: none
+
+    2015-10-17 12:53:29,501 The local time is Sat Oct 17 13:53:29 2015
+    2015-10-17 13:53:29,501 The local time is Sat Oct 17 13:53:29 2015
+
+showing how the time is formatted both as local time and UTC, one for each
+handler.
+
+
+.. _context-manager:
+
+Using a context manager for selective logging
+---------------------------------------------
+
+There are times when it would be useful to temporarily change the logging
+configuration and revert it back after doing something. For this, a context
+manager is the most obvious way of saving and restoring the logging context.
+Here is a simple example of such a context manager, which allows you to
+optionally change the logging level and add a logging handler purely in the
+scope of the context manager::
+
+    import logging
+    import sys
+
+    class LoggingContext(object):
+        def __init__(self, logger, level=None, handler=None, close=True):
+            self.logger = logger
+            self.level = level
+            self.handler = handler
+            self.close = close
+
+        def __enter__(self):
+            if self.level is not None:
+                self.old_level = self.logger.level
+                self.logger.setLevel(self.level)
+            if self.handler:
+                self.logger.addHandler(self.handler)
+
+        def __exit__(self, et, ev, tb):
+            if self.level is not None:
+                self.logger.setLevel(self.old_level)
+            if self.handler:
+                self.logger.removeHandler(self.handler)
+            if self.handler and self.close:
+                self.handler.close()
+            # implicit return of None => don't swallow exceptions
+
+If you specify a level value, the logger's level is set to that value in the
+scope of the with block covered by the context manager. If you specify a
+handler, it is added to the logger on entry to the block and removed on exit
+from the block. You can also ask the manager to close the handler for you on
+block exit - you could do this if you don't need the handler any more.
+
+To illustrate how it works, we can add the following block of code to the
+above::
+
+    if __name__ == '__main__':
+        logger = logging.getLogger('foo')
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+        logger.info('1. This should appear just once on stderr.')
+        logger.debug('2. This should not appear.')
+        with LoggingContext(logger, level=logging.DEBUG):
+            logger.debug('3. This should appear once on stderr.')
+        logger.debug('4. This should not appear.')
+        h = logging.StreamHandler(sys.stdout)
+        with LoggingContext(logger, level=logging.DEBUG, handler=h, close=True):
+            logger.debug('5. This should appear twice - once on stderr and once on stdout.')
+        logger.info('6. This should appear just once on stderr.')
+        logger.debug('7. This should not appear.')
+
+We initially set the logger's level to ``INFO``, so message #1 appears and
+message #2 doesn't. We then change the level to ``DEBUG`` temporarily in the
+following ``with`` block, and so message #3 appears. After the block exits, the
+logger's level is restored to ``INFO`` and so message #4 doesn't appear. In the
+next ``with`` block, we set the level to ``DEBUG`` again but also add a handler
+writing to ``sys.stdout``. Thus, message #5 appears twice on the console (once
+via ``stderr`` and once via ``stdout``). After the ``with`` statement's
+completion, the status is as it was before so message #6 appears (like message
+#1) whereas message #7 doesn't (just like message #2).
+
+If we run the resulting script, the result is as follows:
+
+.. code-block:: shell-session
+
+    $ python logctx.py
+    1. This should appear just once on stderr.
+    3. This should appear once on stderr.
+    5. This should appear twice - once on stderr and once on stdout.
+    5. This should appear twice - once on stderr and once on stdout.
+    6. This should appear just once on stderr.
+
+If we run it again, but pipe ``stderr`` to ``/dev/null``, we see the following,
+which is the only message written to ``stdout``:
+
+.. code-block:: shell-session
+
+    $ python logctx.py 2>/dev/null
+    5. This should appear twice - once on stderr and once on stdout.
+
+Once again, but piping ``stdout`` to ``/dev/null``, we get:
+
+.. code-block:: shell-session
+
+    $ python logctx.py >/dev/null
+    1. This should appear just once on stderr.
+    3. This should appear once on stderr.
+    5. This should appear twice - once on stderr and once on stdout.
+    6. This should appear just once on stderr.
+
+In this case, the message #5 printed to ``stdout`` doesn't appear, as expected.
+
+Of course, the approach described here can be generalised, for example to attach
+logging filters temporarily. Note that the above code works in Python 2 as well
+as Python 3.

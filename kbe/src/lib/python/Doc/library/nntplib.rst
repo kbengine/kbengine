@@ -4,12 +4,11 @@
 .. module:: nntplib
    :synopsis: NNTP protocol client (requires sockets).
 
+**Source code:** :source:`Lib/nntplib.py`
 
 .. index::
    pair: NNTP; protocol
    single: Network News Transfer Protocol
-
-**Source code:** :source:`Lib/nntplib.py`
 
 --------------
 
@@ -69,14 +68,14 @@ The module itself defines the following classes:
    connecting to an NNTP server on the local machine and intend to call
    reader-specific commands, such as ``group``.  If you get unexpected
    :exc:`NNTPPermanentError`\ s, you might need to set *readermode*.
-   :class:`NNTP` class supports the :keyword:`with` statement to
+   The :class:`NNTP` class supports the :keyword:`with` statement to
    unconditionally consume :exc:`OSError` exceptions and to close the NNTP
-   connection when done. Here is a sample on how using it:
+   connection when done, e.g.:
 
     >>> from nntplib import NNTP
     >>> with NNTP('news.gmane.org') as n:
     ...     n.group('gmane.comp.python.committers')
-    ...
+    ... # doctest: +SKIP
     ('211 1755 1 1755 gmane.comp.python.committers', 1755, 1, 1755, 'gmane.comp.python.committers')
     >>>
 
@@ -221,7 +220,7 @@ tuples or objects that the method normally returns will be empty.
 .. method:: NNTP.login(user=None, password=None, usenetrc=True)
 
    Send ``AUTHINFO`` commands with the user name and password.  If *user*
-   and *password* are None and *usenetrc* is true, credentials from
+   and *password* are ``None`` and *usenetrc* is true, credentials from
    ``~/.netrc`` will be used if possible.
 
    Unless intentionally delayed, login is normally performed during the
@@ -262,9 +261,9 @@ tuples or objects that the method normally returns will be empty.
 
       >>> from datetime import date, timedelta
       >>> resp, groups = s.newgroups(date.today() - timedelta(days=3))
-      >>> len(groups)
+      >>> len(groups) # doctest: +SKIP
       85
-      >>> groups[0]
+      >>> groups[0] # doctest: +SKIP
       GroupInfo(group='gmane.network.tor.devel', last='4', first='1', flag='m')
 
 
@@ -313,9 +312,9 @@ tuples or objects that the method normally returns will be empty.
    is a dictionary mapping group names to textual descriptions.
 
       >>> resp, descs = s.descriptions('gmane.comp.python.*')
-      >>> len(descs)
+      >>> len(descs) # doctest: +SKIP
       295
-      >>> descs.popitem()
+      >>> descs.popitem() # doctest: +SKIP
       ('gmane.comp.python.bio.general', 'BioPython discussion list (Moderated)')
 
 
@@ -341,7 +340,7 @@ tuples or objects that the method normally returns will be empty.
 
 .. method:: NNTP.over(message_spec, *, file=None)
 
-   Send a ``OVER`` command, or a ``XOVER`` command on legacy servers.
+   Send an ``OVER`` command, or an ``XOVER`` command on legacy servers.
    *message_spec* can be either a string representing a message id, or
    a ``(first, last)`` tuple of numbers indicating a range of articles in
    the current group, or a ``(first, None)`` tuple indicating a range of
@@ -543,7 +542,7 @@ them have been superseded by newer commands in :rfc:`3977`.
       is supplied, then the returned *list* is an empty list. This is an optional NNTP
       extension, and may not be supported by all servers.
 
-      RFC2980 says "It is suggested that this extension be deprecated".  Use
+      :rfc:`2980` says "It is suggested that this extension be deprecated".  Use
       :meth:`descriptions` or :meth:`description` instead.
 
 

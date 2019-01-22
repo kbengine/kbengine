@@ -33,8 +33,7 @@ def parse(source, handler, errorHandler=ErrorHandler()):
     parser.parse(source)
 
 def parseString(string, handler, errorHandler=ErrorHandler()):
-    from io import BytesIO
-
+    import io
     if errorHandler is None:
         errorHandler = ErrorHandler()
     parser = make_parser()
@@ -42,7 +41,10 @@ def parseString(string, handler, errorHandler=ErrorHandler()):
     parser.setErrorHandler(errorHandler)
 
     inpsrc = InputSource()
-    inpsrc.setByteStream(BytesIO(string))
+    if isinstance(string, str):
+        inpsrc.setCharacterStream(io.StringIO(string))
+    else:
+        inpsrc.setByteStream(io.BytesIO(string))
     parser.parse(inpsrc)
 
 # this is the parser list used by the make_parser function if no
@@ -56,7 +58,7 @@ if _false:
     import xml.sax.expatreader
 
 import os, sys
-if "PY_SAX_PARSER" in os.environ:
+if not sys.flags.ignore_environment and "PY_SAX_PARSER" in os.environ:
     default_parser_list = os.environ["PY_SAX_PARSER"].split(",")
 del os
 

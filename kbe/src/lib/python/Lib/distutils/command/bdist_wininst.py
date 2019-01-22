@@ -29,7 +29,7 @@ class bdist_wininst(Command):
                     ('no-target-compile', 'c',
                      "do not compile .py to .pyc on the target system"),
                     ('no-target-optimize', 'o',
-                     "do not compile .py to .pyo (optimized)"
+                     "do not compile .py to .pyo (optimized) "
                      "on the target system"),
                     ('dist-dir=', 'd',
                      "directory to put final built distributions in"),
@@ -40,7 +40,7 @@ class bdist_wininst(Command):
                     ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),
                     ('install-script=', None,
-                     "basename of installation script to be run after"
+                     "basename of installation script to be run after "
                      "installation or before deinstallation"),
                     ('pre-install-script=', None,
                      "Fully qualified filename of a script to be run before "
@@ -141,7 +141,7 @@ class bdist_wininst(Command):
             target_version = self.target_version
             if not target_version:
                 assert self.skip_build, "Should have already checked this"
-                target_version = sys.version[0:3]
+                target_version = '%d.%d' % sys.version_info[:2]
             plat_specifier = ".%s-%s" % (self.plat_name, target_version)
             build = self.get_finalized_command('build')
             build.build_lib = os.path.join(build.build_base,
@@ -303,7 +303,6 @@ class bdist_wininst(Command):
         return installer_name
 
     def get_exe_bytes(self):
-        from distutils.msvccompiler import get_build_version
         # If a target-version other than the current version has been
         # specified, then using the MSVC version from *this* build is no good.
         # Without actually finding and executing the target version and parsing
@@ -313,20 +312,36 @@ class bdist_wininst(Command):
         # We can then execute this program to obtain any info we need, such
         # as the real sys.version string for the build.
         cur_version = get_python_version()
-        if self.target_version and self.target_version != cur_version:
-            # If the target version is *later* than us, then we assume they
-            # use what we use
-            # string compares seem wrong, but are what sysconfig.py itself uses
-            if self.target_version > cur_version:
-                bv = get_build_version()
+
+        # If the target version is *later* than us, then we assume they
+        # use what we use
+        # string compares seem wrong, but are what sysconfig.py itself uses
+        if self.target_version and self.target_version < cur_version:
+            if self.target_version < "2.4":
+                bv = '6.0'
+            elif self.target_version == "2.4":
+                bv = '7.1'
+            elif self.target_version == "2.5":
+                bv = '8.0'
+            elif self.target_version <= "3.2":
+                bv = '9.0'
+            elif self.target_version <= "3.4":
+                bv = '10.0'
             else:
-                if self.target_version < "2.4":
-                    bv = 6.0
-                else:
-                    bv = 7.1
+                bv = '14.0'
         else:
             # for current version - use authoritative check.
-            bv = get_build_version()
+            try:
+                from msvcrt import CRT_ASSEMBLY_VERSION
+            except ImportError:
+                # cross-building, so assume the latest version
+                bv = '14.0'
+            else:
+                # as far as we know, CRT is binary compatible based on
+                # the first field, so assume 'x.0' until proven otherwise
+                major = CRT_ASSEMBLY_VERSION.partition('.')[0]
+                bv = major + '.0'
+
 
         # wininst-x.y.exe is in the same directory as this file
         directory = os.path.dirname(__file__)
@@ -341,7 +356,7 @@ class bdist_wininst(Command):
         else:
             sfix = ''
 
-        filename = os.path.join(directory, "wininst-%.1f%s.exe" % (bv, sfix))
+        filename = os.path.join(directory, "wininst-%s%s.exe" % (bv, sfix))
         f = open(filename, "rb")
         try:
             return f.read()

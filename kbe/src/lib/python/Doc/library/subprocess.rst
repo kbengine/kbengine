@@ -3,9 +3,13 @@
 
 .. module:: subprocess
    :synopsis: Subprocess management.
+
 .. moduleauthor:: Peter Åstrand <astrand@lysator.liu.se>
 .. sectionauthor:: Peter Åstrand <astrand@lysator.liu.se>
 
+**Source code:** :source:`Lib/subprocess.py`
+
+--------------
 
 The :mod:`subprocess` module allows you to spawn new processes, connect to their
 input/output/error pipes, and obtain their return codes.  This module intends to
@@ -25,160 +29,123 @@ modules and functions can be found in the following sections.
 Using the :mod:`subprocess` Module
 ----------------------------------
 
-The recommended approach to invoking subprocesses is to use the following
-convenience functions for all use cases they can handle. For more advanced
-use cases, the underlying :class:`Popen` interface can be used directly.
+The recommended approach to invoking subprocesses is to use the :func:`run`
+function for all use cases it can handle. For more advanced use cases, the
+underlying :class:`Popen` interface can be used directly.
+
+The :func:`run` function was added in Python 3.5; if you need to retain
+compatibility with older versions, see the :ref:`call-function-trio` section.
 
 
-.. function:: call(args, *, stdin=None, stdout=None, stderr=None, shell=False, timeout=None)
+.. function:: run(args, *, stdin=None, input=None, stdout=None, stderr=None,\
+                  capture_output=False, shell=False, cwd=None, timeout=None, \
+                  check=False, encoding=None, errors=None, text=None, env=None, \
+                  universal_newlines=None)
 
    Run the command described by *args*.  Wait for command to complete, then
-   return the :attr:`returncode` attribute.
+   return a :class:`CompletedProcess` instance.
 
    The arguments shown above are merely the most common ones, described below
    in :ref:`frequently-used-arguments` (hence the use of keyword-only notation
    in the abbreviated signature). The full function signature is largely the
-   same as that of the :class:`Popen` constructor - this function passes all
-   supplied arguments other than *timeout* directly through to that interface.
+   same as that of the :class:`Popen` constructor - most of the arguments to
+   this function are passed through to that interface. (*timeout*,  *input*,
+   *check*, and *capture_output* are not.)
 
-   The *timeout* argument is passed to :meth:`Popen.wait`. If the timeout
-   expires, the child process will be killed and then waited for again.  The
-   :exc:`TimeoutExpired` exception will be re-raised after the child process
-   has terminated.
+   If *capture_output* is true, stdout and stderr will be captured.
+   When used, the internal :class:`Popen` object is automatically created with
+   ``stdout=PIPE`` and ``stderr=PIPE``. The *stdout* and *stderr* arguments may
+   not be used as well.
 
-   Examples::
-
-      >>> subprocess.call(["ls", "-l"])
-      0
-
-      >>> subprocess.call("exit 1", shell=True)
-      1
-
-   .. note::
-
-      Do not use ``stdout=PIPE`` or ``stderr=PIPE`` with this
-      function.  The child process will block if it generates enough
-      output to a pipe to fill up the OS pipe buffer as the pipes are
-      not being read from.
-
-   .. versionchanged:: 3.3
-      *timeout* was added.
-
-
-.. function:: check_call(args, *, stdin=None, stdout=None, stderr=None, shell=False, timeout=None)
-
-   Run command with arguments.  Wait for command to complete. If the return
-   code was zero then return, otherwise raise :exc:`CalledProcessError`. The
-   :exc:`CalledProcessError` object will have the return code in the
-   :attr:`~CalledProcessError.returncode` attribute.
-
-   The arguments shown above are merely the most common ones, described below
-   in :ref:`frequently-used-arguments` (hence the use of keyword-only notation
-   in the abbreviated signature). The full function signature is largely the
-   same as that of the :class:`Popen` constructor - this function passes all
-   supplied arguments other than *timeout* directly through to that interface.
-
-   The *timeout* argument is passed to :meth:`Popen.wait`. If the timeout
-   expires, the child process will be killed and then waited for again.  The
-   :exc:`TimeoutExpired` exception will be re-raised after the child process
-   has terminated.
-
-   Examples::
-
-      >>> subprocess.check_call(["ls", "-l"])
-      0
-
-      >>> subprocess.check_call("exit 1", shell=True)
-      Traceback (most recent call last):
-         ...
-      subprocess.CalledProcessError: Command 'exit 1' returned non-zero exit status 1
-
-   .. note::
-
-      Do not use ``stdout=PIPE`` or ``stderr=PIPE`` with this
-      function.  The child process will block if it generates enough
-      output to a pipe to fill up the OS pipe buffer as the pipes are
-      not being read from.
-
-   .. versionchanged:: 3.3
-      *timeout* was added.
-
-
-.. function:: check_output(args, *, input=None, stdin=None, stderr=None, shell=False, universal_newlines=False, timeout=None)
-
-   Run command with arguments and return its output.
-
-   If the return code was non-zero it raises a :exc:`CalledProcessError`. The
-   :exc:`CalledProcessError` object will have the return code in the
-   :attr:`~CalledProcessError.returncode` attribute and any output in the
-   :attr:`~CalledProcessError.output` attribute.
-
-   The arguments shown above are merely the most common ones, described below
-   in :ref:`frequently-used-arguments` (hence the use of keyword-only notation
-   in the abbreviated signature). The full function signature is largely the
-   same as that of the :class:`Popen` constructor - this functions passes all
-   supplied arguments other than *input* and *timeout* directly through to
-   that interface.  In addition, *stdout* is not permitted as an argument, as
-   it is used internally to collect the output from the subprocess.
-
-   The *timeout* argument is passed to :meth:`Popen.wait`. If the timeout
-   expires, the child process will be killed and then waited for again.  The
+   The *timeout* argument is passed to :meth:`Popen.communicate`. If the timeout
+   expires, the child process will be killed and waited for.  The
    :exc:`TimeoutExpired` exception will be re-raised after the child process
    has terminated.
 
    The *input* argument is passed to :meth:`Popen.communicate` and thus to the
    subprocess's stdin.  If used it must be a byte sequence, or a string if
-   ``universal_newlines=True``.  When used, the internal :class:`Popen` object
-   is automatically created with ``stdin=PIPE``, and the *stdin* argument may
-   not be used as well.
+   *encoding* or *errors* is specified or *text* is true.  When
+   used, the internal :class:`Popen` object is automatically created with
+   ``stdin=PIPE``, and the *stdin* argument may not be used as well.
+
+   If *check* is true, and the process exits with a non-zero exit code, a
+   :exc:`CalledProcessError` exception will be raised. Attributes of that
+   exception hold the arguments, the exit code, and stdout and stderr if they
+   were captured.
+
+   If *encoding* or *errors* are specified, or *text* is true,
+   file objects for stdin, stdout and stderr are opened in text mode using the
+   specified *encoding* and *errors* or the :class:`io.TextIOWrapper` default.
+   The *universal_newlines* argument is equivalent  to *text* and is provided
+   for backwards compatibility. By default, file objects are opened in binary mode.
+
+   If *env* is not ``None``, it must be a mapping that defines the environment
+   variables for the new process; these are used instead of the default
+   behavior of inheriting the current process' environment. It is passed directly
+   to :class:`Popen`.
 
    Examples::
 
-      >>> subprocess.check_output(["echo", "Hello World!"])
-      b'Hello World!\n'
+      >>> subprocess.run(["ls", "-l"])  # doesn't capture output
+      CompletedProcess(args=['ls', '-l'], returncode=0)
 
-      >>> subprocess.check_output(["echo", "Hello World!"], universal_newlines=True)
-      'Hello World!\n'
-
-      >>> subprocess.check_output(["sed", "-e", "s/foo/bar/"],
-      ...                         input=b"when in the course of fooman events\n")
-      b'when in the course of barman events\n'
-
-      >>> subprocess.check_output("exit 1", shell=True)
+      >>> subprocess.run("exit 1", shell=True, check=True)
       Traceback (most recent call last):
-         ...
+        ...
       subprocess.CalledProcessError: Command 'exit 1' returned non-zero exit status 1
 
-   By default, this function will return the data as encoded bytes. The actual
-   encoding of the output data may depend on the command being invoked, so the
-   decoding to text will often need to be handled at the application level.
+      >>> subprocess.run(["ls", "-l", "/dev/null"], capture_output=True)
+      CompletedProcess(args=['ls', '-l', '/dev/null'], returncode=0,
+      stdout=b'crw-rw-rw- 1 root root 1, 3 Jan 23 16:23 /dev/null\n', stderr=b'')
 
-   This behaviour may be overridden by setting *universal_newlines* to
-   ``True`` as described below in :ref:`frequently-used-arguments`.
+   .. versionadded:: 3.5
 
-   To also capture standard error in the result, use
-   ``stderr=subprocess.STDOUT``::
+   .. versionchanged:: 3.6
 
-      >>> subprocess.check_output(
-      ...     "ls non_existent_file; exit 0",
-      ...     stderr=subprocess.STDOUT,
-      ...     shell=True)
-      'ls: non_existent_file: No such file or directory\n'
+      Added *encoding* and *errors* parameters
 
-   .. note::
+   .. versionchanged:: 3.7
 
-      Do not use ``stdout=PIPE`` or ``stderr=PIPE`` with this
-      function.  The child process will block if it generates enough
-      output to a pipe to fill up the OS pipe buffer as the pipes are
-      not being read from.
+      Added the *text* parameter, as a more understandable alias of *universal_newlines*.
+      Added the *capture_output* parameter.
 
-   .. versionadded:: 3.1
+.. class:: CompletedProcess
 
-   .. versionchanged:: 3.3
-      *timeout* was added.
+   The return value from :func:`run`, representing a process that has finished.
 
-   .. versionchanged:: 3.4
-      *input* was added.
+   .. attribute:: args
+
+      The arguments used to launch the process. This may be a list or a string.
+
+   .. attribute:: returncode
+
+      Exit status of the child process. Typically, an exit status of 0 indicates
+      that it ran successfully.
+
+      A negative value ``-N`` indicates that the child was terminated by signal
+      ``N`` (POSIX only).
+
+   .. attribute:: stdout
+
+      Captured stdout from the child process. A bytes sequence, or a string if
+      :func:`run` was called with an encoding, errors, or text=True.
+      ``None`` if stdout was not captured.
+
+      If you ran the process with ``stderr=subprocess.STDOUT``, stdout and
+      stderr will be combined in this attribute, and :attr:`stderr` will be
+      ``None``.
+
+   .. attribute:: stderr
+
+      Captured stderr from the child process. A bytes sequence, or a string if
+      :func:`run` was called with an encoding, errors, or text=True.
+      ``None`` if stderr was not captured.
+
+   .. method:: check_returncode()
+
+      If :attr:`returncode` is non-zero, raise a :exc:`CalledProcessError`.
+
+   .. versionadded:: 3.5
 
 .. data:: DEVNULL
 
@@ -225,11 +192,22 @@ use cases, the underlying :class:`Popen` interface can be used directly.
 
     .. attribute:: output
 
-        Output of the child process if this exception is raised by
+        Output of the child process if it was captured by :func:`run` or
         :func:`check_output`.  Otherwise, ``None``.
+
+    .. attribute:: stdout
+
+        Alias for output, for symmetry with :attr:`stderr`.
+
+    .. attribute:: stderr
+
+        Stderr output of the child process if it was captured by :func:`run`.
+        Otherwise, ``None``.
 
     .. versionadded:: 3.3
 
+    .. versionchanged:: 3.5
+        *stdout* and *stderr* attributes added
 
 .. exception:: CalledProcessError
 
@@ -238,7 +216,8 @@ use cases, the underlying :class:`Popen` interface can be used directly.
 
     .. attribute:: returncode
 
-        Exit status of the child process.
+        Exit status of the child process.  If the process exited due to a
+        signal, this will be the negative signal number.
 
     .. attribute:: cmd
 
@@ -246,9 +225,20 @@ use cases, the underlying :class:`Popen` interface can be used directly.
 
     .. attribute:: output
 
-        Output of the child process if this exception is raised by
+        Output of the child process if it was captured by :func:`run` or
         :func:`check_output`.  Otherwise, ``None``.
 
+    .. attribute:: stdout
+
+        Alias for output, for symmetry with :attr:`stderr`.
+
+    .. attribute:: stderr
+
+        Stderr output of the child process if it was captured by :func:`run`.
+        Otherwise, ``None``.
+
+    .. versionchanged:: 3.5
+        *stdout* and *stderr* attributes added
 
 
 .. _frequently-used-arguments:
@@ -283,19 +273,26 @@ default values. The arguments that are most commonly needed are:
    .. index::
       single: universal newlines; subprocess module
 
-   If *universal_newlines* is ``False`` the file objects *stdin*, *stdout* and
-   *stderr* will be opened as binary streams, and no line ending conversion is
-   done.
+   If *encoding* or *errors* are specified, or *text* (also known as
+   *universal_newlines*) is true,
+   the file objects *stdin*, *stdout* and *stderr* will be opened in text
+   mode using the *encoding* and *errors* specified in the call or the
+   defaults for :class:`io.TextIOWrapper`.
 
-   If *universal_newlines* is ``True``, these file objects
-   will be opened as text streams in :term:`universal newlines` mode
-   using the encoding returned by :func:`locale.getpreferredencoding(False)
-   <locale.getpreferredencoding>`.  For *stdin*, line ending characters
-   ``'\n'`` in the input will be converted to the default line separator
-   :data:`os.linesep`.  For *stdout* and *stderr*, all line endings in the
-   output will be converted to ``'\n'``.  For more information see the
-   documentation of the :class:`io.TextIOWrapper` class when the *newline*
-   argument to its constructor is ``None``.
+   For *stdin*, line ending characters ``'\n'`` in the input will be converted
+   to the default line separator :data:`os.linesep`. For *stdout* and *stderr*,
+   all line endings in the output will be converted to ``'\n'``.  For more
+   information see the documentation of the :class:`io.TextIOWrapper` class
+   when the *newline* argument to its constructor is ``None``.
+
+   If text mode is not used, *stdin*, *stdout* and *stderr* will be opened as
+   binary streams. No encoding or line ending conversion is performed.
+
+   .. versionadded:: 3.6
+      Added *encoding* and *errors* parameters.
+
+   .. versionadded:: 3.7
+      Added the *text* parameter as an alias for *universal_newlines*.
 
    .. note::
 
@@ -338,9 +335,10 @@ functions.
 
 .. class:: Popen(args, bufsize=-1, executable=None, stdin=None, stdout=None, \
                  stderr=None, preexec_fn=None, close_fds=True, shell=False, \
-                 cwd=None, env=None, universal_newlines=False, \
+                 cwd=None, env=None, universal_newlines=None, \
                  startupinfo=None, creationflags=0, restore_signals=True, \
-                 start_new_session=False, pass_fds=())
+                 start_new_session=False, pass_fds=(), *, \
+                 encoding=None, errors=None, text=None)
 
    Execute a child program in a new process.  On POSIX, the class uses
    :meth:`os.execvp`-like behavior to execute the child program.  On Windows,
@@ -381,8 +379,8 @@ functions.
    manner described in :ref:`converting-argument-sequence`.  This is because
    the underlying ``CreateProcess()`` operates on strings.
 
-   The *shell* argument (which defaults to *False*) specifies whether to use
-   the shell as the program to execute.  If *shell* is *True*, it is
+   The *shell* argument (which defaults to ``False``) specifies whether to use
+   the shell as the program to execute.  If *shell* is ``True``, it is
    recommended to pass *args* as a string rather than as a sequence.
 
    On POSIX with ``shell=True``, the shell defaults to :file:`/bin/sh`.  If
@@ -406,12 +404,18 @@ functions.
 
       Read the `Security Considerations`_ section before using ``shell=True``.
 
-   *bufsize* will be supplied as the corresponding argument to the :func:`open`
-   function when creating the stdin/stdout/stderr pipe file objects: :const:`0`
-   means unbuffered (read and write are one system call and can return short),
-   :const:`1` means line buffered, any other positive value means use a buffer
-   of approximately that size.  A negative bufsize (the default) means the
-   system default of io.DEFAULT_BUFFER_SIZE will be used.
+   *bufsize* will be supplied as the corresponding argument to the
+   :func:`open` function when creating the stdin/stdout/stderr pipe
+   file objects:
+
+   - :const:`0` means unbuffered (read and write are one
+     system call and can return short)
+   - :const:`1` means line buffered
+     (only usable if ``universal_newlines=True`` i.e., in a text mode)
+   - any other positive value means use a buffer of approximately that
+     size
+   - negative bufsize (the default) means the system default of
+     io.DEFAULT_BUFFER_SIZE will be used.
 
    .. versionchanged:: 3.3.1
       *bufsize* now defaults to -1 to enable buffering by default to match the
@@ -461,16 +465,22 @@ functions.
       common use of *preexec_fn* to call os.setsid() in the child.
 
    If *close_fds* is true, all file descriptors except :const:`0`, :const:`1` and
-   :const:`2` will be closed before the child process is executed. (POSIX only).
-   The default varies by platform:  Always true on POSIX.  On Windows it is
-   true when *stdin*/*stdout*/*stderr* are :const:`None`, false otherwise.
+   :const:`2` will be closed before the child process is executed.  Otherwise
+   when *close_fds* is false, file descriptors obey their inheritable flag
+   as described in :ref:`fd_inheritance`.
+
    On Windows, if *close_fds* is true then no handles will be inherited by the
-   child process.  Note that on Windows, you cannot set *close_fds* to true and
-   also redirect the standard handles by setting *stdin*, *stdout* or *stderr*.
+   child process unless explicitly passed in the ``handle_list`` element of
+   :attr:`STARTUPINFO.lpAttributeList`, or by standard handle redirection.
 
    .. versionchanged:: 3.2
       The default for *close_fds* was changed from :const:`False` to
       what is described above.
+
+   .. versionchanged:: 3.7
+      On Windows the default for *close_fds* was changed from :const:`False` to
+      :const:`True` when redirecting the standard handles. It's now possible to
+      set *close_fds* to :const:`True` when redirecting the standard handles.
 
    *pass_fds* is an optional sequence of file descriptors to keep open
    between the parent and child.  Providing any *pass_fds* forces
@@ -480,9 +490,13 @@ functions.
       The *pass_fds* parameter was added.
 
    If *cwd* is not ``None``, the function changes the working directory to
-   *cwd* before executing the child.  In particular, the function looks for
-   *executable* (or for the first item in *args*) relative to *cwd* if the
-   executable path is a relative path.
+   *cwd* before executing the child.  *cwd* can be a :class:`str` and
+   :term:`path-like <path-like object>` object.  In particular, the function
+   looks for *executable* (or for the first item in *args*) relative to *cwd*
+   if the executable path is a relative path.
+
+   .. versionchanged:: 3.6
+      *cwd* parameter accepts a :term:`path-like object`.
 
    If *restore_signals* is true (the default) all signals that Python has set to
    SIG_IGN are restored to SIG_DFL in the child process before the exec.
@@ -508,17 +522,36 @@ functions.
       execute.  On Windows, in order to run a `side-by-side assembly`_ the
       specified *env* **must** include a valid :envvar:`SystemRoot`.
 
-   .. _side-by-side assembly: http://en.wikipedia.org/wiki/Side-by-Side_Assembly
+   .. _side-by-side assembly: https://en.wikipedia.org/wiki/Side-by-Side_Assembly
 
-   If *universal_newlines* is ``True``, the file objects *stdin*, *stdout*
-   and *stderr* are opened as text streams in universal newlines mode, as
-   described above in :ref:`frequently-used-arguments`, otherwise they are
-   opened as binary streams.
+   If *encoding* or *errors* are specified, or *text* is true, the file objects
+   *stdin*, *stdout* and *stderr* are opened in text mode with the specified
+   encoding and *errors*, as described above in :ref:`frequently-used-arguments`.
+   The *universal_newlines* argument is equivalent  to *text* and is provided
+   for backwards compatibility. By default, file objects are opened in binary mode.
+
+   .. versionadded:: 3.6
+      *encoding* and *errors* were added.
+
+   .. versionadded:: 3.7
+      *text* was added as a more readable alias for *universal_newlines*.
 
    If given, *startupinfo* will be a :class:`STARTUPINFO` object, which is
    passed to the underlying ``CreateProcess`` function.
-   *creationflags*, if given, can be :data:`CREATE_NEW_CONSOLE` or
-   :data:`CREATE_NEW_PROCESS_GROUP`. (Windows only)
+   *creationflags*, if given, can be one or more of the following flags:
+
+      * :data:`CREATE_NEW_CONSOLE`
+      * :data:`CREATE_NEW_PROCESS_GROUP`
+      * :data:`ABOVE_NORMAL_PRIORITY_CLASS`
+      * :data:`BELOW_NORMAL_PRIORITY_CLASS`
+      * :data:`HIGH_PRIORITY_CLASS`
+      * :data:`IDLE_PRIORITY_CLASS`
+      * :data:`NORMAL_PRIORITY_CLASS`
+      * :data:`REALTIME_PRIORITY_CLASS`
+      * :data:`CREATE_NO_WINDOW`
+      * :data:`DETACHED_PROCESS`
+      * :data:`CREATE_DEFAULT_ERROR_MODE`
+      * :data:`CREATE_BREAKAWAY_FROM_JOB`
 
    Popen objects are supported as context managers via the :keyword:`with` statement:
    on exit, standard file descriptors are closed, and the process is waited for.
@@ -529,6 +562,10 @@ functions.
 
    .. versionchanged:: 3.2
       Added context manager support.
+
+   .. versionchanged:: 3.6
+      Popen destructor now emits a :exc:`ResourceWarning` warning if the child
+      process is still running.
 
 
 Exceptions
@@ -569,7 +606,7 @@ including shell metacharacters, can safely be passed to child processes.
 If the shell is invoked explicitly, via ``shell=True``, it is the application's
 responsibility to ensure that all whitespace and metacharacters are
 quoted appropriately to avoid
-`shell injection <http://en.wikipedia.org/wiki/Shell_injection#Shell_injection>`_
+`shell injection <https://en.wikipedia.org/wiki/Shell_injection#Shell_injection>`_
 vulnerabilities.
 
 When using ``shell=True``, the :func:`shlex.quote` function can be
@@ -586,7 +623,7 @@ Instances of the :class:`Popen` class have the following methods:
 .. method:: Popen.poll()
 
    Check if child process has terminated.  Set and return
-   :attr:`~Popen.returncode` attribute.
+   :attr:`~Popen.returncode` attribute. Otherwise, returns ``None``.
 
 
 .. method:: Popen.wait(timeout=None)
@@ -614,21 +651,17 @@ Instances of the :class:`Popen` class have the following methods:
    .. versionchanged:: 3.3
       *timeout* was added.
 
-   .. deprecated:: 3.4
-
-      Do not use the *endtime* parameter.  It is was unintentionally
-      exposed in 3.3 but was left undocumented as it was intended to be
-      private for internal use.  Use *timeout* instead.
-
 .. method:: Popen.communicate(input=None, timeout=None)
 
    Interact with process: Send data to stdin.  Read data from stdout and stderr,
    until end-of-file is reached.  Wait for process to terminate.  The optional
    *input* argument should be data to be sent to the child process, or
-   ``None``, if no data should be sent to the child.  The type of *input*
-   must be bytes or, if *universal_newlines* was ``True``, a string.
+   ``None``, if no data should be sent to the child.  If streams were opened in
+   text mode, *input* must be a string.  Otherwise, it must be bytes.
 
-   :meth:`communicate` returns a tuple ``(stdoutdata, stderrdata)``.
+   :meth:`communicate` returns a tuple ``(stdout_data, stderr_data)``.
+   The data will be strings if streams were opened in text mode; otherwise,
+   bytes.
 
    Note that if you want to send data to the process's stdin, you need to create
    the Popen object with ``stdin=PIPE``.  Similarly, to get anything other than
@@ -695,28 +728,30 @@ The following attributes are also available:
 .. attribute:: Popen.stdin
 
    If the *stdin* argument was :data:`PIPE`, this attribute is a writeable
-   stream object as returned by :func:`open`. If the *universal_newlines*
-   argument was ``True``, the stream is a text stream, otherwise it is a byte
-   stream. If the *stdin* argument was not :data:`PIPE`, this attribute is
-   ``None``.
+   stream object as returned by :func:`open`. If the *encoding* or *errors*
+   arguments were specified or the *universal_newlines* argument was ``True``,
+   the stream is a text stream, otherwise it is a byte stream. If the *stdin*
+   argument was not :data:`PIPE`, this attribute is ``None``.
 
 
 .. attribute:: Popen.stdout
 
    If the *stdout* argument was :data:`PIPE`, this attribute is a readable
    stream object as returned by :func:`open`. Reading from the stream provides
-   output from the child process. If the *universal_newlines* argument was
-   ``True``, the stream is a text stream, otherwise it is a byte stream. If the
-   *stdout* argument was not :data:`PIPE`, this attribute is ``None``.
+   output from the child process. If the *encoding* or *errors* arguments were
+   specified or the *universal_newlines* argument was ``True``, the stream is a
+   text stream, otherwise it is a byte stream. If the *stdout* argument was not
+   :data:`PIPE`, this attribute is ``None``.
 
 
 .. attribute:: Popen.stderr
 
    If the *stderr* argument was :data:`PIPE`, this attribute is a readable
    stream object as returned by :func:`open`. Reading from the stream provides
-   error output from the child process. If the *universal_newlines* argument was
-   ``True``, the stream is a text stream, otherwise it is a byte stream. If the
-   *stderr* argument was not :data:`PIPE`, this attribute is ``None``.
+   error output from the child process. If the *encoding* or *errors* arguments
+   were specified or the *universal_newlines* argument was ``True``, the stream
+   is a text stream, otherwise it is a byte stream. If the *stderr* argument was
+   not :data:`PIPE`, this attribute is ``None``.
 
 .. warning::
 
@@ -750,11 +785,16 @@ Windows Popen Helpers
 The :class:`STARTUPINFO` class and following constants are only available
 on Windows.
 
-.. class:: STARTUPINFO()
+.. class:: STARTUPINFO(*, dwFlags=0, hStdInput=None, hStdOutput=None, \
+                       hStdError=None, wShowWindow=0, lpAttributeList=None)
 
    Partial support of the Windows
-   `STARTUPINFO <http://msdn.microsoft.com/en-us/library/ms686331(v=vs.85).aspx>`__
-   structure is used for :class:`Popen` creation.
+   `STARTUPINFO <https://msdn.microsoft.com/en-us/library/ms686331(v=vs.85).aspx>`__
+   structure is used for :class:`Popen` creation.  The following attributes can
+   be set by passing them as keyword-only arguments.
+
+   .. versionchanged:: 3.7
+      Keyword-only argument support was added.
 
    .. attribute:: dwFlags
 
@@ -789,16 +829,43 @@ on Windows.
       If :attr:`dwFlags` specifies :data:`STARTF_USESHOWWINDOW`, this attribute
       can be any of the values that can be specified in the ``nCmdShow``
       parameter for the
-      `ShowWindow <http://msdn.microsoft.com/en-us/library/ms633548(v=vs.85).aspx>`__
+      `ShowWindow <https://msdn.microsoft.com/en-us/library/ms633548(v=vs.85).aspx>`__
       function, except for ``SW_SHOWDEFAULT``. Otherwise, this attribute is
       ignored.
 
       :data:`SW_HIDE` is provided for this attribute. It is used when
       :class:`Popen` is called with ``shell=True``.
 
+   .. attribute:: lpAttributeList
 
-Constants
-^^^^^^^^^
+      A dictionary of additional attributes for process creation as given in
+      ``STARTUPINFOEX``, see
+      `UpdateProcThreadAttribute <https://msdn.microsoft.com/en-us/library/windows/desktop/ms686880(v=vs.85).aspx>`__.
+
+      Supported attributes:
+
+      **handle_list**
+         Sequence of handles that will be inherited. *close_fds* must be true if
+         non-empty.
+
+         The handles must be temporarily made inheritable by
+         :func:`os.set_handle_inheritable` when passed to the :class:`Popen`
+         constructor, else :class:`OSError` will be raised with Windows error
+         ``ERROR_INVALID_PARAMETER`` (87).
+
+         .. warning::
+
+            In a multithreaded process, use caution to avoid leaking handles
+            that are marked inheritable when combining this feature with
+            concurrent calls to other process creation functions that inherit
+            all handles such as :func:`os.system`.  This also applies to
+            standard handle redirection, which temporarily creates inheritable
+            handles.
+
+      .. versionadded:: 3.7
+
+Windows Constants
+^^^^^^^^^^^^^^^^^
 
 The :mod:`subprocess` module exposes the following constants.
 
@@ -845,6 +912,199 @@ The :mod:`subprocess` module exposes the following constants.
 
    This flag is ignored if :data:`CREATE_NEW_CONSOLE` is specified.
 
+.. data:: ABOVE_NORMAL_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have an above average priority.
+
+   .. versionadded:: 3.7
+
+.. data:: BELOW_NORMAL_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have a below average priority.
+
+   .. versionadded:: 3.7
+
+.. data:: HIGH_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have a high priority.
+
+   .. versionadded:: 3.7
+
+.. data:: IDLE_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have an idle (lowest) priority.
+
+   .. versionadded:: 3.7
+
+.. data:: NORMAL_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have an normal priority. (default)
+
+   .. versionadded:: 3.7
+
+.. data:: REALTIME_PRIORITY_CLASS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will have realtime priority.
+   You should almost never use REALTIME_PRIORITY_CLASS, because this interrupts
+   system threads that manage mouse input, keyboard input, and background disk
+   flushing. This class can be appropriate for applications that "talk" directly
+   to hardware or that perform brief tasks that should have limited interruptions.
+
+   .. versionadded:: 3.7
+
+.. data:: CREATE_NO_WINDOW
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will not create a window
+
+   .. versionadded:: 3.7
+
+.. data:: DETACHED_PROCESS
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   will not inherit its parent's console.
+   This value cannot be used with CREATE_NEW_CONSOLE.
+
+   .. versionadded:: 3.7
+
+.. data:: CREATE_DEFAULT_ERROR_MODE
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   does not inherit the error mode of the calling process. Instead, the new
+   process gets the default error mode.
+   This feature is particularly useful for multithreaded shell applications
+   that run with hard errors disabled.
+
+   .. versionadded:: 3.7
+
+.. data:: CREATE_BREAKAWAY_FROM_JOB
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   is not associated with the job.
+
+   .. versionadded:: 3.7
+
+.. _call-function-trio:
+
+Older high-level API
+--------------------
+
+Prior to Python 3.5, these three functions comprised the high level API to
+subprocess. You can now use :func:`run` in many cases, but lots of existing code
+calls these functions.
+
+.. function:: call(args, *, stdin=None, stdout=None, stderr=None, shell=False, cwd=None, timeout=None)
+
+   Run the command described by *args*.  Wait for command to complete, then
+   return the :attr:`~Popen.returncode` attribute.
+
+   This is equivalent to::
+
+       run(...).returncode
+
+   (except that the *input* and *check* parameters are not supported)
+
+   The arguments shown above are merely the most
+   common ones. The full function signature is largely the
+   same as that of the :class:`Popen` constructor - this function passes all
+   supplied arguments other than *timeout* directly through to that interface.
+
+   .. note::
+
+      Do not use ``stdout=PIPE`` or ``stderr=PIPE`` with this
+      function.  The child process will block if it generates enough
+      output to a pipe to fill up the OS pipe buffer as the pipes are
+      not being read from.
+
+   .. versionchanged:: 3.3
+      *timeout* was added.
+
+.. function:: check_call(args, *, stdin=None, stdout=None, stderr=None, shell=False, cwd=None, timeout=None)
+
+   Run command with arguments.  Wait for command to complete. If the return
+   code was zero then return, otherwise raise :exc:`CalledProcessError`. The
+   :exc:`CalledProcessError` object will have the return code in the
+   :attr:`~CalledProcessError.returncode` attribute.
+
+   This is equivalent to::
+
+       run(..., check=True)
+
+   (except that the *input* parameter is not supported)
+
+   The arguments shown above are merely the most
+   common ones. The full function signature is largely the
+   same as that of the :class:`Popen` constructor - this function passes all
+   supplied arguments other than *timeout* directly through to that interface.
+
+   .. note::
+
+      Do not use ``stdout=PIPE`` or ``stderr=PIPE`` with this
+      function.  The child process will block if it generates enough
+      output to a pipe to fill up the OS pipe buffer as the pipes are
+      not being read from.
+
+   .. versionchanged:: 3.3
+      *timeout* was added.
+
+
+.. function:: check_output(args, *, stdin=None, stderr=None, shell=False, \
+                           cwd=None, encoding=None, errors=None, \
+                           universal_newlines=None, timeout=None, text=None)
+
+   Run command with arguments and return its output.
+
+   If the return code was non-zero it raises a :exc:`CalledProcessError`. The
+   :exc:`CalledProcessError` object will have the return code in the
+   :attr:`~CalledProcessError.returncode` attribute and any output in the
+   :attr:`~CalledProcessError.output` attribute.
+
+   This is equivalent to::
+
+       run(..., check=True, stdout=PIPE).stdout
+
+   The arguments shown above are merely the most common ones.
+   The full function signature is largely the same as that of :func:`run` -
+   most arguments are passed directly through to that interface.
+   However, explicitly passing ``input=None`` to inherit the parent's
+   standard input file handle is not supported.
+
+   By default, this function will return the data as encoded bytes. The actual
+   encoding of the output data may depend on the command being invoked, so the
+   decoding to text will often need to be handled at the application level.
+
+   This behaviour may be overridden by setting *universal_newlines* to
+   ``True`` as described above in :ref:`frequently-used-arguments`.
+
+   To also capture standard error in the result, use
+   ``stderr=subprocess.STDOUT``::
+
+      >>> subprocess.check_output(
+      ...     "ls non_existent_file; exit 0",
+      ...     stderr=subprocess.STDOUT,
+      ...     shell=True)
+      'ls: non_existent_file: No such file or directory\n'
+
+   .. versionadded:: 3.1
+
+   .. versionchanged:: 3.3
+      *timeout* was added.
+
+   .. versionchanged:: 3.4
+      Support for the *input* keyword argument was added.
+
+   .. versionchanged:: 3.6
+      *encoding* and *errors* were added.  See :func:`run` for details.
+
+   .. versionadded:: 3.7
+      *text* was added as a more readable alias for *universal_newlines*.
+
 
 .. _subprocess-replacements:
 
@@ -871,20 +1131,23 @@ been imported from the :mod:`subprocess` module.
 Replacing /bin/sh shell backquote
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-::
+.. code-block:: bash
 
    output=`mycmd myarg`
-   # becomes
-   output = check_output(["mycmd", "myarg"])
 
+becomes::
+
+   output = check_output(["mycmd", "myarg"])
 
 Replacing shell pipeline
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-::
+.. code-block:: bash
 
    output=`dmesg | grep hda`
-   # becomes
+
+becomes::
+
    p1 = Popen(["dmesg"], stdout=PIPE)
    p2 = Popen(["grep", "hda"], stdin=p1.stdout, stdout=PIPE)
    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
@@ -894,10 +1157,14 @@ The p1.stdout.close() call after starting the p2 is important in order for p1
 to receive a SIGPIPE if p2 exits before p1.
 
 Alternatively, for trusted input, the shell's own pipeline support may still
-be used directly::
+be used directly:
+
+.. code-block:: bash
 
    output=`dmesg | grep hda`
-   # becomes
+
+becomes::
+
    output=check_output("dmesg | grep hda", shell=True)
 
 
@@ -994,7 +1261,7 @@ Return code handling translates as follows::
    if rc is not None and rc >> 8:
        print("There were some errors")
    ==>
-   process = Popen(cmd, 'w', stdin=PIPE)
+   process = Popen(cmd, stdin=PIPE)
    ...
    process.stdin.close()
    if process.wait() != 0:
@@ -1049,40 +1316,46 @@ handling consistency are valid for these functions.
 
 .. function:: getstatusoutput(cmd)
 
-   Return ``(status, output)`` of executing *cmd* in a shell.
+   Return ``(exitcode, output)`` of executing *cmd* in a shell.
 
    Execute the string *cmd* in a shell with :meth:`Popen.check_output` and
-   return a 2-tuple ``(status, output)``. Universal newlines mode is used;
+   return a 2-tuple ``(exitcode, output)``. The locale encoding is used;
    see the notes on :ref:`frequently-used-arguments` for more details.
 
    A trailing newline is stripped from the output.
-   The exit status for the command can be interpreted
-   according to the rules for the C function :c:func:`wait`.  Example::
+   The exit code for the command can be interpreted as the return code
+   of subprocess.  Example::
 
       >>> subprocess.getstatusoutput('ls /bin/ls')
       (0, '/bin/ls')
       >>> subprocess.getstatusoutput('cat /bin/junk')
-      (256, 'cat: /bin/junk: No such file or directory')
+      (1, 'cat: /bin/junk: No such file or directory')
       >>> subprocess.getstatusoutput('/bin/junk')
-      (256, 'sh: /bin/junk: not found')
+      (127, 'sh: /bin/junk: not found')
+      >>> subprocess.getstatusoutput('/bin/kill $$')
+      (-15, '')
 
-   Availability: POSIX & Windows
+   .. availability:: POSIX & Windows.
 
    .. versionchanged:: 3.3.4
-      Windows support added
+      Windows support was added.
+
+      The function now returns (exitcode, output) instead of (status, output)
+      as it did in Python 3.3.3 and earlier.  exitcode has the same value as
+      :attr:`~Popen.returncode`.
 
 
 .. function:: getoutput(cmd)
 
    Return output (stdout and stderr) of executing *cmd* in a shell.
 
-   Like :func:`getstatusoutput`, except the exit status is ignored and the return
+   Like :func:`getstatusoutput`, except the exit code is ignored and the return
    value is a string containing the command's output.  Example::
 
       >>> subprocess.getoutput('ls /bin/ls')
       '/bin/ls'
 
-   Availability: POSIX & Windows
+   .. availability:: POSIX & Windows.
 
    .. versionchanged:: 3.3.4
       Windows support added

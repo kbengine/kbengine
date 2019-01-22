@@ -16,11 +16,11 @@ extern "C" {
    pointer is NULL. */
 
 typedef struct PyMemberDef {
-    char *name;
+    const char *name;
     int type;
     Py_ssize_t offset;
     int flags;
-    char *doc;
+    const char *doc;
 } PyMemberDef;
 
 /* Types */
@@ -49,10 +49,8 @@ typedef struct PyMemberDef {
 #define T_OBJECT_EX 16  /* Like T_OBJECT, but raises AttributeError
                            when the value is NULL, instead of
                            converting to None. */
-#ifdef HAVE_LONG_LONG
 #define T_LONGLONG      17
 #define T_ULONGLONG     18
-#endif /* HAVE_LONG_LONG */
 
 #define T_PYSSIZET      19      /* Py_ssize_t */
 #define T_NONE          20      /* Value is always None */

@@ -9,13 +9,19 @@ Exception Handling
 
 The functions described in this chapter will let you handle and raise Python
 exceptions.  It is important to understand some of the basics of Python
-exception handling.  It works somewhat like the Unix :c:data:`errno` variable:
+exception handling.  It works somewhat like the POSIX :c:data:`errno` variable:
 there is a global indicator (per thread) of the last error that occurred.  Most
-functions don't clear this on success, but will set it to indicate the cause of
-the error on failure.  Most functions also return an error indicator, usually
-*NULL* if they are supposed to return a pointer, or ``-1`` if they return an
-integer (exception: the :c:func:`PyArg_\*` functions return ``1`` for success and
-``0`` for failure).
+C API functions don't clear this on success, but will set it to indicate the
+cause of the error on failure.  Most C API functions also return an error
+indicator, usually *NULL* if they are supposed to return a pointer, or ``-1``
+if they return an integer (exception: the :c:func:`PyArg_\*` functions
+return ``1`` for success and ``0`` for failure).
+
+Concretely, the error indicator consists of three object pointers: the
+exception's type, the exception's value, and the traceback object.  Any
+of those pointers can be NULL if non-set (although some combinations are
+forbidden, for example you can't have a non-NULL traceback if the exception
+type is NULL).
 
 When a function must fail because some function it called failed, it generally
 doesn't set the error indicator; the function it called already set it.  It is
@@ -27,12 +33,21 @@ the caller that an error has been set.  If the error is not handled or carefully
 propagated, additional calls into the Python/C API may not behave as intended
 and may fail in mysterious ways.
 
-The error indicator consists of three Python objects corresponding to the result
-of ``sys.exc_info()``.  API functions exist to interact with the error indicator
-in various ways.  There is a separate error indicator for each thread.
+.. note::
+   The error indicator is **not** the result of :func:`sys.exc_info()`.
+   The former corresponds to an exception that is not yet caught (and is
+   therefore still propagating), while the latter returns an exception after
+   it is caught (and has therefore stopped propagating).
 
-.. XXX Order of these should be more thoughtful.
-   Either alphabetical or some kind of structure.
+
+Printing and clearing
+=====================
+
+
+.. c:function:: void PyErr_Clear()
+
+   Clear the error indicator.  If the error indicator is not set, there is no
+   effect.
 
 
 .. c:function:: void PyErr_PrintEx(int set_sys_last_vars)
@@ -51,127 +66,24 @@ in various ways.  There is a separate error indicator for each thread.
    Alias for ``PyErr_PrintEx(1)``.
 
 
-.. c:function:: PyObject* PyErr_Occurred()
+.. c:function:: void PyErr_WriteUnraisable(PyObject *obj)
 
-   Test whether the error indicator is set.  If set, return the exception *type*
-   (the first argument to the last call to one of the :c:func:`PyErr_Set\*`
-   functions or to :c:func:`PyErr_Restore`).  If not set, return *NULL*.  You do not
-   own a reference to the return value, so you do not need to :c:func:`Py_DECREF`
-   it.
+   This utility function prints a warning message to ``sys.stderr`` when an
+   exception has been set but it is impossible for the interpreter to actually
+   raise the exception.  It is used, for example, when an exception occurs in an
+   :meth:`__del__` method.
 
-   .. note::
-
-      Do not compare the return value to a specific exception; use
-      :c:func:`PyErr_ExceptionMatches` instead, shown below.  (The comparison could
-      easily fail since the exception may be an instance instead of a class, in the
-      case of a class exception, or it may the a subclass of the expected exception.)
+   The function is called with a single argument *obj* that identifies the context
+   in which the unraisable exception occurred. If possible,
+   the repr of *obj* will be printed in the warning message.
 
 
-.. c:function:: int PyErr_ExceptionMatches(PyObject *exc)
+Raising exceptions
+==================
 
-   Equivalent to ``PyErr_GivenExceptionMatches(PyErr_Occurred(), exc)``.  This
-   should only be called when an exception is actually set; a memory access
-   violation will occur if no exception has been raised.
-
-
-.. c:function:: int PyErr_GivenExceptionMatches(PyObject *given, PyObject *exc)
-
-   Return true if the *given* exception matches the exception in *exc*.  If
-   *exc* is a class object, this also returns true when *given* is an instance
-   of a subclass.  If *exc* is a tuple, all exceptions in the tuple (and
-   recursively in subtuples) are searched for a match.
-
-
-.. c:function:: void PyErr_NormalizeException(PyObject**exc, PyObject**val, PyObject**tb)
-
-   Under certain circumstances, the values returned by :c:func:`PyErr_Fetch` below
-   can be "unnormalized", meaning that ``*exc`` is a class object but ``*val`` is
-   not an instance of the  same class.  This function can be used to instantiate
-   the class in that case.  If the values are already normalized, nothing happens.
-   The delayed normalization is implemented to improve performance.
-
-   .. note::
-
-      This function *does not* implicitly set the ``__traceback__``
-      attribute on the exception value. If setting the traceback
-      appropriately is desired, the following additional snippet is needed::
-
-         if (tb != NULL) {
-           PyException_SetTraceback(val, tb);
-         }
-
-
-.. c:function:: void PyErr_Clear()
-
-   Clear the error indicator.  If the error indicator is not set, there is no
-   effect.
-
-
-.. c:function:: void PyErr_Fetch(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback)
-
-   Retrieve the error indicator into three variables whose addresses are passed.
-   If the error indicator is not set, set all three variables to *NULL*.  If it is
-   set, it will be cleared and you own a reference to each object retrieved.  The
-   value and traceback object may be *NULL* even when the type object is not.
-
-   .. note::
-
-      This function is normally only used by code that needs to handle exceptions or
-      by code that needs to save and restore the error indicator temporarily.
-
-
-.. c:function:: void PyErr_Restore(PyObject *type, PyObject *value, PyObject *traceback)
-
-   Set  the error indicator from the three objects.  If the error indicator is
-   already set, it is cleared first.  If the objects are *NULL*, the error
-   indicator is cleared.  Do not pass a *NULL* type and non-*NULL* value or
-   traceback.  The exception type should be a class.  Do not pass an invalid
-   exception type or value. (Violating these rules will cause subtle problems
-   later.)  This call takes away a reference to each object: you must own a
-   reference to each object before the call and after the call you no longer own
-   these references.  (If you don't understand this, don't use this function.  I
-   warned you.)
-
-   .. note::
-
-      This function is normally only used by code that needs to save and restore the
-      error indicator temporarily; use :c:func:`PyErr_Fetch` to save the current
-      exception state.
-
-
-.. c:function:: void PyErr_GetExcInfo(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback)
-
-   Retrieve the exception info, as known from ``sys.exc_info()``.  This refers
-   to an exception that was already caught, not to an exception that was
-   freshly raised.  Returns new references for the three objects, any of which
-   may be *NULL*.  Does not modify the exception info state.
-
-   .. note::
-
-      This function is not normally used by code that wants to handle exceptions.
-      Rather, it can be used when code needs to save and restore the exception
-      state temporarily.  Use :c:func:`PyErr_SetExcInfo` to restore or clear the
-      exception state.
-
-   .. versionadded:: 3.3
-
-
-.. c:function:: void PyErr_SetExcInfo(PyObject *type, PyObject *value, PyObject *traceback)
-
-   Set the exception info, as known from ``sys.exc_info()``.  This refers
-   to an exception that was already caught, not to an exception that was
-   freshly raised.  This function steals the references of the arguments.
-   To clear the exception state, pass *NULL* for all three arguments.
-   For general rules about the three arguments, see :c:func:`PyErr_Restore`.
-
-   .. note::
-
-      This function is not normally used by code that wants to handle exceptions.
-      Rather, it can be used when code needs to save and restore the exception
-      state temporarily.  Use :c:func:`PyErr_GetExcInfo` to read the exception
-      state.
-
-   .. versionadded:: 3.3
+These functions help you set the current thread's error indicator.
+For convenience, some of these functions will always return a
+NULL pointer for use in a ``return`` statement.
 
 
 .. c:function:: void PyErr_SetString(PyObject *type, const char *message)
@@ -195,6 +107,14 @@ in various ways.  There is a separate error indicator for each thread.
    parameters help format the error message; they have the same meaning and
    values as in :c:func:`PyUnicode_FromFormat`. *format* is an ASCII-encoded
    string.
+
+
+.. c:function:: PyObject* PyErr_FormatV(PyObject *exception, const char *format, va_list vargs)
+
+   Same as :c:func:`PyErr_Format`, but taking a :c:type:`va_list` argument rather
+   than a variable number of arguments.
+
+   .. versionadded:: 3.5
 
 
 .. c:function:: void PyErr_SetNone(PyObject *type)
@@ -266,34 +186,42 @@ in various ways.  There is a separate error indicator for each thread.
    then it constructs a tuple object whose first item is the *ierr* value and whose
    second item is the corresponding error message (gotten from
    :c:func:`FormatMessage`), and then calls ``PyErr_SetObject(PyExc_WindowsError,
-   object)``. This function always returns *NULL*. Availability: Windows.
+   object)``. This function always returns *NULL*.
+
+   .. availability:: Windows.
 
 
 .. c:function:: PyObject* PyErr_SetExcFromWindowsErr(PyObject *type, int ierr)
 
    Similar to :c:func:`PyErr_SetFromWindowsErr`, with an additional parameter
-   specifying the exception type to be raised. Availability: Windows.
+   specifying the exception type to be raised.
+
+   .. availability:: Windows.
 
 
 .. c:function:: PyObject* PyErr_SetFromWindowsErrWithFilename(int ierr, const char *filename)
 
    Similar to :c:func:`PyErr_SetFromWindowsErrWithFilenameObject`, but the
    filename is given as a C string.  *filename* is decoded from the filesystem
-   encoding (:func:`os.fsdecode`).  Availability: Windows.
+   encoding (:func:`os.fsdecode`).
+
+   .. availability:: Windows.
 
 
 .. c:function:: PyObject* PyErr_SetExcFromWindowsErrWithFilenameObject(PyObject *type, int ierr, PyObject *filename)
 
    Similar to :c:func:`PyErr_SetFromWindowsErrWithFilenameObject`, with an
    additional parameter specifying the exception type to be raised.
-   Availability: Windows.
+
+   .. availability:: Windows.
 
 
 .. c:function:: PyObject* PyErr_SetExcFromWindowsErrWithFilenameObjects(PyObject *type, int ierr, PyObject *filename, PyObject *filename2)
 
    Similar to :c:func:`PyErr_SetExcFromWindowsErrWithFilenameObject`,
    but accepts a second filename object.
-   Availability: Windows.
+
+   .. availability:: Windows.
 
    .. versionadded:: 3.4
 
@@ -301,7 +229,9 @@ in various ways.  There is a separate error indicator for each thread.
 .. c:function:: PyObject* PyErr_SetExcFromWindowsErrWithFilename(PyObject *type, int ierr, const char *filename)
 
    Similar to :c:func:`PyErr_SetFromWindowsErrWithFilename`, with an additional
-   parameter specifying the exception type to be raised. Availability: Windows.
+   parameter specifying the exception type to be raised.
+
+   .. availability:: Windows.
 
 
 .. c:function:: PyObject* PyErr_SetImportError(PyObject *msg, PyObject *name, PyObject *path)
@@ -324,7 +254,7 @@ in various ways.  There is a separate error indicator for each thread.
    .. versionadded:: 3.4
 
 
-.. c:function:: void PyErr_SyntaxLocationEx(char *filename, int lineno, int col_offset)
+.. c:function:: void PyErr_SyntaxLocationEx(const char *filename, int lineno, int col_offset)
 
    Like :c:func:`PyErr_SyntaxLocationObject`, but *filename* is a byte string
    decoded from the filesystem encoding (:func:`os.fsdecode`).
@@ -332,7 +262,7 @@ in various ways.  There is a separate error indicator for each thread.
    .. versionadded:: 3.2
 
 
-.. c:function:: void PyErr_SyntaxLocation(char *filename, int lineno)
+.. c:function:: void PyErr_SyntaxLocation(const char *filename, int lineno)
 
    Like :c:func:`PyErr_SyntaxLocationEx`, but the col_offset parameter is
    omitted.
@@ -346,41 +276,47 @@ in various ways.  There is a separate error indicator for each thread.
    use.
 
 
-.. c:function:: int PyErr_WarnEx(PyObject *category, char *message, int stack_level)
+Issuing warnings
+================
+
+Use these functions to issue warnings from C code.  They mirror similar
+functions exported by the Python :mod:`warnings` module.  They normally
+print a warning message to *sys.stderr*; however, it is
+also possible that the user has specified that warnings are to be turned into
+errors, and in that case they will raise an exception.  It is also possible that
+the functions raise an exception because of a problem with the warning machinery.
+The return value is ``0`` if no exception is raised, or ``-1`` if an exception
+is raised.  (It is not possible to determine whether a warning message is
+actually printed, nor what the reason is for the exception; this is
+intentional.)  If an exception is raised, the caller should do its normal
+exception handling (for example, :c:func:`Py_DECREF` owned references and return
+an error value).
+
+.. c:function:: int PyErr_WarnEx(PyObject *category, const char *message, Py_ssize_t stack_level)
 
    Issue a warning message.  The *category* argument is a warning category (see
-   below) or *NULL*; the *message* argument is an UTF-8 encoded string.  *stack_level* is a
+   below) or *NULL*; the *message* argument is a UTF-8 encoded string.  *stack_level* is a
    positive number giving a number of stack frames; the warning will be issued from
    the  currently executing line of code in that stack frame.  A *stack_level* of 1
    is the function calling :c:func:`PyErr_WarnEx`, 2 is  the function above that,
    and so forth.
 
-   This function normally prints a warning message to *sys.stderr*; however, it is
-   also possible that the user has specified that warnings are to be turned into
-   errors, and in that case this will raise an exception.  It is also possible that
-   the function raises an exception because of a problem with the warning machinery
-   (the implementation imports the :mod:`warnings` module to do the heavy lifting).
-   The return value is ``0`` if no exception is raised, or ``-1`` if an exception
-   is raised.  (It is not possible to determine whether a warning message is
-   actually printed, nor what the reason is for the exception; this is
-   intentional.)  If an exception is raised, the caller should do its normal
-   exception handling (for example, :c:func:`Py_DECREF` owned references and return
-   an error value).
-
-   Warning categories must be subclasses of :c:data:`Warning`; the default warning
-   category is :c:data:`RuntimeWarning`.  The standard Python warning categories are
-   available as global variables whose names are ``PyExc_`` followed by the Python
-   exception name. These have the type :c:type:`PyObject\*`; they are all class
-   objects. Their names are :c:data:`PyExc_Warning`, :c:data:`PyExc_UserWarning`,
-   :c:data:`PyExc_UnicodeWarning`, :c:data:`PyExc_DeprecationWarning`,
-   :c:data:`PyExc_SyntaxWarning`, :c:data:`PyExc_RuntimeWarning`, and
-   :c:data:`PyExc_FutureWarning`.  :c:data:`PyExc_Warning` is a subclass of
-   :c:data:`PyExc_Exception`; the other warning categories are subclasses of
-   :c:data:`PyExc_Warning`.
+   Warning categories must be subclasses of :c:data:`PyExc_Warning`;
+   :c:data:`PyExc_Warning` is a subclass of :c:data:`PyExc_Exception`;
+   the default warning category is :c:data:`PyExc_RuntimeWarning`. The standard
+   Python warning categories are available as global variables whose names are
+   enumerated at :ref:`standardwarningcategories`.
 
    For information about warning control, see the documentation for the
    :mod:`warnings` module and the :option:`-W` option in the command line
    documentation.  There is no C API for warning control.
+
+.. c:function:: PyObject* PyErr_SetImportErrorSubclass(PyObject *msg, PyObject *name, PyObject *path)
+
+   Much like :c:func:`PyErr_SetImportError` but this function allows for
+   specifying a subclass of :exc:`ImportError` to raise.
+
+   .. versionadded:: 3.6
 
 
 .. c:function:: int PyErr_WarnExplicitObject(PyObject *category, PyObject *message, PyObject *filename, int lineno, PyObject *module, PyObject *registry)
@@ -408,6 +344,147 @@ in various ways.  There is a separate error indicator for each thread.
    an ASCII-encoded string.
 
    .. versionadded:: 3.2
+
+
+.. c:function:: int PyErr_ResourceWarning(PyObject *source, Py_ssize_t stack_level, const char *format, ...)
+
+   Function similar to :c:func:`PyErr_WarnFormat`, but *category* is
+   :exc:`ResourceWarning` and pass *source* to :func:`warnings.WarningMessage`.
+
+   .. versionadded:: 3.6
+
+
+Querying the error indicator
+============================
+
+.. c:function:: PyObject* PyErr_Occurred()
+
+   Test whether the error indicator is set.  If set, return the exception *type*
+   (the first argument to the last call to one of the :c:func:`PyErr_Set\*`
+   functions or to :c:func:`PyErr_Restore`).  If not set, return *NULL*.  You do not
+   own a reference to the return value, so you do not need to :c:func:`Py_DECREF`
+   it.
+
+   .. note::
+
+      Do not compare the return value to a specific exception; use
+      :c:func:`PyErr_ExceptionMatches` instead, shown below.  (The comparison could
+      easily fail since the exception may be an instance instead of a class, in the
+      case of a class exception, or it may be a subclass of the expected exception.)
+
+
+.. c:function:: int PyErr_ExceptionMatches(PyObject *exc)
+
+   Equivalent to ``PyErr_GivenExceptionMatches(PyErr_Occurred(), exc)``.  This
+   should only be called when an exception is actually set; a memory access
+   violation will occur if no exception has been raised.
+
+
+.. c:function:: int PyErr_GivenExceptionMatches(PyObject *given, PyObject *exc)
+
+   Return true if the *given* exception matches the exception type in *exc*.  If
+   *exc* is a class object, this also returns true when *given* is an instance
+   of a subclass.  If *exc* is a tuple, all exception types in the tuple (and
+   recursively in subtuples) are searched for a match.
+
+
+.. c:function:: void PyErr_Fetch(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback)
+
+   Retrieve the error indicator into three variables whose addresses are passed.
+   If the error indicator is not set, set all three variables to *NULL*.  If it is
+   set, it will be cleared and you own a reference to each object retrieved.  The
+   value and traceback object may be *NULL* even when the type object is not.
+
+   .. note::
+
+      This function is normally only used by code that needs to catch exceptions or
+      by code that needs to save and restore the error indicator temporarily, e.g.::
+
+         {
+            PyObject *type, *value, *traceback;
+            PyErr_Fetch(&type, &value, &traceback);
+
+            /* ... code that might produce other errors ... */
+
+            PyErr_Restore(type, value, traceback);
+         }
+
+
+.. c:function:: void PyErr_Restore(PyObject *type, PyObject *value, PyObject *traceback)
+
+   Set  the error indicator from the three objects.  If the error indicator is
+   already set, it is cleared first.  If the objects are *NULL*, the error
+   indicator is cleared.  Do not pass a *NULL* type and non-*NULL* value or
+   traceback.  The exception type should be a class.  Do not pass an invalid
+   exception type or value. (Violating these rules will cause subtle problems
+   later.)  This call takes away a reference to each object: you must own a
+   reference to each object before the call and after the call you no longer own
+   these references.  (If you don't understand this, don't use this function.  I
+   warned you.)
+
+   .. note::
+
+      This function is normally only used by code that needs to save and restore the
+      error indicator temporarily.  Use :c:func:`PyErr_Fetch` to save the current
+      error indicator.
+
+
+.. c:function:: void PyErr_NormalizeException(PyObject**exc, PyObject**val, PyObject**tb)
+
+   Under certain circumstances, the values returned by :c:func:`PyErr_Fetch` below
+   can be "unnormalized", meaning that ``*exc`` is a class object but ``*val`` is
+   not an instance of the  same class.  This function can be used to instantiate
+   the class in that case.  If the values are already normalized, nothing happens.
+   The delayed normalization is implemented to improve performance.
+
+   .. note::
+
+      This function *does not* implicitly set the ``__traceback__``
+      attribute on the exception value. If setting the traceback
+      appropriately is desired, the following additional snippet is needed::
+
+         if (tb != NULL) {
+           PyException_SetTraceback(val, tb);
+         }
+
+
+.. c:function:: void PyErr_GetExcInfo(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback)
+
+   Retrieve the exception info, as known from ``sys.exc_info()``.  This refers
+   to an exception that was *already caught*, not to an exception that was
+   freshly raised.  Returns new references for the three objects, any of which
+   may be *NULL*.  Does not modify the exception info state.
+
+   .. note::
+
+      This function is not normally used by code that wants to handle exceptions.
+      Rather, it can be used when code needs to save and restore the exception
+      state temporarily.  Use :c:func:`PyErr_SetExcInfo` to restore or clear the
+      exception state.
+
+   .. versionadded:: 3.3
+
+
+.. c:function:: void PyErr_SetExcInfo(PyObject *type, PyObject *value, PyObject *traceback)
+
+   Set the exception info, as known from ``sys.exc_info()``.  This refers
+   to an exception that was *already caught*, not to an exception that was
+   freshly raised.  This function steals the references of the arguments.
+   To clear the exception state, pass *NULL* for all three arguments.
+   For general rules about the three arguments, see :c:func:`PyErr_Restore`.
+
+   .. note::
+
+      This function is not normally used by code that wants to handle exceptions.
+      Rather, it can be used when code needs to save and restore the exception
+      state temporarily.  Use :c:func:`PyErr_GetExcInfo` to read the exception
+      state.
+
+   .. versionadded:: 3.3
+
+
+Signal Handling
+===============
 
 
 .. c:function:: int PyErr_CheckSignals()
@@ -443,15 +520,23 @@ in various ways.  There is a separate error indicator for each thread.
 
 .. c:function:: int PySignal_SetWakeupFd(int fd)
 
-   This utility function specifies a file descriptor to which a ``'\0'`` byte will
-   be written whenever a signal is received.  It returns the previous such file
-   descriptor.  The value ``-1`` disables the feature; this is the initial state.
+   This utility function specifies a file descriptor to which the signal number
+   is written as a single byte whenever a signal is received. *fd* must be
+   non-blocking. It returns the previous such file descriptor.
+
+   The value ``-1`` disables the feature; this is the initial state.
    This is equivalent to :func:`signal.set_wakeup_fd` in Python, but without any
    error checking.  *fd* should be a valid file descriptor.  The function should
    only be called from the main thread.
 
+   .. versionchanged:: 3.5
+      On Windows, the function now also supports socket handles.
 
-.. c:function:: PyObject* PyErr_NewException(char *name, PyObject *base, PyObject *dict)
+
+Exception Classes
+=================
+
+.. c:function:: PyObject* PyErr_NewException(const char *name, PyObject *base, PyObject *dict)
 
    This utility function creates and returns a new exception class. The *name*
    argument must be the name of the new exception, a C string of the form
@@ -466,25 +551,13 @@ in various ways.  There is a separate error indicator for each thread.
    argument can be used to specify a dictionary of class variables and methods.
 
 
-.. c:function:: PyObject* PyErr_NewExceptionWithDoc(char *name, char *doc, PyObject *base, PyObject *dict)
+.. c:function:: PyObject* PyErr_NewExceptionWithDoc(const char *name, const char *doc, PyObject *base, PyObject *dict)
 
    Same as :c:func:`PyErr_NewException`, except that the new exception class can
    easily be given a docstring: If *doc* is non-*NULL*, it will be used as the
    docstring for the exception class.
 
    .. versionadded:: 3.2
-
-
-.. c:function:: void PyErr_WriteUnraisable(PyObject *obj)
-
-   This utility function prints a warning message to ``sys.stderr`` when an
-   exception has been set but it is impossible for the interpreter to actually
-   raise the exception.  It is used, for example, when an exception occurs in an
-   :meth:`__del__` method.
-
-   The function is called with a single argument *obj* that identifies the context
-   in which the unraisable exception occurred. The repr of *obj* will be printed in
-   the warning message.
 
 
 Exception Objects
@@ -556,7 +629,7 @@ The following functions are used to create and modify Unicode exceptions from C.
 .. c:function:: PyObject* PyUnicodeTranslateError_Create(const Py_UNICODE *object, Py_ssize_t length, Py_ssize_t start, Py_ssize_t end, const char *reason)
 
    Create a :class:`UnicodeTranslateError` object with the attributes *object*,
-   *length*, *start*, *end* and *reason*. *reason* is an UTF-8 encoded string.
+   *length*, *start*, *end* and *reason*. *reason* is a UTF-8 encoded string.
 
 .. c:function:: PyObject* PyUnicodeDecodeError_GetEncoding(PyObject *exc)
                 PyObject* PyUnicodeEncodeError_GetEncoding(PyObject *exc)
@@ -621,7 +694,7 @@ level, both in the core and in extension modules.  They are needed if the
 recursive code does not necessarily invoke Python code (which tracks its
 recursion depth automatically).
 
-.. c:function:: int Py_EnterRecursiveCall(char *where)
+.. c:function:: int Py_EnterRecursiveCall(const char *where)
 
    Marks a point where a recursive C-level call is about to be performed.
 
@@ -630,12 +703,12 @@ recursion depth automatically).
    sets a :exc:`MemoryError` and returns a nonzero value.
 
    The function then checks if the recursion limit is reached.  If this is the
-   case, a :exc:`RuntimeError` is set and a nonzero value is returned.
+   case, a :exc:`RecursionError` is set and a nonzero value is returned.
    Otherwise, zero is returned.
 
    *where* should be a string such as ``" in instance check"`` to be
-   concatenated to the :exc:`RuntimeError` message caused by the recursion depth
-   limit.
+   concatenated to the :exc:`RecursionError` message caused by the recursion
+   depth limit.
 
 .. c:function:: void Py_LeaveRecursiveCall()
 
@@ -682,6 +755,61 @@ All standard Python exceptions are available as global variables whose names are
 :c:type:`PyObject\*`; they are all class objects.  For completeness, here are all
 the variables:
 
+.. index::
+   single: PyExc_BaseException
+   single: PyExc_Exception
+   single: PyExc_ArithmeticError
+   single: PyExc_AssertionError
+   single: PyExc_AttributeError
+   single: PyExc_BlockingIOError
+   single: PyExc_BrokenPipeError
+   single: PyExc_BufferError
+   single: PyExc_ChildProcessError
+   single: PyExc_ConnectionAbortedError
+   single: PyExc_ConnectionError
+   single: PyExc_ConnectionRefusedError
+   single: PyExc_ConnectionResetError
+   single: PyExc_EOFError
+   single: PyExc_FileExistsError
+   single: PyExc_FileNotFoundError
+   single: PyExc_FloatingPointError
+   single: PyExc_GeneratorExit
+   single: PyExc_ImportError
+   single: PyExc_IndentationError
+   single: PyExc_IndexError
+   single: PyExc_InterruptedError
+   single: PyExc_IsADirectoryError
+   single: PyExc_KeyError
+   single: PyExc_KeyboardInterrupt
+   single: PyExc_LookupError
+   single: PyExc_MemoryError
+   single: PyExc_ModuleNotFoundError
+   single: PyExc_NameError
+   single: PyExc_NotADirectoryError
+   single: PyExc_NotImplementedError
+   single: PyExc_OSError
+   single: PyExc_OverflowError
+   single: PyExc_PermissionError
+   single: PyExc_ProcessLookupError
+   single: PyExc_RecursionError
+   single: PyExc_ReferenceError
+   single: PyExc_RuntimeError
+   single: PyExc_StopAsyncIteration
+   single: PyExc_StopIteration
+   single: PyExc_SyntaxError
+   single: PyExc_SystemError
+   single: PyExc_SystemExit
+   single: PyExc_TabError
+   single: PyExc_TimeoutError
+   single: PyExc_TypeError
+   single: PyExc_UnboundLocalError
+   single: PyExc_UnicodeDecodeError
+   single: PyExc_UnicodeEncodeError
+   single: PyExc_UnicodeError
+   single: PyExc_UnicodeTranslateError
+   single: PyExc_ValueError
+   single: PyExc_ZeroDivisionError
+
 +-----------------------------------------+---------------------------------+----------+
 | C Name                                  | Python Name                     | Notes    |
 +=========================================+=================================+==========+
@@ -691,8 +819,6 @@ the variables:
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ArithmeticError`         | :exc:`ArithmeticError`          | \(1)     |
 +-----------------------------------------+---------------------------------+----------+
-| :c:data:`PyExc_LookupError`             | :exc:`LookupError`              | \(1)     |
-+-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_AssertionError`          | :exc:`AssertionError`           |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_AttributeError`          | :exc:`AttributeError`           |          |
@@ -701,25 +827,31 @@ the variables:
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_BrokenPipeError`         | :exc:`BrokenPipeError`          |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_BufferError`             | :exc:`BufferError`              |          |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ChildProcessError`       | :exc:`ChildProcessError`        |          |
 +-----------------------------------------+---------------------------------+----------+
-| :c:data:`PyExc_ConnectionError`         | :exc:`ConnectionError`          |          |
-+-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ConnectionAbortedError`  | :exc:`ConnectionAbortedError`   |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_ConnectionError`         | :exc:`ConnectionError`          |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ConnectionRefusedError`  | :exc:`ConnectionRefusedError`   |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ConnectionResetError`    | :exc:`ConnectionResetError`     |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_EOFError`                | :exc:`EOFError`                 |          |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_FileExistsError`         | :exc:`FileExistsError`          |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_FileNotFoundError`       | :exc:`FileNotFoundError`        |          |
 +-----------------------------------------+---------------------------------+----------+
-| :c:data:`PyExc_EOFError`                | :exc:`EOFError`                 |          |
-+-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_FloatingPointError`      | :exc:`FloatingPointError`       |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_GeneratorExit`           | :exc:`GeneratorExit`            |          |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ImportError`             | :exc:`ImportError`              |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_IndentationError`        | :exc:`IndentationError`         |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_IndexError`              | :exc:`IndexError`               |          |
 +-----------------------------------------+---------------------------------+----------+
@@ -731,7 +863,11 @@ the variables:
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_KeyboardInterrupt`       | :exc:`KeyboardInterrupt`        |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_LookupError`             | :exc:`LookupError`              | \(1)     |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_MemoryError`             | :exc:`MemoryError`              |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_ModuleNotFoundError`     | :exc:`ModuleNotFoundError`      |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_NameError`               | :exc:`NameError`                |          |
 +-----------------------------------------+---------------------------------+----------+
@@ -747,19 +883,37 @@ the variables:
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ProcessLookupError`      | :exc:`ProcessLookupError`       |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_RecursionError`          | :exc:`RecursionError`           |          |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ReferenceError`          | :exc:`ReferenceError`           | \(2)     |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_RuntimeError`            | :exc:`RuntimeError`             |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_StopAsyncIteration`      | :exc:`StopAsyncIteration`       |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_StopIteration`           | :exc:`StopIteration`            |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_SyntaxError`             | :exc:`SyntaxError`              |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_SystemError`             | :exc:`SystemError`              |          |
 +-----------------------------------------+---------------------------------+----------+
-| :c:data:`PyExc_TimeoutError`            | :exc:`TimeoutError`             |          |
-+-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_SystemExit`              | :exc:`SystemExit`               |          |
 +-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_TabError`                | :exc:`TabError`                 |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_TimeoutError`            | :exc:`TimeoutError`             |          |
++-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_TypeError`               | :exc:`TypeError`                |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnboundLocalError`       | :exc:`UnboundLocalError`        |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnicodeDecodeError`      | :exc:`UnicodeDecodeError`       |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnicodeEncodeError`      | :exc:`UnicodeEncodeError`       |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnicodeError`            | :exc:`UnicodeError`             |          |
++-----------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnicodeTranslateError`   | :exc:`UnicodeTranslateError`    |          |
 +-----------------------------------------+---------------------------------+----------+
 | :c:data:`PyExc_ValueError`              | :exc:`ValueError`               |          |
 +-----------------------------------------+---------------------------------+----------+
@@ -776,8 +930,18 @@ the variables:
    :c:data:`PyExc_PermissionError`, :c:data:`PyExc_ProcessLookupError`
    and :c:data:`PyExc_TimeoutError` were introduced following :pep:`3151`.
 
+.. versionadded:: 3.5
+   :c:data:`PyExc_StopAsyncIteration` and :c:data:`PyExc_RecursionError`.
+
+.. versionadded:: 3.6
+   :c:data:`PyExc_ModuleNotFoundError`.
 
 These are compatibility aliases to :c:data:`PyExc_OSError`:
+
+.. index::
+   single: PyExc_EnvironmentError
+   single: PyExc_IOError
+   single: PyExc_WindowsError
 
 +-------------------------------------+----------+
 | C Name                              | Notes    |
@@ -792,51 +956,6 @@ These are compatibility aliases to :c:data:`PyExc_OSError`:
 .. versionchanged:: 3.3
    These aliases used to be separate exception types.
 
-
-.. index::
-   single: PyExc_BaseException
-   single: PyExc_Exception
-   single: PyExc_ArithmeticError
-   single: PyExc_LookupError
-   single: PyExc_AssertionError
-   single: PyExc_AttributeError
-   single: PyExc_BlockingIOError
-   single: PyExc_BrokenPipeError
-   single: PyExc_ConnectionError
-   single: PyExc_ConnectionAbortedError
-   single: PyExc_ConnectionRefusedError
-   single: PyExc_ConnectionResetError
-   single: PyExc_EOFError
-   single: PyExc_FileExistsError
-   single: PyExc_FileNotFoundError
-   single: PyExc_FloatingPointError
-   single: PyExc_ImportError
-   single: PyExc_IndexError
-   single: PyExc_InterruptedError
-   single: PyExc_IsADirectoryError
-   single: PyExc_KeyError
-   single: PyExc_KeyboardInterrupt
-   single: PyExc_MemoryError
-   single: PyExc_NameError
-   single: PyExc_NotADirectoryError
-   single: PyExc_NotImplementedError
-   single: PyExc_OSError
-   single: PyExc_OverflowError
-   single: PyExc_PermissionError
-   single: PyExc_ProcessLookupError
-   single: PyExc_ReferenceError
-   single: PyExc_RuntimeError
-   single: PyExc_SyntaxError
-   single: PyExc_SystemError
-   single: PyExc_SystemExit
-   single: PyExc_TimeoutError
-   single: PyExc_TypeError
-   single: PyExc_ValueError
-   single: PyExc_ZeroDivisionError
-   single: PyExc_EnvironmentError
-   single: PyExc_IOError
-   single: PyExc_WindowsError
-
 Notes:
 
 (1)
@@ -848,3 +967,60 @@ Notes:
 (3)
    Only defined on Windows; protect code that uses this by testing that the
    preprocessor macro ``MS_WINDOWS`` is defined.
+
+.. _standardwarningcategories:
+
+Standard Warning Categories
+===========================
+
+All standard Python warning categories are available as global variables whose
+names are ``PyExc_`` followed by the Python exception name. These have the type
+:c:type:`PyObject\*`; they are all class objects. For completeness, here are all
+the variables:
+
+.. index::
+   single: PyExc_Warning
+   single: PyExc_BytesWarning
+   single: PyExc_DeprecationWarning
+   single: PyExc_FutureWarning
+   single: PyExc_ImportWarning
+   single: PyExc_PendingDeprecationWarning
+   single: PyExc_ResourceWarning
+   single: PyExc_RuntimeWarning
+   single: PyExc_SyntaxWarning
+   single: PyExc_UnicodeWarning
+   single: PyExc_UserWarning
+
++------------------------------------------+---------------------------------+----------+
+| C Name                                   | Python Name                     | Notes    |
++==========================================+=================================+==========+
+| :c:data:`PyExc_Warning`                  | :exc:`Warning`                  | \(1)     |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_BytesWarning`             | :exc:`BytesWarning`             |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_DeprecationWarning`       | :exc:`DeprecationWarning`       |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_FutureWarning`            | :exc:`FutureWarning`            |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_ImportWarning`            | :exc:`ImportWarning`            |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_PendingDeprecationWarning`| :exc:`PendingDeprecationWarning`|          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_ResourceWarning`          | :exc:`ResourceWarning`          |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_RuntimeWarning`           | :exc:`RuntimeWarning`           |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_SyntaxWarning`            | :exc:`SyntaxWarning`            |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UnicodeWarning`           | :exc:`UnicodeWarning`           |          |
++------------------------------------------+---------------------------------+----------+
+| :c:data:`PyExc_UserWarning`              | :exc:`UserWarning`              |          |
++------------------------------------------+---------------------------------+----------+
+
+.. versionadded:: 3.2
+   :c:data:`PyExc_ResourceWarning`.
+
+Notes:
+
+(1)
+   This is a base class for other standard warning categories.

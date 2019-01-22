@@ -38,7 +38,7 @@ void NetworkInterface::close()
 		socket_->Close();
 		INFO_MSG("NetworkInterface::close(): network closed!");
 		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(socket_);
-		KBENGINE_EVENT_FIRE("onDisconnected", NewObject<UKBEventData_onDisconnected>());
+		KBENGINE_EVENT_FIRE(KBEventTypes::onDisconnected, NewObject<UKBEventData_onDisconnected>());
 	}
 
 	socket_ = NULL;
@@ -170,7 +170,7 @@ void NetworkInterface::tickConnecting()
 		UKBEventData_onConnectionState* pEventData = NewObject<UKBEventData_onConnectionState>();
 		pEventData->success = true;
 		pEventData->address = FString::Printf(TEXT("%s:%d"), *connectIP_, connectPort_);
-		KBENGINE_EVENT_FIRE("onConnectionState", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::onConnectionState, pEventData);
 	}
 	else
 	{
@@ -185,7 +185,7 @@ void NetworkInterface::tickConnecting()
 			UKBEventData_onConnectionState* pEventData = NewObject<UKBEventData_onConnectionState>();
 			pEventData->success = false;
 			pEventData->address = FString::Printf(TEXT("%s:%d"), *connectIP_, connectPort_);
-			KBENGINE_EVENT_FIRE("onConnectionState", pEventData);
+			KBENGINE_EVENT_FIRE(KBEventTypes::onConnectionState, pEventData);
 		}
 	}
 }

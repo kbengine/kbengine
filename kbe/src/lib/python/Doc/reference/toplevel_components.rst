@@ -48,14 +48,15 @@ a complete program; each statement is executed in the namespace of
 
 .. index::
    single: UNIX
+   single: Windows
    single: command line
    single: standard input
 
-Under Unix, a complete program can be passed to the interpreter in three forms:
-with the :option:`-c` *string* command line option, as a file passed as the
-first command line argument, or as standard input.  If the file or standard
-input is a tty device, the interpreter enters interactive mode; otherwise, it
-executes the file as a complete program.
+A complete program can be passed to the interpreter
+in three forms: with the :option:`-c` *string* command line option, as a file
+passed as the first command line argument, or as standard input.  If the file
+or standard input is a tty device, the interpreter enters interactive mode;
+otherwise, it executes the file as a complete program.
 
 
 .. _file-input:
@@ -97,20 +98,10 @@ Expression input
 ================
 
 .. index:: single: input
-
 .. index:: builtin: eval
 
-There are two forms of expression input.  Both ignore leading whitespace. The
+:func:`eval` is used for expression input.  It ignores leading whitespace. The
 string argument to :func:`eval` must have the following form:
 
 .. productionlist::
    eval_input: `expression_list` NEWLINE*
-
-.. index::
-   object: file
-   single: input; raw
-   single: readline() (file method)
-
-Note: to read 'raw' input line without interpretation, you can use the
-:meth:`readline` method of file objects, including ``sys.stdin``.
-

@@ -3,6 +3,7 @@
 
 .. module:: platform
    :synopsis: Retrieves as much platform identifying data as possible.
+
 .. moduleauthor:: Marc-André Lemburg <mal@egenix.com>
 .. sectionauthor:: Bjorn Pettersen <bpettersen@corp.fairisaac.com>
 
@@ -117,7 +118,7 @@ Cross Platform
 
 .. function:: python_version()
 
-   Returns the Python version as string ``'major.minor.patchlevel'``
+   Returns the Python version as string ``'major.minor.patchlevel'``.
 
    Note that unlike the Python ``sys.version``, the returned value will always
    include the patchlevel (it defaults to 0).
@@ -247,6 +248,9 @@ Unix Platforms
 
    This is another name for :func:`linux_distribution`.
 
+   .. deprecated-removed:: 3.5 3.8
+      See alternative like the `distro <https://pypi.org/project/distro>`_ package.
+
 .. function:: linux_distribution(distname='', version='', id='', supported_dists=('SuSE','debian','redhat','mandrake',...), full_distribution_name=1)
 
    Tries to determine the name of the Linux OS distribution name.
@@ -263,7 +267,10 @@ Unix Platforms
    parameters.  ``id`` is the item in parentheses after the version number.  It
    is usually the version codename.
 
-.. function:: libc_ver(executable=sys.executable, lib='', version='', chunksize=2048)
+   .. deprecated-removed:: 3.5 3.8
+      See alternative like the `distro <https://pypi.org/project/distro>`_ package.
+
+.. function:: libc_ver(executable=sys.executable, lib='', version='', chunksize=16384)
 
    Tries to determine the libc version against which the file executable (defaults
    to the Python interpreter) is linked.  Returns a tuple of strings ``(lib,

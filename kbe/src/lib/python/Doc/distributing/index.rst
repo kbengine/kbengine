@@ -31,36 +31,38 @@ installing other Python projects, refer to the
 Key terms
 =========
 
-* the `Python Package Index <https://pypi.python.org/pypi>`__ is a public
+* the `Python Packaging Index <https://pypi.org>`__ is a public
   repository of open source licensed packages made available for use by
   other Python users
 * the `Python Packaging Authority
-  <http://packaging.python.org/en/latest/future.html>`__ are the group of
+  <https://www.pypa.io/>`__ are the group of
   developers and documentation authors responsible for the maintenance and
   evolution of the standard packaging tools and the associated metadata and
   file format standards. They maintain a variety of tools, documentation
   and issue trackers on both `GitHub <https://github.com/pypa>`__ and
   `BitBucket <https://bitbucket.org/pypa/>`__.
-* ``distutils`` is the original build and distribution system first added to
-  the Python standard library in 1998. While direct use of ``distutils`` is
-  being phased out, it still laid the foundation for the current packaging
+* :mod:`distutils` is the original build and distribution system first added
+  to the Python standard library in 1998. While direct use of :mod:`distutils`
+  is being phased out, it still laid the foundation for the current packaging
   and distribution infrastructure, and it not only remains part of the
   standard library, but its name lives on in other ways (such as the name
   of the mailing list used to coordinate Python packaging standards
   development).
-* ``setuptools`` is a (largely) drop-in replacement for ``distutils`` first
+* `setuptools`_ is a (largely) drop-in replacement for :mod:`distutils` first
   published in 2004. Its most notable addition over the unmodified
-  ``distutils`` tools was the ability to declare dependencies on other
+  :mod:`distutils` tools was the ability to declare dependencies on other
   packages. It is currently recommended as a more regularly updated
-  alternative to ``distutils`` that offers consistent support for more
+  alternative to :mod:`distutils` that offers consistent support for more
   recent packaging standards across a wide range of Python versions.
-* ``wheel`` (in this context) is a project that adds the ``bdist_wheel``
-  command to ``distutils``/``setuptools``. This produces a cross platform
+* `wheel`_ (in this context) is a project that adds the ``bdist_wheel``
+  command to :mod:`distutils`/`setuptools`_. This produces a cross platform
   binary packaging format (called "wheels" or "wheel files" and defined in
   :pep:`427`) that allows Python libraries, even those including binary
   extensions, to be installed on a system without needing to be built
   locally.
 
+.. _setuptools: https://setuptools.readthedocs.io/en/latest/
+.. _wheel: https://wheel.readthedocs.io/
 
 Open source licensing and collaboration
 =======================================
@@ -109,7 +111,7 @@ by invoking the ``pip`` module at the command line::
 The Python Packaging User Guide includes more details on the `currently
 recommended tools`_.
 
-.. _currently recommended tools: https://packaging.python.org/en/latest/current.html#packaging-tool-recommendations
+.. _currently recommended tools: https://packaging.python.org/guides/tool-recommendations/#packaging-tool-recommendations
 
 Reading the guide
 =================
@@ -119,14 +121,14 @@ involved in creating a project:
 
 * `Project structure`_
 * `Building and packaging the project`_
-* `Uploading the project to the Python Package Index`_
+* `Uploading the project to the Python Packaging Index`_
 
 .. _Project structure: \
-   http://packaging.python.org/en/latest/tutorial.html#creating-your-own-project
+    https://packaging.python.org/tutorials/distributing-packages/
 .. _Building and packaging the project: \
-   http://packaging.python.org/en/latest/tutorial.html#building-packaging-your-project
-.. _Uploading the project to the Python Package Index: \
-   http://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi
+   https://packaging.python.org/tutorials/distributing-packages/#packaging-your-project
+.. _Uploading the project to the Python Packaging Index: \
+   https://packaging.python.org/tutorials/distributing-packages/#uploading-your-project-to-pypi
 
 
 How do I...?
@@ -139,7 +141,7 @@ These are quick answers or links for some common tasks.
 
 This isn't an easy topic, but here are a few tips:
 
-* check the Python Package Index to see if the name is already in use
+* check the Python Packaging Index to see if the name is already in use
 * check popular hosting sites like GitHub, BitBucket, etc to see if there
   is already a project with that name
 * check what comes up in a web search for the name you're considering
@@ -158,11 +160,11 @@ Python Packaging User Guide for more information and recommendations.
 .. seealso::
 
    `Python Packaging User Guide: Binary Extensions
-   <http://packaging.python.org/en/latest/extensions.html>`__
+   <https://packaging.python.org/guides/packaging-binary-extensions/>`__
 
 .. other topics:
 
    Once the Development & Deployment part of PPUG is fleshed out, some of
    those sections should be linked from new questions here (most notably,
    we should have a question about avoiding depending on PyPI that links to
-   http://packaging.python.org/en/latest/deployment.html#pypi-mirrors-and-caches)
+   https://packaging.python.org/en/latest/mirrors/)

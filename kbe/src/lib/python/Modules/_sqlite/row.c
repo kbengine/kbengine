@@ -41,12 +41,12 @@ pysqlite_row_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
     assert(type != NULL && type->tp_alloc != NULL);
 
-    if (!_PyArg_NoKeywords("Row()", kwargs))
+    if (!_PyArg_NoKeywords("Row", kwargs))
         return NULL;
     if (!PyArg_ParseTuple(args, "OO", &cursor, &data))
         return NULL;
 
-    if (!PyObject_IsInstance((PyObject*)cursor, (PyObject*)&pysqlite_CursorType)) {
+    if (!PyObject_TypeCheck((PyObject*)cursor, &pysqlite_CursorType)) {
         PyErr_SetString(PyExc_TypeError, "instance of cursor required for first argument");
         return NULL;
     }
@@ -79,12 +79,12 @@ PyObject* pysqlite_row_item(pysqlite_Row* self, Py_ssize_t idx)
 PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
 {
     Py_ssize_t _idx;
-    char* key;
+    const char *key;
     Py_ssize_t nitems, i;
-    char* compare_key;
+    const char *compare_key;
 
-    char* p1;
-    char* p2;
+    const char *p1;
+    const char *p2;
 
     PyObject* item;
 
@@ -98,7 +98,7 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
         Py_XINCREF(item);
         return item;
     } else if (PyUnicode_Check(idx)) {
-        key = _PyUnicode_AsString(idx);
+        key = PyUnicode_AsUTF8(idx);
         if (key == NULL)
             return NULL;
 
@@ -108,7 +108,7 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
             PyObject *obj;
             obj = PyTuple_GET_ITEM(self->description, i);
             obj = PyTuple_GET_ITEM(obj, 0);
-            compare_key = _PyUnicode_AsString(obj);
+            compare_key = PyUnicode_AsUTF8(obj);
             if (!compare_key) {
                 return NULL;
             }
@@ -142,8 +142,7 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
         return NULL;
     }
     else if (PySlice_Check(idx)) {
-        PyErr_SetString(PyExc_ValueError, "slices not implemented, yet");
-        return NULL;
+        return PyObject_GetItem(self->data, idx);
     }
     else {
         PyErr_SetString(PyExc_IndexError, "Index must be int or string");
@@ -151,7 +150,8 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
     }
 }
 
-Py_ssize_t pysqlite_row_length(pysqlite_Row* self, PyObject* args, PyObject* kwargs)
+static Py_ssize_t
+pysqlite_row_length(pysqlite_Row* self)
 {
     return PyTuple_GET_SIZE(self->data);
 }
@@ -159,7 +159,7 @@ Py_ssize_t pysqlite_row_length(pysqlite_Row* self, PyObject* args, PyObject* kwa
 PyObject* pysqlite_row_keys(pysqlite_Row* self, PyObject* args, PyObject* kwargs)
 {
     PyObject* list;
-    int nitems, i;
+    Py_ssize_t nitems, i;
 
     list = PyList_New(0);
     if (!list) {

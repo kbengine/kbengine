@@ -11,6 +11,8 @@ import gc
 import weakref
 import array
 import io
+import copy
+import pickle
 
 
 class AbstractMemoryTests:
@@ -360,6 +362,27 @@ class AbstractMemoryTests:
             self.assertEqual(list(reversed(m)), aslist)
             self.assertEqual(list(reversed(m)), list(m[::-1]))
 
+    def test_issue22668(self):
+        a = array.array('H', [256, 256, 256, 256])
+        x = memoryview(a)
+        m = x.cast('B')
+        b = m.cast('H')
+        c = b[0:2]
+        d = memoryview(b)
+
+        del b
+
+        self.assertEqual(c[0], 256)
+        self.assertEqual(d[0], 256)
+        self.assertEqual(c.format, "H")
+        self.assertEqual(d.format, "H")
+
+        _ = m.cast('I')
+        self.assertEqual(c[0], 256)
+        self.assertEqual(d[0], 256)
+        self.assertEqual(c.format, "H")
+        self.assertEqual(d.format, "H")
+
 
 # Variations on source objects for the buffer: bytes-like objects, then arrays
 # with itemsize > 1.
@@ -471,8 +494,44 @@ class ArrayMemorySliceSliceTest(unittest.TestCase,
     pass
 
 
-def test_main():
-    test.support.run_unittest(__name__)
+class OtherTest(unittest.TestCase):
+    def test_ctypes_cast(self):
+        # Issue 15944: Allow all source formats when casting to bytes.
+        ctypes = test.support.import_module("ctypes")
+        p6 = bytes(ctypes.c_double(0.6))
+
+        d = ctypes.c_double()
+        m = memoryview(d).cast("B")
+        m[:2] = p6[:2]
+        m[2:] = p6[2:]
+        self.assertEqual(d.value, 0.6)
+
+        for format in "Bbc":
+            with self.subTest(format):
+                d = ctypes.c_double()
+                m = memoryview(d).cast(format)
+                m[:2] = memoryview(p6).cast(format)[:2]
+                m[2:] = memoryview(p6).cast(format)[2:]
+                self.assertEqual(d.value, 0.6)
+
+    def test_memoryview_hex(self):
+        # Issue #9951: memoryview.hex() segfaults with non-contiguous buffers.
+        x = b'0' * 200000
+        m1 = memoryview(x)
+        m2 = m1[::-1]
+        self.assertEqual(m2.hex(), '30' * 200000)
+
+    def test_copy(self):
+        m = memoryview(b'abc')
+        with self.assertRaises(TypeError):
+            copy.copy(m)
+
+    def test_pickle(self):
+        m = memoryview(b'abc')
+        for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+            with self.assertRaises(TypeError):
+                pickle.dumps(m, proto)
+
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

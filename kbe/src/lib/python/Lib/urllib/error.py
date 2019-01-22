@@ -16,14 +16,10 @@ import urllib.response
 __all__ = ['URLError', 'HTTPError', 'ContentTooShortError']
 
 
-# do these error classes make sense?
-# make sure all of the OSError stuff is overridden.  we just want to be
-# subtypes.
-
 class URLError(OSError):
     # URLError is a sub-type of OSError, but it doesn't share any of
     # the implementation.  need to override __init__ and __str__.
-    # It sets self.args for compatibility with other EnvironmentError
+    # It sets self.args for compatibility with other OSError
     # subclasses, but args doesn't have the typical format with errno in
     # slot 0 and strerror in slot 1.  This may be better than nothing.
     def __init__(self, reason, filename=None):
@@ -34,6 +30,7 @@ class URLError(OSError):
 
     def __str__(self):
         return '<urlopen error %s>' % self.reason
+
 
 class HTTPError(URLError, urllib.response.addinfourl):
     """Raised when HTTP error occurs, but also acts like non-error return"""
@@ -55,6 +52,9 @@ class HTTPError(URLError, urllib.response.addinfourl):
     def __str__(self):
         return 'HTTP Error %s: %s' % (self.code, self.msg)
 
+    def __repr__(self):
+        return '<HTTPError %s: %r>' % (self.code, self.msg)
+
     # since URLError specifies a .reason attribute, HTTPError should also
     #  provide this attribute. See issue13211 for discussion.
     @property
@@ -69,8 +69,9 @@ class HTTPError(URLError, urllib.response.addinfourl):
     def headers(self, headers):
         self.hdrs = headers
 
-# exception raised when downloaded size does not match content-length
+
 class ContentTooShortError(URLError):
+    """Exception raised when downloaded size does not match content-length."""
     def __init__(self, message, content):
         URLError.__init__(self, message)
         self.content = content

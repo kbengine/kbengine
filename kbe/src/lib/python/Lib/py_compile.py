@@ -1,9 +1,10 @@
-"""Routine to "compile" a .py file to a .pyc (or .pyo) file.
+"""Routine to "compile" a .py file to a .pyc file.
 
 This module has intimate knowledge of the format of .pyc files.
 """
 
-import importlib._bootstrap
+import enum
+import importlib._bootstrap_external
 import importlib.machinery
 import importlib.util
 import os
@@ -11,7 +12,7 @@ import os.path
 import sys
 import traceback
 
-__all__ = ["compile", "main", "PyCompileError"]
+__all__ = ["compile", "main", "PyCompileError", "PycInvalidationMode"]
 
 
 class PyCompileError(Exception):
@@ -62,12 +63,26 @@ class PyCompileError(Exception):
         return self.msg
 
 
-def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
+class PycInvalidationMode(enum.Enum):
+    TIMESTAMP = 1
+    CHECKED_HASH = 2
+    UNCHECKED_HASH = 3
+
+
+def _get_default_invalidation_mode():
+    if os.environ.get('SOURCE_DATE_EPOCH'):
+        return PycInvalidationMode.CHECKED_HASH
+    else:
+        return PycInvalidationMode.TIMESTAMP
+
+
+def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1,
+            invalidation_mode=None):
     """Byte-compile one Python source file to Python bytecode.
 
     :param file: The source file name.
     :param cfile: The target byte compiled file name.  When not given, this
-        defaults to the PEP 3147 location.
+        defaults to the PEP 3147/PEP 488 location.
     :param dfile: Purported file name, i.e. the file name that shows up in
         error messages.  Defaults to the source file name.
     :param doraise: Flag indicating whether or not an exception should be
@@ -79,18 +94,19 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     :param optimize: The optimization level for the compiler.  Valid values
         are -1, 0, 1 and 2.  A value of -1 means to use the optimization
         level of the current interpreter, as given by -O command line options.
+    :param invalidation_mode:
 
     :return: Path to the resulting byte compiled file.
 
     Note that it isn't necessary to byte-compile Python modules for
     execution efficiency -- Python itself byte-compiles a module when
     it is loaded, and if it can, writes out the bytecode to the
-    corresponding .pyc (or .pyo) file.
+    corresponding .pyc file.
 
     However, if a Python installation is shared between users, it is a
     good idea to byte-compile all modules upon installation, since
     other users may not be able to write in the source directories,
-    and thus they won't be able to write the .pyc/.pyo file, and then
+    and thus they won't be able to write the .pyc file, and then
     they would be byte-compiling every module each time it is loaded.
     This can slow down program start-up considerably.
 
@@ -103,10 +119,13 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     the resulting file would be regular and thus not the same type of file as
     it was previously.
     """
+    if invalidation_mode is None:
+        invalidation_mode = _get_default_invalidation_mode()
     if cfile is None:
         if optimize >= 0:
+            optimization = optimize if optimize >= 1 else ''
             cfile = importlib.util.cache_from_source(file,
-                                                     debug_override=not optimize)
+                                                     optimization=optimization)
         else:
             cfile = importlib.util.cache_from_source(file)
     if os.path.islink(cfile):
@@ -135,11 +154,19 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
             os.makedirs(dirname)
     except FileExistsError:
         pass
-    source_stats = loader.path_stats(file)
-    bytecode = importlib._bootstrap._code_to_bytecode(
+    if invalidation_mode == PycInvalidationMode.TIMESTAMP:
+        source_stats = loader.path_stats(file)
+        bytecode = importlib._bootstrap_external._code_to_timestamp_pyc(
             code, source_stats['mtime'], source_stats['size'])
-    mode = importlib._bootstrap._calc_mode(file)
-    importlib._bootstrap._write_atomic(cfile, bytecode, mode)
+    else:
+        source_hash = importlib.util.source_hash(source_bytes)
+        bytecode = importlib._bootstrap_external._code_to_hash_pyc(
+            code,
+            source_hash,
+            (invalidation_mode == PycInvalidationMode.CHECKED_HASH),
+        )
+    mode = importlib._bootstrap_external._calc_mode(file)
+    importlib._bootstrap_external._write_atomic(cfile, bytecode, mode)
     return cfile
 
 
@@ -178,7 +205,7 @@ def main(args=None):
             except PyCompileError as error:
                 # return value to indicate at least one failure
                 rv = 1
-                sys.stderr.write(error.msg)
+                sys.stderr.write("%s\n" % error.msg)
     return rv
 
 if __name__ == "__main__":

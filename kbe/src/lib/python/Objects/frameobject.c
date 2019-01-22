@@ -1,6 +1,7 @@
 /* Frame object implementation */
 
 #include "Python.h"
+#include "internal/pystate.h"
 
 #include "code.h"
 #include "frameobject.h"
@@ -15,6 +16,8 @@ static PyMemberDef frame_memberlist[] = {
     {"f_builtins",      T_OBJECT,       OFF(f_builtins),  READONLY},
     {"f_globals",       T_OBJECT,       OFF(f_globals),   READONLY},
     {"f_lasti",         T_INT,          OFF(f_lasti),     READONLY},
+    {"f_trace_lines",   T_BOOL,         OFF(f_trace_lines), 0},
+    {"f_trace_opcodes", T_BOOL,         OFF(f_trace_opcodes), 0},
     {NULL}      /* Sentinel */
 };
 
@@ -56,9 +59,12 @@ frame_getlineno(PyFrameObject *f, void *closure)
  *  o 'try'/'for'/'while' blocks can't be jumped into because the blockstack
  *    needs to be set up before their code runs, and for 'for' loops the
  *    iterator needs to be on the stack.
+ *  o Jumps cannot be made from within a trace function invoked with a
+ *    'return' or 'exception' event since the eval loop has been exited at
+ *    that time.
  */
 static int
-frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
+frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno, void *Py_UNUSED(ignored))
 {
     int new_lineno = 0;                 /* The new value of f_lineno */
     long l_new_lineno;
@@ -91,13 +97,32 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
         return -1;
     }
 
+    /* Upon the 'call' trace event of a new frame, f->f_lasti is -1 and
+     * f->f_trace is NULL, check first on the first condition.
+     * Forbidding jumps from the 'call' event of a new frame is a side effect
+     * of allowing to set f_lineno only from trace functions. */
+    if (f->f_lasti == -1) {
+        PyErr_Format(PyExc_ValueError,
+                     "can't jump from the 'call' trace event of a new frame");
+        return -1;
+    }
+
     /* You can only do this from within a trace function, not via
      * _getframe or similar hackery. */
-    if (!f->f_trace)
-    {
+    if (!f->f_trace) {
         PyErr_Format(PyExc_ValueError,
-                     "f_lineno can only be set by a"
-                     " line trace function");
+                     "f_lineno can only be set by a trace function");
+        return -1;
+    }
+
+    /* Forbid jumps upon a 'return' trace event (except after executing a
+     * YIELD_VALUE or YIELD_FROM opcode, f_stacktop is not NULL in that case)
+     * and upon an 'exception' trace event.
+     * Jumps from 'call' trace events have already been forbidden above for new
+     * frames, so this check does not change anything for 'call' events. */
+    if (f->f_stacktop == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                "can only jump from a 'line' trace event");
         return -1;
     }
 
@@ -137,7 +162,7 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
         new_lasti = -1;
         for (offset = 0; offset < lnotab_len; offset += 2) {
             addr += lnotab[offset];
-            line += lnotab[offset+1];
+            line += (signed char)lnotab[offset+1];
             if (line >= new_lineno) {
                 new_lasti = addr;
                 new_lineno = line;
@@ -156,6 +181,16 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
 
     /* We're now ready to look at the bytecode. */
     PyBytes_AsStringAndSize(f->f_code->co_code, (char **)&code, &code_len);
+
+    /* The trace function is called with a 'return' trace event after the
+     * execution of a yield statement. */
+    assert(f->f_lasti != -1);
+    if (code[f->f_lasti] == YIELD_VALUE || code[f->f_lasti] == YIELD_FROM) {
+        PyErr_SetString(PyExc_ValueError,
+                "can't jump from a yield statement");
+        return -1;
+    }
+
     min_addr = Py_MIN(new_lasti, f->f_lasti);
     max_addr = Py_MAX(new_lasti, f->f_lasti);
 
@@ -189,13 +224,14 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
     memset(blockstack, '\0', sizeof(blockstack));
     memset(in_finally, '\0', sizeof(in_finally));
     blockstack_top = 0;
-    for (addr = 0; addr < code_len; addr++) {
+    for (addr = 0; addr < code_len; addr += sizeof(_Py_CODEUNIT)) {
         unsigned char op = code[addr];
         switch (op) {
         case SETUP_LOOP:
         case SETUP_EXCEPT:
         case SETUP_FINALLY:
         case SETUP_WITH:
+        case SETUP_ASYNC_WITH:
             blockstack[blockstack_top++] = addr;
             in_finally[blockstack_top-1] = 0;
             break;
@@ -203,7 +239,8 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
         case POP_BLOCK:
             assert(blockstack_top > 0);
             setup_op = code[blockstack[blockstack_top-1]];
-            if (setup_op == SETUP_FINALLY || setup_op == SETUP_WITH) {
+            if (setup_op == SETUP_FINALLY || setup_op == SETUP_WITH
+                                    || setup_op == SETUP_ASYNC_WITH) {
                 in_finally[blockstack_top-1] = 1;
             }
             else {
@@ -218,7 +255,8 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
              * be seeing such an END_FINALLY.) */
             if (blockstack_top > 0) {
                 setup_op = code[blockstack[blockstack_top-1]];
-                if (setup_op == SETUP_FINALLY || setup_op == SETUP_WITH) {
+                if (setup_op == SETUP_FINALLY || setup_op == SETUP_WITH
+                                    || setup_op == SETUP_ASYNC_WITH) {
                     blockstack_top--;
                 }
             }
@@ -248,10 +286,6 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
                 }
             }
         }
-
-        if (op >= HAVE_ARGUMENT) {
-            addr += 2;
-        }
     }
 
     /* Verify that the blockstack tracking code didn't get lost. */
@@ -274,13 +308,14 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
      * can tell whether the jump goes into any blocks without coming out
      * again - in that case we raise an exception below. */
     delta_iblock = 0;
-    for (addr = min_addr; addr < max_addr; addr++) {
+    for (addr = min_addr; addr < max_addr; addr += sizeof(_Py_CODEUNIT)) {
         unsigned char op = code[addr];
         switch (op) {
         case SETUP_LOOP:
         case SETUP_EXCEPT:
         case SETUP_FINALLY:
         case SETUP_WITH:
+        case SETUP_ASYNC_WITH:
             delta_iblock++;
             break;
 
@@ -290,10 +325,6 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
         }
 
         min_delta_iblock = Py_MIN(min_delta_iblock, delta_iblock);
-
-        if (op >= HAVE_ARGUMENT) {
-            addr += 2;
-        }
     }
 
     /* Derive the absolute iblock values from the deltas. */
@@ -321,6 +352,13 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
             PyObject *v = (*--f->f_stacktop);
             Py_DECREF(v);
         }
+        if (b->b_type == SETUP_FINALLY &&
+            code[b->b_handler] == WITH_CLEANUP_START)
+        {
+            /* Pop the exit function. */
+            PyObject *v = (*--f->f_stacktop);
+            Py_DECREF(v);
+        }
     }
 
     /* Finally set the new f_lineno and f_lasti and return OK. */
@@ -345,15 +383,13 @@ frame_gettrace(PyFrameObject *f, void *closure)
 static int
 frame_settrace(PyFrameObject *f, PyObject* v, void *closure)
 {
-    PyObject* old_value;
-
     /* We rely on f_lineno being accurate when f_trace is set. */
     f->f_lineno = PyFrame_GetLineNumber(f);
 
-    old_value = f->f_trace;
+    if (v == Py_None)
+        v = NULL;
     Py_XINCREF(v);
-    f->f_trace = v;
-    Py_XDECREF(old_value);
+    Py_XSETREF(f->f_trace, v);
 
     return 0;
 }
@@ -382,8 +418,7 @@ static PyGetSetDef frame_getsetlist[] = {
 
      * ob_type, ob_size, f_code, f_valuestack;
 
-     * f_locals, f_trace,
-       f_exc_type, f_exc_value, f_exc_traceback are NULL;
+     * f_locals, f_trace are NULL;
 
      * f_localsplus does not require re-allocation and
        the local variables in f_localsplus are NULL.
@@ -415,13 +450,15 @@ static int numfree = 0;         /* number of frames currently in free_list */
 /* max value for numfree */
 #define PyFrame_MAXFREELIST 200
 
-static void
+static void _Py_HOT_FUNCTION
 frame_dealloc(PyFrameObject *f)
 {
     PyObject **p, **valuestack;
     PyCodeObject *co;
 
-    PyObject_GC_UnTrack(f);
+    if (_PyObject_GC_IS_TRACKED(f))
+        _PyObject_GC_UNTRACK(f);
+
     Py_TRASHCAN_SAFE_BEGIN(f)
     /* Kill all local variables */
     valuestack = f->f_valuestack;
@@ -439,9 +476,6 @@ frame_dealloc(PyFrameObject *f)
     Py_DECREF(f->f_globals);
     Py_CLEAR(f->f_locals);
     Py_CLEAR(f->f_trace);
-    Py_CLEAR(f->f_exc_type);
-    Py_CLEAR(f->f_exc_value);
-    Py_CLEAR(f->f_exc_traceback);
 
     co = f->f_code;
     if (co->co_zombieframe == NULL)
@@ -470,9 +504,6 @@ frame_traverse(PyFrameObject *f, visitproc visit, void *arg)
     Py_VISIT(f->f_globals);
     Py_VISIT(f->f_locals);
     Py_VISIT(f->f_trace);
-    Py_VISIT(f->f_exc_type);
-    Py_VISIT(f->f_exc_value);
-    Py_VISIT(f->f_exc_traceback);
 
     /* locals */
     slots = f->f_code->co_nlocals + PyTuple_GET_SIZE(f->f_code->co_cellvars) + PyTuple_GET_SIZE(f->f_code->co_freevars);
@@ -488,7 +519,7 @@ frame_traverse(PyFrameObject *f, visitproc visit, void *arg)
     return 0;
 }
 
-static void
+static int
 frame_tp_clear(PyFrameObject *f)
 {
     PyObject **fastlocals, **p, **oldtop;
@@ -503,9 +534,6 @@ frame_tp_clear(PyFrameObject *f)
     f->f_stacktop = NULL;
     f->f_executing = 0;
 
-    Py_CLEAR(f->f_exc_type);
-    Py_CLEAR(f->f_exc_value);
-    Py_CLEAR(f->f_exc_traceback);
     Py_CLEAR(f->f_trace);
 
     /* locals */
@@ -519,6 +547,7 @@ frame_tp_clear(PyFrameObject *f)
         for (p = f->f_valuestack; p < oldtop; p++)
             Py_CLEAR(*p);
     }
+    return 0;
 }
 
 static PyObject *
@@ -533,7 +562,7 @@ frame_clear(PyFrameObject *f)
         _PyGen_Finalize(f->f_gen);
         assert(f->f_gen == NULL);
     }
-    frame_tp_clear(f);
+    (void)frame_tp_clear(f);
     Py_RETURN_NONE;
 }
 
@@ -558,6 +587,15 @@ frame_sizeof(PyFrameObject *f)
 PyDoc_STRVAR(sizeof__doc__,
 "F.__sizeof__() -> size of F in memory, in bytes");
 
+static PyObject *
+frame_repr(PyFrameObject *f)
+{
+    int lineno = PyFrame_GetLineNumber(f);
+    return PyUnicode_FromFormat(
+        "<frame at %p, file %R, line %d, code %S>",
+        f, f->f_code->co_filename, lineno, f->f_code->co_name);
+}
+
 static PyMethodDef frame_methods[] = {
     {"clear",           (PyCFunction)frame_clear,       METH_NOARGS,
      clear__doc__},
@@ -576,7 +614,7 @@ PyTypeObject PyFrame_Type = {
     0,                                          /* tp_getattr */
     0,                                          /* tp_setattr */
     0,                                          /* tp_reserved */
-    0,                                          /* tp_repr */
+    (reprfunc)frame_repr,                       /* tp_repr */
     0,                                          /* tp_as_number */
     0,                                          /* tp_as_sequence */
     0,                                          /* tp_as_mapping */
@@ -611,9 +649,9 @@ int _PyFrame_Init()
     return 1;
 }
 
-PyFrameObject *
-PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
-            PyObject *locals)
+PyFrameObject* _Py_HOT_FUNCTION
+_PyFrame_New_NoTrack(PyThreadState *tstate, PyCodeObject *code,
+                     PyObject *globals, PyObject *locals)
 {
     PyFrameObject *back = tstate->frame;
     PyFrameObject *f;
@@ -699,7 +737,6 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
             f->f_localsplus[i] = NULL;
         f->f_locals = NULL;
         f->f_trace = NULL;
-        f->f_exc_type = f->f_exc_value = f->f_exc_traceback = NULL;
     }
     f->f_stacktop = f->f_valuestack;
     f->f_builtins = builtins;
@@ -732,10 +769,22 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
     f->f_iblock = 0;
     f->f_executing = 0;
     f->f_gen = NULL;
+    f->f_trace_opcodes = 0;
+    f->f_trace_lines = 1;
 
-    _PyObject_GC_TRACK(f);
     return f;
 }
+
+PyFrameObject*
+PyFrame_New(PyThreadState *tstate, PyCodeObject *code,
+            PyObject *globals, PyObject *locals)
+{
+    PyFrameObject *f = _PyFrame_New_NoTrack(tstate, code, globals, locals);
+    if (f)
+        _PyObject_GC_TRACK(f);
+    return f;
+}
+
 
 /* Block management */
 
@@ -782,7 +831,7 @@ map_to_dict(PyObject *map, Py_ssize_t nmap, PyObject *dict, PyObject **values,
     assert(PyTuple_Check(map));
     assert(PyDict_Check(dict));
     assert(PyTuple_Size(map) >= nmap);
-    for (j = nmap; --j >= 0; ) {
+    for (j=0; j < nmap; j++) {
         PyObject *key = PyTuple_GET_ITEM(map, j);
         PyObject *value = values[j];
         assert(PyUnicode_Check(key));
@@ -835,7 +884,7 @@ dict_to_map(PyObject *map, Py_ssize_t nmap, PyObject *dict, PyObject **values,
     assert(PyTuple_Check(map));
     assert(PyDict_Check(dict));
     assert(PyTuple_Size(map) >= nmap);
-    for (j = nmap; --j >= 0; ) {
+    for (j=0; j < nmap; j++) {
         PyObject *key = PyTuple_GET_ITEM(map, j);
         PyObject *value = PyObject_GetItem(dict, key);
         assert(PyUnicode_Check(key));
@@ -853,8 +902,7 @@ dict_to_map(PyObject *map, Py_ssize_t nmap, PyObject *dict, PyObject **values,
             }
         } else if (values[j] != value) {
             Py_XINCREF(value);
-            Py_XDECREF(values[j]);
-            values[j] = value;
+            Py_XSETREF(values[j], value);
         }
         Py_XDECREF(value);
     }

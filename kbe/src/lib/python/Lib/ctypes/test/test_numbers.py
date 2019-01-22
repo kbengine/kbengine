@@ -76,7 +76,7 @@ class NumberTestCase(unittest.TestCase):
             self.assertEqual(t(v).value, truth(v))
 
     def test_typeerror(self):
-        # Only numbers are allowed in the contructor,
+        # Only numbers are allowed in the constructor,
         # otherwise TypeError is raised
         for t in signed_types + unsigned_types + float_types:
             self.assertRaises(TypeError, t, "")
@@ -241,7 +241,7 @@ class c_int_S(_SimpleCData):
 def run_test(rep, msg, func, arg=None):
 ##    items = [None] * rep
     items = range(rep)
-    from time import clock
+    from time import perf_counter as clock
     if arg is not None:
         start = clock()
         for i in items:

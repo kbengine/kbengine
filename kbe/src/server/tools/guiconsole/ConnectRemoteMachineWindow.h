@@ -15,15 +15,20 @@ public:
 
 // Dialog Data
 	enum { IDD = IDD_DIALOG_REMOTE_CONNECT };
-	
+
+	void saveIpMapping();
 	void saveHistory();
+	void loadIpMapping();
 	void loadHistory();
+	CString getCurrentHost();
 	virtual BOOL OnInitDialog();
+
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 
+	void updateIpMapping(const CString& host);
 	void updateMappingListCtrl();
 
 public:
@@ -37,6 +42,7 @@ public:
 	CIPAddressCtrl m_lan_ip;
 	CIPAddressCtrl m_internet_ip;
 	CListBox m_mappinglog;
+	std::multimap<CString, CString> m_ipMapping;
 
 	afx_msg void OnLbnDblclkList1();
 	afx_msg void OnBnClickedAddIpmapping();

@@ -39,7 +39,7 @@ finds there were 353 patches applied and 458 bugs fixed between Python 2.4 and
 This article doesn't try to be a complete specification of the new features;
 instead changes are briefly introduced using helpful examples.  For full
 details, you should always refer to the documentation for Python 2.5 at
-http://docs.python.org. If you want to understand the complete implementation
+https://docs.python.org. If you want to understand the complete implementation
 and design rationale, refer to the PEP for a particular new feature.
 
 Comments, suggestions, and error reports for this document are welcome; please
@@ -157,8 +157,8 @@ Here's a small but realistic example::
    server_log = functools.partial(log, subsystem='server')
    server_log('Unable to open socket')
 
-Here's another example, from a program that uses PyGTK.  Here a context-
-sensitive pop-up menu is being constructed dynamically.  The callback provided
+Here's another example, from a program that uses PyGTK.  Here a context-sensitive
+pop-up menu is being constructed dynamically.  The callback provided
 for the menu option is a partially applied version of the :meth:`open_item`
 method, where the first argument has been provided. ::
 
@@ -171,8 +171,8 @@ method, where the first argument has been provided. ::
            popup_menu.append( ("Open", open_func, 1) )
 
 Another function in the :mod:`functools` module is the
-``update_wrapper(wrapper, wrapped)`` function that helps you write well-
-behaved decorators.  :func:`update_wrapper` copies the name, module, and
+``update_wrapper(wrapper, wrapped)`` function that helps you write
+well-behaved decorators.  :func:`update_wrapper` copies the name, module, and
 docstring attribute to a wrapper function so that tracebacks inside the wrapped
 function are easier to understand.  For example, you might write::
 
@@ -229,14 +229,14 @@ required packages. ::
         )
 
 Another new enhancement to the Python package index at
-http://cheeseshop.python.org is storing source and binary archives for a
+https://pypi.org is storing source and binary archives for a
 package.  The new :command:`upload` Distutils command will upload a package to
 the repository.
 
 Before a package can be uploaded, you must be able to build a distribution using
 the :command:`sdist` Distutils command.  Once that works, you can run ``python
 setup.py upload`` to add your package to the PyPI archive.  Optionally you can
-GPG-sign the package by supplying the :option:`--sign` and :option:`--identity`
+GPG-sign the package by supplying the :option:`!--sign` and :option:`!--identity`
 options.
 
 Package uploading was implemented by Martin von Löwis and Richard Jones.
@@ -297,8 +297,8 @@ can't protect against having your submodule's name being used for a new module
 added in a future version of Python.
 
 In Python 2.5, you can switch :keyword:`import`'s behaviour to  absolute imports
-using a ``from __future__ import absolute_import`` directive.  This absolute-
-import behaviour will become the default in a future version (probably Python
+using a ``from __future__ import absolute_import`` directive.  This absolute-import
+behaviour will become the default in a future version (probably Python
 2.7).  Once absolute imports  are the default, ``import string`` will always
 find the standard library's version. It's suggested that users should begin
 using absolute imports as much as possible, so it's preferable to begin writing
@@ -330,7 +330,7 @@ statement, only the ``from ... import`` form.
    :pep:`328` - Imports: Multi-Line and Absolute/Relative
       PEP written by Aahz; implemented by Thomas Wouters.
 
-   http://codespeak.net/py/current/doc/index.html
+   https://pylib.readthedocs.io/
       The py library by Holger Krekel, which contains the :mod:`py.std` package.
 
 .. ======================================================================
@@ -448,8 +448,9 @@ when you're doing something with the returned value, as in the above example.
 The parentheses aren't always necessary, but it's easier to always add them
 instead of having to remember when they're needed.
 
-(:pep:`342` explains the exact rules, which are that a :keyword:`yield`\
--expression must always be parenthesized except when it occurs at the top-level
+(:pep:`342` explains the exact rules, which are that a
+:keyword:`yield`\ -expression must always be parenthesized except when it
+occurs at the top-level
 expression on the right-hand side of an assignment.  This means you can write
 ``val = yield i`` but have to use parentheses when there's an operation, as in
 ``val = (yield i) + 12``.)
@@ -547,7 +548,7 @@ exhausted.
       Earlier versions of these features were proposed in  :pep:`288` by Raymond
       Hettinger and :pep:`325` by Samuele Pedroni.
 
-   http://en.wikipedia.org/wiki/Coroutine
+   https://en.wikipedia.org/wiki/Coroutine
       The Wikipedia entry for  coroutines.
 
    http://www.sidhe.org/~dan/blog/archives/000178.html
@@ -602,8 +603,8 @@ be used with the ':keyword:`with`' statement. File objects are one example::
            ... more processing code ...
 
 After this statement has executed, the file object in *f* will have been
-automatically closed, even if the :keyword:`for` loop raised an exception part-
-way through the block.
+automatically closed, even if the :keyword:`for` loop raised an exception
+part-way through the block.
 
 .. note::
 
@@ -827,7 +828,7 @@ inheritance relationships are::
 This rearrangement was done because people often want to catch all exceptions
 that indicate program errors.  :exc:`KeyboardInterrupt` and :exc:`SystemExit`
 aren't errors, though, and usually represent an explicit action such as the user
-hitting Control-C or code calling :func:`sys.exit`.  A bare ``except:`` will
+hitting :kbd:`Control-C` or code calling :func:`sys.exit`.  A bare ``except:`` will
 catch all exceptions, so you commonly need to list :exc:`KeyboardInterrupt` and
 :exc:`SystemExit` in order to re-raise them.  The usual pattern is::
 
@@ -1095,7 +1096,7 @@ Here are all of the changes that Python 2.5 makes to the core Python language.
   log all the paths searched. In Python 2.5, a new :exc:`ImportWarning` warning is
   triggered when an import would have picked up a directory as a package but no
   :file:`__init__.py` was found.  This warning is silently ignored by default;
-  provide the :option:`-Wd` option when running the Python executable to display
+  provide the :option:`-Wd <-W>` option when running the Python executable to display
   the warning message. (Implemented by Thomas Wouters.)
 
 * The list of base classes in a class definition can now be empty.   As an
@@ -1126,7 +1127,7 @@ or ``exit()`` will now exit the interpreter as they expect.  (Implemented by
 Georg Brandl.)
 
 The Python executable now accepts the standard long options  :option:`--help`
-and :option:`--version`; on Windows,  it also accepts the :option:`/?` option
+and :option:`--version`; on Windows,  it also accepts the :option:`/? <-?>` option
 for displaying a help message. (Implemented by Georg Brandl.)
 
 .. ======================================================================
@@ -1307,7 +1308,7 @@ complete list of changes, or look through the SVN logs for all the details.
 
   (Contributed by Skip Montanaro and Andrew McNamara.)
 
-* The :class:`datetime` class in the :mod:`datetime`  module now has a
+* The :class:`~datetime.datetime` class in the :mod:`datetime`  module now has a
   ``strptime(string, format)``  method for parsing date strings, contributed
   by Josh Spoerri. It uses the same format characters as :func:`time.strptime` and
   :func:`time.strftime`::
@@ -1497,7 +1498,7 @@ complete list of changes, or look through the SVN logs for all the details.
 * The :mod:`pyexpat` module now uses version 2.0 of the Expat parser.
   (Contributed by Trent Mick.)
 
-* The :class:`Queue` class provided by the :mod:`Queue` module gained two new
+* The :class:`~queue.Queue` class provided by the :mod:`Queue` module gained two new
   methods.  :meth:`join` blocks until all items in the queue have been retrieved
   and all processing work on the items  have been completed.  Worker threads call
   the other new method,  :meth:`task_done`, to signal that processing for an item
@@ -1528,7 +1529,7 @@ complete list of changes, or look through the SVN logs for all the details.
 * The :mod:`socket` module now supports :const:`AF_NETLINK` sockets on Linux,
   thanks to a patch from Philippe Biondi.   Netlink sockets are a Linux-specific
   mechanism for communications between a user-space process and kernel code; an
-  introductory  article about them is at http://www.linuxjournal.com/article/7356.
+  introductory  article about them is at https://www.linuxjournal.com/article/7356.
   In Python code, netlink addresses are represented as a tuple of 2 integers,
   ``(pid, group_mask)``.
 
@@ -1558,8 +1559,8 @@ complete list of changes, or look through the SVN logs for all the details.
 
   You can also pack and unpack data to and from buffer objects directly using the
   ``pack_into(buffer, offset, v1, v2, ...)`` and ``unpack_from(buffer,
-  offset)`` methods.  This lets you store data directly into an array or a memory-
-  mapped file.
+  offset)`` methods.  This lets you store data directly into an array or a
+  memory-mapped file.
 
   (:class:`Struct` objects were implemented by Bob Ippolito at the NeedForSpeed
   sprint.  Support for buffer objects was added by Martin Blais, also at the
@@ -1639,8 +1640,8 @@ complete list of changes, or look through the SVN logs for all the details.
 
 * The :mod:`webbrowser` module received a number of enhancements. It's now
   usable as a script with ``python -m webbrowser``, taking a URL as the argument;
-  there are a number of switches  to control the behaviour (:option:`-n` for a new
-  browser window,  :option:`-t` for a new tab).  New module-level functions,
+  there are a number of switches  to control the behaviour (:option:`!-n` for a new
+  browser window,  :option:`!-t` for a new tab).  New module-level functions,
   :func:`open_new` and :func:`open_new_tab`, were added  to support this.  The
   module's :func:`open` function supports an additional feature, an *autoraise*
   parameter that signals whether to raise the open window when possible. A number
@@ -1649,7 +1650,7 @@ complete list of changes, or look through the SVN logs for all the details.
 
   .. Patch #754022
 
-* The :mod:`xmlrpclib` module now supports returning  :class:`datetime` objects
+* The :mod:`xmlrpclib` module now supports returning  :class:`~datetime.datetime` objects
   for the XML-RPC date type.  Supply  ``use_datetime=True`` to the :func:`loads`
   function or the :class:`Unmarshaller` class to enable this feature. (Contributed
   by Skip Montanaro.)
@@ -2013,7 +2014,7 @@ This example uses the iterator form::
    >>>
 
 For more information about the SQL dialect supported by SQLite, see
-http://www.sqlite.org.
+https://www.sqlite.org.
 
 
 .. seealso::
@@ -2021,7 +2022,7 @@ http://www.sqlite.org.
    http://www.pysqlite.org
       The pysqlite web page.
 
-   http://www.sqlite.org
+   https://www.sqlite.org
       The SQLite web page; the documentation describes the syntax and the available
       data types for the supported SQL dialect.
 
@@ -2088,7 +2089,7 @@ Changes to Python's build process and to the C API include:
   provided the results of their examination of the Python source code.  The
   analysis found about 60 bugs that  were quickly fixed.  Many of the bugs were
   refcounting problems, often occurring in error-handling code.  See
-  http://scan.coverity.com for the statistics.
+  https://scan.coverity.com for the statistics.
 
 * The largest change to the C API came from :pep:`353`, which modifies the
   interpreter to use a :c:type:`Py_ssize_t` type definition instead of
@@ -2130,7 +2131,7 @@ Changes to Python's build process and to the C API include:
   such as PyCon.
 
   .. List of names taken from Jeremy's python-dev post at
-  .. http://mail.python.org/pipermail/python-dev/2005-October/057500.html
+  .. https://mail.python.org/pipermail/python-dev/2005-October/057500.html
 
 * Evan Jones's patch to obmalloc, first described in a talk at PyCon DC 2005,
   was applied.  Python 2.4 allocated small objects in 256K-sized arenas, but never
@@ -2209,7 +2210,7 @@ Port-Specific Changes
 * MacOS X (10.3 and higher): dynamic loading of modules now uses the
   :c:func:`dlopen` function instead of MacOS-specific functions.
 
-* MacOS X: an :option:`--enable-universalsdk` switch was added to the
+* MacOS X: an :option:`!--enable-universalsdk` switch was added to the
   :program:`configure` script that compiles the interpreter as a universal binary
   able to run on both PowerPC and Intel processors. (Contributed by Ronald
   Oussoren; :issue:`2573`.)
@@ -2281,8 +2282,8 @@ Acknowledgements
 
 The author would like to thank the following people for offering suggestions,
 corrections and assistance with various drafts of this article: Georg Brandl,
-Nick Coghlan, Phillip J. Eby, Lars Gustäbel, Raymond Hettinger, Ralf W. Grosse-
-Kunstleve, Kent Johnson, Iain Lowe, Martin von Löwis, Fredrik Lundh, Andrew
+Nick Coghlan, Phillip J. Eby, Lars Gustäbel, Raymond Hettinger, Ralf W.
+Grosse-Kunstleve, Kent Johnson, Iain Lowe, Martin von Löwis, Fredrik Lundh, Andrew
 McNamara, Skip Montanaro, Gustavo Niemeyer, Paul Prescod, James Pryor, Mike
 Rovner, Scott Weikart, Barry Warsaw, Thomas Wouters.
 

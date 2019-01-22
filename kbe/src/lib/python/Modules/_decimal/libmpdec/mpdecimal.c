@@ -36,19 +36,26 @@
 #include "bits.h"
 #include "convolute.h"
 #include "crt.h"
-#include "memory.h"
+#include "mpalloc.h"
 #include "typearith.h"
 #include "umodarith.h"
 
 #ifdef PPRO
   #if defined(_MSC_VER)
     #include <float.h>
+    #pragma float_control(precise, on)
     #pragma fenv_access(on)
   #elif !defined(__OpenBSD__) && !defined(__NetBSD__)
     /* C99 */
     #include <fenv.h>
     #pragma STDC FENV_ACCESS ON
   #endif
+#endif
+
+
+/* Disable warning that is part of -Wextra since gcc 7.0. */
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ >= 7
+  #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #endif
 
 

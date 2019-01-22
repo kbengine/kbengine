@@ -9,13 +9,10 @@
 # TODO: - wrong versions in versionadded/changed
 #       - wrong markup after versionchanged directive
 
-from __future__ import with_statement
-
 import os
 import re
 import sys
 import getopt
-import subprocess
 from os.path import join, splitext, abspath, exists
 from collections import defaultdict
 
@@ -28,28 +25,32 @@ directives = [
     'parsed-literal', 'pull-quote', 'raw', 'replace',
     'restructuredtext-test-directive', 'role', 'rubric', 'sectnum', 'sidebar',
     'table', 'target-notes', 'tip', 'title', 'topic', 'unicode', 'warning',
-    # Sphinx custom ones
+    # Sphinx and Python docs custom ones
     'acks', 'attribute', 'autoattribute', 'autoclass', 'autodata',
-    'autoexception', 'autofunction', 'automethod', 'automodule', 'centered',
-    'cfunction', 'class', 'classmethod', 'cmacro', 'cmdoption', 'cmember',
-    'code-block', 'confval', 'cssclass', 'ctype', 'currentmodule', 'cvar',
-    'data', 'deprecated', 'describe', 'directive', 'doctest', 'envvar', 'event',
-    'exception', 'function', 'glossary', 'highlight', 'highlightlang', 'index',
-    'literalinclude', 'method', 'module', 'moduleauthor', 'productionlist',
-    'program', 'role', 'sectionauthor', 'seealso', 'sourcecode', 'staticmethod',
-    'tabularcolumns', 'testcode', 'testoutput', 'testsetup', 'toctree', 'todo',
-    'todolist', 'versionadded', 'versionchanged'
+    'autoexception', 'autofunction', 'automethod', 'automodule',
+    'availability', 'centered', 'cfunction', 'class', 'classmethod', 'cmacro',
+    'cmdoption', 'cmember', 'code-block', 'confval', 'cssclass', 'ctype',
+    'currentmodule', 'cvar', 'data', 'decorator', 'decoratormethod',
+    'deprecated-removed', 'deprecated(?!-removed)', 'describe', 'directive',
+    'doctest', 'envvar', 'event', 'exception', 'function', 'glossary',
+    'highlight', 'highlightlang', 'impl-detail', 'index', 'literalinclude',
+    'method', 'miscnews', 'module', 'moduleauthor', 'opcode', 'pdbcommand',
+    'productionlist', 'program', 'role', 'sectionauthor', 'seealso',
+    'sourcecode', 'staticmethod', 'tabularcolumns', 'testcode', 'testoutput',
+    'testsetup', 'toctree', 'todo', 'todolist', 'versionadded',
+    'versionchanged'
 ]
 
 all_directives = '(' + '|'.join(directives) + ')'
-seems_directive_re = re.compile(r'\.\. %s([^a-z:]|:(?!:))' % all_directives)
+seems_directive_re = re.compile(r'(?<!\.)\.\. %s([^a-z:]|:(?!:))' % all_directives)
 default_role_re = re.compile(r'(^| )`\w([^`]*?\w)?`($| )')
-leaked_markup_re = re.compile(r'[a-z]::[^=]|:[a-z]+:|`|\.\.\s*\w+:')
+leaked_markup_re = re.compile(r'[a-z]::\s|`|\.\.\s*\w+:')
 
 
 checkers = {}
 
 checker_props = {'severity': 1, 'falsepositives': False}
+
 
 def checker(*suffixes, **kwds):
     """Decorator to register a function as a checker."""
@@ -81,7 +82,7 @@ def check_suspicious_constructs(fn, lines):
     """Check for suspicious reST constructs."""
     inprod = False
     for lno, line in enumerate(lines):
-        if seems_directive_re.match(line):
+        if seems_directive_re.search(line):
             yield lno+1, 'comment seems to be intended as a directive'
         if '.. productionlist::' in line:
             inprod = True
@@ -171,10 +172,6 @@ Options:  -v       verbose (print all checked file names)
     count = defaultdict(int)
 
     for root, dirs, files in os.walk(path):
-        # ignore subdirs controlled by svn
-        if '.svn' in dirs:
-            dirs.remove('.svn')
-
         # ignore subdirs in ignore list
         if abspath(root) in ignore:
             del dirs[:]
@@ -198,7 +195,7 @@ Options:  -v       verbose (print all checked file names)
                 print('Checking %s...' % fn)
 
             try:
-                with open(fn, 'r') as f:
+                with open(fn, 'r', encoding='utf-8') as f:
                     lines = list(f)
             except (IOError, OSError) as err:
                 print('%s: cannot open: %s' % (fn, err))

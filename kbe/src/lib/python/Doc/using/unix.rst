@@ -26,11 +26,11 @@ following links:
 
 .. seealso::
 
-   http://www.debian.org/doc/manuals/maint-guide/first.en.html
+   https://www.debian.org/doc/manuals/maint-guide/first.en.html
       for Debian users
-   http://en.opensuse.org/Portal:Packaging
+   https://en.opensuse.org/Portal:Packaging
       for OpenSuse users
-   http://docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch-creating-rpms.html
+   https://docs-old.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch-creating-rpms.html
       for Fedora users
    http://www.slackbook.org/html/package-management-making-packages.html
       for Slackware users
@@ -41,9 +41,11 @@ On FreeBSD and OpenBSD
 
 * FreeBSD users, to add the package use::
 
-     pkg_add -r python
+     pkg install python3
 
-* OpenBSD users use::
+* OpenBSD users, to add the package use::
+
+     pkg_add -r python
 
      pkg_add ftp://ftp.openbsd.org/pub/OpenBSD/4.2/packages/<insert your architecture here>/python-<version>.tgz
 
@@ -55,9 +57,8 @@ On FreeBSD and OpenBSD
 On OpenSolaris
 --------------
 
-To install the newest Python versions on OpenSolaris, install `blastwave
-<http://www.blastwave.org/howto.html>`_ and type ``pkg_get -i python`` at the
-prompt.
+You can get Python from `OpenCSW <https://www.opencsw.org/>`_.  Various versions
+of Python are available and can be installed with e.g. ``pkgutil -i python27``.
 
 
 .. _building-python-on-unix:
@@ -66,9 +67,9 @@ Building Python
 ===============
 
 If you want to compile CPython yourself, first thing you should do is get the
-`source <http://python.org/download/source/>`_. You can download either the
+`source <https://www.python.org/downloads/source/>`_. You can download either the
 latest release's source or just grab a fresh `clone
-<http://docs.python.org/devguide/setup#getting-the-source-code>`_.  (If you want
+<https://devguide.python.org/setup/#getting-the-source-code>`_.  (If you want
 to contribute patches, you will need a clone.)
 
 The build process consists in the usual ::
@@ -78,7 +79,7 @@ The build process consists in the usual ::
    make install
 
 invocations. Configuration options and caveats for specific Unix platforms are
-extensively documented in the :source:`README` file in the root of the Python
+extensively documented in the :source:`README.rst` file in the root of the Python
 source tree.
 
 .. warning::
@@ -117,7 +118,9 @@ Miscellaneous
 =============
 
 To easily use Python scripts on Unix, you need to make them executable,
-e.g. with ::
+e.g. with
+
+.. code-block:: shell-session
 
    $ chmod +x script
 
@@ -133,18 +136,12 @@ some Unices may not have the :program:`env` command, so you may need to hardcode
 To use shell commands in your Python scripts, look at the :mod:`subprocess` module.
 
 
-Editors
-=======
+Editors and IDEs
+================
 
-Vim and Emacs are excellent editors which support Python very well.  For more
-information on how to code in Python in these editors, look at:
+There are a number of IDEs that support Python programming language.
+Many editors and IDEs provide syntax highlighting, debugging tools, and :pep:`8` checks.
 
-* http://www.vim.org/scripts/script.php?script_id=790
-* http://sourceforge.net/projects/python-mode
-
-Geany is an excellent IDE with support for a lot of languages. For more
-information, read: http://www.geany.org/
-
-Komodo edit is another extremely good IDE.  It also has support for a lot of
-languages. For more information, read:
-http://www.activestate.com/store/productdetail.aspx?prdGuid=20f4ed15-6684-4118-a78b-d37ff4058c5f
+Please go to `Python Editors <https://wiki.python.org/moin/PythonEditors>`_ and
+`Integrated Development Environments <https://wiki.python.org/moin/IntegratedDevelopmentEnvironments>`_
+for a comprehensive list.

@@ -102,7 +102,7 @@ RemoteEntityMethod* EntityCall::createRemoteMethod(MethodDescription* pMethodDes
 //-------------------------------------------------------------------------------------
 PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 {
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 

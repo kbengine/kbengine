@@ -3,14 +3,19 @@
 
 .. module:: difflib
    :synopsis: Helpers for computing differences between objects.
+
 .. moduleauthor:: Tim Peters <tim_one@users.sourceforge.net>
 .. sectionauthor:: Tim Peters <tim_one@users.sourceforge.net>
 .. Markup by Fred L. Drake, Jr. <fdrake@acm.org>
+
+**Source code:** :source:`Lib/difflib.py`
 
 .. testsetup::
 
    import sys
    from difflib import *
+
+--------------
 
 This module provides classes and functions for comparing sequences. It
 can be used for example, for comparing files, and can produce difference
@@ -25,7 +30,9 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
    little fancier than, an algorithm published in the late 1980's by Ratcliff and
    Obershelp under the hyperbolic name "gestalt pattern matching."  The idea is to
    find the longest contiguous matching subsequence that contains no "junk"
-   elements (the Ratcliff and Obershelp algorithm doesn't address junk).  The same
+   elements; these "junk" elements are ones that are uninteresting in some
+   sense, such as blank lines or whitespace.  (Handling junk is an
+   extension to the Ratcliff and Obershelp algorithm.) The same
    idea is then applied recursively to the pieces of the sequences to the left and
    to the right of the matching subsequence.  This does not yield minimal edit
    sequences, but does tend to yield matches that "look right" to people.
@@ -94,13 +101,14 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
       *wrapcolumn* is an optional keyword to specify column number where lines are
       broken and wrapped, defaults to ``None`` where lines are not wrapped.
 
-      *linejunk* and *charjunk* are optional keyword arguments passed into ``ndiff()``
+      *linejunk* and *charjunk* are optional keyword arguments passed into :func:`ndiff`
       (used by :class:`HtmlDiff` to generate the side by side HTML differences).  See
-      ``ndiff()`` documentation for argument default values and descriptions.
+      :func:`ndiff` documentation for argument default values and descriptions.
 
    The following methods are public:
 
-   .. method:: make_file(fromlines, tolines, fromdesc='', todesc='', context=False, numlines=5)
+   .. method:: make_file(fromlines, tolines, fromdesc='', todesc='', context=False, \
+                         numlines=5, *, charset='utf-8')
 
       Compares *fromlines* and *tolines* (lists of strings) and returns a string which
       is a complete HTML file containing a table showing line by line differences with
@@ -118,6 +126,10 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
       "next" hyperlinks (setting to zero would cause the "next" hyperlinks to place
       the next difference highlight at the top of the browser without any leading
       context).
+
+      .. versionchanged:: 3.5
+         *charset* keyword-only argument was added.  The default charset of
+         HTML document changed from ``'ISO-8859-1'`` to ``'utf-8'``.
 
    .. method:: make_table(fromlines, tolines, fromdesc='', todesc='', context=False, numlines=5)
 
@@ -158,8 +170,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
       >>> s1 = ['bacon\n', 'eggs\n', 'ham\n', 'guido\n']
       >>> s2 = ['python\n', 'eggy\n', 'hamster\n', 'guido\n']
-      >>> for line in context_diff(s1, s2, fromfile='before.py', tofile='after.py'):
-      ...     sys.stdout.write(line)  # doctest: +NORMALIZE_WHITESPACE
+      >>> sys.stdout.writelines(context_diff(s1, s2, fromfile='before.py', tofile='after.py'))
       *** before.py
       --- after.py
       ***************
@@ -197,7 +208,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
       >>> import keyword
       >>> get_close_matches('wheel', keyword.kwlist)
       ['while']
-      >>> get_close_matches('apple', keyword.kwlist)
+      >>> get_close_matches('pineapple', keyword.kwlist)
       []
       >>> get_close_matches('accept', keyword.kwlist)
       ['except']
@@ -208,7 +219,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
    Compare *a* and *b* (lists of strings); return a :class:`Differ`\ -style
    delta (a :term:`generator` generating the delta lines).
 
-   Optional keyword parameters *linejunk* and *charjunk* are for filter functions
+   Optional keyword parameters *linejunk* and *charjunk* are filtering functions
    (or ``None``):
 
    *linejunk*: A function that accepts a single string argument, and returns
@@ -222,7 +233,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
    *charjunk*: A function that accepts a character (a string of length 1), and
    returns if the character is junk, or false if not. The default is module-level
    function :func:`IS_CHARACTER_JUNK`, which filters out whitespace characters (a
-   blank or tab; note: bad idea to include newline in this!).
+   blank or tab; it's a bad idea to include newline in this!).
 
    :file:`Tools/scripts/ndiff.py` is a command-line front-end to this function.
 
@@ -269,7 +280,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
    generating the delta lines) in unified diff format.
 
    Unified diffs are a compact way of showing just the lines that have changed plus
-   a few lines of context.  The changes are shown in a inline style (instead of
+   a few lines of context.  The changes are shown in an inline style (instead of
    separate before/after blocks).  The number of context lines is set by *n* which
    defaults to three.
 
@@ -291,8 +302,7 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
       >>> s1 = ['bacon\n', 'eggs\n', 'ham\n', 'guido\n']
       >>> s2 = ['python\n', 'eggy\n', 'hamster\n', 'guido\n']
-      >>> for line in unified_diff(s1, s2, fromfile='before.py', tofile='after.py'):
-      ...     sys.stdout.write(line)   # doctest: +NORMALIZE_WHITESPACE
+      >>> sys.stdout.writelines(unified_diff(s1, s2, fromfile='before.py', tofile='after.py'))
       --- before.py
       +++ after.py
       @@ -1,4 +1,4 @@
@@ -306,6 +316,21 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
    See :ref:`difflib-interface` for a more detailed example.
 
+.. function:: diff_bytes(dfunc, a, b, fromfile=b'', tofile=b'', fromfiledate=b'', tofiledate=b'', n=3, lineterm=b'\\n')
+
+   Compare *a* and *b* (lists of bytes objects) using *dfunc*; yield a
+   sequence of delta lines (also bytes) in the format returned by *dfunc*.
+   *dfunc* must be a callable, typically either :func:`unified_diff` or
+   :func:`context_diff`.
+
+   Allows you to compare data with unknown or inconsistent encoding. All
+   inputs except *n* must be bytes objects, not str. Works by losslessly
+   converting all inputs (except *n*) to str, and calling ``dfunc(a, b,
+   fromfile, tofile, fromfiledate, tofiledate, n, lineterm)``. The output of
+   *dfunc* is then converted back to bytes, so the delta lines that you
+   receive have the same unknown/inconsistent encodings as *a* and *b*.
+
+   .. versionadded:: 3.5
 
 .. function:: IS_LINE_JUNK(line)
 
@@ -323,9 +348,9 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
 .. seealso::
 
-   `Pattern Matching: The Gestalt Approach <http://www.ddj.com/184407970?pgno=5>`_
+   `Pattern Matching: The Gestalt Approach <http://www.drdobbs.com/database/pattern-matching-the-gestalt-approach/184407970>`_
       Discussion of a similar algorithm by John W. Ratcliff and D. E. Metzener. This
-      was published in `Dr. Dobb's Journal <http://www.ddj.com/>`_ in July, 1988.
+      was published in `Dr. Dobb's Journal <http://www.drdobbs.com/>`_ in July, 1988.
 
 
 .. _sequence-matcher:
@@ -432,14 +457,15 @@ The :class:`SequenceMatcher` class has this constructor:
 
    .. method:: get_matching_blocks()
 
-      Return list of triples describing matching subsequences. Each triple is of
-      the form ``(i, j, n)``, and means that ``a[i:i+n] == b[j:j+n]``.  The
+      Return list of triples describing non-overlapping matching subsequences.
+      Each triple is of the form ``(i, j, n)``,
+      and means that ``a[i:i+n] == b[j:j+n]``.  The
       triples are monotonically increasing in *i* and *j*.
 
       The last triple is a dummy, and has the value ``(len(a), len(b), 0)``.  It
       is the only triple with ``n == 0``.  If ``(i, j, n)`` and ``(i', j', n')``
       are adjacent triples in the list, and the second is not the last triple in
-      the list, then ``i+n != i'`` or ``j+n != j'``; in other words, adjacent
+      the list, then ``i+n < i'`` or ``j+n < j'``; in other words, adjacent
       triples always describe non-adjacent equal blocks.
 
       .. XXX Explain why a dummy is used!
@@ -477,16 +503,14 @@ The :class:`SequenceMatcher` class has this constructor:
       |               | are equal).                                 |
       +---------------+---------------------------------------------+
 
-      For example:
+      For example::
 
         >>> a = "qabxcd"
         >>> b = "abycdf"
         >>> s = SequenceMatcher(None, a, b)
         >>> for tag, i1, i2, j1, j2 in s.get_opcodes():
-            print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(
-                tag, i1, i2, j1, j2, a[i1:i2], b[j1:j2]))
-
-
+        ...     print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(
+        ...         tag, i1, i2, j1, j2, a[i1:i2], b[j1:j2]))
         delete    a[0:1] --> b[0:0]      'q' --> ''
         equal     a[1:3] --> b[0:2]     'ab' --> 'ab'
         replace   a[3:4] --> b[2:3]      'x' --> 'y'
@@ -591,7 +615,7 @@ If you want to know how to change the first sequence into the second, use
      work.
 
    * `Simple version control recipe
-     <http://code.activestate.com/recipes/576729/>`_ for a small application
+     <https://code.activestate.com/recipes/576729/>`_ for a small application
      built with :class:`SequenceMatcher`.
 
 
@@ -621,6 +645,12 @@ The :class:`Differ` class has this constructor:
    *charjunk*: A function that accepts a single character argument (a string of
    length 1), and returns true if the character is junk. The default is ``None``,
    meaning that no character is considered junk.
+
+   These junk-filtering functions speed up matching to find
+   differences and do not cause any differing lines or characters to
+   be ignored.  Read the description of the
+   :meth:`~SequenceMatcher.find_longest_match` method's *isjunk*
+   parameter for an explanation.
 
    :class:`Differ` objects are used (deltas generated) via a single method:
 
@@ -713,65 +743,4 @@ This example shows how to use difflib to create a ``diff``-like utility.
 It is also contained in the Python source distribution, as
 :file:`Tools/scripts/diff.py`.
 
-.. testcode::
-
-   """ Command line interface to difflib.py providing diffs in four formats:
-
-   * ndiff:    lists every line and highlights interline changes.
-   * context:  highlights clusters of changes in a before/after format.
-   * unified:  highlights clusters of changes in an inline format.
-   * html:     generates side by side comparison with change highlights.
-
-   """
-
-   import sys, os, time, difflib, optparse
-
-   def main():
-        # Configure the option parser
-       usage = "usage: %prog [options] fromfile tofile"
-       parser = optparse.OptionParser(usage)
-       parser.add_option("-c", action="store_true", default=False,
-                         help='Produce a context format diff (default)')
-       parser.add_option("-u", action="store_true", default=False,
-                         help='Produce a unified format diff')
-       hlp = 'Produce HTML side by side diff (can use -c and -l in conjunction)'
-       parser.add_option("-m", action="store_true", default=False, help=hlp)
-       parser.add_option("-n", action="store_true", default=False,
-                         help='Produce a ndiff format diff')
-       parser.add_option("-l", "--lines", type="int", default=3,
-                         help='Set number of context lines (default 3)')
-       (options, args) = parser.parse_args()
-
-       if len(args) == 0:
-           parser.print_help()
-           sys.exit(1)
-       if len(args) != 2:
-           parser.error("need to specify both a fromfile and tofile")
-
-       n = options.lines
-       fromfile, tofile = args # as specified in the usage string
-
-       # we're passing these as arguments to the diff function
-       fromdate = time.ctime(os.stat(fromfile).st_mtime)
-       todate = time.ctime(os.stat(tofile).st_mtime)
-       with open(fromfile) as fromf, open(tofile) as tof:
-           fromlines, tolines = list(fromf), list(tof)
-
-       if options.u:
-           diff = difflib.unified_diff(fromlines, tolines, fromfile, tofile,
-                                       fromdate, todate, n=n)
-       elif options.n:
-           diff = difflib.ndiff(fromlines, tolines)
-       elif options.m:
-           diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile,
-                                               tofile, context=options.c,
-                                               numlines=n)
-       else:
-           diff = difflib.context_diff(fromlines, tolines, fromfile, tofile,
-                                       fromdate, todate, n=n)
-
-       # we're using writelines because diff is a generator
-       sys.stdout.writelines(diff)
-
-   if __name__ == '__main__':
-       main()
+.. literalinclude:: ../../Tools/scripts/diff.py

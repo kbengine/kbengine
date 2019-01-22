@@ -158,7 +158,7 @@ class Test_TextTestRunner(unittest.TestCase):
         self.assertEqual(runner.warnings, None)
         self.assertTrue(runner.descriptions)
         self.assertEqual(runner.resultclass, unittest.TextTestResult)
-
+        self.assertFalse(runner.tb_locals)
 
     def test_multiple_inheritance(self):
         class AResult(unittest.TestResult):
@@ -172,20 +172,24 @@ class Test_TextTestRunner(unittest.TestCase):
         # on arguments in its __init__ super call
         ATextResult(None, None, 1)
 
-
     def testBufferAndFailfast(self):
         class Test(unittest.TestCase):
             def testFoo(self):
                 pass
         result = unittest.TestResult()
         runner = unittest.TextTestRunner(stream=io.StringIO(), failfast=True,
-                                           buffer=True)
+                                         buffer=True)
         # Use our result object
         runner._makeResult = lambda: result
         runner.run(Test('testFoo'))
 
         self.assertTrue(result.failfast)
         self.assertTrue(result.buffer)
+
+    def test_locals(self):
+        runner = unittest.TextTestRunner(stream=io.StringIO(), tb_locals=True)
+        result = runner.run(unittest.TestSuite())
+        self.assertEqual(True, result.tb_locals)
 
     def testRunnerRegistersResult(self):
         class Test(unittest.TestCase):
@@ -285,8 +289,9 @@ class Test_TextTestRunner(unittest.TestCase):
         at_msg = b'Please use assertTrue instead.'
 
         # no args -> all the warnings are printed, unittest warnings only once
-        p = subprocess.Popen([sys.executable, '_test_warnings.py'], **opts)
-        out, err = get_parse_out_err(p)
+        p = subprocess.Popen([sys.executable, '-E', '_test_warnings.py'], **opts)
+        with p:
+            out, err = get_parse_out_err(p)
         self.assertIn(b'OK', err)
         # check that the total number of warnings in the output is correct
         self.assertEqual(len(out), 12)
@@ -307,7 +312,8 @@ class Test_TextTestRunner(unittest.TestCase):
         # in all these cases no warnings are printed
         for args in args_list:
             p = subprocess.Popen(args, **opts)
-            out, err = get_parse_out_err(p)
+            with p:
+                out, err = get_parse_out_err(p)
             self.assertIn(b'OK', err)
             self.assertEqual(len(out), 0)
 
@@ -316,7 +322,8 @@ class Test_TextTestRunner(unittest.TestCase):
         #                                     unittest warnings only once
         p = subprocess.Popen([sys.executable, '_test_warnings.py', 'always'],
                              **opts)
-        out, err = get_parse_out_err(p)
+        with p:
+            out, err = get_parse_out_err(p)
         self.assertIn(b'OK', err)
         self.assertEqual(len(out), 14)
         for msg in [b'dw', b'iw', b'uw', b'rw']:

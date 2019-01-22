@@ -51,6 +51,7 @@ BOOL CConnectRemoteMachineWindow::OnInitDialog()
 	m_port.SetWindowTextW(L"20099");
 
 	loadHistory();
+	loadIpMapping();
 
 	int i = 0;
 	std::deque<CString>::iterator iter = m_historyCommand.begin();
@@ -68,6 +69,8 @@ BOOL CConnectRemoteMachineWindow::OnInitDialog()
 			free(ip);
 
 			m_port.SetWindowTextW(output1);
+
+			updateIpMapping(*iter);
 		}
 
 		i++;
@@ -210,6 +213,7 @@ END:
 		saveHistory();
 	}
 
+	saveIpMapping();
 	free(wcommand);
 
 	OnOK(); 
@@ -263,6 +267,63 @@ void CConnectRemoteMachineWindow::saveHistory()
 	}
 }
 
+void CConnectRemoteMachineWindow::saveIpMapping()
+{
+	CString host = getCurrentHost();
+	m_ipMapping.clear();
+	if (!host.IsEmpty())
+	{
+		for (int index = 0; index < m_mappinglog.GetCount(); index++)
+		{
+			CString str;
+			m_mappinglog.GetText(index, str);
+			m_ipMapping.insert(std::make_pair(host, str));
+		}
+	}
+
+	TiXmlDocument *pDocument = new TiXmlDocument();
+	TiXmlElement *rootElement = new TiXmlElement("root");
+	pDocument->LinkEndChild(rootElement);
+
+	for (auto iter = m_ipMapping.begin(); iter != m_ipMapping.end(); iter = m_ipMapping.upper_bound(iter->first))
+	{
+		TiXmlElement *hostElement = new TiXmlElement("host");
+		host = iter->first;
+		char* value = KBEngine::strutil::wchar2char(host.GetBuffer(0));
+		hostElement->SetAttribute("value", value);
+		rootElement->LinkEndChild(hostElement);
+		free(value);
+
+		auto items = m_ipMapping.equal_range(host);
+		for (auto item = items.first; item != items.second; item++)
+		{
+			string strTemp = CT2A(item->second.GetBuffer(0));
+			std::vector<std::string> result;
+			strutil::kbe_splits(strTemp, ">", result);
+
+			TiXmlElement *lanipElement = new TiXmlElement("lan_ip");
+			lanipElement->SetAttribute("value", result[0].c_str());
+			hostElement->LinkEndChild(lanipElement);
+
+			TiXmlText *content = new TiXmlText(result[1].c_str());
+			lanipElement->LinkEndChild(content);
+		}
+	}
+	
+	CString appPath = GetAppPath();
+	CString fullPath = appPath + L"\\histroycommands2.xml";
+
+	char fname[4096] = { 0 };
+
+	int len = WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), fname, len, NULL, NULL);
+	fname[len + 1] = '\0';
+
+	pDocument->SaveFile(fname);
+	pDocument->Clear();
+	delete pDocument;
+}
+
 void CConnectRemoteMachineWindow::loadHistory()
 {
     CString appPath = GetAppPath();
@@ -295,6 +356,69 @@ void CConnectRemoteMachineWindow::loadHistory()
 	delete pDocument;
 }	
 
+void CConnectRemoteMachineWindow::loadIpMapping()
+{
+	CString appPath = GetAppPath();
+	CString fullPath = appPath + L"\\histroycommands2.xml";
+
+	char fname[4096] = { 0 };
+
+	int len = WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), fname, len, NULL, NULL);
+	fname[len + 1] = '\0';
+
+	TiXmlDocument *pDocument = new TiXmlDocument(fname);
+	if (pDocument == NULL || !pDocument->LoadFile(TIXML_ENCODING_UTF8))
+		return;
+
+	TiXmlElement *rootElement = pDocument->RootElement();
+	for (TiXmlElement* elem = rootElement->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement())
+	{
+		CString host(elem->Attribute("value"));
+		
+		for (TiXmlElement *childElem = elem->FirstChildElement(); childElem != NULL; childElem = childElem->NextSiblingElement())
+		{
+			const char *lan_ip = childElem->Attribute("value");
+			const char *internet_ip = childElem->GetText();
+
+			CString ipMapping(lan_ip);
+			ipMapping += ">";
+			ipMapping += internet_ip;
+			m_ipMapping.insert(std::make_pair(host, ipMapping));
+		}
+	}
+
+	pDocument->Clear();
+	delete pDocument;
+}
+
+CString CConnectRemoteMachineWindow::getCurrentHost()
+{
+	CString host;
+	byte ips[4];
+
+	if (0 == m_ip.GetAddress(ips[0], ips[1], ips[2], ips[3]))
+	{
+		AfxMessageBox(L"address error!");
+		return host;
+	}
+
+	char strip[256];
+	sprintf_s(strip, 256, "%d.%d.%d.%d", ips[0], ips[1], ips[2], ips[3]);
+
+	KBEngine::u_int16_t port = 0;
+	CString sport;
+	m_port.GetWindowTextW(sport);
+	char* csport = KBEngine::strutil::wchar2char(sport.GetBuffer(0));
+	port = atoi(csport);
+	host += strip;
+	host += ":";
+	host += csport;
+	free(csport);
+
+	return host;
+}
+
 void CConnectRemoteMachineWindow::OnLbnDblclkList1()
 {
 	// TODO: Add your control notification handler code here
@@ -311,8 +435,9 @@ void CConnectRemoteMachineWindow::OnLbnDblclkList1()
 	free(ip);
 
 	m_port.SetWindowTextW(output1);
-}
 
+	updateIpMapping(str);
+}
 
 void CConnectRemoteMachineWindow::OnBnClickedAddIpmapping()
 {
@@ -344,6 +469,25 @@ void CConnectRemoteMachineWindow::OnBnClickedAddIpmapping()
 	updateMappingListCtrl();
 }
 
+void CConnectRemoteMachineWindow::updateIpMapping(const CString& host)
+{
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+	dlg->m_ipMappings.clear();
+
+	auto ret = m_ipMapping.equal_range(host);
+	for (auto iter = ret.first; iter != ret.second; iter++)
+	{
+		string strTemp = CT2A(iter->second.GetBuffer(0));
+		std::vector<std::string> result;
+		strutil::kbe_splits(strTemp, ">", result);
+
+		CString lan_ip(result[0].c_str());
+		CString internet_ip(result[1].c_str());
+		dlg->m_ipMappings[lan_ip] = internet_ip;
+	}
+
+	updateMappingListCtrl();
+}
 
 void CConnectRemoteMachineWindow::updateMappingListCtrl()
 {
@@ -375,12 +519,10 @@ void CConnectRemoteMachineWindow::OnBnClickedDelIpmapping()
 	updateMappingListCtrl();
 }
 
-
 void CConnectRemoteMachineWindow::OnLbnSelchangeList1()
 {
 	// TODO: Add your control notification handler code here
 }
-
 
 void CConnectRemoteMachineWindow::OnLbnDblclkList2()
 {

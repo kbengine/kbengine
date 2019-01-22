@@ -21,6 +21,7 @@ also syntactically compound statements.
 .. index::
    single: clause
    single: suite
+   single: ; (semicolon)
 
 A compound statement consists of one or more 'clauses.'  A clause consists of a
 header and a 'suite.'  The clause headers of a particular compound statement are
@@ -51,6 +52,9 @@ Summarizing:
                 : | `with_stmt`
                 : | `funcdef`
                 : | `classdef`
+                : | `async_with_stmt`
+                : | `async_for_stmt`
+                : | `async_funcdef`
    suite: `stmt_list` NEWLINE | NEWLINE INDENT `statement`+ DEDENT
    statement: `stmt_list` NEWLINE | `compound_stmt`
    stmt_list: `simple_stmt` (";" `simple_stmt`)* [";"]
@@ -81,14 +85,13 @@ The :keyword:`if` statement
    statement: if
    keyword: elif
    keyword: else
-           keyword: elif
-           keyword: else
+   single: : (colon); compound statement
 
 The :keyword:`if` statement is used for conditional execution:
 
 .. productionlist::
    if_stmt: "if" `expression` ":" `suite`
-          : ( "elif" `expression` ":" `suite` )*
+          : ("elif" `expression` ":" `suite`)*
           : ["else" ":" `suite`]
 
 It selects exactly one of the suites by evaluating the expressions one by one
@@ -108,6 +111,7 @@ The :keyword:`while` statement
    keyword: else
    pair: loop; statement
    keyword: else
+   single: : (colon); compound statement
 
 The :keyword:`while` statement is used for repeated execution as long as an
 expression is true:
@@ -146,6 +150,7 @@ The :keyword:`for` statement
    keyword: else
    pair: target; list
    object: sequence
+   single: : (colon); compound statement
 
 The :keyword:`for` statement is used to iterate over the elements of a sequence
 (such as a string, tuple or list) or other iterable object:
@@ -200,7 +205,7 @@ returns the list ``[0, 1, 2]``.
       single: mutable sequence; loop over
 
    There is a subtlety when the sequence is being modified by the loop (this can
-   only occur for mutable sequences, i.e. lists).  An internal counter is used
+   only occur for mutable sequences, e.g. lists).  An internal counter is used
    to keep track of which item is used next, and this is incremented on each
    iteration.  When this counter has reached the length of the sequence the loop
    terminates.  This means that if the suite deletes the current (or a previous)
@@ -226,13 +231,15 @@ The :keyword:`try` statement
    statement: try
    keyword: except
    keyword: finally
-.. index:: keyword: except
+   keyword: else
+   keyword: as
+   single: : (colon); compound statement
 
 The :keyword:`try` statement specifies exception handlers and/or cleanup code
 for a group of statements:
 
 .. productionlist::
-   try_stmt: try1_stmt | try2_stmt
+   try_stmt: `try1_stmt` | `try2_stmt`
    try1_stmt: "try" ":" `suite`
             : ("except" [`expression` ["as" `identifier`]] ":" `suite`)+
             : ["else" ":" `suite`]
@@ -259,6 +266,8 @@ If the evaluation of an expression in the header of an except clause raises an
 exception, the original search for a handler is canceled and a search starts for
 the new exception in the surrounding code and on the call stack (it is treated
 as if the entire :keyword:`try` statement raised the exception).
+
+.. index:: single: as; except clause
 
 When a matching except clause is found, the exception is assigned to the target
 specified after the :keyword:`as` keyword in that except clause, if present, and
@@ -305,9 +314,11 @@ from a function that handled an exception.
    statement: break
    statement: continue
 
-The optional :keyword:`else` clause is executed if and when control flows off
-the end of the :keyword:`try` clause. [#]_ Exceptions in the :keyword:`else`
-clause are not handled by the preceding :keyword:`except` clauses.
+The optional :keyword:`else` clause is executed if the control flow leaves the
+:keyword:`try` suite, no exception was raised, and no :keyword:`return`,
+:keyword:`continue`, or :keyword:`break` statement was executed.  Exceptions in
+the :keyword:`else` clause are not handled by the preceding :keyword:`except`
+clauses.
 
 .. index:: keyword: finally
 
@@ -371,8 +382,11 @@ The :keyword:`with` statement
 =============================
 
 .. index::
-    statement: with
-    single: as; with statement
+   statement: with
+   keyword: as
+   single: as; with statement
+   single: , (comma); with statement
+   single: : (colon); compound statement
 
 The :keyword:`with` statement is used to wrap the execution of a block with
 methods defined by a context manager (see section :ref:`context-managers`).
@@ -380,7 +394,7 @@ This allows common :keyword:`try`...\ :keyword:`except`...\ :keyword:`finally`
 usage patterns to be encapsulated for convenient reuse.
 
 .. productionlist::
-   with_stmt: "with" with_item ("," with_item)* ":" `suite`
+   with_stmt: "with" `with_item` ("," `with_item`)* ":" `suite`
    with_item: `expression` ["as" `target`]
 
 The execution of the :keyword:`with` statement with one "item" proceeds as follows:
@@ -436,7 +450,7 @@ is equivalent to ::
 
 .. seealso::
 
-   :pep:`0343` - The "with" statement
+   :pep:`343` - The "with" statement
       The specification, background, and examples for the Python :keyword:`with`
       statement.
 
@@ -459,19 +473,23 @@ Function definitions
    object: function
    pair: function; name
    pair: name; binding
+   single: () (parentheses); function definition
+   single: , (comma); parameter list
+   single: : (colon); compound statement
 
 A function definition defines a user-defined function object (see section
 :ref:`types`):
 
 .. productionlist::
-   funcdef: [`decorators`] "def" `funcname` "(" [`parameter_list`] ")" ["->" `expression`] ":" `suite`
+   funcdef: [`decorators`] "def" `funcname` "(" [`parameter_list`] ")"
+          : ["->" `expression`] ":" `suite`
    decorators: `decorator`+
-   decorator: "@" `dotted_name` ["(" [`parameter_list` [","]] ")"] NEWLINE
+   decorator: "@" `dotted_name` ["(" [`argument_list` [","]] ")"] NEWLINE
    dotted_name: `identifier` ("." `identifier`)*
-   parameter_list: (`defparameter` ",")*
-                 : | "*" [`parameter`] ("," `defparameter`)* ["," "**" `parameter`]
-                 : | "**" `parameter`
-                 : | `defparameter` [","] )
+   parameter_list: `defparameter` ("," `defparameter`)* ["," [`parameter_list_starargs`]]
+                 : | `parameter_list_starargs`
+   parameter_list_starargs: "*" [`parameter`] ("," `defparameter`)* ["," ["**" `parameter` [","]]]
+                          : | "**" `parameter` [","]
    parameter: `identifier` [":" `expression`]
    defparameter: `parameter` ["=" `expression`]
    funcname: `identifier`
@@ -487,7 +505,7 @@ The function definition does not execute the function body; this gets executed
 only when the function is called. [#]_
 
 .. index::
-  statement: @
+   single: @ (at); function definition
 
 A function definition may be wrapped by one or more :term:`decorator` expressions.
 Decorator expressions are evaluated when the function is defined, in the scope
@@ -500,14 +518,17 @@ are applied in nested fashion. For example, the following code ::
    @f2
    def func(): pass
 
-is equivalent to ::
+is roughly equivalent to ::
 
    def func(): pass
    func = f1(arg)(f2(func))
 
+except that the original function is not temporarily bound to the name ``func``.
+
 .. index::
    triple: default; parameter; value
    single: argument; function definition
+   single: = (equals); function definition
 
 When one or more :term:`parameters <parameter>` have the form *parameter* ``=``
 *expression*, the function is said to have "default parameter values."  For a
@@ -534,31 +555,37 @@ e.g.::
        return penguin
 
 .. index::
-  statement: *
-  statement: **
+   single: * (asterisk); function definition
+   single: **; function definition
 
 Function call semantics are described in more detail in section :ref:`calls`. A
 function call always assigns values to all parameters mentioned in the parameter
 list, either from position arguments, from keyword arguments, or from default
 values.  If the form "``*identifier``" is present, it is initialized to a tuple
-receiving any excess positional parameters, defaulting to the empty tuple.  If
-the form "``**identifier``" is present, it is initialized to a new dictionary
-receiving any excess keyword arguments, defaulting to a new empty dictionary.
-Parameters after "``*``" or "``*identifier``" are keyword-only parameters and
-may only be passed used keyword arguments.
+receiving any excess positional parameters, defaulting to the empty tuple.
+If the form "``**identifier``" is present, it is initialized to a new
+ordered mapping receiving any excess keyword arguments, defaulting to a
+new empty mapping of the same type.  Parameters after "``*``" or
+"``*identifier``" are keyword-only parameters and may only be passed
+used keyword arguments.
 
-.. index:: pair: function; annotations
+.. index::
+   pair: function; annotations
+   single: ->; function annotations
+   single: : (colon); function annotations
 
 Parameters may have annotations of the form "``: expression``" following the
 parameter name.  Any parameter may have an annotation even those of the form
 ``*identifier`` or ``**identifier``.  Functions may have "return" annotation of
 the form "``-> expression``" after the parameter list.  These annotations can be
-any valid Python expression and are evaluated when the function definition is
-executed.  Annotations may be evaluated in a different order than they appear in
-the source code.  The presence of annotations does not change the semantics of a
-function.  The annotation values are available as values of a dictionary keyed
-by the parameters' names in the :attr:`__annotations__` attribute of the
-function object.
+any valid Python expression.  The presence of annotations does not change the
+semantics of a function.  The annotation values are available as values of
+a dictionary keyed by the parameters' names in the :attr:`__annotations__`
+attribute of the function object.  If the ``annotations`` import from
+:mod:`__future__` is used, annotations are preserved as strings at runtime which
+enables postponed evaluation.  Otherwise, they are evaluated when the function
+definition is executed.  In this case annotations may be evaluated in
+a different order than they appear in the source code.
 
 .. index:: pair: lambda; expression
 
@@ -581,6 +608,17 @@ access the local variables of the function containing the def.  See section
    :pep:`3107` - Function Annotations
       The original specification for function annotations.
 
+   :pep:`484` - Type Hints
+      Definition of a standard meaning for annotations: type hints.
+
+   :pep:`526` - Syntax for Variable Annotations
+      Ability to type hint variable declarations, including class
+      variables and instance variables
+
+   :pep:`563` - Postponed Evaluation of Annotations
+      Support for forward references within annotations by preserving
+      annotations in a string form at runtime instead of eager evaluation.
+
 
 .. _class:
 
@@ -596,12 +634,15 @@ Class definitions
    pair: execution; frame
    single: inheritance
    single: docstring
+   single: () (parentheses); class definition
+   single: , (comma); expression list
+   single: : (colon); compound statement
 
 A class definition defines a class object (see section :ref:`types`):
 
 .. productionlist::
    classdef: [`decorators`] "class" `classname` [`inheritance`] ":" `suite`
-   inheritance: "(" [`parameter_list`] ")"
+   inheritance: "(" [`argument_list`] ")"
    classname: `identifier`
 
 A class definition is an executable statement.  The inheritance list usually
@@ -627,7 +668,15 @@ list for the base classes and the saved local namespace for the attribute
 dictionary.  The class name is bound to this class object in the original local
 namespace.
 
+The order in which attributes are defined in the class body is preserved
+in the new class's ``__dict__``.  Note that this is reliable only right
+after the class is created and only for classes that were defined using
+the definition syntax.
+
 Class creation can be customized heavily using :ref:`metaclasses <metaclasses>`.
+
+.. index::
+   single: @ (at); class definition
 
 Classes can also be decorated: just like when decorating functions, ::
 
@@ -635,14 +684,13 @@ Classes can also be decorated: just like when decorating functions, ::
    @f2
    class Foo: pass
 
-is equivalent to ::
+is roughly equivalent to ::
 
    class Foo: pass
    Foo = f1(arg)(f2(Foo))
 
 The evaluation rules for the decorator expressions are the same as for function
-decorators.  The result must be a class object, which is then bound to the class
-name.
+decorators.  The result is then bound to the class name.
 
 **Programmer's note:** Variables defined in the class definition are class
 attributes; they are shared by instances.  Instance attributes can be set in a
@@ -656,8 +704,142 @@ can be used to create instance variables with different implementation details.
 
 .. seealso::
 
-   :pep:`3115` - Metaclasses in Python 3
+   :pep:`3115` - Metaclasses in Python 3000
+      The proposal that changed the declaration of metaclasses to the current
+      syntax, and the semantics for how classes with metaclasses are
+      constructed.
+
    :pep:`3129` - Class Decorators
+      The proposal that added class decorators.  Function and method decorators
+      were introduced in :pep:`318`.
+
+
+.. _async:
+
+Coroutines
+==========
+
+.. versionadded:: 3.5
+
+.. index:: statement: async def
+.. _`async def`:
+
+Coroutine function definition
+-----------------------------
+
+.. productionlist::
+   async_funcdef: [`decorators`] "async" "def" `funcname` "(" [`parameter_list`] ")"
+                : ["->" `expression`] ":" `suite`
+
+.. index::
+   keyword: async
+   keyword: await
+
+Execution of Python coroutines can be suspended and resumed at many points
+(see :term:`coroutine`).  Inside the body of a coroutine function, ``await`` and
+``async`` identifiers become reserved keywords; :keyword:`await` expressions,
+:keyword:`async for` and :keyword:`async with` can only be used in
+coroutine function bodies.
+
+Functions defined with ``async def`` syntax are always coroutine functions,
+even if they do not contain ``await`` or ``async`` keywords.
+
+It is a :exc:`SyntaxError` to use a ``yield from`` expression inside the body
+of a coroutine function.
+
+An example of a coroutine function::
+
+    async def func(param1, param2):
+        do_stuff()
+        await some_coroutine()
+
+
+.. index:: statement: async for
+.. _`async for`:
+
+The :keyword:`async for` statement
+----------------------------------
+
+.. productionlist::
+   async_for_stmt: "async" `for_stmt`
+
+An :term:`asynchronous iterable` is able to call asynchronous code in its
+*iter* implementation, and :term:`asynchronous iterator` can call asynchronous
+code in its *next* method.
+
+The ``async for`` statement allows convenient iteration over asynchronous
+iterators.
+
+The following code::
+
+    async for TARGET in ITER:
+        BLOCK
+    else:
+        BLOCK2
+
+Is semantically equivalent to::
+
+    iter = (ITER)
+    iter = type(iter).__aiter__(iter)
+    running = True
+    while running:
+        try:
+            TARGET = await type(iter).__anext__(iter)
+        except StopAsyncIteration:
+            running = False
+        else:
+            BLOCK
+    else:
+        BLOCK2
+
+See also :meth:`__aiter__` and :meth:`__anext__` for details.
+
+It is a :exc:`SyntaxError` to use an ``async for`` statement outside the
+body of a coroutine function.
+
+
+.. index:: statement: async with
+.. _`async with`:
+
+The :keyword:`async with` statement
+-----------------------------------
+
+.. productionlist::
+   async_with_stmt: "async" `with_stmt`
+
+An :term:`asynchronous context manager` is a :term:`context manager` that is
+able to suspend execution in its *enter* and *exit* methods.
+
+The following code::
+
+    async with EXPR as VAR:
+        BLOCK
+
+Is semantically equivalent to::
+
+    mgr = (EXPR)
+    aexit = type(mgr).__aexit__
+    aenter = type(mgr).__aenter__(mgr)
+
+    VAR = await aenter
+    try:
+        BLOCK
+    except:
+        if not await aexit(mgr, *sys.exc_info()):
+            raise
+    else:
+        await aexit(mgr, None, None, None)
+
+See also :meth:`__aenter__` and :meth:`__aexit__` for details.
+
+It is a :exc:`SyntaxError` to use an ``async with`` statement outside the
+body of a coroutine function.
+
+.. seealso::
+
+   :pep:`492` - Coroutines with async and await syntax
+      The proposal that made coroutines a proper standalone concept in Python,
+      and added supporting syntax.
 
 
 .. rubric:: Footnotes
@@ -665,10 +847,6 @@ can be used to create instance variables with different implementation details.
 .. [#] The exception is propagated to the invocation stack unless
    there is a :keyword:`finally` clause which happens to raise another
    exception. That new exception causes the old one to be lost.
-
-.. [#] Currently, control "flows off the end" except in the case of an exception
-   or the execution of a :keyword:`return`, :keyword:`continue`, or
-   :keyword:`break` statement.
 
 .. [#] A string literal appearing as the first statement in the function body is
    transformed into the function's ``__doc__`` attribute and therefore the

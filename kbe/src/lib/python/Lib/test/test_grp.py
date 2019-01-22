@@ -50,6 +50,8 @@ class GroupDatabaseTestCase(unittest.TestCase):
         self.assertRaises(TypeError, grp.getgrgid)
         self.assertRaises(TypeError, grp.getgrnam)
         self.assertRaises(TypeError, grp.getgrall, 42)
+        # embedded null character
+        self.assertRaises(ValueError, grp.getgrnam, 'a\x00b')
 
         # try to get some errors
         bynames = {}
@@ -92,8 +94,15 @@ class GroupDatabaseTestCase(unittest.TestCase):
 
         self.assertRaises(KeyError, grp.getgrgid, fakegid)
 
-def test_main():
-    support.run_unittest(GroupDatabaseTestCase)
+    def test_noninteger_gid(self):
+        entries = grp.getgrall()
+        if not entries:
+            self.skipTest('no groups')
+        # Choose an existent gid.
+        gid = entries[0][2]
+        self.assertWarns(DeprecationWarning, grp.getgrgid, float(gid))
+        self.assertWarns(DeprecationWarning, grp.getgrgid, str(gid))
+
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

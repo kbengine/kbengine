@@ -466,7 +466,7 @@ void Interfaces::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEng
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}

@@ -16,6 +16,8 @@
 #define PGEN
 
 #include "Python.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
 #include "pgenheaders.h"
 #include "grammar.h"
 #include "node.h"
@@ -25,17 +27,23 @@
 int Py_DebugFlag;
 int Py_VerboseFlag;
 int Py_IgnoreEnvironmentFlag;
+_PyRuntimeState _PyRuntime = _PyRuntimeState_INIT;
 
 /* Forward */
-grammar *getgrammar(char *filename);
-
-void Py_Exit(int) _Py_NO_RETURN;
+grammar *getgrammar(const char *filename);
 
 void
 Py_Exit(int sts)
 {
     exit(sts);
 }
+
+/* Needed by obmalloc.c */
+int PyGILState_Check(void)
+{ return 1; }
+
+void _PyMem_DumpTraceback(int fd, const void *ptr)
+{}
 
 int
 main(int argc, char **argv)
@@ -71,12 +79,13 @@ main(int argc, char **argv)
         printf("Writing %s ...\n", graminit_h);
     printnonterminals(g, fp);
     fclose(fp);
+    freegrammar(g);
     Py_Exit(0);
     return 0; /* Make gcc -Wall happy */
 }
 
 grammar *
-getgrammar(char *filename)
+getgrammar(const char *filename)
 {
     FILE *fp;
     node *n;
@@ -96,10 +105,11 @@ getgrammar(char *filename)
         fprintf(stderr, "Parsing error %d, line %d.\n",
             err.error, err.lineno);
         if (err.text != NULL) {
-            size_t i;
+            size_t len;
+            int i;
             fprintf(stderr, "%s", err.text);
-            i = strlen(err.text);
-            if (i == 0 || err.text[i-1] != '\n')
+            len = strlen(err.text);
+            if (len == 0 || err.text[len-1] != '\n')
                 fprintf(stderr, "\n");
             for (i = 0; i < err.offset; i++) {
                 if (err.text[i] == '\t')

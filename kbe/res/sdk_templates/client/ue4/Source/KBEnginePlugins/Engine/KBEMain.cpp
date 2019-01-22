@@ -60,6 +60,14 @@ void UKBEMain::BeginPlay()
 
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
+
+#ifdef KBENGINE_NO_CRYPTO
+	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pArgs->networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
+		ERROR_MSG("No module CryptoPP! Please use unreal engine source code to install");
+	}
+#endif
 }
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -135,6 +143,7 @@ bool UKBEMain::destroyKBEngine()
 		return false;
 
 	KBEngineApp::getSingleton().destroy();
+	KBENGINE_EVENT_CLEAR();
 	return true;
 }
 
@@ -151,7 +160,7 @@ bool UKBEMain::login(FString username, FString password, TArray<uint8> datas)
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("login", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::login, pEventData);
 	return true;
 }
 
@@ -168,6 +177,6 @@ bool UKBEMain::createAccount(FString username, FString password, const TArray<ui
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("createAccount", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::createAccount, pEventData);
 	return true;
 }

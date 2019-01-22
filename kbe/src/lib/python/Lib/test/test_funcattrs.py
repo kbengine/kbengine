@@ -1,4 +1,3 @@
-from test import support
 import types
 import unittest
 
@@ -93,6 +92,26 @@ class FunctionPropertiesTest(FuncAttrsTest):
         else:
             self.fail("shouldn't be able to read an empty cell")
         a = 12
+
+    def test_set_cell(self):
+        a = 12
+        def f(): return a
+        c = f.__closure__
+        c[0].cell_contents = 9
+        self.assertEqual(c[0].cell_contents, 9)
+        self.assertEqual(f(), 9)
+        self.assertEqual(a, 9)
+        del c[0].cell_contents
+        try:
+            c[0].cell_contents
+        except ValueError:
+            pass
+        else:
+            self.fail("shouldn't be able to read an empty cell")
+        with self.assertRaises(NameError):
+            f()
+        with self.assertRaises(UnboundLocalError):
+            print(a)
 
     def test___name__(self):
         self.assertEqual(self.b.__name__, 'b')
@@ -374,12 +393,5 @@ class BuiltinFunctionPropertiesTest(unittest.TestCase):
         self.assertEqual({'foo': 'bar'}.pop.__qualname__, 'dict.pop')
 
 
-def test_main():
-    support.run_unittest(FunctionPropertiesTest, InstancemethodAttrTest,
-                              ArbitraryFunctionAttrTest, FunctionDictsTest,
-                              FunctionDocstringTest, CellTest,
-                              StaticMethodAttrsTest,
-                              BuiltinFunctionPropertiesTest)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

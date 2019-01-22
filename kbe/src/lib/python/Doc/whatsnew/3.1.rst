@@ -69,7 +69,7 @@ modules.  The :mod:`configparser` module uses them by default.  This lets
 configuration files be read, modified, and then written back in their original
 order.  The *_asdict()* method for :func:`collections.namedtuple` now
 returns an ordered dictionary with the values appearing in the same order as
-the underlying tuple indicies.  The :mod:`json` module is being built-out with
+the underlying tuple indices.  The :mod:`json` module is being built-out with
 an *object_pairs_hook* to allow OrderedDicts to be built by the decoder.
 Support was also added for third-party tools like `PyYAML <http://pyyaml.org/>`_.
 
@@ -172,7 +172,7 @@ Some smaller changes made to the core Python language are:
   needed and is now deprecated.
 
   (Contributed by Georg Brandl and Mattias Brändström;
-  `appspot issue 53094 <http://codereview.appspot.com/53094>`_.)
+  `appspot issue 53094 <https://codereview.appspot.com/53094>`_.)
 
 * ``round(x, n)`` now returns an integer if *x* is an integer.
   Previously it returned a float::
@@ -336,7 +336,7 @@ New, Improved, and Deprecated Modules
   (Contributed by David Laban; :issue:`4739`.)
 
 * The :mod:`unittest` module now supports skipping individual tests or classes
-  of tests. And it supports marking a test as a expected failure, a test that
+  of tests. And it supports marking a test as an expected failure, a test that
   is known to be broken, but shouldn't be counted as a failure on a
   TestResult::
 
@@ -548,5 +548,5 @@ that may require changes to your code:
 
 * The automatic name remapping in the pickle module for protocol 2 or lower can
   make Python 3.1 pickles unreadable in Python 3.0.  One solution is to use
-  protocol 3.  Another solution is to set the *fix_imports* option to **False**.
+  protocol 3.  Another solution is to set the *fix_imports* option to ``False``.
   See the discussion above for more details.

@@ -17,7 +17,9 @@ double _Py_force_double(double x)
 
 /* inline assembly for getting and setting the 387 FPU control word on
    gcc/x86 */
-
+#ifdef _Py_MEMORY_SANITIZER
+__attribute__((no_sanitize_memory))
+#endif
 unsigned short _Py_get_387controlword(void) {
     unsigned short cw;
     __asm__ __volatile__ ("fnstcw %0" : "=m" (cw));
@@ -73,7 +75,7 @@ round(double x)
     absx = fabs(x);
     y = floor(absx);
     if (absx - y >= 0.5)
-    y += 1.0;
+        y += 1.0;
     return copysign(y, x);
 }
 #endif /* HAVE_ROUND */

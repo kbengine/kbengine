@@ -3,9 +3,11 @@
 
 .. module:: chunk
    :synopsis: Module to read IFF chunks.
+
 .. moduleauthor:: Sjoerd Mullender <sjoerd@acm.org>
 .. sectionauthor:: Sjoerd Mullender <sjoerd@acm.org>
 
+**Source code:** :source:`Lib/chunk.py`
 
 .. index::
    single: Audio Interchange File Format
@@ -13,6 +15,8 @@
    single: AIFF-C
    single: Real Media File Format
    single: RMFF
+
+--------------
 
 This module provides an interface for reading files that use EA IFF 85 chunks.
 [#]_  This format is used in at least the Audio Interchange File Format
@@ -47,7 +51,7 @@ Usually an IFF-type file consists of one or more chunks.  The proposed usage of
 the :class:`Chunk` class defined here is to instantiate an instance at the start
 of each chunk and read from the instance until it reaches the end, after which a
 new instance can be instantiated. At the end of the file, creating a new
-instance will fail with a :exc:`EOFError` exception.
+instance will fail with an :exc:`EOFError` exception.
 
 
 .. class:: Chunk(file, align=True, bigendian=True, inclheader=False)

@@ -4,7 +4,6 @@ Provides the Extension class, used to describe C/C++ extension
 modules in setup scripts."""
 
 import os
-import sys
 import warnings
 
 # This class is really only used by the "build_ext" command, so it might
@@ -130,6 +129,14 @@ class Extension:
             options = ', '.join(sorted(options))
             msg = "Unknown Extension options: %s" % options
             warnings.warn(msg)
+
+    def __repr__(self):
+        return '<%s.%s(%r) at %#x>' % (
+            self.__class__.__module__,
+            self.__class__.__qualname__,
+            self.name,
+            id(self))
+
 
 def read_setup_file(filename):
     """Reads a Setup file and returns Extension instances."""
