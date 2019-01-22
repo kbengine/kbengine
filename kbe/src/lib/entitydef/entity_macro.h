@@ -347,9 +347,35 @@ public:																										\
 																											\
 		Py_ssize_t pos = 0;																					\
 		PyObject *key, *value;																				\
+																											\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
 		if(cellDataDict == NULL)																			\
+		{																									\
 			PyErr_Clear();																					\
+		}																									\
+		else																								\
+		{																									\
+			PyObject* cellDataDictNew = PyDict_GetItemString(dictData, "cellData");							\
+			if (cellDataDictNew)																			\
+			{																								\
+				if(PyDict_Check(cellDataDictNew))															\
+				{																							\
+					PyDict_Update(cellDataDict, cellDataDictNew);											\
+				}																							\
+				else																						\
+				{																							\
+					ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "					\
+						"cellData is not a dict.\n",														\
+						scriptName(), id_));																\
+				}																							\
+																											\
+				PyDict_DelItemString(dictData, "cellData");													\
+			}																								\
+			else																							\
+			{																								\
+				PyErr_Clear();																				\
+			}																								\
+		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
