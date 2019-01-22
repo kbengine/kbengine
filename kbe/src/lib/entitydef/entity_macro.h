@@ -412,6 +412,29 @@ public:																										\
 			PyErr_Clear();																					\
 			EntityComponent::convertDictDataToEntityComponent(id(), this, pScriptModule_, dictData, persistentData); \
 		}																									\
+		else																								\
+		{																									\
+			PyObject* cellDataDictNew = PyDict_GetItemString(dictData, "cellData");							\
+			if (cellDataDictNew)																			\
+			{																								\
+				if(PyDict_Check(cellDataDictNew))															\
+				{																							\
+					PyDict_Update(cellDataDict, cellDataDictNew);											\
+				}																							\
+				else																						\
+				{																							\
+					ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "					\
+						"cellData is not a dict.\n",														\
+						scriptName(), id_));																\
+				}																							\
+																											\
+				PyDict_DelItemString(dictData, "cellData");													\
+			}																								\
+			else																							\
+			{																								\
+				PyErr_Clear();																				\
+			}																								\
+		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
