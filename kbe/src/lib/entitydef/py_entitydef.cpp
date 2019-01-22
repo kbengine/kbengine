@@ -65,6 +65,66 @@ static std::stack<CallContext> g_callContexts;
 static std::string pyDefModuleName = "";
 
 //-------------------------------------------------------------------------------------
+static void onDefRename(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefFixedDict(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefFixedArray(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefFixedItem(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefProperty(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefMethod(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefClientMethod(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefEntity(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefInterface(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+static void onDefComponent(DefContext& context)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 static bool isRefEntityDefModule(PyObject *pyObj)
 {
 	PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
@@ -436,6 +496,43 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' all parameters must have annotations!\n", defContext.optionName.c_str(), qualname);
 			return NULL;
 		}
+
+		if (defContext.optionName == "method")
+			onDefMethod(defContext);
+		else
+			onDefClientMethod(defContext);
+	}
+	else if (defContext.optionName == "rename")
+	{
+		onDefRename(defContext);
+	}
+	else if (defContext.optionName == "property")
+	{
+		onDefProperty(defContext);
+	}
+	else if (defContext.optionName == "entity")
+	{
+		onDefEntity(defContext);
+	}
+	else if (defContext.optionName == "interface")
+	{
+		onDefInterface(defContext);
+	}
+	else if (defContext.optionName == "component")
+	{
+		onDefComponent(defContext);
+	}
+	else if (defContext.optionName == "fixed_dict")
+	{
+		onDefFixedDict(defContext);
+	}
+	else if (defContext.optionName == "fixed_array")
+	{
+		onDefFixedArray(defContext);
+	}
+	else if (defContext.optionName == "fixed_item")
+	{
+		onDefFixedItem(defContext);
 	}
 
 	Py_INCREF(pyFunc);
@@ -450,16 +547,24 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 	{	\
 		CallContext cc;	\
 		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));	\
-		cc.pyKwargs = PyObjectPtr(Copy::deepcopy(kwargs));	\
+		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);	\
 		cc.optionName = #NAME;	\
 		g_callContexts.push(cc);	\
 		Py_XDECREF(cc.pyArgs.get());	\
 		Py_XDECREF(cc.pyKwargs.get());	\
-	\
+		\
 		return PyCFunction_New(&__call_def_parse, self);	\
 	}
 
 #define PY_ADD_METHOD(NAME, DOCS) APPEND_SCRIPT_MODULE_METHOD(entitydefModule, NAME, __py_def_##NAME, METH_VARARGS | METH_KEYWORDS, 0);
+
+#ifdef interface
+#undef interface
+#endif
+
+#ifdef property
+#undef property
+#endif
 
 PY_DEF_HOOK(rename)
 PY_DEF_HOOK(method)
