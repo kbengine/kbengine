@@ -240,7 +240,7 @@ ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& module
 {
 	ScriptDefModule* pScriptModule = findScriptModule(moduleName.c_str(), false);
 	
-	if (pScriptModule)
+	if (!pScriptModule)
 	{
 		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
 		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);

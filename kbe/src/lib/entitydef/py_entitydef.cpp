@@ -142,6 +142,7 @@ static bool onDefEntity(DefContext& defContext)
 		return false;
 	}
 
+	g_allScriptDefContexts[defContext.moduleName] = defContext;
 	return true;
 }
 
