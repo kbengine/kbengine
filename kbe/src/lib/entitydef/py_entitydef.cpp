@@ -48,7 +48,7 @@ struct DefContext
 
 		exposed = false;
 		hasClient = false;
-		persistent = false;
+		persistent = -1;
 		databaseLength = 0;
 
 		propertyFlags = "";
@@ -74,7 +74,10 @@ struct DefContext
 
 	bool exposed;
 	bool hasClient;
-	bool persistent;
+
+	// -1£ºÎ´ÉèÖÃ£¬ 0£ºfalse£¬ 1£ºtrue
+	int persistent;
+
 	int databaseLength;
 
 	std::string propertyFlags;
@@ -188,8 +191,9 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 				DEF_CONTEXT_MAP::iterator fiter = g_allScriptDefContextMaps.find(parentClass);
 				if (fiter == g_allScriptDefContextMaps.end())
 				{
-					PyErr_Format(PyExc_AssertionError, "not found parentClass(\'%s\')!\n", defContext.moduleName.c_str());
-					return false;
+					//PyErr_Format(PyExc_AssertionError, "not found parentClass(\'%s\')!\n", parentClass.c_str());
+					//return false;
+					continue;
 				}
 
 				DefContext& parentDefContext = fiter->second;
@@ -293,9 +297,6 @@ static bool onDefClientMethod(DefContext& defContext)
 //-------------------------------------------------------------------------------------
 static bool onDefEntity(DefContext& defContext)
 {
-//	ScriptDefModule* pScriptDefModule = EntityDef::registerNewScriptDefModule(context.moduleName);
-//	KBE_ASSERT(pScriptDefModule);
-
 	defContext.type = DefContext::DC_TYPE_ENTITY;
 	return registerDefContext(defContext);
 }
@@ -317,6 +318,9 @@ static bool onDefComponent(DefContext& defContext)
 //-------------------------------------------------------------------------------------
 static bool isRefEntityDefModule(PyObject *pyObj)
 {
+	if(!pyObj)
+		return true;
+
 	PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
 	PyObject* pydict = PyObject_GetAttrString(entitydefModule, "__dict__");
 
@@ -386,7 +390,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			PY_RETURN_ERROR;
 		}
 
-		if (!isRefEntityDefModule(pyFlags))
+		if (!pyFlags || !isRefEntityDefModule(pyFlags))
 		{
 			PyErr_Format(PyExc_AssertionError, "Def.%s: \'flags\' must be referenced from the [Def.ALL_CLIENTS, Def.*] module!\n", defContext.optionName.c_str());
 			PY_RETURN_ERROR;
@@ -398,13 +402,13 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			PY_RETURN_ERROR;
 		}
 
-		if (pyDatabaseLength && PyLong_Check(pyDatabaseLength))
+		if (pyDatabaseLength && !PyLong_Check(pyDatabaseLength))
 		{
 			PyErr_Format(PyExc_AssertionError, "Def.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
 			PY_RETURN_ERROR;
 		}
 
-		if (pyPersistent && PyBool_Check(pyPersistent))
+		if (pyPersistent && !PyBool_Check(pyPersistent))
 		{
 			PyErr_Format(PyExc_AssertionError, "Def.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
 			PY_RETURN_ERROR;
@@ -607,9 +611,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 						}
 
 						defContext.argsvecs.push_back(ccattr);
-
-						PyErr_Format(PyExc_AssertionError, "Def.%s: -------arg---------------- %s!\n", defContext.optionName.c_str(), ccattr);
-						PyErr_PrintEx(0);
 					}
 				}
 
@@ -648,9 +649,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 						defContext.returnType = svalue;
 					else
 						defContext.annotationsMaps[skey] = svalue;
-
-					PyErr_Format(PyExc_AssertionError, "Def.%s: -------annotations---------------- %s.%s!\n", defContext.optionName.c_str(), skey, svalue.c_str());
-					PyErr_PrintEx(0);
 				}
 			}
 		}
@@ -689,7 +687,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			{
 				continue;
 			}
-			else if (parentClass == "Entity")
+			else if (parentClass == "Entity" || parentClass == "Proxy")
 			{
 				defContext.inheritEngineModuleType = DefContext::DC_TYPE_ENTITY;
 				continue;
@@ -701,14 +699,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			}
 
 			defContext.baseClasses.push_back(parentClass);
-			PyErr_Format(PyExc_AssertionError, "Def.%s: -------parentclass---------------- %s!\n", defContext.optionName.c_str(), parentClass.c_str());
-			PyErr_PrintEx(0);
 		}
 
 		Py_XDECREF(pyBases);
-
-		PyErr_Format(PyExc_AssertionError, "Def.%s: -------class---------------- %s--%d!\n", defContext.optionName.c_str(), qualname, defContext.hasClient);
-		PyErr_PrintEx(0);
 	}
 
 	bool noerror = true;
