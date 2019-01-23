@@ -107,6 +107,8 @@ struct DefContext
 			pContexts = &methods;
 		else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
 			pContexts = &clienbt_methods;
+		else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+			pContexts = &propertys;
 		else
 			KBE_ASSERT(false);
 
@@ -147,7 +149,8 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 
 		if (defContext.type == DefContext::DC_TYPE_PROPERTY ||
 			defContext.type == DefContext::DC_TYPE_METHOD ||
-			defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+			defContext.type == DefContext::DC_TYPE_CLIENT_METHOD ||
+			defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 		{
 			DEF_CONTEXT_MAP::iterator fiter = g_allScriptDefContextMaps.find(defContext.moduleName);
 			if (fiter == g_allScriptDefContextMaps.end())
@@ -231,7 +234,8 @@ static bool registerDefContext(DefContext& defContext)
 
 	if (defContext.type == DefContext::DC_TYPE_PROPERTY ||
 		defContext.type == DefContext::DC_TYPE_METHOD ||
-		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD ||
+		defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 		name += "." + defContext.attrName;
 
 	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.find(name);
@@ -536,7 +540,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else if (defContext.optionName == "rename")
 	{
-		defContext.isModuleScope = false;
 	}
 	else
 	{
@@ -564,7 +567,13 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		{
 			if (outs.size() != 2)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", defContext.optionName.c_str(), qualname);
+				if(PyFunction_Check(pyFunc))
+					PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", 
+						defContext.optionName.c_str(), qualname);
+				else
+					PyErr_Format(PyExc_AssertionError, "Def.%s: please check the command format is: Def.%s(..)\n", 
+						defContext.optionName.c_str(), defContext.optionName.c_str());
+
 				PY_RETURN_ERROR;
 			}
 
@@ -986,8 +995,8 @@ bool process()
 		return false;
 	}
 
-	int i = g_allScriptDefContextMaps.size();
-
+	size_t i = g_allScriptDefContextMaps.size();
+	i = 0;
 	return true;
 }
 
