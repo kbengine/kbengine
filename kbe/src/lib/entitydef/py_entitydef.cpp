@@ -53,6 +53,7 @@ struct DefContext
 
 		propertyFlags = "";
 		propertyIndex = "";
+		propertyDefaultVal = "";
 
 		implementedBy = "";
 
@@ -82,6 +83,7 @@ struct DefContext
 
 	std::string propertyFlags;
 	std::string propertyIndex;
+	std::string propertyDefaultVal;
 
 	std::string implementedBy;
 
@@ -350,6 +352,14 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	DefContext defContext;
 	defContext.optionName = cc.optionName;
 
+	if (!args || PyTuple_Size(args) < 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "Def.__py_def_call(Def.%s): error!\n", defContext.optionName.c_str());
+		PY_RETURN_ERROR;
+	}
+
+	PyObject* pyFunc = PyTuple_GET_ITEM(args, 0);
+
 	if (defContext.optionName == "method")
 	{
 		static char * keywords[] =
@@ -424,6 +434,39 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 		if (pyDatabaseLength)
 			defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
+
+		// 对于属性， 我们需要获得返回值作为默认值
+		PyObject* pyRet = PyObject_CallFunction(pyFunc,
+			const_cast<char*>("(O)"), Py_None);
+
+		if (!pyRet)
+			return NULL;
+
+		if (pyRet != Py_None)
+		{
+			PyObject* pyStrResult = PyObject_Str(pyRet);
+			defContext.propertyDefaultVal = PyUnicode_AsUTF8AndSize(pyStrResult, NULL);
+			Py_DECREF(pyStrResult);
+
+			// 验证这个字符串是否可以还原成对象
+			if (defContext.propertyDefaultVal.size() > 0)
+			{
+				PyObject* module = PyImport_AddModule("__main__");
+				if (module == NULL)
+					return NULL;
+
+				PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
+				PyObject* result = PyRun_String(const_cast<char*>(defContext.propertyDefaultVal.c_str()),
+					Py_eval_input, mdict, mdict);
+
+				if (result == NULL)
+					return NULL;
+
+				Py_DECREF(result);
+			}
+		}
+
+		Py_DECREF(pyRet);
 	}
 	else if (defContext.optionName == "entity")
 	{
@@ -500,14 +543,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		PyErr_Format(PyExc_AssertionError, "Def.%s: not support!\n", defContext.optionName.c_str());
 		PY_RETURN_ERROR;
 	}
-
-	if (!args || PyTuple_Size(args) < 1)
-	{
-		PyErr_Format(PyExc_AssertionError, "Def.__py_def_call(Def.%s): error!\n", defContext.optionName.c_str());
-		PY_RETURN_ERROR;
-	}
-
-	PyObject* pyFunc = PyTuple_GET_ITEM(args, 0);
 
 	PyObject* pyQualname = PyObject_GetAttrString(pyFunc, "__qualname__");
 	if (!pyQualname)
