@@ -55,8 +55,6 @@ struct DefContext
 		propertyIndex = "";
 		propertyDefaultVal = "";
 
-		implementedBy = "";
-
 		inheritEngineModuleType = DC_TYPE_UNKNOWN;
 		type = DC_TYPE_UNKNOWN;
 	}
@@ -85,7 +83,7 @@ struct DefContext
 	std::string propertyIndex;
 	std::string propertyDefaultVal;
 
-	std::string implementedBy;
+	PyObjectPtr implementedBy;
 
 	std::vector< std::string > baseClasses;
 
@@ -173,6 +171,9 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 			}
 
 			dels.push_back(iter->first);
+		}
+		else
+		{
 		}
 	}
 
@@ -364,6 +365,15 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 	PyObject* pyFunc = PyTuple_GET_ITEM(args, 0);
 
+	PyObject* pyModuleQualname = PyObject_GetAttrString(pyFunc, "__qualname__");
+	if (!pyModuleQualname)
+	{
+		PY_RETURN_ERROR;
+	}
+
+	const char* moduleQualname = PyUnicode_AsUTF8AndSize(pyModuleQualname, NULL);
+	Py_DECREF(pyModuleQualname);
+
 	if (defContext.optionName == "method")
 	{
 		static char * keywords[] =
@@ -382,62 +392,65 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 		defContext.exposed = pyExposed == Py_True;
 	}
-	else if (defContext.optionName == "property")
+	else if (defContext.optionName == "property" || defContext.optionName == "fixed_item")
 	{
-		static char * keywords[] =
+		if (defContext.optionName != "fixed_item")
 		{
-			const_cast<char *> ("flags"),
-			const_cast<char *> ("persistent"),
-			const_cast<char *> ("index"),
-			const_cast<char *> ("databaseLength"),
-			NULL
-		};
+			static char * keywords[] =
+			{
+				const_cast<char *> ("flags"),
+				const_cast<char *> ("persistent"),
+				const_cast<char *> ("index"),
+				const_cast<char *> ("databaseLength"),
+				NULL
+			};
 
-		PyObject* pyFlags = NULL;
-		PyObject* pyPersistent = NULL;
-		PyObject* pyIndex = NULL;
-		PyObject* pyDatabaseLength = NULL;
+			PyObject* pyFlags = NULL;
+			PyObject* pyPersistent = NULL;
+			PyObject* pyIndex = NULL;
+			PyObject* pyDatabaseLength = NULL;
 
-		if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OOOO",
-			keywords, &pyFlags, &pyPersistent, &pyIndex, &pyDatabaseLength))
-		{
-			PY_RETURN_ERROR;
+			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OOOO",
+				keywords, &pyFlags, &pyPersistent, &pyIndex, &pyDatabaseLength))
+			{
+				PY_RETURN_ERROR;
+			}
+
+			if (!pyFlags || !isRefEntityDefModule(pyFlags))
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'flags\' must be referenced from the [Def.ALL_CLIENTS, Def.*] module!\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			if (!isRefEntityDefModule(pyIndex))
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'index\' must be referenced from the [Def.UNIQUE, Def.INDEX] module!\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			if (pyDatabaseLength && !PyLong_Check(pyDatabaseLength))
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			if (pyPersistent && !PyBool_Check(pyPersistent))
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			defContext.propertyFlags = PyUnicode_AsUTF8AndSize(pyFlags, NULL);
+
+			if (pyPersistent)
+				defContext.persistent = pyPersistent == Py_True;
+
+			if (pyIndex)
+				defContext.propertyIndex = PyUnicode_AsUTF8AndSize(pyIndex, NULL);
+
+			if (pyDatabaseLength)
+				defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
 		}
-
-		if (!pyFlags || !isRefEntityDefModule(pyFlags))
-		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'flags\' must be referenced from the [Def.ALL_CLIENTS, Def.*] module!\n", defContext.optionName.c_str());
-			PY_RETURN_ERROR;
-		}
-
-		if (!isRefEntityDefModule(pyIndex))
-		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'index\' must be referenced from the [Def.UNIQUE, Def.INDEX] module!\n", defContext.optionName.c_str());
-			PY_RETURN_ERROR;
-		}
-
-		if (pyDatabaseLength && !PyLong_Check(pyDatabaseLength))
-		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
-			PY_RETURN_ERROR;
-		}
-
-		if (pyPersistent && !PyBool_Check(pyPersistent))
-		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
-			PY_RETURN_ERROR;
-		}
-
-		defContext.propertyFlags = PyUnicode_AsUTF8AndSize(pyFlags, NULL);
-
-		if(pyPersistent)
-			defContext.persistent = pyPersistent == Py_True;
-
-		if (pyIndex)
-			defContext.propertyIndex = PyUnicode_AsUTF8AndSize(pyIndex, NULL);
-
-		if (pyDatabaseLength)
-			defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
 
 		// 对于属性， 我们需要获得返回值作为默认值
 		PyObject* pyRet = PyObject_CallFunction(pyFunc,
@@ -521,14 +534,24 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 		if (pImplementedBy)
 		{
-			PyObject* pyQualname = PyObject_GetAttrString(pImplementedBy, "__qualname__");
-			if (!pyQualname)
+			if (isRefEntityDefModule(pImplementedBy))
 			{
-				PY_RETURN_ERROR;
+				if (std::string(PyUnicode_AsUTF8AndSize(pImplementedBy, NULL)) == "thisClass")
+				{
+					defContext.implementedBy = pyFunc;
+				}
 			}
+			else
+			{
+				PyObject* pyQualname = PyObject_GetAttrString(pImplementedBy, "__qualname__");
+				if (!pyQualname)
+				{
+					PY_RETURN_ERROR;
+				}
 
-			defContext.implementedBy = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
-			Py_DECREF(pyQualname);
+				defContext.implementedBy = pImplementedBy;
+				Py_DECREF(pyQualname);
+			}
 		}
 	}
 	else if (defContext.optionName == "fixed_array")
@@ -547,21 +570,12 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		PY_RETURN_ERROR;
 	}
 
-	PyObject* pyQualname = PyObject_GetAttrString(pyFunc, "__qualname__");
-	if (!pyQualname)
-	{
-		PY_RETURN_ERROR;
-	}
-
-	const char* qualname = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
-	Py_DECREF(pyQualname);
-
 	if (!defContext.isModuleScope)
 	{
 		std::vector<std::string> outs;
 
-		if (qualname)
-			strutil::kbe_splits(qualname, ".", outs);
+		if (moduleQualname)
+			strutil::kbe_splits(moduleQualname, ".", outs);
 
 		if (defContext.optionName != "rename")
 		{
@@ -569,7 +583,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			{
 				if(PyFunction_Check(pyFunc))
 					PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", 
-						defContext.optionName.c_str(), qualname);
+						defContext.optionName.c_str(), moduleQualname);
 				else
 					PyErr_Format(PyExc_AssertionError, "Def.%s: please check the command format is: Def.%s(..)\n", 
 						defContext.optionName.c_str(), defContext.optionName.c_str());
@@ -640,7 +654,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 					Py_ssize_t argsSize = PyList_Size(pyGetMethodArgsResult);
 					if (argsSize == 0)
 					{
-						PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), qualname);
+						PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), moduleQualname);
 						PY_RETURN_ERROR;
 					}
 
@@ -699,7 +713,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else
 	{
-		defContext.moduleName = qualname;
+		defContext.moduleName = moduleQualname;
 
 		PyObject* pyBases = PyObject_GetAttrString(pyFunc, "__bases__");
 		if (!pyBases)
@@ -708,7 +722,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		Py_ssize_t basesSize = PyTuple_Size(pyBases);
 		if (basesSize == 0)
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), qualname);
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), moduleQualname);
 			Py_XDECREF(pyBases);
 			PY_RETURN_ERROR;
 		}
@@ -754,7 +768,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	{
 		if (defContext.annotationsMaps.size() != defContext.argsvecs.size())
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' all parameters must have annotations!\n", defContext.optionName.c_str(), qualname);
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' all parameters must have annotations!\n", defContext.optionName.c_str(), moduleQualname);
 			PY_RETURN_ERROR;
 		}
 
@@ -966,6 +980,15 @@ bool initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		return false;
 	}
 
+	static const char* thisClass = "thisClass";
+	if (PyModule_AddStringConstant(entitydefModule, thisClass, thisClass))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+			iter->first, iter->first));
+
+		return false;
+	}
+
 	return true;
 }
 
@@ -995,8 +1018,6 @@ bool process()
 		return false;
 	}
 
-	size_t i = g_allScriptDefContextMaps.size();
-	i = 0;
 	return true;
 }
 
