@@ -347,7 +347,7 @@ static bool isRefEntityDefModule(PyObject *pyObj)
 }
 
 //-------------------------------------------------------------------------------------
-#define PY_RETURN_ERROR {while(!g_callContexts.empty()) g_callContexts.pop(); return NULL;}
+#define PY_RETURN_ERROR {while(g_allScriptDefContextMaps.clear(); !g_callContexts.empty()) g_callContexts.pop(); return NULL;}
 
 static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 {
@@ -1018,6 +1018,8 @@ bool process()
 		return false;
 	}
 
+	while (!g_callContexts.empty()) g_callContexts.pop();
+	g_allScriptDefContextMaps.clear();
 	return true;
 }
 
