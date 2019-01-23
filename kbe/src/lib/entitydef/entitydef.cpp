@@ -232,7 +232,10 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return script::entitydef::initialize(scriptBaseTypes, loadComponentType) && loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return script::entitydef::initialize(scriptBaseTypes, loadComponentType) && 
+		loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) &&
+		script::entitydef::process() &&
+		initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------

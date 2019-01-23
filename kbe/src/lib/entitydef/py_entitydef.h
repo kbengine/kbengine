@@ -14,6 +14,8 @@ bool uninstallModule();
 bool initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	COMPONENT_TYPE loadComponentType);
 
+bool process();
+
 bool finalise(bool isReload = false);
 
 void reload(bool fullReload);
