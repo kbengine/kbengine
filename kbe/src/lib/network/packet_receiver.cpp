@@ -41,11 +41,10 @@ PacketReceiver::~PacketReceiver()
 //-------------------------------------------------------------------------------------
 int PacketReceiver::handleInputNotification(int fd)
 {
-	if (this->processRecv(/*expectingPacket:*/true))
+	if (this->processRecv(true))
 	{
-		while (this->processRecv(/*expectingPacket:*/false))
+		while (this->processRecv(false))
 		{
-			/* pass */;
 		}
 	}
 
