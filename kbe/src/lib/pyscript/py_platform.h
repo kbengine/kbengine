@@ -38,6 +38,12 @@ public:
 	static bool pathExists(const std::string& path);
 	static bool pathExists(const std::wstring& path);
 
+	static std::pair<std::string, std::string> splitPath(const std::string& path);
+	static std::pair<std::wstring, std::wstring> splitPath(const std::wstring& path);
+
+	static std::pair<std::string, std::string> splitText(const std::string& path);
+	static std::pair<std::wstring, std::wstring> splitText(const std::wstring& path);
+
 private:
 	static bool	isInit;
 	
