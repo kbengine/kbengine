@@ -310,7 +310,9 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(hellomessage.size() > 0 && client.state < 2)
 			{
 				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", fmt::format("http://{}:{}/{}{}", 
-					Loginapp::getSingleton().networkInterface().extTcpAddr().ipAsString(),
+					(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0 ? 
+					g_kbeSrvConfig.getLoginApp().externalAddress : 
+					Loginapp::getSingleton().networkInterface().extTcpAddr().ipAsString()),
 					g_kbeSrvConfig.getLoginApp().http_cbport,
 					keys,
 					code));
