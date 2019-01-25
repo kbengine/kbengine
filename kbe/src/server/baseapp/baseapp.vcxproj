@@ -266,10 +266,6 @@
       <Project>{a04109a7-46c9-42f9-ab29-8e3d84450172}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\lib\dependencies\zip\zip2008.vcxproj">
-      <Project>{1abb1158-909c-4ad4-9f81-cb38bba5d950}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\lib\entitydef\entitydef.vcxproj">
       <Project>{44fa54e8-0a60-4a6c-a449-118872e75502}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
