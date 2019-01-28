@@ -501,6 +501,57 @@ std::string Resmgr::getPyUserScriptsPath()
 }
 
 //-------------------------------------------------------------------------------------
+std::string Resmgr::getPyUserComponentScriptsPath(COMPONENT_TYPE componentType)
+{
+	if (componentType == UNKNOWN_COMPONENT_TYPE)
+	{
+		static std::string path = "";
+
+		if (path == "")
+		{
+			path = getPyUserScriptsPath();
+
+			if (g_componentType == CELLAPP_TYPE)
+				path += "cell/";
+			else if (g_componentType == BASEAPP_TYPE)
+				path += "base/";
+			else if (g_componentType == BOTS_TYPE)
+				path += "bots/";
+			else if (g_componentType == CLIENT_TYPE)
+				path += "client/";
+			else
+				KBE_ASSERT(false);
+		}
+
+		return path;
+	}
+	else
+	{
+		std::string path = "";
+
+		if (path == "")
+		{
+			path = getPyUserScriptsPath();
+
+			if (componentType == CELLAPP_TYPE)
+				path += "cell/";
+			else if (componentType == BASEAPP_TYPE)
+				path += "base/";
+			else if (componentType == BOTS_TYPE)
+				path += "bots/";
+			else if (componentType == CLIENT_TYPE)
+				path += "client/";
+			else
+				KBE_ASSERT(false);
+		}
+
+		return path;
+	}
+
+	return "";
+}
+
+//-------------------------------------------------------------------------------------
 std::string Resmgr::getPyUserAssetsPath()
 {
 	static std::string path = "";
