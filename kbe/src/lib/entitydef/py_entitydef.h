@@ -11,10 +11,7 @@ namespace KBEngine{ namespace script{ namespace entitydef {
 bool installModule(const char* moduleName);
 bool uninstallModule();
 
-bool initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
-	COMPONENT_TYPE loadComponentType);
-
-bool process();
+bool initialize();
 
 bool finalise(bool isReload = false);
 
