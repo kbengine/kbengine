@@ -720,6 +720,11 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 						(pDescr == NULL ? "" : pDescr),  
 						id);
 
+	if (rid != id)
+	{
+		WARNING_MSG(fmt::format("Proxy::streamFileToClient: the id({}) has been used, a new id({}) is assigned!\n", id, rid));
+	}
+
 	return PyLong_FromLong(rid);
 }
 
