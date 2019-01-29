@@ -1012,6 +1012,7 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 	}
 
 	free(wpath);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
