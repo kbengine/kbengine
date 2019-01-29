@@ -229,9 +229,6 @@ uint16 datatype2id(std::string datatype);
 std::string datatype2nativetype(std::string datatype);
 std::string datatype2nativetype(uint16 datatype);
 
-// 获得进程的python环境目录
-std::pair<std::wstring, std::wstring> getComponentPythonPaths(COMPONENT_TYPE componentType);
-
 }
 
 #endif // KBE_SERVER_COMMON_H
