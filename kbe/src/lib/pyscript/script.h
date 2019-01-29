@@ -53,6 +53,13 @@ namespace KBEngine{ namespace script{
 
 #endif
 
+#define APPEND_PYSYSPATH(PY_PATHS)									\
+	std::wstring pySysPaths = SCRIPT_PATH;							\
+	wchar_t* pwpySysResPath = strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));	\
+	strutil::kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);\
+	PY_PATHS += pySysPaths;											\
+	free(pwpySysResPath);
+
 
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v);
 
