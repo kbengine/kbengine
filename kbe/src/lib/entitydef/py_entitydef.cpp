@@ -1036,10 +1036,60 @@ static bool loadAllScripts()
 
 	for (std::vector< COMPONENT_TYPE >::iterator iter = loadOtherComponentTypes.begin(); iter != loadOtherComponentTypes.end(); ++iter)
 	{
-		std::future<bool> asyncResult = std::async(std::launch::async, []()
+		COMPONENT_TYPE componentType = (*iter);
+		std::future<bool> asyncResult = std::async(std::launch::async, [componentType]()
 		{
-			sleep(5000);
-			return false;
+			std::wstring user_scripts_path = L"";
+			wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserScriptsPath().c_str()));
+			if (tbuf != NULL)
+			{
+				user_scripts_path += tbuf;
+				free(tbuf);
+			}
+			else
+			{
+				KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
+				return false;
+			}
+
+			std::wstring pyPaths = user_scripts_path + L";";
+			pyPaths += user_scripts_path + L"common;";
+			pyPaths += user_scripts_path + L"data;";
+			pyPaths += user_scripts_path + L"user_type;";
+
+			switch (componentType)
+			{
+			case BASEAPP_TYPE:
+				pyPaths += user_scripts_path + L"server_common;";
+				pyPaths += user_scripts_path + L"base;";
+				pyPaths += user_scripts_path + L"base/interfaces;";
+				pyPaths += user_scripts_path + L"base/components;";
+				break;
+			case CELLAPP_TYPE:
+				pyPaths += user_scripts_path + L"server_common;";
+				pyPaths += user_scripts_path + L"cell;";
+				pyPaths += user_scripts_path + L"cell/interfaces;";
+				pyPaths += user_scripts_path + L"cell/components;";
+				break;
+			case DBMGR_TYPE:
+				pyPaths += user_scripts_path + L"server_common;";
+				pyPaths += user_scripts_path + L"db;";
+				break;
+			default:
+				pyPaths += user_scripts_path + L"client;";
+				pyPaths += user_scripts_path + L"client/interfaces;";
+				pyPaths += user_scripts_path + L"client/components;";
+				break;
+			};
+
+			std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
+			kbe_res_path += "scripts/common";
+
+			tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
+
+			free(tbuf);
+
+			return true;
 		});
 
 		bool otherPartSuccess = asyncResult.get();
