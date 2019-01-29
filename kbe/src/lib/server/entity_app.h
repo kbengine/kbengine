@@ -386,8 +386,8 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	if(Resmgr::getSingleton().respaths().size() <= 0 || 
-		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
+	if (Resmgr::getSingleton().respaths().size() <= 0 ||
+		Resmgr::getSingleton().getPyUserResPath().size() == 0 ||
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
@@ -403,6 +403,7 @@ bool EntityApp<E>::installPyScript()
 	}
 
 	return getScript().install(pyPaths.first.c_str(), pyPaths.second, "KBEngine", componentType_);
+}
 
 template<class E>
 void EntityApp<E>::registerScript(PyTypeObject* pto)
