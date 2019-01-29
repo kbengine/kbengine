@@ -132,32 +132,19 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, 
 	const char* moduleName, COMPONENT_TYPE componentType)
 {
-	std::wstring pySysPaths = SCRIPT_PATH;
-	wchar_t* pwpySysResPath = strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));
-	strutil::kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);
-	pyPaths += pySysPaths;
-	free(pwpySysResPath);
+	APPEND_PYSYSPATH(pyPaths);
 
 	// 先设置python的环境变量
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								
 
 #if KBE_PLATFORM != PLATFORM_WIN32
-	std::wstring fs = L";";
-	std::wstring rs = L":";
-	size_t pos = 0; 
-
-	while(true)
-	{ 
-		pos = pyPaths.find(fs, pos);
-		if (pos == std::wstring::npos) break;
-		pyPaths.replace(pos, fs.length(), rs);
-	}  
+	strutil::kbe_replace(pyPaths, L";", L":");
 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
 	DEBUG_MSG(fmt::format("Script::install(): paths={}.\n", tmpchar));
 	free(tmpchar);
-	
 #endif
+
 	// Initialise python
 	// Py_VerboseFlag = 2;
 	Py_FrozenFlag = 1;
