@@ -163,9 +163,10 @@ bool ClientSDKDownloader::loadSDKDatas()
 	uint64 now = timestamp();
 	if (TimeStamp::toSeconds(now - lastTime_) <= 0.1)
 	{
-		lastTime_ = now;
 		return false;
 	}
+
+	lastTime_ = now;
 
 	if (!loadedSDK_)
 	{
