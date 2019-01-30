@@ -1253,6 +1253,9 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 //-------------------------------------------------------------------------------------
 static bool loadAllScripts()
 {
+	if (g_componentType != BASEAPP_TYPE && g_componentType != CELLAPP_TYPE)
+		return true;
+
 	bool otherPartSuccess = loadAllScriptForComponentType(g_componentType);
 	if (!otherPartSuccess)
 		return false;
