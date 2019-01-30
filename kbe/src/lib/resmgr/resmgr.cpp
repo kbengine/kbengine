@@ -490,11 +490,13 @@ std::string Resmgr::getPyUserScriptsPath()
 {
 	static std::string path = "";
 
-	if(path == "")
+	if (path == "")
 	{
 		path = getPyUserResPath();
-		strutil::kbe_replace(path, "/res", "/scripts");
-		strutil::kbe_replace(path, "\\res", "/scripts");
+
+		std::string::size_type pos = path.rfind("res");
+		path.erase(pos, path.size() - pos);
+		path += "scripts/";
 	}
 
 	return path;
