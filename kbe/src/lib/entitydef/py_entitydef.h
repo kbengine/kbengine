@@ -5,19 +5,25 @@
 
 #include "common.h"
 
-namespace KBEngine{ namespace script{ namespace entitydef {
+namespace KBEngine{ 
+
+class MemoryStream;
+
+namespace script{ namespace entitydef {
 	
 /** °²×°entitydefÄ£¿é */
 bool installModule(const char* moduleName);
 bool uninstallModule();
 
 bool initialize();
-
 bool finalise(bool isReload = false);
 
 void reload(bool fullReload);
 
 bool initializeWatcher();
+
+bool addToStream(MemoryStream* pMemoryStream);
+bool createFromStream(MemoryStream* pMemoryStream);
 
 }
 }
