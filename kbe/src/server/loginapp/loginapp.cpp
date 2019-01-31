@@ -202,6 +202,33 @@ void Loginapp::finalise()
 	PythonApp::finalise();
 }
 
+//-------------------------------------------------------------------------------------		
+bool Loginapp::installSignals()
+{
+	PythonApp::installSignals();
+	g_kbeSignalHandlers.addSignal(SIGCHLD, this);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void Loginapp::onSignalled(int sigNum)
+{
+	if (sigNum == SIGCHLD)
+	{
+#if KBE_PLATFORM != PLATFORM_WIN32
+		/* Wait for all dead processes.
+		* We use a non-blocking call to be sure this signal handler will not
+		* block if a child was cleaned up in another part of the program. */
+		while (waitpid(-1, NULL, WNOHANG) > 0) {
+		}
+#endif
+	}
+	else
+	{
+		PythonApp::onSignalled(sigNum);
+	}
+}
+
 //-------------------------------------------------------------------------------------
 void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, 
 	COMPONENT_ORDER startGroupOrder, const std::string& digest)

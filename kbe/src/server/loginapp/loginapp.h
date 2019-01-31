@@ -52,6 +52,11 @@ public:
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
 
+	/** –≈∫≈¥¶¿Ì
+	*/
+	virtual bool installSignals();
+	virtual void onSignalled(int sigNum);
+
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& scriptVerInfo, 
