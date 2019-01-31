@@ -29,6 +29,17 @@ namespace KBEngine
 
             warnUpdateSDK = "Version does not match the server.\nClick to update KBEnginePlugin!\nPull from: " + KBEngineApp.app.getInitArgs().ip + ":" + KBEngineApp.app.getInitArgs().port;
             installEvents();
+
+            GameObject[] objs = FindObjectsOfType(typeof(GameObject)) as GameObject[];
+            foreach (GameObject child in objs)
+            {
+                if (!child.gameObject.GetComponent<Camera>() &&
+                    !child.gameObject.GetComponent<KBEMain>() &&
+                    !child.gameObject.GetComponent<ClientSDKUpdater>())
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
         }
 
         public virtual void installEvents()
@@ -129,7 +140,7 @@ namespace KBEngine
                 GUI.contentColor = Color.red;
                 GUI.backgroundColor = Color.red;
 
-                if (GUI.Button(new Rect(Screen.width * 0.05f, Screen.height * 0.01f, Screen.width * 0.9f, Screen.height * 0.2f), warnUpdateSDK))
+                if (GUI.Button(new Rect(Screen.width * 0.25f, Screen.height * 0.4f, Screen.width * 0.5f, Screen.height * 0.2f), warnUpdateSDK))
                 {
                     // 从服务器下载新的SDK
                     downloadSDKFromServer();
