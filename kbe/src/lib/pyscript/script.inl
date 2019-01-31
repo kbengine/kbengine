@@ -19,6 +19,11 @@ INLINE PyObject* Script::getExtraModule(void) const
 	return extraModule_; 
 }
 
+INLINE PyObject* Script::getSysInitModules(void) const
+{
+	return sysInitModules_;
+}
+
 INLINE ScriptStdOutErr* Script::pyStdouterr() const
 {
 	return pyStdouterr_;
