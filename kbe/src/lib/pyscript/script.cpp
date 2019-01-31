@@ -77,6 +77,7 @@ PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 Script::Script():
 module_(NULL),
 extraModule_(NULL),
+sysInitModules_(NULL),
 pyStdouterr_(NULL)
 {
 }
@@ -182,6 +183,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
         return false;
     } 
 
+	sysInitModules_ = PyDict_Copy(PySys_GetObject("modules"));
+
 	PySys_SetArgvEx(0, NULL, 0);
 	PyObject *m = PyImport_AddModule("__main__");
 
@@ -198,26 +201,14 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		return false;
 	}
 	
+	PyEval_InitThreads();
+
 	// 注册产生uuid方法到py
 	APPEND_SCRIPT_MODULE_METHOD(module_,		genUUID64,			__py_genUUID64,					METH_VARARGS,			0);
 
 	// 安装py重定向模块
 	ScriptStdOut::installScript(NULL);
 	ScriptStdErr::installScript(NULL);
-
-	/*
-	static struct PyModuleDef moduleDesc =
-	{  
-			 PyModuleDef_HEAD_INIT,  
-			 moduleName,  
-			 "This module is created by KBEngine!", 
-			 -1,  
-			 NULL  
-	};  
-
-	// 初始化基础模块
-	PyModule_Create(&moduleDesc);
-	*/
 
 	// 将模块对象加入main
 	PyObject_SetAttrString(m, moduleName, module_);	
@@ -274,7 +265,13 @@ bool Script::uninstall()
 	ScriptStdOut::uninstallScript();
 	ScriptStdErr::uninstallScript();
 
-	PyGC::initialize();
+	PyGC::finalise();
+
+	if (sysInitModules_)
+	{
+		Py_DECREF(sysInitModules_);
+		sysInitModules_ = NULL;
+	}
 
 	// 卸载python解释器
 	Py_Finalize();
