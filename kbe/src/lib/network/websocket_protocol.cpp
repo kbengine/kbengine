@@ -46,7 +46,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 		return false;
 	}
 
-	fi = data.find("GET");
+	fi = data.find("Host");
 	if(fi == std::string::npos)
 	{
 		return false;
