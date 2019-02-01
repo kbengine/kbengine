@@ -67,6 +67,8 @@ struct DefContext
 
 		inheritEngineModuleType = DC_TYPE_UNKNOWN;
 		type = DC_TYPE_UNKNOWN;
+
+		componentType = UNKNOWN_COMPONENT_TYPE;
 	}
 
 	bool addToStream(MemoryStream* pMemoryStream)
@@ -230,6 +232,39 @@ struct DefContext
 		return true;
 	}
 
+	bool addChildContext(DefContext& defContext)
+	{
+		std::vector< DefContext >* pContexts = NULL;
+
+		if (defContext.type == DefContext::DC_TYPE_PROPERTY)
+			pContexts = &propertys;
+		else if (defContext.type == DefContext::DC_TYPE_METHOD)
+			pContexts = &methods;
+		else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+			pContexts = &clienbt_methods;
+		else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+			pContexts = &propertys;
+		else
+			KBE_ASSERT(false);
+
+		std::vector< DefContext >::iterator iter = pContexts->begin();
+		for (; iter != pContexts->end(); ++iter)
+		{
+			if ((*iter).attrName == defContext.attrName)
+			{
+				// 当多次assemblyContexts时可能会发生这样的情况
+				// 不做操作即可
+				if (moduleName != defContext.moduleName)
+					return true;
+
+				return false;
+			}
+		}
+
+		pContexts->push_back(defContext);
+		return true;
+	}
+
 	std::string optionName;
 
 	std::string moduleName;
@@ -270,38 +305,7 @@ struct DefContext
 	std::vector< DefContext > propertys;
 	std::vector< std::string > components;
 
-	bool addChildContext(DefContext& defContext)
-	{
-		std::vector< DefContext >* pContexts = NULL;
-
-		if (defContext.type == DefContext::DC_TYPE_PROPERTY)
-			pContexts = &propertys;
-		else if (defContext.type == DefContext::DC_TYPE_METHOD)
-			pContexts = &methods;
-		else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
-			pContexts = &clienbt_methods;
-		else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
-			pContexts = &propertys;
-		else
-			KBE_ASSERT(false);
-
-		std::vector< DefContext >::iterator iter = pContexts->begin();
-		for (; iter != pContexts->end(); ++iter)
-		{
-			if ((*iter).attrName == defContext.attrName)
-			{
-				// 当多次assemblyContexts时可能会发生这样的情况
-				// 不做操作即可
-				if (moduleName != defContext.moduleName)
-					return true;
-
-				return false;
-			}
-		}
-
-		pContexts->push_back(defContext);
-		return true;
-	}
+	COMPONENT_TYPE componentType;
 };
 
 static std::stack<CallContext> g_callContexts;
@@ -533,6 +537,19 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	
 	DefContext defContext;
 	defContext.optionName = cc.optionName;
+
+	PyObject* kbeModule = PyImport_AddModule("KBEngine");
+	KBE_ASSERT(kbeModule);
+
+	PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
+	if (!pyComponentName)
+	{
+		PyErr_Format(PyExc_AssertionError, "Def.__py_def_call(): get KBEngine.component error!\n");
+		PY_RETURN_ERROR;
+	}
+
+	defContext.componentType = ComponentName2ComponentType(PyUnicode_AsUTF8AndSize(pyComponentName, NULL));
+	Py_DECREF(pyComponentName);
 
 	if (!args || PyTuple_Size(args) < 1)
 	{
