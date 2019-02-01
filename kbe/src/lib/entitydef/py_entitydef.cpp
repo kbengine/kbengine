@@ -1181,7 +1181,9 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 
 	if (rootPath.size() == 0)
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::loadAllScripts(): Could not find kbengine.xml\n"));
+		ERROR_MSG(fmt::format("PyEntityDef::loadAllScriptForComponentType(): get scripts path error! loadComponentType={}\n", 
+			COMPONENT_NAME_EX(loadComponentType)));
+
 		return false;
 	}
 
@@ -1236,6 +1238,7 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 			if (!pyModule)
 			{
 				SCRIPT_ERROR_CHECK();
+				return false;
 			}
 			else
 			{
@@ -1251,14 +1254,148 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 }
 
 //-------------------------------------------------------------------------------------
+static bool execPython(COMPONENT_TYPE componentType)
+{
+	std::pair<std::wstring, std::wstring> pyPaths = getComponentPythonPaths(componentType);
+	if (pyPaths.first.size() == 0)
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::execPython(): PythonApp({}) paths error!\n", COMPONENT_NAME_EX(componentType)));
+		return false;
+	}
+
+	APPEND_PYSYSPATH(pyPaths.second);
+
+	PyObject* kbeModuleOld = PyImport_AddModule("KBEngine");
+	if (kbeModuleOld == NULL)
+	{
+		KBE_ASSERT(false);
+		return false;
+	}
+
+	PyObject* modulesOld = PySys_GetObject("modules");
+
+	PyObjectPtr entityType(PyObject_GetAttrString(kbeModuleOld, "Entity"), PyObjectPtr::STEAL_REF);
+	PyObjectPtr entityComponentType(PyObject_GetAttrString(kbeModuleOld, "EntityComponent"), PyObjectPtr::STEAL_REF);
+
+	PyThreadState* pCurInterpreter = PyThreadState_Get();
+	PyThreadState* pNewInterpreter = Py_NewInterpreter();
+
+	if (!pNewInterpreter)
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::execPython(): Py_NewInterpreter()!\n"));
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+
+	PySys_SetPath(pyPaths.second.c_str());
+
+	PyObject* modulesNew = PySys_GetObject("modules");
+	PyDict_Merge(modulesNew, Script::getSingleton().getSysInitModules(), 0);
+
+	{
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(modulesOld, &pos, &key, &value))
+		{
+			const char* typeName = PyUnicode_AsUTF8AndSize(key, NULL);
+
+			if (std::string(typeName) == "KBEngine")
+				continue;
+
+			PyObject* pyDoc = PyObject_GetAttrString(value, "__doc__");
+
+			if (pyDoc)
+			{
+				const char* doc = PyUnicode_AsUTF8AndSize(pyDoc, NULL);
+
+				if (doc && std::string(doc).find("KBEngine") != std::string::npos)
+					PyDict_SetItemString(modulesNew, typeName, value);
+
+				if (PyErr_Occurred())
+					PyErr_Clear();
+
+				Py_XDECREF(pyDoc);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+		}
+	}
+
+	PyObject *m = PyImport_AddModule("__main__");
+
+	// 添加一个脚本基础模块
+	PyObject* kbeModule = PyImport_AddModule("KBEngine");
+	KBE_ASSERT(kbeModule);
+
+	const char* componentName = COMPONENT_NAME_EX(componentType);
+	if (PyModule_AddStringConstant(kbeModule, "component", componentName))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::execPython(): Unable to set KBEngine.component to {}\n",
+			componentName));
+
+		return false;
+	}
+
+	// 将模块对象加入main
+	PyObject_SetAttrString(m, "KBEngine", kbeModule);
+
+	PyModule_AddObject(kbeModule, "EntityComponent", entityComponentType.get());
+	PyModule_AddObject(kbeModule, "Entity", entityType.get());
+
+	if(componentType == BASEAPP_TYPE)
+		PyModule_AddObject(kbeModule, "Proxy", entityType.get());
+
+	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
+	{
+		KBE_ASSERT(false);
+		return false;
+	}
+
+	PyThreadState_Swap(pNewInterpreter);
+
+	bool otherPartSuccess = loadAllScriptForComponentType(componentType);
+
+	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
+	{
+		KBE_ASSERT(false);
+		return false;
+	}
+
+	// 此处不能使用Py_EndInterpreter，会导致Math、Def等模块析构
+	PyInterpreterState_Clear(pNewInterpreter->interp);
+	PyInterpreterState_Delete(pNewInterpreter->interp);
+	return otherPartSuccess;
+}
+
+//-------------------------------------------------------------------------------------
 static bool loadAllScripts()
 {
-	if (g_componentType != BASEAPP_TYPE && g_componentType != CELLAPP_TYPE)
-		return true;
+	std::vector< COMPONENT_TYPE > loadOtherComponentTypes;
 
-	bool otherPartSuccess = loadAllScriptForComponentType(g_componentType);
-	if (!otherPartSuccess)
-		return false;
+	if (g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE)
+	{
+		bool otherPartSuccess = loadAllScriptForComponentType(g_componentType);
+		if (!otherPartSuccess)
+			return false;
+
+		loadOtherComponentTypes.push_back((g_componentType == BASEAPP_TYPE) ? CELLAPP_TYPE : BASEAPP_TYPE);
+	}
+	else
+	{
+		loadOtherComponentTypes.push_back(BASEAPP_TYPE);
+		loadOtherComponentTypes.push_back(CELLAPP_TYPE);
+	}
+
+	for (std::vector< COMPONENT_TYPE >::iterator iter = loadOtherComponentTypes.begin(); iter != loadOtherComponentTypes.end(); ++iter)
+	{
+		COMPONENT_TYPE componentType = (*iter);
+		
+		if (!execPython(componentType))
+			return false;
+	}
 
 	return true;
 }
