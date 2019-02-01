@@ -1254,6 +1254,63 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 }
 
 //-------------------------------------------------------------------------------------
+class Entity : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Entity, ScriptObject)
+public:
+	Entity(PyTypeObject* pyType = getScriptType(), bool isInitialised = true):
+		ScriptObject(pyType, isInitialised) {}
+	~Entity() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Entity)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Entity)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
+
+class Proxy : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Proxy, ScriptObject)
+public:
+	Proxy(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~Proxy() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Proxy)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
+
+class EntityComponent : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(EntityComponent, ScriptObject)
+public:
+	EntityComponent(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~EntityComponent() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(EntityComponent)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(EntityComponent)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(EntityComponent)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
+
 static bool execPython(COMPONENT_TYPE componentType)
 {
 	std::pair<std::wstring, std::wstring> pyPaths = getComponentPythonPaths(componentType);
@@ -1265,17 +1322,7 @@ static bool execPython(COMPONENT_TYPE componentType)
 
 	APPEND_PYSYSPATH(pyPaths.second);
 
-	PyObject* kbeModuleOld = PyImport_AddModule("KBEngine");
-	if (kbeModuleOld == NULL)
-	{
-		KBE_ASSERT(false);
-		return false;
-	}
-
 	PyObject* modulesOld = PySys_GetObject("modules");
-
-	PyObjectPtr entityType(PyObject_GetAttrString(kbeModuleOld, "Entity"), PyObjectPtr::STEAL_REF);
-	PyObjectPtr entityComponentType(PyObject_GetAttrString(kbeModuleOld, "EntityComponent"), PyObjectPtr::STEAL_REF);
 
 	PyThreadState* pCurInterpreter = PyThreadState_Get();
 	PyThreadState* pNewInterpreter = Py_NewInterpreter();
@@ -1330,6 +1377,12 @@ static bool execPython(COMPONENT_TYPE componentType)
 	PyObject* kbeModule = PyImport_AddModule("KBEngine");
 	KBE_ASSERT(kbeModule);
 
+	Entity::installScript(kbeModule);
+	EntityComponent::installScript(kbeModule);
+
+	if (componentType == BASEAPP_TYPE)
+		Proxy::installScript(kbeModule);
+
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(kbeModule, "component", componentName))
 	{
@@ -1342,12 +1395,6 @@ static bool execPython(COMPONENT_TYPE componentType)
 	// 将模块对象加入main
 	PyObject_SetAttrString(m, "KBEngine", kbeModule);
 
-	PyModule_AddObject(kbeModule, "EntityComponent", entityComponentType.get());
-	PyModule_AddObject(kbeModule, "Entity", entityType.get());
-
-	if(componentType == BASEAPP_TYPE)
-		PyModule_AddObject(kbeModule, "Proxy", entityType.get());
-
 	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
 	{
 		KBE_ASSERT(false);
@@ -1357,6 +1404,12 @@ static bool execPython(COMPONENT_TYPE componentType)
 	PyThreadState_Swap(pNewInterpreter);
 
 	bool otherPartSuccess = loadAllScriptForComponentType(componentType);
+
+	Entity::uninstallScript();
+	EntityComponent::uninstallScript();
+
+	if (componentType == BASEAPP_TYPE)
+		Proxy::uninstallScript();
 
 	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
 	{
