@@ -3088,7 +3088,31 @@ PyObject* Entity::pyDebugView()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyEntitiesInView()
+PyObject* Entity::__py_pyEntitiesInView(PyObject* self, PyObject* args)
+{
+	Entity* pobj = static_cast<Entity*>(self);
+
+	int argCount = (int)PyTuple_Size(args);
+	if (argCount > 1)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::entitiesInView(): args error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	bool pending = false;
+	if (PyArg_ParseTuple(args, "|b", &pending) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::entitiesInView(): args error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return pobj->entitiesInView(pending);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::entitiesInView(bool pending)
 {
 	if(!isReal())
 	{
@@ -3114,32 +3138,16 @@ PyObject* Entity::pyEntitiesInView()
 		return 0;
 	}
 
-	int calcSize = 0;
+	PyObject* pyList = PyList_New(0);
 	Witness::VIEW_ENTITIES::iterator iter = pWitness_->viewEntities().begin();
 	
 	for(; iter != pWitness_->viewEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
-
-		if(pEntity)
-		{
-			++calcSize;
-		}
-	}
-	
-	PyObject* pyList = PyList_New(calcSize);
-	
-	iter = pWitness_->viewEntities().begin();
 		
-	int i = 0;
-	for(; iter != pWitness_->viewEntities().end(); ++iter)
-	{
-		Entity* pEntity = (*iter)->pEntity();
-
-		if(pEntity)
+		if(pEntity && (pending || (pEntity->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0))
 		{
-			Py_INCREF(pEntity);
-			PyList_SET_ITEM(pyList, i++, pEntity);
+			PyList_Append(pyList, pEntity);
 		}
 	}
 
