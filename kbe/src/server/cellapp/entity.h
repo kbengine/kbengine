@@ -363,7 +363,7 @@ public:
 		脚本请求获得View范围内的entities 
 	*/
 	static PyObject* __py_pyEntitiesInView(PyObject* self, PyObject* args);
-	PyObject* Entity::entitiesInView(bool pending);
+	PyObject* entitiesInView(bool pending);
 
 	/**
 		设置获取是否自动备份
