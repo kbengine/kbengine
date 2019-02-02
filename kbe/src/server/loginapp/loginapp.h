@@ -60,7 +60,7 @@ public:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	void handleMainTick();
 
-	/* åˆå§‹åŒ–ç›¸å…³æ¥å£ */
+	/* ³õÊ¼»¯Ïà¹Ø½Ó¿Ú */
 	bool initializeBegin();
 	bool inInitialize();
 	bool initializeEnd();
@@ -70,7 +70,7 @@ public:
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
 
-	/** ä¿¡å·å¤„ç†
+	/** ĞÅºÅ´¦Àí
 	*/
 	virtual bool installSignals();
 	virtual void onSignalled(int sigNum);
@@ -80,130 +80,130 @@ public:
 		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
-	/** ç½‘ç»œæ¥å£
-		æŸä¸ªclientå‘æœ¬appå‘ŠçŸ¥å¤„äºæ´»åŠ¨çŠ¶æ€ã€‚
+	/** ÍøÂç½Ó¿Ú
+		Ä³¸öclientÏò±¾app¸æÖª´¦ÓÚ»î¶¯×´Ì¬¡£
 	*/
 	void onClientActiveTick(Network::Channel* pChannel);
 
-	/** ç½‘ç»œæ¥å£
-		åˆ›å»ºè´¦å·
+	/** ÍøÂç½Ó¿Ú
+		´´½¨ÕËºÅ
 	*/
 	bool _createAccount(Network::Channel* pChannel, std::string& accountName, 
 		std::string& password, std::string& datas, ACCOUNT_TYPE type = ACCOUNT_TYPE_NORMAL);
 	void reqCreateAccount(Network::Channel* pChannel, MemoryStream& s);
 
-	/** ç½‘ç»œæ¥å£
-		åˆ›å»ºemailè´¦å·
+	/** ÍøÂç½Ó¿Ú
+		´´½¨emailÕËºÅ
 	*/
 	void reqCreateMailAccount(Network::Channel* pChannel, MemoryStream& s);
 
-	/** ç½‘ç»œæ¥å£
-		åˆ›å»ºè´¦å·
+	/** ÍøÂç½Ó¿Ú
+		´´½¨ÕËºÅ
 	*/
 	void onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream& s);
 	void onReqCreateMailAccountResult(Network::Channel* pChannel, MemoryStream& s);
 
-	/** ç½‘ç»œæ¥å£
-		é‡ç½®è´¦å·å¯†ç ç”³è¯·ï¼ˆå¿˜è®°å¯†ç ?ï¼‰
+	/** ÍøÂç½Ó¿Ú
+		ÖØÖÃÕËºÅÃÜÂëÉêÇë£¨Íü¼ÇÃÜÂë?£©
 	*/
 	void reqAccountResetPassword(Network::Channel* pChannel, std::string& accountName);
 	void onReqAccountResetPasswordCB(Network::Channel* pChannel, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
 
-	/** ç½‘ç»œæ¥å£
-		dbmgrè´¦å·æ¿€æ´»è¿”å›
+	/** ÍøÂç½Ó¿Ú
+		dbmgrÕËºÅ¼¤»î·µ»Ø
 	*/
 	void onAccountActivated(Network::Channel* pChannel, std::string& code, bool success);
 
-	/** ç½‘ç»œæ¥å£
-		dbmgrè´¦å·ç»‘å®šemailè¿”å›
+	/** ÍøÂç½Ó¿Ú
+		dbmgrÕËºÅ°ó¶¨email·µ»Ø
 	*/
 	void onAccountBindedEmail(Network::Channel* pChannel, std::string& code, bool success);
 
-	/** ç½‘ç»œæ¥å£
-		dbmgrè´¦å·é‡è®¾å¯†ç è¿”å›
+	/** ÍøÂç½Ó¿Ú
+		dbmgrÕËºÅÖØÉèÃÜÂë·µ»Ø
 	*/
 	void onAccountResetPassword(Network::Channel* pChannel, std::string& code, bool success);
 
-	/** ç½‘ç»œæ¥å£
-	baseappè¯·æ±‚ç»‘å®šemailï¼ˆè¿”å›æ—¶éœ€è¦æ‰¾åˆ°loginappçš„åœ°å€ï¼‰
+	/** ÍøÂç½Ó¿Ú
+	baseappÇëÇó°ó¶¨email£¨·µ»ØÊ±ĞèÒªÕÒµ½loginappµÄµØÖ·£©
 	*/
 	void onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
 
-	/** ç½‘ç»œæ¥å£
-		ç”¨æˆ·ç™»å½•æœåŠ¡å™¨
-		clientType[COMPONENT_CLIENT_TYPE]: å‰ç«¯ç±»åˆ«(æ‰‹æœºï¼Œ webï¼Œ pcexeç«¯)
-		clientData[str]: å‰ç«¯é™„å¸¦æ•°æ®(å¯ä»¥æ˜¯ä»»æ„çš„ï¼Œ æ¯”å¦‚é™„å¸¦æ‰‹æœºå‹å·ï¼Œ æµè§ˆå™¨ç±»å‹ç­‰)
-		accountName[str]: å¸å·å
-		password[str]: å¯†ç 
+	/** ÍøÂç½Ó¿Ú
+		ÓÃ»§µÇÂ¼·şÎñÆ÷
+		clientType[COMPONENT_CLIENT_TYPE]: Ç°¶ËÀà±ğ(ÊÖ»ú£¬ web£¬ pcexe¶Ë)
+		clientData[str]: Ç°¶Ë¸½´øÊı¾İ(¿ÉÒÔÊÇÈÎÒâµÄ£¬ ±ÈÈç¸½´øÊÖ»úĞÍºÅ£¬ ä¯ÀÀÆ÷ÀàĞÍµÈ)
+		accountName[str]: ÕÊºÅÃû
+		password[str]: ÃÜÂë
 	*/
 	void login(Network::Channel* pChannel, MemoryStream& s);
 
 	/*
-		ç™»å½•å¤±è´¥
-		failedcode: å¤±è´¥è¿”å›ç  NETWORK_ERR_SRV_NO_READY:æœåŠ¡å™¨æ²¡æœ‰å‡†å¤‡å¥½, 
-									NETWORK_ERR_SRV_OVERLOAD:æœåŠ¡å™¨è´Ÿè½½è¿‡é‡, 
-									NETWORK_ERR_NAME_PASSWORD:ç”¨æˆ·åæˆ–è€…å¯†ç ä¸æ­£ç¡®
+		µÇÂ¼Ê§°Ü
+		failedcode: Ê§°Ü·µ»ØÂë NETWORK_ERR_SRV_NO_READY:·şÎñÆ÷Ã»ÓĞ×¼±¸ºÃ, 
+									NETWORK_ERR_SRV_OVERLOAD:·şÎñÆ÷¸ºÔØ¹ıÖØ, 
+									NETWORK_ERR_NAME_PASSWORD:ÓÃ»§Ãû»òÕßÃÜÂë²»ÕıÈ·
 	*/
 	void _loginFailed(Network::Channel* pChannel, std::string& loginName, 
 		SERVER_ERROR_CODE failedcode, std::string& datas, bool force = false);
 	
-	/** ç½‘ç»œæ¥å£
-		dbmgrè¿”å›çš„ç™»å½•è´¦å·æ£€æµ‹ç»“æœ
+	/** ÍøÂç½Ó¿Ú
+		dbmgr·µ»ØµÄµÇÂ¼ÕËºÅ¼ì²â½á¹û
 	*/
 	void onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, MemoryStream& s);
 
-	/** ç½‘ç»œæ¥å£
-		baseappmgrè¿”å›çš„ç™»å½•ç½‘å…³åœ°å€
+	/** ÍøÂç½Ó¿Ú
+		baseappmgr·µ»ØµÄµÇÂ¼Íø¹ØµØÖ·
 	*/
 	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
 		std::string& accountName, std::string& addr, uint16 port);
 
 
-	/** ç½‘ç»œæ¥å£
-		dbmgrå‘é€åˆå§‹ä¿¡æ¯
-		startGlobalOrder: å…¨å±€å¯åŠ¨é¡ºåº åŒ…æ‹¬å„ç§ä¸åŒç»„ä»¶
-		startGroupOrder: ç»„å†…å¯åŠ¨é¡ºåºï¼Œ æ¯”å¦‚åœ¨æ‰€æœ‰baseappä¸­ç¬¬å‡ ä¸ªå¯åŠ¨ã€‚
+	/** ÍøÂç½Ó¿Ú
+		dbmgr·¢ËÍ³õÊ¼ĞÅÏ¢
+		startGlobalOrder: È«¾ÖÆô¶¯Ë³Ğò °üÀ¨¸÷ÖÖ²»Í¬×é¼ş
+		startGroupOrder: ×éÄÚÆô¶¯Ë³Ğò£¬ ±ÈÈçÔÚËùÓĞbaseappÖĞµÚ¼¸¸öÆô¶¯¡£
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, 
 		COMPONENT_ORDER startGroupOrder, const std::string& digest);
 
-	/** ç½‘ç»œæ¥å£
-		å®¢æˆ·ç«¯åè®®å¯¼å‡º
+	/** ÍøÂç½Ó¿Ú
+		¿Í»§¶ËĞ­Òéµ¼³ö
 	*/
 	void importClientMessages(Network::Channel* pChannel);
 
-	/** ç½‘ç»œæ¥å£
-		é”™è¯¯ç æè¿°å¯¼å‡º
+	/** ÍøÂç½Ó¿Ú
+		´íÎóÂëÃèÊöµ¼³ö
 	*/
 	void importServerErrorsDescr(Network::Channel* pChannel);
 
-	/** ç½‘ç»œæ¥å£
-	å®¢æˆ·ç«¯SDKå¯¼å‡º
+	/** ÍøÂç½Ó¿Ú
+	¿Í»§¶ËSDKµ¼³ö
 	*/
 	void importClientSDK(Network::Channel* pChannel, MemoryStream& s);
 
-	// å¼•æ“ç‰ˆæœ¬ä¸åŒ¹é…
+	// ÒıÇæ°æ±¾²»Æ¥Åä
 	virtual void onVersionNotMatch(Network::Channel* pChannel);
 
-	// å¼•æ“è„šæœ¬å±‚ç‰ˆæœ¬ä¸åŒ¹é…
+	// ÒıÇæ½Å±¾²ã°æ±¾²»Æ¥Åä
 	virtual void onScriptVersionNotMatch(Network::Channel* pChannel);
 
-	/** ç½‘ç»œæ¥å£
-		baseappåŒæ­¥è‡ªå·±çš„åˆå§‹åŒ–ä¿¡æ¯
-		startGlobalOrder: å…¨å±€å¯åŠ¨é¡ºåº åŒ…æ‹¬å„ç§ä¸åŒç»„ä»¶
-		startGroupOrder: ç»„å†…å¯åŠ¨é¡ºåºï¼Œ æ¯”å¦‚åœ¨æ‰€æœ‰baseappä¸­ç¬¬å‡ ä¸ªå¯åŠ¨ã€‚
+	/** ÍøÂç½Ó¿Ú
+		baseappÍ¬²½×Ô¼ºµÄ³õÊ¼»¯ĞÅÏ¢
+		startGlobalOrder: È«¾ÖÆô¶¯Ë³Ğò °üÀ¨¸÷ÖÖ²»Í¬×é¼ş
+		startGroupOrder: ×éÄÚÆô¶¯Ë³Ğò£¬ ±ÈÈçÔÚËùÓĞbaseappÖĞµÚ¼¸¸öÆô¶¯¡£
 	*/
 	void onBaseappInitProgress(Network::Channel* pChannel, float progress);
 
 protected:
 	TimerHandle							mainProcessTimer_;
 
-	// è®°å½•æ³¨å†Œè´¦å·è¿˜æœªç™»é™†çš„è¯·æ±‚
+	// ¼ÇÂ¼×¢²áÕËºÅ»¹Î´µÇÂ½µÄÇëÇó
 	PendingLoginMgr						pendingCreateMgr_;
 
-	// è®°å½•ç™»å½•åˆ°æœåŠ¡å™¨ä½†è¿˜æœªå¤„ç†å®Œæ¯•çš„è´¦å·
+	// ¼ÇÂ¼µÇÂ¼µ½·şÎñÆ÷µ«»¹Î´´¦ÀíÍê±ÏµÄÕËºÅ
 	PendingLoginMgr						pendingLoginMgr_;
 
 	std::string							digest_;
