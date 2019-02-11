@@ -1394,11 +1394,11 @@ static bool execPython(COMPONENT_TYPE componentType)
 	PyObject* kbeModule = PyImport_AddModule("KBEngine");
 	KBE_ASSERT(kbeModule);
 
-	Entity::installScript(kbeModule);
-	EntityComponent::installScript(kbeModule);
+	Entity::registerScript(kbeModule);
+	EntityComponent::registerScript(kbeModule);
 
 	if (componentType == BASEAPP_TYPE)
-		Proxy::installScript(kbeModule);
+		Proxy::registerScript(kbeModule);
 
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(kbeModule, "component", componentName))
@@ -1422,11 +1422,11 @@ static bool execPython(COMPONENT_TYPE componentType)
 
 	bool otherPartSuccess = loadAllScriptForComponentType(componentType);
 
-	Entity::uninstallScript();
-	EntityComponent::uninstallScript();
+	Entity::unregisterScript();
+	EntityComponent::unregisterScript();
 
 	if (componentType == BASEAPP_TYPE)
-		Proxy::uninstallScript();
+		Proxy::unregisterScript();
 
 	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
 	{
