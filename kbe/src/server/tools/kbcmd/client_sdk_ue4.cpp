@@ -2427,7 +2427,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			fileBody() += fmt::format("\tif (sm->usePropertyDescrAlias)\n\t{{\n");
 			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint8();\n");
 			fileBody() += fmt::format("\t}}\n\telse\n\t{{\n");
-			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n");
+			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n\t}}\n\n");
 
 			fileBody() += fmt::format("\tif (sm->useMethodDescrAlias)\n\t{{\n");
 			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint8>();\n");
