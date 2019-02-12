@@ -118,10 +118,10 @@ struct DefContext
 		for (; methodsIter != methods.end(); ++methodsIter)
 			(*methodsIter).addToStream(pMemoryStream);
 
-		(*pMemoryStream) << (int)clienbt_methods.size();
-		std::vector< DefContext >::iterator clienbt_methodsIter = clienbt_methods.begin();
-		for (; clienbt_methodsIter != clienbt_methods.end(); ++clienbt_methodsIter)
-			(*clienbt_methodsIter).addToStream(pMemoryStream);
+		(*pMemoryStream) << (int)client_methods.size();
+		std::vector< DefContext >::iterator client_methodsIter = client_methods.begin();
+		for (; client_methodsIter != client_methods.end(); ++client_methodsIter)
+			(*client_methodsIter).addToStream(pMemoryStream);
 
 		(*pMemoryStream) << (int)propertys.size();
 		std::vector< DefContext >::iterator propertysIter = propertys.begin();
@@ -211,7 +211,7 @@ struct DefContext
 			DefContext dc;
 			dc.createFromStream(pMemoryStream);
 
-			clienbt_methods.push_back(dc);
+			client_methods.push_back(dc);
 		}
 
 		(*pMemoryStream) >> size;
@@ -244,7 +244,7 @@ struct DefContext
 		else if (defContext.type == DefContext::DC_TYPE_METHOD)
 			pContexts = &methods;
 		else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
-			pContexts = &clienbt_methods;
+			pContexts = &client_methods;
 		else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 			pContexts = &propertys;
 		else
@@ -305,7 +305,7 @@ struct DefContext
 	DCType type;
 
 	std::vector< DefContext > methods;
-	std::vector< DefContext > clienbt_methods;
+	std::vector< DefContext > client_methods;
 	std::vector< DefContext > propertys;
 	std::vector< std::string > components;
 
@@ -317,6 +317,7 @@ static std::string pyDefModuleName = "";
 
 typedef std::map<std::string, DefContext> DEF_CONTEXT_MAP;
 static DEF_CONTEXT_MAP g_allScriptDefContextMaps;
+static DEF_CONTEXT_MAP g_allScriptDefContextLineMaps;
 
 static bool g_inited = false;
 
@@ -391,7 +392,7 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 				std::vector< DefContext > childContexts;
 
 				childContexts.insert(childContexts.end(), parentDefContext.methods.begin(), parentDefContext.methods.end());
-				childContexts.insert(childContexts.end(), parentDefContext.clienbt_methods.begin(), parentDefContext.clienbt_methods.end());
+				childContexts.insert(childContexts.end(), parentDefContext.client_methods.begin(), parentDefContext.client_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.propertys.begin(), parentDefContext.propertys.end());
 
 				std::vector< DefContext >::iterator itemIter = childContexts.begin();
@@ -416,6 +417,8 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 //-------------------------------------------------------------------------------------
 static bool registerDefContext(DefContext& defContext)
 {
+	g_allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
+
 	std::string name = defContext.moduleName;
 
 	if (defContext.type == DefContext::DC_TYPE_PROPERTY ||
@@ -427,20 +430,34 @@ static bool registerDefContext(DefContext& defContext)
 	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.find(name);
 	if (iter != g_allScriptDefContextMaps.end())
 	{
-		// 如果是不同进程的脚本部分，那么需要进行合并注册
-		if (iter->second.componentType != defContext.componentType)
+		if (iter->second.pyObjectSourceFile != defContext.pyObjectSourceFile)
 		{
-
-		}
-		else
-		{
-			if (iter->second.pyObjectSourceFile != defContext.pyObjectSourceFile)
+			// 如果是不同进程的脚本部分，那么需要进行合并注册
+			if (iter->second.componentType != defContext.componentType && g_allScriptDefContextLineMaps.find(defContext.pyObjectSourceFile) != g_allScriptDefContextLineMaps.end() &&
+				(defContext.type == DefContext::DC_TYPE_ENTITY || defContext.type == DefContext::DC_TYPE_COMPONENT || defContext.type == DefContext::DC_TYPE_INTERFACE) && 
+				iter->second.type == defContext.type)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n",
-					defContext.optionName.c_str(), name.c_str());
+				std::vector< std::string >::iterator bciter = defContext.baseClasses.begin();
+				for (; bciter != defContext.baseClasses.end(); ++bciter)
+				{
+					if (std::find(iter->second.baseClasses.begin(), iter->second.baseClasses.end(), (*bciter)) == iter->second.baseClasses.end())
+					{
+						iter->second.baseClasses.push_back((*bciter));
+					}
 
-				return false;
+					KBE_ASSERT(defContext.methods.size() == 0 && defContext.client_methods.size() == 0 && defContext.components.size() == 0 && defContext.propertys.size() == 0);
+					if (defContext.hasClient)
+						iter->second.hasClient = true;
+
+				}
+
+				return true;
 			}
+
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n",
+				defContext.optionName.c_str(), name.c_str());
+
+			return false;
 		}
 	}
 
@@ -543,7 +560,7 @@ static bool isRefEntityDefModule(PyObject *pyObj)
 }
 
 //-------------------------------------------------------------------------------------
-#define PY_RETURN_ERROR { g_allScriptDefContextMaps.clear(); while(!g_callContexts.empty()) g_callContexts.pop(); return NULL; }
+#define PY_RETURN_ERROR { g_allScriptDefContextLineMaps.clear(); g_allScriptDefContextMaps.clear(); while(!g_callContexts.empty()) g_callContexts.pop(); return NULL; }
 
 #define PYOBJECT_SOURCEFILE(PYOBJ, OUT)	\
 {	\
@@ -1254,6 +1271,7 @@ bool uninstallModule()
 {
 	while (!g_callContexts.empty()) g_callContexts.pop();
 	g_allScriptDefContextMaps.clear();
+	g_allScriptDefContextLineMaps.clear();
 	return true; 
 }
 
@@ -1601,7 +1619,7 @@ bool initialize()
 		g_callContexts.pop();
 
 	g_allScriptDefContextMaps.clear();
-
+	g_allScriptDefContextLineMaps.clear();
 	return true;
 }
 
@@ -1655,6 +1673,7 @@ bool createFromStream(MemoryStream* pMemoryStream)
 
 		DefContext defContext;
 		defContext.createFromStream(pMemoryStream);
+		g_allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
 	}
 
 	return true;
