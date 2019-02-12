@@ -64,6 +64,7 @@ struct DefContext
 
 		implementedByModuleName = "";
 		implementedByModuleFile = "";
+		pyObjectSourceFile = "";
 
 		inheritEngineModuleType = DC_TYPE_UNKNOWN;
 		type = DC_TYPE_UNKNOWN;
@@ -102,6 +103,7 @@ struct DefContext
 
 		(*pMemoryStream) << implementedByModuleName;
 		(*pMemoryStream) << implementedByModuleFile;
+		(*pMemoryStream) << pyObjectSourceFile;
 
 		(*pMemoryStream) << (int)baseClasses.size();
 		std::vector< std::string >::iterator baseClassesIter = baseClasses.begin();
@@ -175,6 +177,7 @@ struct DefContext
 
 		(*pMemoryStream) >> implementedByModuleName;
 		(*pMemoryStream) >> implementedByModuleFile;
+		(*pMemoryStream) >> pyObjectSourceFile;
 
 		(*pMemoryStream) >> size;
 		for (int i = 0; i < size; ++i)
@@ -294,6 +297,7 @@ struct DefContext
 	std::string implementedByModuleFile;
 
 	PyObjectPtr pyObjectPtr;
+	std::string pyObjectSourceFile;
 
 	std::vector< std::string > baseClasses;
 
@@ -423,10 +427,21 @@ static bool registerDefContext(DefContext& defContext)
 	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.find(name);
 	if (iter != g_allScriptDefContextMaps.end())
 	{
-		PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n", 
-			defContext.optionName.c_str(), name.c_str());
+		// 如果是不同进程的脚本部分，那么需要进行合并注册
+		if (iter->second.componentType != defContext.componentType)
+		{
 
-		return false;
+		}
+		else
+		{
+			if (iter->second.pyObjectSourceFile != defContext.pyObjectSourceFile)
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n",
+					defContext.optionName.c_str(), name.c_str());
+
+				return false;
+			}
+		}
 	}
 
 	g_allScriptDefContextMaps[name] = defContext;
@@ -530,6 +545,99 @@ static bool isRefEntityDefModule(PyObject *pyObj)
 //-------------------------------------------------------------------------------------
 #define PY_RETURN_ERROR { g_allScriptDefContextMaps.clear(); while(!g_callContexts.empty()) g_callContexts.pop(); return NULL; }
 
+#define PYOBJECT_SOURCEFILE(PYOBJ, OUT)	\
+{	\
+	PyObject* pyInspectModule =	\
+	PyImport_ImportModule(const_cast<char*>("inspect"));	\
+	\
+	PyObject* pyGetsourcefile = NULL;	\
+	PyObject* pyGetLineno = NULL;	\
+	PyObject* pyGetCurrentFrame = NULL;	\
+	\
+	if (pyInspectModule)	\
+	{	\
+		pyGetsourcefile =	\
+			PyObject_GetAttrString(pyInspectModule, const_cast<char *>("getsourcefile"));	\
+		pyGetLineno =	\
+			PyObject_GetAttrString(pyInspectModule, const_cast<char *>("getlineno"));	\
+		pyGetCurrentFrame =	\
+			PyObject_GetAttrString(pyInspectModule, const_cast<char *>("currentframe"));	\
+		\
+		Py_DECREF(pyInspectModule);	\
+	}	\
+	else	\
+	{	\
+		PY_RETURN_ERROR;	\
+	}	\
+	\
+	if (pyGetsourcefile)	\
+	{	\
+		PyObject* pyFile = PyObject_CallFunction(pyGetsourcefile, \
+			const_cast<char*>("(O)"), PYOBJ);	\
+		\
+		Py_DECREF(pyGetsourcefile);	\
+		\
+		if (!pyFile)	\
+		{	\
+			Py_XDECREF(pyGetLineno);	\
+			Py_XDECREF(pyGetCurrentFrame);	\
+			PY_RETURN_ERROR;	\
+		}	\
+		else	\
+		{	\
+			/* 防止不同系统造成的路径不一致，剔除系统相关路径 */		\
+			OUT = PyUnicode_AsUTF8AndSize(pyFile, NULL);	\
+			strutil::kbe_replace(OUT, "/", "");	\
+			strutil::kbe_replace(OUT, "\\", "");	\
+			std::string kbe_root = Resmgr::getSingleton().getPyUserScriptsPath();	\
+			strutil::kbe_replace(kbe_root, "/", "");	\
+			strutil::kbe_replace(kbe_root, "\\", "");	\
+			strutil::kbe_replace(OUT, kbe_root, "");	\
+			Py_DECREF(pyFile);	\
+		}	\
+	}	\
+	else	\
+	{	\
+		Py_XDECREF(pyGetLineno);	\
+		Py_XDECREF(pyGetCurrentFrame);	\
+		PY_RETURN_ERROR;	\
+	}	\
+	\
+	if (pyGetLineno)	\
+	{	\
+		if(!pyGetCurrentFrame)	\
+		{	\
+			Py_DECREF(pyGetLineno);	\
+		}	\
+		\
+		PyObject* pyCurrentFrame = PyObject_CallFunction(pyGetCurrentFrame, \
+				const_cast<char*>("()"));	\
+		\
+		PyObject* pyLine = PyObject_CallFunction(pyGetLineno, \
+			const_cast<char*>("(O)"), pyCurrentFrame);	\
+		\
+		Py_DECREF(pyGetLineno);	\
+		Py_DECREF(pyGetCurrentFrame);	\
+		Py_DECREF(pyCurrentFrame);	\
+		\
+		if (!pyLine)	\
+		{	\
+			PY_RETURN_ERROR;	\
+		}	\
+		else	\
+		{	\
+			/* 加上行号，避免同文件中多次定义 */		\
+			OUT += fmt::format("#{}",  PyLong_AsLong(pyLine));	\
+			Py_DECREF(pyLine);	\
+		}	\
+	}	\
+	else	\
+	{	\
+		Py_XDECREF(pyGetCurrentFrame);	\
+		PY_RETURN_ERROR;	\
+	}	\
+}
+
 static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 {
 	CallContext cc = g_callContexts.top();
@@ -569,6 +677,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	Py_DECREF(pyModuleQualname);
 
 	defContext.pyObjectPtr = PyObjectPtr(pyFunc);
+	PYOBJECT_SOURCEFILE(defContext.pyObjectPtr.get(), defContext.pyObjectSourceFile);
 
 	if (defContext.optionName == "method")
 	{
@@ -751,50 +860,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			defContext.implementedByModuleName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
 			Py_DECREF(pyQualname);
 
-			PyObject* pyInspectModule =
-				PyImport_ImportModule(const_cast<char*>("inspect"));
-
-			PyObject* pyGetsourcefile = NULL;
-			if (pyInspectModule)
-			{
-				pyGetsourcefile =
-					PyObject_GetAttrString(pyInspectModule, const_cast<char *>("getsourcefile"));
-
-				Py_DECREF(pyInspectModule);
-			}
-			else
-			{
-				PY_RETURN_ERROR;
-			}
-
-			if (pyGetsourcefile)
-			{
-				PyObject* pyFile = PyObject_CallFunction(pyGetsourcefile,
-					const_cast<char*>("(O)"), defContext.implementedBy.get());
-
-				Py_DECREF(pyGetsourcefile);
-
-				if (!pyFile)
-				{
-					PY_RETURN_ERROR;
-				}
-				else
-				{
-					// 防止不同系统造成的路径不一致，剔除系统相关路径
-					defContext.implementedByModuleFile = PyUnicode_AsUTF8AndSize(pyFile, NULL);
-					strutil::kbe_replace(defContext.implementedByModuleFile, "/", "");
-					strutil::kbe_replace(defContext.implementedByModuleFile, "\\", "");
-					std::string kbe_root = Resmgr::getSingleton().getPyUserScriptsPath();
-					strutil::kbe_replace(kbe_root, "/", "");
-					strutil::kbe_replace(kbe_root, "\\", "");
-					strutil::kbe_replace(defContext.implementedByModuleFile, kbe_root, "");
-					Py_DECREF(pyFile);
-				}
-			}
-			else
-			{
-				PY_RETURN_ERROR;
-			}
+			PYOBJECT_SOURCEFILE(defContext.implementedBy.get(), defContext.implementedByModuleFile);
 		}
 	}
 	else if (defContext.optionName == "fixed_array")
