@@ -1435,6 +1435,10 @@ static bool execPython(COMPONENT_TYPE componentType)
 		return false;
 	}
 
+#if KBE_PLATFORM != PLATFORM_WIN32
+	strutil::kbe_replace(pyPaths.second, L";", L":");
+#endif
+
 	PySys_SetPath(pyPaths.second.c_str());
 
 	PyObject* modulesNew = PySys_GetObject("modules");
