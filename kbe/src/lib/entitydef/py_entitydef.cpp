@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "entitydef.h"
+#include "datatypes.h"
 #include "py_entitydef.h"
 #include "pyscript/py_platform.h"
 #include "pyscript/pyobject_pointer.h"
@@ -421,11 +422,39 @@ static bool registerDefContext(DefContext& defContext)
 
 	std::string name = defContext.moduleName;
 
-	if (defContext.type == DefContext::DC_TYPE_PROPERTY ||
-		defContext.type == DefContext::DC_TYPE_METHOD ||
-		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD ||
-		defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+	if (defContext.type == DefContext::DC_TYPE_PROPERTY)
+	{
+		if(!EntityDef::validDefPropertyName(name))
+		{
+			PyErr_Format(PyExc_AssertionError, "Def.%s: '%s' is limited!\n\n",
+				defContext.optionName.c_str(), name.c_str());
+
+			return false;
+		}
+
 		name += "." + defContext.attrName;
+	}
+	else if(defContext.type == DefContext::DC_TYPE_METHOD ||
+		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+	{
+		name += "." + defContext.attrName;
+	}
+	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+	{
+		name += "." + defContext.attrName;
+	}
+	else if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY ||
+		defContext.type == DefContext::DC_TYPE_FIXED_DICT ||
+		defContext.type == DefContext::DC_TYPE_RENAME)
+	{
+		if (!DataTypes::validTypeName(name))
+		{
+			PyErr_Format(PyExc_AssertionError, "Def.%s: Not allowed to use the prefix \"_\"! typeName=%s\n",
+				defContext.optionName.c_str(), name.c_str());
+
+			return false;
+		}
+	}
 
 	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.find(name);
 	if (iter != g_allScriptDefContextMaps.end())
@@ -466,6 +495,7 @@ static bool registerDefContext(DefContext& defContext)
 }
 
 //-------------------------------------------------------------------------------------
+
 static bool onDefRename(DefContext& defContext)
 {
 	defContext.type = DefContext::DC_TYPE_RENAME;
@@ -1559,6 +1589,27 @@ static bool loadAllScripts()
 }
 
 //-------------------------------------------------------------------------------------
+static bool registerDefTypes()
+{
+	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.begin();
+	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
+	{
+		DefContext& defContext = iter->second;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerEntityDef()
+{
+	if (!registerDefTypes())
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool initialize()
 {
 	if (g_inited)
@@ -1613,17 +1664,24 @@ bool initialize()
 		return false;
 	}
 
-	if (!assemblyContexts(true))
-	{
-		SCRIPT_ERROR_CHECK();
-		return false;
-	}
-
 	while (!g_callContexts.empty())
 		g_callContexts.pop();
 
-	g_allScriptDefContextMaps.clear();
 	g_allScriptDefContextLineMaps.clear();
+
+	if (!assemblyContexts(true))
+	{
+		SCRIPT_ERROR_CHECK();
+		g_allScriptDefContextMaps.clear();
+		return false;
+	}
+
+	if (!registerEntityDef())
+	{
+		g_allScriptDefContextMaps.clear();
+		return false;
+	}
+
 	return true;
 }
 
