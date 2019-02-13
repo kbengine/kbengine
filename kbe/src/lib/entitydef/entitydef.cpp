@@ -770,7 +770,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				std::transform(indexType.begin(), indexType.end(), 
 					indexType.begin(), toupper);
 			}
-			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
@@ -1458,6 +1457,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 				else
 				{
 					PyObject* pyGetMethodArgsResult = PyObject_GetAttrString(pyGetMethodArgs, const_cast<char *>("args"));
+					Py_DECREF(pyGetMethodArgs);
+
 					if (!pyGetMethodArgsResult)
 					{
 						SCRIPT_ERROR_CHECK();
@@ -1502,8 +1503,6 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 							}
 						}
 					}
-
-					Py_DECREF(pyGetMethodArgs);
 				}
 			}
 
