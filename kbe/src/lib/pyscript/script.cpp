@@ -59,6 +59,7 @@ PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 Script::Script():
 module_(NULL),
 extraModule_(NULL),
+sysInitModules_(NULL),
 pyStdouterr_(NULL)
 {
 }
@@ -132,32 +133,19 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, 
 	const char* moduleName, COMPONENT_TYPE componentType)
 {
-	std::wstring pySysPaths = SCRIPT_PATH;
-	wchar_t* pwpySysResPath = strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));
-	strutil::kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);
-	pyPaths += pySysPaths;
-	free(pwpySysResPath);
+	APPEND_PYSYSPATH(pyPaths);
 
 	// 先设置python的环境变量
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								
 
 #if KBE_PLATFORM != PLATFORM_WIN32
-	std::wstring fs = L";";
-	std::wstring rs = L":";
-	size_t pos = 0; 
-
-	while(true)
-	{ 
-		pos = pyPaths.find(fs, pos);
-		if (pos == std::wstring::npos) break;
-		pyPaths.replace(pos, fs.length(), rs);
-	}  
+	strutil::kbe_replace(pyPaths, L";", L":");
 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
 	DEBUG_MSG(fmt::format("Script::install(): paths={}.\n", tmpchar));
 	free(tmpchar);
-	
 #endif
+
 	// Initialise python
 	// Py_VerboseFlag = 2;
 	Py_FrozenFlag = 1;
@@ -177,6 +165,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
         return false;
     } 
 
+	sysInitModules_ = PyDict_Copy(PySys_GetObject("modules"));
+
 	PySys_SetArgvEx(0, NULL, 0);
 	PyObject *m = PyImport_AddModule("__main__");
 
@@ -193,26 +183,14 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		return false;
 	}
 	
+	PyEval_InitThreads();
+
 	// 注册产生uuid方法到py
 	APPEND_SCRIPT_MODULE_METHOD(module_,		genUUID64,			__py_genUUID64,					METH_VARARGS,			0);
 
 	// 安装py重定向模块
 	ScriptStdOut::installScript(NULL);
 	ScriptStdErr::installScript(NULL);
-
-	/*
-	static struct PyModuleDef moduleDesc =
-	{  
-			 PyModuleDef_HEAD_INIT,  
-			 moduleName,  
-			 "This module is created by KBEngine!", 
-			 -1,  
-			 NULL  
-	};  
-
-	// 初始化基础模块
-	PyModule_Create(&moduleDesc);
-	*/
 
 	// 将模块对象加入main
 	PyObject_SetAttrString(m, moduleName, module_);	
@@ -269,7 +247,13 @@ bool Script::uninstall()
 	ScriptStdOut::uninstallScript();
 	ScriptStdErr::uninstallScript();
 
-	PyGC::initialize();
+	PyGC::finalise();
+
+	if (sysInitModules_)
+	{
+		Py_DECREF(sysInitModules_);
+		sysInitModules_ = NULL;
+	}
 
 	// 卸载python解释器
 	Py_Finalize();

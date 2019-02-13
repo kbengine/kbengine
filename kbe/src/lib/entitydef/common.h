@@ -155,6 +155,9 @@ const char ENTITY_LIMITED_PROPERTYS[][34] =
 	"",
 };
 
+// 获得进程的python环境目录
+std::pair<std::wstring, std::wstring> getComponentPythonPaths(COMPONENT_TYPE componentType);
+
 }
 #endif // KBENGINE_DEF_COMMON_H
 

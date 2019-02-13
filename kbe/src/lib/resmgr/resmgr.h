@@ -97,6 +97,12 @@ public:
 	std::string getPyUserScriptsPath();
 
 	/**
+		获得用户级进程脚本目录
+		assets\\scripts\\cell、base、client
+	*/
+	std::string getPyUserComponentScriptsPath(COMPONENT_TYPE componentType = UNKNOWN_COMPONENT_TYPE);
+
+	/**
 		获得用户级库目录
 		assets\\*
 	*/

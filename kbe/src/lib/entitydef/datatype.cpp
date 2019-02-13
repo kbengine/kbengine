@@ -1583,11 +1583,14 @@ PyObject* EntityCallType::createFromStream(MemoryStream* mstream)
 		// ÔÊÐí´«ÊäPy_None
 		if(id > 0)
 		{
-			PyObject* entity = EntityDef::tryGetEntity(cid, id);
-			if(entity != NULL)
+			if (entityCallType2ComponentType((ENTITYCALL_TYPE)type) == g_componentType)
 			{
-				Py_INCREF(entity);
-				return entity;
+				PyObject* entity = EntityDef::tryGetEntity(cid, id);
+				if (entity != NULL)
+				{
+					Py_INCREF(entity);
+					return entity;
+				}
 			}
 
 			return new EntityCall(EntityDef::findScriptModule(utype), NULL, cid, 

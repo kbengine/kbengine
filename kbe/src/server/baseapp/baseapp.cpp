@@ -4455,8 +4455,8 @@ void Baseapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityCallAbstract* entityCall = static_cast<EntityCallAbstract*>(pEntity->cellEntityCall());
 				if(entityCall == NULL)
 				{
-					WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found cellEntityCall! "
-						"entitycallType={}, entityID={}.\n", calltype, eid));
+					//WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found cellEntityCall! "
+					//	"entitycallType={}, entityID={}.\n", calltype, eid));
 
 					break;
 				}
@@ -4477,9 +4477,9 @@ void Baseapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityCallAbstract* entityCall = static_cast<EntityCallAbstract*>(pEntity->clientEntityCall());
 				if(entityCall == NULL)
 				{
-					WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found clientEntityCall! "
-						"entitycallType={}, entityID={}.\n", 
-						calltype, eid));
+					//WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found clientEntityCall! "
+					//	"entitycallType={}, entityID={}.\n", 
+					//	calltype, eid));
 
 					break;
 				}

@@ -5,6 +5,7 @@
 #include "scriptdef_module.h"
 #include "datatypes.h"
 #include "common.h"
+#include "py_entitydef.h"
 #include "entity_component.h"
 #include "pyscript/py_memorystream.h"
 #include "resmgr/resmgr.h"
@@ -113,6 +114,9 @@ PyObject* EntityDef::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID)
 void EntityDef::reload(bool fullReload)
 {
 	g_isReload = true;
+
+	script::entitydef::reload(fullReload);
+
 	if(fullReload)
 	{
 		EntityDef::__oldScriptModules.clear();
@@ -185,9 +189,8 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	XML_FOR_BEGIN(node)
 	{
 		std::string moduleName = xml.get()->getKey(node);
-		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
-		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
-		EntityDef::__scriptModules.push_back(pScriptModule);
+
+		ScriptDefModule* pScriptModule = registerNewScriptDefModule(moduleName);
 
 		std::string deffile = defFilePath + moduleName + ".def";
 		SmartPointer<XML> defxml(new XML());
@@ -229,7 +232,24 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return script::entitydef::initialize() && 
+		loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) &&
+		initializeWatcher();
+}
+
+//-------------------------------------------------------------------------------------
+ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& moduleName)
+{
+	ScriptDefModule* pScriptModule = findScriptModule(moduleName.c_str(), false);
+	
+	if (!pScriptModule)
+	{
+		__scriptTypeMappingUType[moduleName] = g_scriptUtype;
+		pScriptModule = new ScriptDefModule(moduleName, g_scriptUtype++);
+		EntityDef::__scriptModules.push_back(pScriptModule);
+	}
+
+	return pScriptModule;
 }
 
 //-------------------------------------------------------------------------------------
@@ -614,12 +634,9 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 
 		if (!pCompScriptDefModule)
 		{
-			__scriptTypeMappingUType[componentTypeName] = g_scriptUtype;
-			pCompScriptDefModule = new ScriptDefModule(componentTypeName, g_scriptUtype++);
+			pCompScriptDefModule = registerNewScriptDefModule(componentTypeName);
 			pCompScriptDefModule->isPersistent(false);
 			pCompScriptDefModule->isComponentModule(true);
-
-			EntityDef::__scriptModules.push_back(pCompScriptDefModule);
 		}
 		else
 		{
@@ -1125,7 +1142,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				std::transform(indexType.begin(), indexType.end(), 
 					indexType.begin(), toupper);
 			}
-			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
@@ -1747,6 +1763,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 				else
 				{
 					PyObject* pyGetMethodArgsResult = PyObject_GetAttrString(pyGetMethodArgs, const_cast<char *>("args"));
+					Py_DECREF(pyGetMethodArgs);
+
 					if (!pyGetMethodArgsResult)
 					{
 						SCRIPT_ERROR_CHECK();
@@ -1791,8 +1809,6 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 							}
 						}
 					}
-
-					Py_DECREF(pyGetMethodArgs);
 				}
 			}
 
@@ -2330,6 +2346,7 @@ bool EntityDef::installScript(PyObject* mod)
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
 	VolatileInfo::installScript(NULL);
+	script::entitydef::installModule("Def");
 
 	_isInit = true;
 	return true;
@@ -2346,15 +2363,16 @@ bool EntityDef::uninstallScript()
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
 		VolatileInfo::uninstallScript();
+		script::entitydef::uninstallModule();
 	}
 
-	return EntityDef::finalise();
+	return script::entitydef::finalise() && EntityDef::finalise();
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::initializeWatcher()
 {
-	return true;
+	return script::entitydef::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------

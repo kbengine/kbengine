@@ -369,8 +369,8 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	if(Resmgr::getSingleton().respaths().size() <= 0 || 
-		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
+	if (Resmgr::getSingleton().respaths().size() <= 0 ||
+		Resmgr::getSingleton().getPyUserResPath().size() == 0 ||
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
@@ -378,55 +378,14 @@ bool EntityApp<E>::installPyScript()
 		return false;
 	}
 
-	std::wstring user_scripts_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserScriptsPath().c_str()));
-	if(tbuf != NULL)
-	{
-		user_scripts_path += tbuf;
-		free(tbuf);
-	}
-	else
+	std::pair<std::wstring, std::wstring> pyPaths = getComponentPythonPaths(g_componentType);
+	if (pyPaths.first.size() == 0)
 	{
 		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
 		return false;
 	}
 
-	std::wstring pyPaths = user_scripts_path + L"common;";
-	pyPaths += user_scripts_path + L"data;";
-	pyPaths += user_scripts_path + L"user_type;";
-
-	switch(componentType_)
-	{
-	case BASEAPP_TYPE:
-		pyPaths += user_scripts_path + L"server_common;";
-		pyPaths += user_scripts_path + L"base;";
-		pyPaths += user_scripts_path + L"base/interfaces;";
-		pyPaths += user_scripts_path + L"base/components;";
-		break;
-	case CELLAPP_TYPE:
-		pyPaths += user_scripts_path + L"server_common;";
-		pyPaths += user_scripts_path + L"cell;";
-		pyPaths += user_scripts_path + L"cell/interfaces;";
-		pyPaths += user_scripts_path + L"cell/components;";
-		break;
-	case DBMGR_TYPE:
-		pyPaths += user_scripts_path + L"server_common;";
-		pyPaths += user_scripts_path + L"db;";
-		break;
-	default:
-		pyPaths += user_scripts_path + L"client;";
-		pyPaths += user_scripts_path + L"client/interfaces;";
-		pyPaths += user_scripts_path + L"client/components;";
-		break;
-	};
-	
-	std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
-	kbe_res_path += "scripts/common";
-
-	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
-	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
-	free(tbuf);
-	return ret;
+	return getScript().install(pyPaths.first.c_str(), pyPaths.second, "KBEngine", componentType_);
 }
 
 template<class E>

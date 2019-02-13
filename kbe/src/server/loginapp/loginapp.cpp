@@ -57,7 +57,7 @@ void Loginapp::onShutdownBegin()
 {
 	PythonApp::onShutdownBegin();
 	
-	// é€šçŸ¥è„šæœ¬
+	// Í¨Öª½Å±¾
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"), false);
 }
@@ -101,12 +101,12 @@ void Loginapp::handleMainTick()
 //-------------------------------------------------------------------------------------
 void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 {
-	// å¦‚æœæ˜¯å¤–éƒ¨é€šé“åˆ™å¤„ç†
+	// Èç¹ûÊÇÍâ²¿Í¨µÀÔò´¦Àí
 	if(!pChannel->isInternal())
 	{
 		const std::string& extra = pChannel->extra();
 
-		// é€šçŸ¥dbmgrä»é˜Ÿåˆ—ä¸­æ¸…é™¤ä»–çš„è¯·æ±‚ï¼Œ é¿å…æ‹¥å¡
+		// Í¨Öªdbmgr´Ó¶ÓÁĞÖĞÇå³ıËûµÄÇëÇó£¬ ±ÜÃâÓµÈû
 		if(extra.size() > 0)
 		{
 			Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
@@ -148,13 +148,13 @@ bool Loginapp::initializeEnd()
 {
 	PythonApp::initializeEnd();
 
-	// æ·»åŠ ä¸€ä¸ªtimerï¼Œ æ¯ç§’æ£€æŸ¥ä¸€äº›çŠ¶æ€
+	// Ìí¼ÓÒ»¸ötimer£¬ Ã¿Ãë¼ì²éÒ»Ğ©×´Ì¬
 	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	// æ‰€æœ‰è„šæœ¬éƒ½åŠ è½½å®Œæ¯•
+	// ËùÓĞ½Å±¾¶¼¼ÓÔØÍê±Ï
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onLoginAppReady"), 
 										const_cast<char*>(""));
@@ -245,7 +245,7 @@ void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER 
 	g_componentGroupOrder = startGroupOrder;
 	digest_ = digest;
 
-	// å†æ¬¡åŒæ­¥è‡ªå·±çš„æ–°ä¿¡æ¯(startGlobalOrder, startGroupOrderç­‰)åˆ°machine
+	// ÔÙ´ÎÍ¬²½×Ô¼ºµÄĞÂĞÅÏ¢(startGlobalOrder, startGroupOrderµÈ)µ½machine
 	Components::getSingleton().broadcastSelf();
 
 	if(startGroupOrder_ == 1)
@@ -345,7 +345,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 	}
 	
 	{
-		// æŠŠè¯·æ±‚äº¤ç”±è„šæœ¬å¤„ç†
+		// °ÑÇëÇó½»ÓÉ½Å±¾´¦Àí
 		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -569,7 +569,7 @@ void Loginapp::onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream
 	s >> failedcode >> accountName >> password;
 	s.readBlob(retdatas);
 
-	// æŠŠè¯·æ±‚äº¤ç”±è„šæœ¬å¤„ç†
+	// °ÑÇëÇó½»ÓÉ½Å±¾´¦Àí
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onCreateAccountCallbackFromDB"), 
@@ -869,17 +869,17 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	std::string datas;
 	bool forceInternalLogin = false;
 
-	// å‰ç«¯ç±»åˆ«
+	// Ç°¶ËÀà±ğ
 	s >> tctype;
 	ctype = static_cast<COMPONENT_CLIENT_TYPE>(tctype);
 	
-	// é™„å¸¦æ•°æ®
+	// ¸½´øÊı¾İ
 	s.readBlob(datas);
 
-	// å¸å·ç™»å½•å
+	// ÕÊºÅµÇÂ¼Ãû
 	s >> loginName;
 
-	// å¯†ç 
+	// ÃÜÂë
 	s >> password;
 
 	loginName = KBEngine::strutil::kbe_trim(loginName);
@@ -921,7 +921,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	// é¦–å…ˆå¿…é¡»baseappmgrå’Œdbmgréƒ½å·²ç»å‡†å¤‡å®Œæ¯•äº†ã€‚
+	// Ê×ÏÈ±ØĞëbaseappmgrºÍdbmgr¶¼ÒÑ¾­×¼±¸Íê±ÏÁË¡£
 	Components::ComponentInfos* baseappmgrinfos = Components::getSingleton().getBaseappmgr();
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
@@ -965,8 +965,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		}
 	}
 
-	// å¦‚æœæ˜¯æœºå™¨äººç™»é™†ï¼Œå¦‚æœè®¾ç½®äº†å¼ºåˆ¶ä½¿ç”¨å†…éƒ¨åœ°å€ç™»é™†åˆ™éœ€è¦è¯»å–è¿™ä¸ªæ ‡å¿—
-	// è¯¦ç»†çœ‹é…ç½®æ–‡ä»¶ä¸­çš„forceInternalLogin
+	// Èç¹ûÊÇ»úÆ÷ÈËµÇÂ½£¬Èç¹ûÉèÖÃÁËÇ¿ÖÆÊ¹ÓÃÄÚ²¿µØÖ·µÇÂ½ÔòĞèÒª¶ÁÈ¡Õâ¸ö±êÖ¾
+	// ÏêÏ¸¿´ÅäÖÃÎÄ¼şÖĞµÄforceInternalLogin
 	if (ctype == CLIENT_TYPE_BOTS)
 	{
 		if (s.length() > 0)
@@ -991,7 +991,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 	
-	// æŠŠè¯·æ±‚äº¤ç”±è„šæœ¬å¤„ç†
+	// °ÑÇëÇó½»ÓÉ½Å±¾´¦Àí
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestLogin"), 
@@ -1091,7 +1091,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 
 	pChannel->extra(loginName);
 
-	// å‘dbmgræŸ¥è¯¢ç”¨æˆ·åˆæ³•æ€§
+	// Ïòdbmgr²éÑ¯ÓÃ»§ºÏ·¨ĞÔ
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(DbmgrInterface::onAccountLogin);
 	(*pBundle) << loginName << password;
@@ -1162,11 +1162,11 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 
 	s >> retcode;
 
-	// ç™»å½•åæ—¢ç™»å½•æ—¶å®¢æˆ·ç«¯è¾“å…¥çš„åç§°ï¼Œ è´¦å·ååˆ™æ˜¯dbmgræŸ¥è¯¢å¾—åˆ°çš„åç§°
-	// è¿™ä¸ªæœºåˆ¶ç”¨äºä¸€ä¸ªè´¦å·å¤šåç§°ç³»ç»Ÿæˆ–è€…å¤šä¸ªç¬¬ä¸‰æ–¹è´¦å·ç³»ç»Ÿç™»å…¥æœåŠ¡å™¨
-	// accountNameä¸ºæœ¬æ¸¸æˆæœåŠ¡å™¨è´¦å·æ‰€ç»‘å®šçš„ç»ˆèº«åç§°
-	// å®¢æˆ·ç«¯å¾—åˆ°baseappåœ°å€çš„åŒæ—¶ä¹Ÿä¼šè¿”å›è¿™ä¸ªè´¦å·åç§°
-	// å®¢æˆ·ç«¯ç™»é™†baseappåº”è¯¥ä½¿ç”¨è¿™ä¸ªè´¦å·åç§°ç™»é™†
+	// µÇÂ¼Ãû¼ÈµÇÂ¼Ê±¿Í»§¶ËÊäÈëµÄÃû³Æ£¬ ÕËºÅÃûÔòÊÇdbmgr²éÑ¯µÃµ½µÄÃû³Æ
+	// Õâ¸ö»úÖÆÓÃÓÚÒ»¸öÕËºÅ¶àÃû³ÆÏµÍ³»òÕß¶à¸öµÚÈı·½ÕËºÅÏµÍ³µÇÈë·şÎñÆ÷
+	// accountNameÎª±¾ÓÎÏ··şÎñÆ÷ÕËºÅËù°ó¶¨µÄÖÕÉíÃû³Æ
+	// ¿Í»§¶ËµÃµ½baseappµØÖ·µÄÍ¬Ê±Ò²»á·µ»ØÕâ¸öÕËºÅÃû³Æ
+	// ¿Í»§¶ËµÇÂ½baseappÓ¦¸ÃÊ¹ÓÃÕâ¸öÕËºÅÃû³ÆµÇÂ½
 	s >> loginName;
 	s >> accountName;
 
@@ -1209,7 +1209,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		return;
 	}
 
-	// æŠŠè¯·æ±‚äº¤ç”±è„šæœ¬å¤„ç†
+	// °ÑÇëÇó½»ÓÉ½Å±¾´¦Àí
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onLoginCallbackFromDB"), 
@@ -1240,7 +1240,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		return;
 	}
 
-	// è·å¾—baseappmgråœ°å€ã€‚
+	// »ñµÃbaseappmgrµØÖ·¡£
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::ComponentInfos* baseappmgrinfos = NULL;
 	if(cts.size() > 0)
@@ -1252,7 +1252,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		return;
 	}
 
-	// å¦‚æœå¤§äº0åˆ™è¯´æ˜å½“å‰è´¦å·ä»ç„¶å­˜æ´»äºæŸä¸ªbaseappä¸Š
+	// Èç¹û´óÓÚ0ÔòËµÃ÷µ±Ç°ÕËºÅÈÔÈ»´æ»îÓÚÄ³¸öbaseappÉÏ
 	if(componentID > 0)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -1264,7 +1264,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	}
 	else
 	{
-		// æ³¨å†Œåˆ°baseappå¹¶ä¸”è·å–baseappçš„åœ°å€
+		// ×¢²áµ½baseapp²¢ÇÒ»ñÈ¡baseappµÄµØÖ·
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
 
@@ -1303,7 +1303,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
 		loginName, address.c_str()));
 
-	// è¿™é‡Œå¯ä»¥ä¸åšåˆ é™¤ï¼Œ ä»ç„¶ä½¿å…¶ä¿ç•™ä¸€æ®µæ—¶é—´é¿å…åŒä¸€æ—¶åˆ»åŒæ—¶ç™»å½•é€ æˆæ„å¤–å½±å“
+	// ÕâÀï¿ÉÒÔ²»×öÉ¾³ı£¬ ÈÔÈ»Ê¹Æä±£ÁôÒ»¶ÎÊ±¼ä±ÜÃâÍ¬Ò»Ê±¿ÌÍ¬Ê±µÇÂ¼Ôì³ÉÒâÍâÓ°Ïì
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
 	if(infos == NULL)
 		return;
@@ -1353,8 +1353,8 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << digest_;
 	(*pBundle) << g_componentType;
 
-	// æ­¤æ¶ˆæ¯ä¸å…è®¸åŠ å¯†ï¼Œæ‰€ä»¥è®¾å®šå·²åŠ å¯†å¿½ç•¥å†æ¬¡åŠ å¯†ï¼Œå½“ç¬¬ä¸€æ¬¡sendæ¶ˆæ¯ä¸æ˜¯ç«‹å³å‘ç”Ÿè€Œæ˜¯äº¤ç”±epollé€šçŸ¥æ—¶ä¼šå‡ºç°è¿™ç§æƒ…å†µï¼ˆä¸€èˆ¬ç”¨äºæµ‹è¯•ï¼Œæ­£è§„ç¯å¢ƒä¸ä¼šå‡ºç°ï¼‰
-	// webåè®®å¿…é¡»è¦åŠ å¯†ï¼Œæ‰€ä»¥ä¸èƒ½è®¾ç½®ä¸ºtrue
+	// ´ËÏûÏ¢²»ÔÊĞí¼ÓÃÜ£¬ËùÒÔÉè¶¨ÒÑ¼ÓÃÜºöÂÔÔÙ´Î¼ÓÃÜ£¬µ±µÚÒ»´ÎsendÏûÏ¢²»ÊÇÁ¢¼´·¢Éú¶øÊÇ½»ÓÉepollÍ¨ÖªÊ±»á³öÏÖÕâÖÖÇé¿ö£¨Ò»°ãÓÃÓÚ²âÊÔ£¬Õı¹æ»·¾³²»»á³öÏÖ£©
+	// webĞ­Òé±ØĞëÒª¼ÓÃÜ£¬ËùÒÔ²»ÄÜÉèÖÃÎªtrue
 	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
 		pBundle->pCurrPacket()->encrypted(true);
 
@@ -1364,7 +1364,7 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	{
 		if(encryptedKey.size() > 3)
 		{
-			// æ›¿æ¢ä¸ºä¸€ä¸ªåŠ å¯†çš„è¿‡æ»¤å™¨
+			// Ìæ»»ÎªÒ»¸ö¼ÓÃÜµÄ¹ıÂËÆ÷
 			pChannel->pFilter(Network::createEncryptionFilter(Network::g_channelExternalEncryptType, encryptedKey));
 		}
 		else
@@ -1510,7 +1510,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 			rootNode = xml->getRootNode();
 			if (rootNode == NULL)
 			{
-				// rootèŠ‚ç‚¹ä¸‹æ²¡æœ‰å­èŠ‚ç‚¹äº†
+				// root½ÚµãÏÂÃ»ÓĞ×Ó½ÚµãÁË
 				return;
 			}
 
@@ -1571,7 +1571,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 {
-	// é˜²æ­¢çº¿ä¸Šè¢«æ¶æ„è°ƒç”¨
+	// ·ÀÖ¹ÏßÉÏ±»¶ñÒâµ÷ÓÃ
 	static uint8 getcount = 0;
 	if(++getcount == 0)
 	{
@@ -1585,7 +1585,7 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 	int clientWindowSize = 0;
 	s >> clientWindowSize;
 
-	// å¦‚æœipä¸ç­‰äºç©ºï¼Œ é‚£ä¹ˆæ–°å»ºä¸€ä¸ªtcpè¿æ¥è¿”å›æ•°æ®ï¼Œå¦åˆ™åŸè·¯è¿”å›
+	// Èç¹ûip²»µÈÓÚ¿Õ£¬ ÄÇÃ´ĞÂ½¨Ò»¸ötcpÁ¬½Ó·µ»ØÊı¾İ£¬·ñÔòÔ­Â··µ»Ø
 	std::string callbackIP = "";
 	s >> callbackIP;
 

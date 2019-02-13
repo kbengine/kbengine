@@ -2424,8 +2424,12 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 		{
 			fileBody() += fmt::format("\tuint16 methodUtype = 0;\n", pEntityScriptDefModule->getName());
 			fileBody() += fmt::format("\tuint16 componentPropertyUType = 0;\n\n");
-			fileBody() += fmt::format("\tif (sm->useMethodDescrAlias)\n\t{{\n");
+			fileBody() += fmt::format("\tif (sm->usePropertyDescrAlias)\n\t{{\n");
 			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint8();\n");
+			fileBody() += fmt::format("\t}}\n\telse\n\t{{\n");
+			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n\t}}\n\n");
+
+			fileBody() += fmt::format("\tif (sm->useMethodDescrAlias)\n\t{{\n");
 			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint8>();\n");
 
 			bool foundComponentNoUseMethodDescrAlias = false;
@@ -2486,7 +2490,6 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			}
 
 			fileBody() += fmt::format("\t}}\n\telse\n\t{{\n");
-			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n");
 			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint16>();\n\t}}\n\n");
 
 			fileBody() += fmt::format("\tif(componentPropertyUType > 0)\n\t{{\n");
