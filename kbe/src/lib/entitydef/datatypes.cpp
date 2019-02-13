@@ -53,6 +53,16 @@ void DataTypes::finalise(void)
 }
 
 //-------------------------------------------------------------------------------------
+bool DataTypes::validTypeName(const std::string& typeName)
+{
+	// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
+	if (typeName.size() > 0 && typeName[0] == '_')
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool DataTypes::initialize(std::string file)
 {
 	// 初始化一些基础类别
@@ -86,13 +96,17 @@ bool DataTypes::initialize(std::string file)
 //-------------------------------------------------------------------------------------
 bool DataTypes::loadTypes(std::string& file)
 {
-	TiXmlNode* node = NULL;
 	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
+	return loadTypes(xml);
+}
 
-	if(xml == NULL || !xml->isGood())
+//-------------------------------------------------------------------------------------
+bool DataTypes::loadTypes(SmartPointer<XML>& xml)
+{
+	if (xml == NULL || !xml->isGood())
 		return false;
 
-	node = xml->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 
 	if(node == NULL)
 	{
@@ -106,8 +120,7 @@ bool DataTypes::loadTypes(std::string& file)
 		std::string aliasName = xml->getKey(node);
 		TiXmlNode* childNode = node->FirstChild();
 
-		// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
-		if (aliasName[0] == '_')
+		if (!DataTypes::validTypeName(aliasName))
 		{
 			ERROR_MSG(fmt::format("DataTypes::loadTypes: Not allowed to use the prefix \"_\"! aliasName={}\n",
 				aliasName.c_str()));
