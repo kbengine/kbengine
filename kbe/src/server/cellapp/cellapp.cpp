@@ -96,6 +96,9 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Cellapp::canShutdown()
 		//if(pEntity->baseEntityCall() != NULL && 
 		//		pEntity->pScriptModule()->isPersistent())
 		{
+			INFO_MSG(fmt::format("Cellapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n",
+				entities.size()));
+
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 		}
