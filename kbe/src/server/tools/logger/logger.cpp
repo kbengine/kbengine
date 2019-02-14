@@ -203,9 +203,7 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Logger::canShutdown()
 			bool isReady = (pyResult == Py_True);
 			Py_DECREF(pyResult);
 
-			if (isReady)
-				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
-			else
+			if (!isReady)
 				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
