@@ -432,7 +432,24 @@ static bool registerDefContext(DefContext& defContext)
 			return false;
 		}
 
+		// 检查作用域是否属于该进程
+		bool flagsGood = true;
+		if (defContext.componentType == BASEAPP_TYPE)
+			flagsGood = (stringToEntityDataFlags(defContext.propertyFlags) & ENTITY_BASE_DATA_FLAGS) != 0;
+		else if (defContext.componentType == CELLAPP_TYPE)
+			flagsGood = (stringToEntityDataFlags(defContext.propertyFlags) & ENTITY_CELL_DATA_FLAGS) != 0;
+		else if (defContext.componentType == CLIENT_TYPE)
+			flagsGood = (stringToEntityDataFlags(defContext.propertyFlags) & ENTITY_CLIENT_DATA_FLAGS) != 0;
+
 		name += "." + defContext.attrName;
+
+		if (!flagsGood)
+		{
+			PyErr_Format(PyExc_AssertionError, "Def.%s: '%s'(%s) not a valid %s property flags!\n\n",
+				defContext.optionName.c_str(), name.c_str(), defContext.propertyFlags.c_str(), COMPONENT_NAME_EX(defContext.componentType));
+
+			return false;
+		}
 	}
 	else if(defContext.type == DefContext::DC_TYPE_METHOD ||
 		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
@@ -1595,6 +1612,14 @@ static bool registerDefTypes()
 	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
 	{
 		DefContext& defContext = iter->second;
+
+		if (defContext.type != DefContext::DC_TYPE_FIXED_ARRAY &&
+			defContext.type != DefContext::DC_TYPE_FIXED_DICT &&
+			defContext.type != DefContext::DC_TYPE_RENAME)
+			continue;
+
+		int i = 0;
+		i++;
 	}
 
 	return true;
