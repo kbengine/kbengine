@@ -257,6 +257,21 @@ Baseapp::~Baseapp()
 //-------------------------------------------------------------------------------------	
 ShutdownHandler::CAN_SHUTDOWN_STATE Baseapp::canShutdown()
 {
+	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
+	if (cellapp_components.size() > 0)
+	{
+		std::string s;
+		for (size_t i = 0; i < cellapp_components.size(); ++i)
+		{
+			s += fmt::format("{}, ", cellapp_components[i].cid);
+		}
+
+		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n",
+			s));
+
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
+	}
+
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
 		// 所有脚本都加载完毕
@@ -269,9 +284,7 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Baseapp::canShutdown()
 			bool isReady = (pyResult == Py_True);
 			Py_DECREF(pyResult);
 
-			if (isReady)
-				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
-			else
+			if (!isReady)
 				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
@@ -279,21 +292,6 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Baseapp::canShutdown()
 			SCRIPT_ERROR_CHECK();
 			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
-	}
-
-	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if (cellapp_components.size() > 0)
-	{
-		std::string s;
-		for (size_t i = 0; i<cellapp_components.size(); ++i)
-		{
-			s += fmt::format("{}, ", cellapp_components[i].cid);
-		}
-
-		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n",
-			s));
-
-		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
 	int count = 0;

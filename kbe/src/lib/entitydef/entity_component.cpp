@@ -565,7 +565,6 @@ void EntityComponent::onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntit
 		}
 	}
 
-	
 	if (!beforeDestroy)
 	{
 		EntityComponentUnbind* pEntityComponentUnbind = new EntityComponentUnbind(pEntity, pEntityScriptDescrs);
@@ -636,6 +635,7 @@ void EntityComponent::onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEnt
 {
 	ownerID_ = 0;
 
+	// 实体destroy应该延时一个tick清理EntityComponent中的owner， 避免一些流程找不到owner
 	// 等待onOwnerUnbind来延时处理
 	//if (owner_)
 	//	Py_DECREF(owner_);
