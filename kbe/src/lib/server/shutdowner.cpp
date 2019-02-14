@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "shutdowner.h"
+#include "serverconfig.h"
 #include "network/event_dispatcher.h"
 
 namespace KBEngine { 
@@ -119,7 +120,7 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 
 				cancel();
 
-				pTimerHandle_ = pDispatcher_->addTimer(int(100000),
+				pTimerHandle_ = pDispatcher_->addTimer(int(tickPeriod_ * 1000000),
 					this, (void *)TIMEOUT_SHUTDOWN_READY_END_TICK);
 
 				break;
@@ -129,8 +130,9 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 
 			cancel();
 
-			pTimerHandle_ = pDispatcher_->addTimer(int(100000),
+			pTimerHandle_ = pDispatcher_->addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(),
 				this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
+
 			break;
 		}
 		case TIMEOUT_SHUTDOWN_END_TICK:
