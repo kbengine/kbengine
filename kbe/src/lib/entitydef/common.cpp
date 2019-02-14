@@ -7,8 +7,8 @@
 namespace KBEngine{
 
 ENTITYFLAGMAP g_entityFlagMapping;
-//-------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------
 std::string entityDataFlagsToString(uint32 flags)
 {
 	if(flags == ED_FLAG_CELL_PUBLIC)
@@ -36,6 +36,36 @@ std::string entityDataFlagsToString(uint32 flags)
 		return "OTHER_CLIENTS";
 
 	return "UNKOWN";
+}
+
+//-------------------------------------------------------------------------------------
+EntityDataFlags stringToEntityDataFlags(const std::string& strFlags)
+{
+	if (strFlags == "CELL_PUBLIC")
+		return ED_FLAG_CELL_PUBLIC;
+
+	if (strFlags == "CELL_PRIVATE")
+		return ED_FLAG_CELL_PRIVATE;
+
+	if (strFlags == "ALL_CLIENTS")
+		return ED_FLAG_ALL_CLIENTS;
+
+	if (strFlags == "CELL_PUBLIC_AND_OWN")
+		return ED_FLAG_CELL_PUBLIC_AND_OWN;
+
+	if (strFlags == "OWN_CLIENT")
+		return ED_FLAG_OWN_CLIENT;
+
+	if (strFlags == "BASE_AND_CLIENT")
+		return ED_FLAG_BASE_AND_CLIENT;
+
+	if (strFlags == "BASE")
+		return ED_FLAG_BASE;
+
+	if (strFlags == "OTHER_CLIENTS")
+		return ED_FLAG_OTHER_CLIENTS;
+
+	return ED_FLAG_UNKOWN;
 }
 
 //-------------------------------------------------------------------------------------
