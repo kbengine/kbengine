@@ -61,9 +61,11 @@ public:
 	static bool loadTypes(std::string& file);
 	static bool loadTypes(SmartPointer<XML>& xml);
 
-	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
-	static const UID_DATATYPE_MAP& uid_dataTypes(){ return uid_dataTypes_; }
+	static const DATATYPE_MAP& dataTypes() { return dataTypes_; }
+	static const UID_DATATYPE_MAP& uid_dataTypes() { return uid_dataTypes_; }
 	static const DATATYPE_ORDERS& dataTypesOrders() { return dataTypesOrders_; }
+
+	static std::vector< std::string > getBaseTypeNames();
 
 protected:
 	static DATATYPE_MAP dataTypes_;

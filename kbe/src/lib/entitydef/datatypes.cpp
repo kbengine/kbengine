@@ -29,6 +29,8 @@ DataTypes::DATATYPE_MAP DataTypes::dataTypesLowerName_;
 DataTypes::UID_DATATYPE_MAP DataTypes::uid_dataTypes_;
 DataTypes::DATATYPE_ORDERS DataTypes::dataTypesOrders_;
 
+static uint8 _g_baseTypeEndIndex = 0;
+
 //-------------------------------------------------------------------------------------
 DataTypes::DataTypes()
 {
@@ -90,7 +92,17 @@ bool DataTypes::initialize(std::string file)
 	addDataType("VECTOR2",		new Vector2Type);
 	addDataType("VECTOR3",		new Vector3Type);
 	addDataType("VECTOR4",		new Vector4Type);
+
+	_g_baseTypeEndIndex = dataTypesOrders_.size();
 	return loadTypes(file);
+}
+
+//-------------------------------------------------------------------------------------
+std::vector< std::string > DataTypes::getBaseTypeNames()
+{
+	std::vector< std::string > ret;
+	ret.assign(dataTypesOrders_.begin(), dataTypesOrders_.begin() + _g_baseTypeEndIndex);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
