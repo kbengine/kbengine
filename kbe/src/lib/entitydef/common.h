@@ -28,6 +28,7 @@ enum EntityDataFlags
 };
 
 std::string entityDataFlagsToString(uint32 flags);
+EntityDataFlags stringToEntityDataFlags(const std::string& strFlags);
 
 #define ED_FLAG_ALL  ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS \
 	| ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT |	\

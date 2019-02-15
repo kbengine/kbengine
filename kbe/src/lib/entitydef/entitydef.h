@@ -166,7 +166,7 @@ public:
 	/** 
 		检查脚本模块中被定义的属性是否合法 
 	*/
-	static bool validDefPropertyName(ScriptDefModule* pScriptModule, const std::string& name);
+	static bool validDefPropertyName(const std::string& name);
 
 	/** 
 		通过标记来寻找到对应的脚本模块对象 
