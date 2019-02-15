@@ -267,6 +267,10 @@ void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componen
 	baseapp.numProxices(numProxices);
 	baseapp.numEntitys(numEntitys);
 	baseapp.flags(flags);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	if (cinfos)
+		cinfos->appFlags = flags;
 	
 	updateBestBaseapp();
 }
