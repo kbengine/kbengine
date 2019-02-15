@@ -453,6 +453,10 @@ void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componen
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
 	cellapp.flags(flags);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	if (cinfos)
+		cinfos->appFlags = flags;
 	
 	updateBestCellapp();
 }
