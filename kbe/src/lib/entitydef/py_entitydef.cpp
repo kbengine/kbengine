@@ -9,7 +9,6 @@
 #include "datatypes.h"
 #include "py_entitydef.h"
 #include "pyscript/py_platform.h"
-#include "pyscript/pyobject_pointer.h"
 #include "pyscript/script.h"
 #include "pyscript/copy.h"
 #include "resmgr/resmgr.h"
@@ -23,312 +22,251 @@ struct CallContext
 	std::string optionName;
 };
 
-struct DefContext
-{
-	enum DCType
-	{
-		DC_TYPE_UNKNOWN = 0,
-		DC_TYPE_ENTITY = 1,
-		DC_TYPE_COMPONENT = 2,
-		DC_TYPE_INTERFACE = 3,
-
-		DC_TYPE_PROPERTY = 4,
-		DC_TYPE_METHOD = 5,
-		DC_TYPE_CLIENT_METHOD = 6,
-
-		DC_TYPE_FIXED_DICT = 7,
-		DC_TYPE_FIXED_ARRAY = 8,
-		DC_TYPE_FIXED_ITEM = 9,
-
-		DC_TYPE_RENAME = 10,
-	};
-
-	DefContext()
-	{
-		optionName = "";
-
-		moduleName = "";
-		attrName = "";
-		methodArgs = "";
-		returnType = "";
-
-		isModuleScope = false;
-
-		exposed = false;
-		hasClient = false;
-		persistent = -1;
-		databaseLength = 0;
-
-		propertyFlags = "";
-		propertyIndex = "";
-		propertyDefaultVal = "";
-
-		implementedByModuleName = "";
-		implementedByModuleFile = "";
-		pyObjectSourceFile = "";
-
-		inheritEngineModuleType = DC_TYPE_UNKNOWN;
-		type = DC_TYPE_UNKNOWN;
-
-		componentType = UNKNOWN_COMPONENT_TYPE;
-	}
-
-	bool addToStream(MemoryStream* pMemoryStream)
-	{
-		(*pMemoryStream) << optionName;
-		(*pMemoryStream) << moduleName;
-		(*pMemoryStream) << attrName;
-		(*pMemoryStream) << methodArgs;
-		(*pMemoryStream) << returnType;
-
-		(*pMemoryStream) << (int)argsvecs.size();
-		std::vector< std::string >::iterator argsvecsIter = argsvecs.begin();
-		for(; argsvecsIter != argsvecs.end(); ++argsvecsIter)
-			(*pMemoryStream) << (*argsvecsIter);
-
-		(*pMemoryStream) << (int)annotationsMaps.size();
-		std::map< std::string, std::string >::iterator annotationsMapsIter = annotationsMaps.begin();
-		for (; annotationsMapsIter != annotationsMaps.end(); ++annotationsMapsIter)
-			(*pMemoryStream) << annotationsMapsIter->first << annotationsMapsIter->second;
-
-		(*pMemoryStream) << isModuleScope;
-		(*pMemoryStream) << exposed;
-		(*pMemoryStream) << hasClient;
-
-		(*pMemoryStream) << persistent;
-		(*pMemoryStream) << databaseLength;
-
-		(*pMemoryStream) << propertyFlags;
-		(*pMemoryStream) << propertyIndex;
-		(*pMemoryStream) << propertyDefaultVal;
-
-		(*pMemoryStream) << implementedByModuleName;
-		(*pMemoryStream) << implementedByModuleFile;
-		(*pMemoryStream) << pyObjectSourceFile;
-
-		(*pMemoryStream) << (int)baseClasses.size();
-		std::vector< std::string >::iterator baseClassesIter = baseClasses.begin();
-		for (; baseClassesIter != baseClasses.end(); ++baseClassesIter)
-			(*pMemoryStream) << (*baseClassesIter);
-
-		(*pMemoryStream) << (int)inheritEngineModuleType;
-		(*pMemoryStream) << (int)type;
-
-		(*pMemoryStream) << (int)methods.size();
-		std::vector< DefContext >::iterator methodsIter = methods.begin();
-		for (; methodsIter != methods.end(); ++methodsIter)
-			(*methodsIter).addToStream(pMemoryStream);
-
-		(*pMemoryStream) << (int)client_methods.size();
-		std::vector< DefContext >::iterator client_methodsIter = client_methods.begin();
-		for (; client_methodsIter != client_methods.end(); ++client_methodsIter)
-			(*client_methodsIter).addToStream(pMemoryStream);
-
-		(*pMemoryStream) << (int)propertys.size();
-		std::vector< DefContext >::iterator propertysIter = propertys.begin();
-		for (; propertysIter != propertys.end(); ++propertysIter)
-			(*propertysIter).addToStream(pMemoryStream);
-
-		(*pMemoryStream) << (int)components.size();
-		std::vector< std::string >::iterator componentsIter = components.begin();
-		for (; componentsIter != components.end(); ++componentsIter)
-			(*pMemoryStream) << (*componentsIter);
-
-		return true;
-	}
-
-	bool createFromStream(MemoryStream* pMemoryStream)
-	{
-		(*pMemoryStream) >> optionName;
-		(*pMemoryStream) >> moduleName;
-		(*pMemoryStream) >> attrName;
-		(*pMemoryStream) >> methodArgs;
-		(*pMemoryStream) >> returnType;
-
-		int size = 0;
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			std::string str;
-			(*pMemoryStream) >> str;
-
-			argsvecs.push_back(str);
-		}
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			std::string key, val;
-			(*pMemoryStream) >> key >> val;
-
-			annotationsMaps[key] = val;
-		}
-
-		(*pMemoryStream) >> isModuleScope;
-		(*pMemoryStream) >> exposed;
-		(*pMemoryStream) >> hasClient;
-
-		(*pMemoryStream) >> persistent;
-		(*pMemoryStream) >> databaseLength;
-
-		(*pMemoryStream) >> propertyFlags;
-		(*pMemoryStream) >> propertyIndex;
-		(*pMemoryStream) >> propertyDefaultVal;
-
-		(*pMemoryStream) >> implementedByModuleName;
-		(*pMemoryStream) >> implementedByModuleFile;
-		(*pMemoryStream) >> pyObjectSourceFile;
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			std::string str;
-			(*pMemoryStream) >> str;
-
-			baseClasses.push_back(str);
-		}
-
-		int t_inheritEngineModuleType;
-		(*pMemoryStream) >> t_inheritEngineModuleType;
-		inheritEngineModuleType = (DCType)t_inheritEngineModuleType;
-
-		int t_type;
-		(*pMemoryStream) >> t_type;
-		type = (DCType)t_type;
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			DefContext dc;
-			dc.createFromStream(pMemoryStream);
-
-			methods.push_back(dc);
-		}
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			DefContext dc;
-			dc.createFromStream(pMemoryStream);
-
-			client_methods.push_back(dc);
-		}
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			DefContext dc;
-			dc.createFromStream(pMemoryStream);
-
-			propertys.push_back(dc);
-		}
-
-		(*pMemoryStream) >> size;
-		for (int i = 0; i < size; ++i)
-		{
-			std::string str;
-			(*pMemoryStream) >> str;
-
-			components.push_back(str);
-		}
-
-		return true;
-	}
-
-	bool addChildContext(DefContext& defContext)
-	{
-		std::vector< DefContext >* pContexts = NULL;
-
-		if (defContext.type == DefContext::DC_TYPE_PROPERTY)
-			pContexts = &propertys;
-		else if (defContext.type == DefContext::DC_TYPE_METHOD)
-			pContexts = &methods;
-		else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
-			pContexts = &client_methods;
-		else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
-			pContexts = &propertys;
-		else
-			KBE_ASSERT(false);
-
-		std::vector< DefContext >::iterator iter = pContexts->begin();
-		for (; iter != pContexts->end(); ++iter)
-		{
-			if ((*iter).attrName == defContext.attrName)
-			{
-				// 当多次assemblyContexts时可能会发生这样的情况
-				// 不做操作即可
-				if (moduleName != defContext.moduleName)
-					return true;
-
-				return false;
-			}
-		}
-
-		pContexts->push_back(defContext);
-		return true;
-	}
-
-	std::string optionName;
-
-	std::string moduleName;
-	std::string attrName;
-	std::string methodArgs;
-	std::string returnType;
-
-	std::vector< std::string > argsvecs;
-	std::map< std::string, std::string > annotationsMaps;
-
-	bool isModuleScope;
-
-	bool exposed;
-	bool hasClient;
-
-	// -1：未设置， 0：false， 1：true
-	int persistent;
-
-	int databaseLength;
-
-	std::string propertyFlags;
-	std::string propertyIndex;
-	std::string propertyDefaultVal;
-
-	PyObjectPtr implementedBy;
-	std::string implementedByModuleName;
-	std::string implementedByModuleFile;
-
-	PyObjectPtr pyObjectPtr;
-	std::string pyObjectSourceFile;
-
-	std::vector< std::string > baseClasses;
-
-	DCType inheritEngineModuleType;
-	DCType type;
-
-	std::vector< DefContext > methods;
-	std::vector< DefContext > client_methods;
-	std::vector< DefContext > propertys;
-	std::vector< std::string > components;
-
-	COMPONENT_TYPE componentType;
-};
-
 static std::stack<CallContext> g_callContexts;
 static std::string pyDefModuleName = "";
 
-typedef std::map<std::string, DefContext> DEF_CONTEXT_MAP;
-static DEF_CONTEXT_MAP g_allScriptDefContextMaps;
-static DEF_CONTEXT_MAP g_allScriptDefContextLineMaps;
+DefContext::DEF_CONTEXT_MAP DefContext::allScriptDefContextMaps;
+DefContext::DEF_CONTEXT_MAP DefContext::allScriptDefContextLineMaps;
 
 static bool g_inited = false;
+
+//-------------------------------------------------------------------------------------
+DefContext::DefContext()
+{
+	optionName = "";
+
+	moduleName = "";
+	attrName = "";
+	methodArgs = "";
+	returnType = "";
+
+	isModuleScope = false;
+
+	exposed = false;
+	hasClient = false;
+	persistent = -1;
+	databaseLength = 0;
+
+	propertyFlags = "";
+	propertyIndex = "";
+	propertyDefaultVal = "";
+
+	implementedByModuleName = "";
+	implementedByModuleFile = "";
+	pyObjectSourceFile = "";
+
+	inheritEngineModuleType = DC_TYPE_UNKNOWN;
+	type = DC_TYPE_UNKNOWN;
+
+	componentType = UNKNOWN_COMPONENT_TYPE;
+}
+
+//-------------------------------------------------------------------------------------
+bool DefContext::addToStream(MemoryStream* pMemoryStream)
+{
+	(*pMemoryStream) << optionName;
+	(*pMemoryStream) << moduleName;
+	(*pMemoryStream) << attrName;
+	(*pMemoryStream) << methodArgs;
+	(*pMemoryStream) << returnType;
+
+	(*pMemoryStream) << (int)argsvecs.size();
+	std::vector< std::string >::iterator argsvecsIter = argsvecs.begin();
+	for(; argsvecsIter != argsvecs.end(); ++argsvecsIter)
+		(*pMemoryStream) << (*argsvecsIter);
+
+	(*pMemoryStream) << (int)annotationsMaps.size();
+	std::map< std::string, std::string >::iterator annotationsMapsIter = annotationsMaps.begin();
+	for (; annotationsMapsIter != annotationsMaps.end(); ++annotationsMapsIter)
+		(*pMemoryStream) << annotationsMapsIter->first << annotationsMapsIter->second;
+
+	(*pMemoryStream) << isModuleScope;
+	(*pMemoryStream) << exposed;
+	(*pMemoryStream) << hasClient;
+
+	(*pMemoryStream) << persistent;
+	(*pMemoryStream) << databaseLength;
+
+	(*pMemoryStream) << propertyFlags;
+	(*pMemoryStream) << propertyIndex;
+	(*pMemoryStream) << propertyDefaultVal;
+
+	(*pMemoryStream) << implementedByModuleName;
+	(*pMemoryStream) << implementedByModuleFile;
+	(*pMemoryStream) << pyObjectSourceFile;
+
+	(*pMemoryStream) << (int)baseClasses.size();
+	std::vector< std::string >::iterator baseClassesIter = baseClasses.begin();
+	for (; baseClassesIter != baseClasses.end(); ++baseClassesIter)
+		(*pMemoryStream) << (*baseClassesIter);
+
+	(*pMemoryStream) << (int)inheritEngineModuleType;
+	(*pMemoryStream) << (int)type;
+
+	(*pMemoryStream) << (int)methods.size();
+	std::vector< DefContext >::iterator methodsIter = methods.begin();
+	for (; methodsIter != methods.end(); ++methodsIter)
+		(*methodsIter).addToStream(pMemoryStream);
+
+	(*pMemoryStream) << (int)client_methods.size();
+	std::vector< DefContext >::iterator client_methodsIter = client_methods.begin();
+	for (; client_methodsIter != client_methods.end(); ++client_methodsIter)
+		(*client_methodsIter).addToStream(pMemoryStream);
+
+	(*pMemoryStream) << (int)propertys.size();
+	std::vector< DefContext >::iterator propertysIter = propertys.begin();
+	for (; propertysIter != propertys.end(); ++propertysIter)
+		(*propertysIter).addToStream(pMemoryStream);
+
+	(*pMemoryStream) << (int)components.size();
+	std::vector< std::string >::iterator componentsIter = components.begin();
+	for (; componentsIter != components.end(); ++componentsIter)
+		(*pMemoryStream) << (*componentsIter);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DefContext::createFromStream(MemoryStream* pMemoryStream)
+{
+	(*pMemoryStream) >> optionName;
+	(*pMemoryStream) >> moduleName;
+	(*pMemoryStream) >> attrName;
+	(*pMemoryStream) >> methodArgs;
+	(*pMemoryStream) >> returnType;
+
+	int size = 0;
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		std::string str;
+		(*pMemoryStream) >> str;
+
+		argsvecs.push_back(str);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		std::string key, val;
+		(*pMemoryStream) >> key >> val;
+
+		annotationsMaps[key] = val;
+	}
+
+	(*pMemoryStream) >> isModuleScope;
+	(*pMemoryStream) >> exposed;
+	(*pMemoryStream) >> hasClient;
+
+	(*pMemoryStream) >> persistent;
+	(*pMemoryStream) >> databaseLength;
+
+	(*pMemoryStream) >> propertyFlags;
+	(*pMemoryStream) >> propertyIndex;
+	(*pMemoryStream) >> propertyDefaultVal;
+
+	(*pMemoryStream) >> implementedByModuleName;
+	(*pMemoryStream) >> implementedByModuleFile;
+	(*pMemoryStream) >> pyObjectSourceFile;
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		std::string str;
+		(*pMemoryStream) >> str;
+
+		baseClasses.push_back(str);
+	}
+
+	int t_inheritEngineModuleType;
+	(*pMemoryStream) >> t_inheritEngineModuleType;
+	inheritEngineModuleType = (DCType)t_inheritEngineModuleType;
+
+	int t_type;
+	(*pMemoryStream) >> t_type;
+	type = (DCType)t_type;
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
+
+		methods.push_back(dc);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
+
+		client_methods.push_back(dc);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
+
+		propertys.push_back(dc);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		std::string str;
+		(*pMemoryStream) >> str;
+
+		components.push_back(str);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DefContext::addChildContext(DefContext& defContext)
+{
+	std::vector< DefContext >* pContexts = NULL;
+
+	if (defContext.type == DefContext::DC_TYPE_PROPERTY)
+		pContexts = &propertys;
+	else if (defContext.type == DefContext::DC_TYPE_METHOD)
+		pContexts = &methods;
+	else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+		pContexts = &client_methods;
+	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+		pContexts = &propertys;
+	else
+		KBE_ASSERT(false);
+
+	std::vector< DefContext >::iterator iter = pContexts->begin();
+	for (; iter != pContexts->end(); ++iter)
+	{
+		if ((*iter).attrName == defContext.attrName)
+		{
+			// 当多次assemblyContexts时可能会发生这样的情况
+			// 不做操作即可
+			if (moduleName != defContext.moduleName)
+				return true;
+
+			return false;
+		}
+	}
+
+	pContexts->push_back(defContext);
+	return true;
+}
 
 //-------------------------------------------------------------------------------------
 static bool assemblyContexts(bool notfoundModuleError = false)
 {
 	std::vector< std::string > dels;
 
-	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.begin();
-	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
+	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
+	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 	{
 		DefContext& defContext = iter->second;
 
@@ -337,8 +275,8 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 			defContext.type == DefContext::DC_TYPE_CLIENT_METHOD ||
 			defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 		{
-			DEF_CONTEXT_MAP::iterator fiter = g_allScriptDefContextMaps.find(defContext.moduleName);
-			if (fiter == g_allScriptDefContextMaps.end())
+			DefContext::DEF_CONTEXT_MAP::iterator fiter = DefContext::allScriptDefContextMaps.find(defContext.moduleName);
+			if (fiter == DefContext::allScriptDefContextMaps.end())
 			{
 				if (notfoundModuleError)
 				{
@@ -367,12 +305,12 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 	std::vector< std::string >::iterator diter = dels.begin();
 	for (; diter != dels.end(); ++diter)
 	{
-		g_allScriptDefContextMaps.erase((*diter));
+		DefContext::allScriptDefContextMaps.erase((*diter));
 	}
 
 	// 尝试将父类信息填充到派生类
-	iter = g_allScriptDefContextMaps.begin();
-	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
+	iter = DefContext::allScriptDefContextMaps.begin();
+	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 	{
 		DefContext& defContext = iter->second;
 		if (defContext.baseClasses.size() > 0)
@@ -381,8 +319,8 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 			{
 				std::string parentClass = defContext.baseClasses[i];
 
-				DEF_CONTEXT_MAP::iterator fiter = g_allScriptDefContextMaps.find(parentClass);
-				if (fiter == g_allScriptDefContextMaps.end())
+				DefContext::DEF_CONTEXT_MAP::iterator fiter = DefContext::allScriptDefContextMaps.find(parentClass);
+				if (fiter == DefContext::allScriptDefContextMaps.end())
 				{
 					//PyErr_Format(PyExc_AssertionError, "not found parentClass(\'%s\')!\n", parentClass.c_str());
 					//return false;
@@ -418,7 +356,7 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 //-------------------------------------------------------------------------------------
 static bool registerDefContext(DefContext& defContext)
 {
-	g_allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
+	DefContext::allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
 
 	std::string name = defContext.moduleName;
 
@@ -473,13 +411,13 @@ static bool registerDefContext(DefContext& defContext)
 		}
 	}
 
-	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.find(name);
-	if (iter != g_allScriptDefContextMaps.end())
+	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.find(name);
+	if (iter != DefContext::allScriptDefContextMaps.end())
 	{
 		if (iter->second.pyObjectSourceFile != defContext.pyObjectSourceFile)
 		{
 			// 如果是不同进程的脚本部分，那么需要进行合并注册
-			if (iter->second.componentType != defContext.componentType && g_allScriptDefContextLineMaps.find(defContext.pyObjectSourceFile) != g_allScriptDefContextLineMaps.end() &&
+			if (iter->second.componentType != defContext.componentType && DefContext::allScriptDefContextLineMaps.find(defContext.pyObjectSourceFile) != DefContext::allScriptDefContextLineMaps.end() &&
 				(defContext.type == DefContext::DC_TYPE_ENTITY || defContext.type == DefContext::DC_TYPE_COMPONENT || defContext.type == DefContext::DC_TYPE_INTERFACE) && 
 				iter->second.type == defContext.type)
 			{
@@ -507,7 +445,7 @@ static bool registerDefContext(DefContext& defContext)
 		}
 	}
 
-	g_allScriptDefContextMaps[name] = defContext;
+	DefContext::allScriptDefContextMaps[name] = defContext;
 	return assemblyContexts();
 }
 
@@ -607,7 +545,7 @@ static bool isRefEntityDefModule(PyObject *pyObj)
 }
 
 //-------------------------------------------------------------------------------------
-#define PY_RETURN_ERROR { g_allScriptDefContextLineMaps.clear(); g_allScriptDefContextMaps.clear(); while(!g_callContexts.empty()) g_callContexts.pop(); return NULL; }
+#define PY_RETURN_ERROR { DefContext::allScriptDefContextLineMaps.clear(); DefContext::allScriptDefContextMaps.clear(); while(!g_callContexts.empty()) g_callContexts.pop(); return NULL; }
 
 #define PYOBJECT_SOURCEFILE(PYOBJ, OUT)	\
 {	\
@@ -1317,8 +1255,8 @@ bool installModule(const char* moduleName)
 bool uninstallModule()
 {
 	while (!g_callContexts.empty()) g_callContexts.pop();
-	g_allScriptDefContextMaps.clear();
-	g_allScriptDefContextLineMaps.clear();
+	DefContext::allScriptDefContextMaps.clear();
+	DefContext::allScriptDefContextLineMaps.clear();
 	return true; 
 }
 
@@ -1370,7 +1308,7 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 		char* moduleName = strutil::wchar2char(filePair.first.c_str());
 
 		// 由于脚本内部可能会import造成重复import， 我们过滤已经import过的模块
-		if (g_allScriptDefContextMaps.find(moduleName) == g_allScriptDefContextMaps.end())
+		if (DefContext::allScriptDefContextMaps.find(moduleName) == DefContext::allScriptDefContextMaps.end())
 		{
 			PyObject* pyModule = NULL;
 
@@ -1608,18 +1546,58 @@ static bool loadAllScripts()
 //-------------------------------------------------------------------------------------
 static bool registerDefTypes()
 {
-	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.begin();
-	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
+	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
+	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 	{
 		DefContext& defContext = iter->second;
 
-		if (defContext.type != DefContext::DC_TYPE_FIXED_ARRAY &&
-			defContext.type != DefContext::DC_TYPE_FIXED_DICT &&
-			defContext.type != DefContext::DC_TYPE_RENAME)
-			continue;
+		if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY)
+		{
+			FixedArrayType* fixedArray = new FixedArrayType;
 
-		int i = 0;
-		i++;
+			if (fixedArray->initialize(&defContext, defContext.moduleName))
+			{
+				DataTypes::addDataType(defContext.moduleName, fixedArray);
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error!\n",
+					defContext.moduleName.c_str()));
+
+				delete fixedArray;
+				return false;
+			}
+		}
+		else if (defContext.type == DefContext::DC_TYPE_FIXED_DICT)
+		{
+			FixedDictType* fixedDict = new FixedDictType;
+
+			if (fixedDict->initialize(&defContext, defContext.moduleName))
+			{
+				DataTypes::addDataType(defContext.moduleName, fixedDict);
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error!\n",
+					defContext.moduleName.c_str()));
+
+				delete fixedDict;
+				return false;
+			}
+		}
+		else if (defContext.type == DefContext::DC_TYPE_RENAME)
+		{
+			DataType* dataType = DataTypes::getDataType(defContext.returnType, false);
+			if (dataType == NULL)
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: cannot fount type \'{}\' by alias[{}].!\n",
+					defContext.returnType, defContext.moduleName.c_str()));
+
+				return false;
+			}
+
+			DataTypes::addDataType(defContext.moduleName, dataType);
+		}
 	}
 
 	return true;
@@ -1683,6 +1661,23 @@ bool initialize()
 		return false;
 	}
 
+	static char allBaseTypeNames[64][MAX_BUF];
+	std::vector< std::string > baseTypeNames = DataTypes::getBaseTypeNames();
+	KBE_ASSERT(baseTypeNames.size() < 64);
+
+	for (size_t idx = 0; idx < baseTypeNames.size(); idx++)
+	{
+		memset(allBaseTypeNames[idx], 0, MAX_BUF);
+		kbe_snprintf(allBaseTypeNames[idx], MAX_BUF, "%s", baseTypeNames[idx].c_str());
+		if (PyModule_AddStringConstant(entitydefModule, allBaseTypeNames[idx], allBaseTypeNames[idx]))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+				allBaseTypeNames[idx], allBaseTypeNames[idx]));
+
+			return false;
+		}
+	}
+
 	if (!loadAllScripts())
 	{
 		SCRIPT_ERROR_CHECK();
@@ -1692,18 +1687,18 @@ bool initialize()
 	while (!g_callContexts.empty())
 		g_callContexts.pop();
 
-	g_allScriptDefContextLineMaps.clear();
+	DefContext::allScriptDefContextLineMaps.clear();
 
 	if (!assemblyContexts(true))
 	{
 		SCRIPT_ERROR_CHECK();
-		g_allScriptDefContextMaps.clear();
+		DefContext::allScriptDefContextMaps.clear();
 		return false;
 	}
 
 	if (!registerEntityDef())
 	{
-		g_allScriptDefContextMaps.clear();
+		DefContext::allScriptDefContextMaps.clear();
 		return false;
 	}
 
@@ -1730,11 +1725,11 @@ bool initializeWatcher()
 //-------------------------------------------------------------------------------------
 bool addToStream(MemoryStream* pMemoryStream)
 {
-	int size = g_allScriptDefContextMaps.size();
+	int size = DefContext::allScriptDefContextMaps.size();
 	(*pMemoryStream) << size;
 
-	DEF_CONTEXT_MAP::iterator iter = g_allScriptDefContextMaps.begin();
-	for (; iter != g_allScriptDefContextMaps.end(); ++iter)
+	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
+	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 	{
 		const std::string& name = iter->first;
 		DefContext& defContext = iter->second;
@@ -1760,7 +1755,7 @@ bool createFromStream(MemoryStream* pMemoryStream)
 
 		DefContext defContext;
 		defContext.createFromStream(pMemoryStream);
-		g_allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
+		DefContext::allScriptDefContextLineMaps[defContext.pyObjectSourceFile] = defContext;
 	}
 
 	return true;

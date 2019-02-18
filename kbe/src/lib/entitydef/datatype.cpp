@@ -6,6 +6,7 @@
 #include "fixeddict.h"
 #include "fixedarray.h"
 #include "entity_call.h"
+#include "py_entitydef.h"	
 #include "property.h"
 #include "entity_component.h"
 #include "scriptdef_module.h"
@@ -1648,8 +1649,9 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 bool FixedArrayType::initialize(XML* xml, TiXmlNode* node, const std::string& parentName)
 {
 	dataType_ = NULL;
+
 	TiXmlNode* arrayNode = xml->enterNode(node, "of");
-	if(arrayNode == NULL)
+	if (arrayNode == NULL)
 	{
 		ERROR_MSG("FixedArrayType::initialize: not found \"of\".\n");
 		return false;
@@ -1657,48 +1659,127 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node, const std::string& pa
 
 	std::string strType = xml->getValStr(arrayNode);
 
-	if(strType == "ARRAY")
+	if (strType == "ARRAY")
 	{
 		FixedArrayType* dataType = new FixedArrayType();
 
-		if(dataType->initialize(xml, arrayNode, std::string("_") + parentName +
-			dataType->aliasName() + "_ArrayType"))
+		std::string childName = std::string("_") + parentName +
+			dataType->aliasName() + "_ArrayType";
+
+		if (dataType->initialize(xml, arrayNode, childName))
 		{
 			dataType_ = dataType;
 			dataType_->incRef();
 
-			DataTypes::addDataType(std::string("_") + parentName +
-				dataType->aliasName() + "_ArrayType", dataType);
+			DataTypes::addDataType(childName, dataType);
 		}
 		else
 		{
 			ERROR_MSG("FixedArrayType::initialize: Array is wrong.\n");
+			delete dataType;
 			return false;
 		}
 	}
 	else
 	{
 		DataType* dataType = DataTypes::getDataType(strType);
-		if(dataType != NULL)
+		if (dataType != NULL)
 		{
 			dataType_ = dataType;
 			dataType_->incRef();
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n", 
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n",
 				"ARRAY", strType.c_str()));
-			
+
 			return false;
-		}			
+		}
 	}
 
-	if(dataType_ == NULL)
+	if (dataType_ == NULL)
 	{
 		ERROR_MSG("FixedArrayType::initialize: dataType is NULL.\n");
 		return false;
 	}
 
+	DATATYPE_UID uid = dataType_->id();
+	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+	EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName)
+{
+	KBE_ASSERT(pDefContext->type == script::entitydef::DefContext::DC_TYPE_FIXED_ARRAY);
+
+	dataType_ = NULL;
+	std::string strType;
+
+	if (pDefContext->propertys.size() != 1)
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse ARRAY [{}] error, not found item type!\n",
+			pDefContext->moduleName.c_str()));
+
+		return false;
+	}
+
+	script::entitydef::DefContext& defContextItemType = pDefContext->propertys[0];
+	KBE_ASSERT(defContextItemType.type == script::entitydef::DefContext::DC_TYPE_FIXED_ITEM);
+
+	script::entitydef::DefContext* pDefContextItem = script::entitydef::DefContext::findDefContext(defContextItemType.returnType);
+	if (pDefContextItem)
+	{
+		if (pDefContextItem->type == script::entitydef::DefContext::DC_TYPE_FIXED_ARRAY)
+		{
+			FixedArrayType* dataType = new FixedArrayType();
+
+			std::string childName = std::string("_") + parentName + dataType->aliasName() + "_ArrayType";
+			strType += childName;
+
+			if (dataType->initialize(pDefContextItem, childName))
+			{
+				dataType_ = dataType;
+				dataType_->incRef();
+				DataTypes::addDataType(childName, dataType);
+			}
+			else
+			{
+				ERROR_MSG("PyEntityDef::FixedArrayType::initialize: Array is wrong.\n");
+				delete dataType;
+				return false;
+			}
+		}
+		else
+		{
+			goto FIND_IN_DATATYPES;
+		}
+	}
+	else
+	{
+	FIND_IN_DATATYPES:
+		dataType_ = DataTypes::getDataType(defContextItemType.returnType, false);
+		if (dataType_ != NULL)
+		{
+			dataType_->incRef();
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error, not found item type({})!\n",
+				pDefContext->moduleName.c_str(), defContextItemType.returnType));
+
+			return false;
+		}
+	}
+
+	if (dataType_ == NULL)
+	{
+		ERROR_MSG("PyEntityDef::FixedArrayType::initialize: dataType is NULL.\n");
+		return false;
+	}
+
+	strType += defContextItemType.returnType;
 	DATATYPE_UID uid = dataType_->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
 	EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
@@ -2011,7 +2092,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 				pDictItemDataType->dataType = dataType;
 
-				if(dataType->initialize(xml, typeNode, std::string("_") + parentName + std::string("_") + typeName + "_ArrayType"))
+				std::string childName = std::string("_") + parentName + std::string("_") + typeName + "_ArrayType";
+				if (dataType->initialize(xml, typeNode, childName))
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
@@ -2021,7 +2103,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 
-					if(dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
+					if (dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
 					{
 						persistent = false;
 					}
@@ -2030,11 +2112,11 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					pDictItemDataType->databaseLength = databaseLength;
 					EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
-					DataTypes::addDataType(std::string("_") + parentName + std::string("_") + typeName + "_ArrayType", dataType);
+					DataTypes::addDataType(childName, dataType);
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n", 
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n",
 						typeName.c_str(), strType.c_str()));
 
 					return false;
@@ -2113,14 +2195,143 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 }
 
 //-------------------------------------------------------------------------------------
+bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName)
+{
+	KBE_ASSERT(pDefContext->type == script::entitydef::DefContext::DC_TYPE_FIXED_DICT);
+
+	if (pDefContext->implementedByModuleName.size() > 0)
+	{
+		if (g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
+			g_componentType == CLIENT_TYPE)
+		{
+			PyObject* implementedBy = pDefContext->implementedBy.get();
+			Py_INCREF(implementedBy);
+
+			if (!setImplModule(implementedBy))
+			{
+				return false;
+			}
+
+			moduleName_ = pDefContext->implementedByModuleName;
+		}
+	}
+
+	script::entitydef::DefContext::DEF_CONTEXTS::iterator propIter = pDefContext->propertys.begin();
+	for (; propIter != pDefContext->propertys.end(); ++propIter)
+	{
+		script::entitydef::DefContext& defContextItem = (*propIter);
+		KBE_ASSERT(defContextItem.type == script::entitydef::DefContext::DC_TYPE_FIXED_ITEM);
+
+		bool persistent = true;
+		if (defContextItem.persistent != -1)
+		{
+			if(defContextItem.persistent <= 0)
+				persistent = false;
+		}
+
+		uint32 databaseLength = defContextItem.databaseLength;
+
+		script::entitydef::DefContext* pDefContextItemType = script::entitydef::DefContext::findDefContext(defContextItem.returnType);
+		if (pDefContextItemType)
+		{
+			if (pDefContextItemType->type == script::entitydef::DefContext::DC_TYPE_FIXED_ARRAY)
+			{
+				FixedArrayType* dataType = new FixedArrayType();
+				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
+				pDictItemDataType->dataType = dataType;
+
+				std::string childName = std::string("_") + parentName + std::string("_") + defContextItem.attrName + "_ArrayType";
+				if (dataType->initialize(pDefContextItemType, childName))
+				{
+					DATATYPE_UID uid = dataType->id();
+					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+					EntityDef::md5().append((void*)defContextItem.attrName.c_str(), (int)defContextItem.attrName.size());
+					EntityDef::md5().append((void*)childName.c_str(), (int)childName.size());
+
+					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(defContextItem.attrName, pDictItemDataType));
+					dataType->incRef();
+
+					if (dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
+					{
+						persistent = false;
+					}
+
+					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
+					DataTypes::addDataType(childName, dataType);
+				}
+				else
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find array-type[{}]!\n",
+						defContextItem.moduleName.c_str(), defContextItem.attrName.c_str()));
+
+					return false;
+				}
+			}
+			else
+			{
+				goto FIND_IN_DATATYPES;
+			}
+		}
+		else
+		{
+		FIND_IN_DATATYPES:
+			DataType* dataType = DataTypes::getDataType(defContextItem.returnType);
+			DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
+			pDictItemDataType->dataType = dataType;
+
+			if (dataType != NULL)
+			{
+				DATATYPE_UID uid = dataType->id();
+				EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+				EntityDef::md5().append((void*)defContextItem.attrName.c_str(), (int)defContextItem.attrName.size());
+				EntityDef::md5().append((void*)defContextItem.returnType.c_str(), (int)defContextItem.returnType.size());
+
+				keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(defContextItem.attrName, pDictItemDataType));
+				dataType->incRef();
+
+				if (dataType->type() == DATA_TYPE_ENTITYCALL)
+				{
+					persistent = false;
+				}
+
+				pDictItemDataType->persistent = persistent;
+				pDictItemDataType->databaseLength = databaseLength;
+				EntityDef::md5().append((void*)&persistent, sizeof(bool));
+				EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find type[{}]!\n",
+					defContextItem.moduleName.c_str(), defContextItem.attrName.c_str()));
+
+				return false;
+			}
+		}
+	}
+
+	if (keyTypes_.size() == 0)
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize(): FIXED_DICT({}) no keys! \n",
+			this->aliasName()));
+
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool FixedDictType::loadImplModule(std::string moduleName)
 {
 	KBE_ASSERT(implObj_ == NULL);
-	
+
 	std::vector<std::string> res_;
 	strutil::kbe_split<char>(moduleName, '.', res_);
-	
-	if(res_.size() != 2)
+
+	if (res_.size() != 2)
 	{
 		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.ClassName|moduleName.xxInstance]\n",
 			moduleName.c_str()));
@@ -2134,11 +2345,19 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		SCRIPT_ERROR_CHECK();
 		return false;
 	}
-	
-	implObj_ = PyObject_GetAttrString(implModule, res_[1].c_str());
-	Py_DECREF(implModule);
 
-	if (!implObj_)
+	PyObject* pyImplObj = PyObject_GetAttrString(implModule, res_[1].c_str());
+	bool ret = setImplModule(pyImplObj);
+	Py_DECREF(implModule);
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool FixedDictType::setImplModule(PyObject* pyobj)
+{
+	implObj_ = pyobj;
+
+	if (!pyobj)
 	{
 		SCRIPT_ERROR_CHECK()
 		return false;
@@ -2149,7 +2368,7 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		PyObject* implClass = implObj_;
 		implObj_ = PyObject_CallObject(implClass, NULL);
 		Py_DECREF(implClass);
-		
+
 		if (!implObj_)
 		{
 			SCRIPT_ERROR_CHECK()
@@ -2163,14 +2382,14 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		SCRIPT_ERROR_CHECK()
 		return false;
 	}
-	
+
 	pygetDictFromObj_ = PyObject_GetAttrString(implObj_, "getDictFromObj");
 	if (!pygetDictFromObj_)
 	{
 		SCRIPT_ERROR_CHECK()
 		return false;
 	}
-	
+
 	pyisSameType_ = PyObject_GetAttrString(implObj_, "isSameType");
 	if (!pyisSameType_)
 	{
