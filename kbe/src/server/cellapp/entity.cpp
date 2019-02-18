@@ -1887,6 +1887,21 @@ void Entity::setWitness(Witness* pWitness)
 //-------------------------------------------------------------------------------------
 void Entity::onGetWitnessFromBase(Network::Channel* pChannel)
 {
+	if (!isReal())
+	{
+		// 需要做中转
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if (gm)
+		{
+			Network::Bundle* pBundle = gm->createSendBundle(realCell());
+			pBundle->newMessage(CellappInterface::onGetWitnessFromBase);
+			(*pBundle) << id();
+			gm->pushMessage(realCell(), pBundle);
+		}
+
+		return;
+	}
+
 	onGetWitness(true);
 }
 
@@ -1994,8 +2009,14 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 	if (!isReal())
 	{
 		// 需要做中转
-		ERROR_MSG(fmt::format("Entity::onLoseWitness(): {} is ghost, request error! spaceID={}, entityID={}!\n",
-			scriptName(), spaceID(), id()));
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if (gm)
+		{
+			Network::Bundle* pBundle = gm->createSendBundle(realCell());
+			pBundle->newMessage(CellappInterface::onLoseWitness);
+			(*pBundle) << id();
+			gm->pushMessage(realCell(), pBundle);
+		}
 
 		return;
 	}
