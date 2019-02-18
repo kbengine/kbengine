@@ -699,6 +699,7 @@ public:
 
 	typedef KBEShared_ptr< DictItemDataType > DictItemDataTypePtr;
 	typedef std::vector< std::pair< std::string, DictItemDataTypePtr > > FIXEDDICT_KEYTYPE_MAP;
+
 public:	
 	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
@@ -744,6 +745,7 @@ public:
 		加载impl模块
 	*/
 	bool loadImplModule(std::string moduleName);
+	bool setImplModule(PyObject* pyobj);
 
 	/** 
 		impl相关实现
@@ -759,6 +761,7 @@ public:
 	std::string& moduleName(){ return moduleName_; }
 	
 	std::string getNotFoundKeys(PyObject* dict);
+
 protected:
 	// 这个固定字典里的各个key的类型
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				
