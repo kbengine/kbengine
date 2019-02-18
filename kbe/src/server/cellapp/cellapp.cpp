@@ -1251,6 +1251,32 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 void Cellapp::onDestroyCellEntityFromBaseapp(Network::Channel* pChannel, ENTITY_ID eid)
 {
 	// DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
+
+	KBEngine::Entity* e = KBEngine::Cellapp::getSingleton().findEntity(eid);
+
+	if (e == NULL)
+	{
+		WARNING_MSG(fmt::format("Cellapp::onDestroyCellEntityFromBaseapp: not found entityID:{}.\n",
+			eid));
+
+		return;
+	}
+
+	if (!e->isReal())
+	{
+		// 需要做中转
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if (gm)
+		{
+			Network::Bundle* pBundle = gm->createSendBundle(e->realCell());
+			pBundle->newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+			(*pBundle) << eid;
+			gm->pushMessage(e->realCell(), pBundle);
+		}
+
+		return;
+	}
+
 	destroyEntity(eid, true);
 }
 
@@ -1395,6 +1421,23 @@ void Cellapp::onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine:
 	// 这个方法呼叫如果不是这个proxy自己的方法则必须呼叫的entity和proxy的cellEntity在一个space中。
 	try
 	{
+		if (!e->isReal())
+		{
+			// 需要做中转
+			GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+			if (gm)
+			{
+				Network::Bundle* pBundle = gm->createSendBundle(e->realCell());
+				pBundle->newMessage(CellappInterface::onRemoteCallMethodFromClient);
+				(*pBundle) << srcEntityID;
+				(*pBundle) << targetID;
+				pBundle->append(s);
+				gm->pushMessage(e->realCell(), pBundle);
+			}
+
+			return;
+		}
+
 		e->onRemoteCallMethodFromClient(pChannel, srcEntityID, s);
 	}catch(MemoryStreamException &)
 	{
@@ -1624,6 +1667,22 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			e->scriptName(), e->id()));
 
 		s.done();
+		return;
+	}
+
+	if (!e->isReal())
+	{
+		// 需要做中转
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if (gm)
+		{
+			Network::Bundle* pBundle = gm->createSendBundle(e->realCell());
+			pBundle->newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
+			(*pBundle) << srcEntityID;
+			pBundle->append(s);
+			gm->pushMessage(e->realCell(), pBundle);
+		}
+
 		return;
 	}
 
