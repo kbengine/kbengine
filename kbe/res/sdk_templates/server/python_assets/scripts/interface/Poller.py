@@ -54,11 +54,16 @@ class Poller:
 				return
 			
 			data = sock.recv(2048)
+
+			if len(data) == 0:
+				DEBUG_MSG("Poller::onRecv: %s/%i disconnect!" % (addr, sock.fileno()))
+				KBEngine.deregisterReadFileDescriptor(sock.fileno())
+				sock.close()
+				del self._clients[fileno]
+				return
+
 			DEBUG_MSG("Poller::onRecv: %s/%i get data, size=%i" % (addr, sock.fileno(), len(data)))
 			self.processData(sock, data)
-			KBEngine.deregisterReadFileDescriptor(sock.fileno())
-			sock.close()
-			del self._clients[fileno]
 			
 	def processData(self, sock, datas):
 		"""
