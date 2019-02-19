@@ -8,6 +8,7 @@
 #include "entitydef.h"
 #include "datatypes.h"
 #include "py_entitydef.h"
+#include "scriptdef_module.h"
 #include "pyscript/py_platform.h"
 #include "pyscript/script.h"
 #include "pyscript/copy.h"
@@ -1625,8 +1626,78 @@ static bool registerDefTypes()
 }
 
 //-------------------------------------------------------------------------------------
-static bool registerEntities()
+static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defContext)
+{
+	// 加载属性描述
+	if (!loadDefPropertys(pScriptModule, defContext))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to loadDefPropertys(), entity:{}\n",
+			defContext.moduleName));
+
+		return false;
+	}
+
+	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
+	//if (!loadInterfaces(defFilePath, moduleName, defxml, defNode, pScriptModule))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} interface.\n",
+	//		defContext.moduleName));
+
+	//	return false;
+	//}
+
+	//// 遍历所有的interface， 并将他们的方法和属性加入到模块中
+	//if (!loadComponents(defFilePath, moduleName, defxml, defNode, pScriptModule))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} component.\n",
+	//		defContext.moduleName));
+
+	//	return false;
+	//}
+
+	//// 加载父类所有的内容
+	//if (!loadParentClass(defFilePath, moduleName, defxml, defNode, pScriptModule))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} parentClass.\n",
+	//		defContext.moduleName));
+
+	//	return false;
+	//}
+
+	//// 尝试加载detailLevel数据
+	//if (!loadDetailLevelInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} DetailLevelInfo.\n",
+	//		defContext.moduleName));
+
+	//	return false;
+	//}
+
+	//// 尝试加载VolatileInfo数据
+	//if (!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} VolatileInfo.\n",
+	//		defContext.moduleName));
+
+	//	return false;
+	//}
+
+	pScriptModule->autoMatchCompOwn();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerEntityDefs()
+{
+	if (!registerDefTypes())
+		return false;
+
 	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
 	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 	{
@@ -1636,19 +1707,12 @@ static bool registerEntities()
 			continue;
 
 		ScriptDefModule* pScriptModule = EntityDef::registerNewScriptDefModule(defContext.moduleName);
+
+		if (!registerEntityDef(pScriptModule, defContext))
+			return false;
+
+		pScriptModule->onLoaded();
 	}
-
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-static bool registerEntityDef()
-{
-	if (!registerDefTypes())
-		return false;
-
-	if (!registerEntities())
-		return false;
 
 	return true;
 }
@@ -1737,7 +1801,7 @@ bool initialize()
 		return false;
 	}
 
-	if (!registerEntityDef())
+	if (!registerEntityDefs())
 	{
 		DefContext::allScriptDefContextMaps.clear();
 		return false;
