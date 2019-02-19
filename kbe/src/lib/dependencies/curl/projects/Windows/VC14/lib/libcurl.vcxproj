@@ -229,7 +229,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}</ProjectGuid>
     <RootNamespace>libcurl</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB Release - LIB OpenSSL - LIB LibSSH2|Win32'" Label="Configuration">

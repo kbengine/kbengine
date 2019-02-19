@@ -2231,7 +2231,7 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 
 		uint32 databaseLength = defContextItem.databaseLength;
 
-		script::entitydef::DefContext* pDefContextItemType = script::entitydef::DefContext::findDefContext(defContextItem.returnType);
+ 		script::entitydef::DefContext* pDefContextItemType = script::entitydef::DefContext::findDefContext(defContextItem.returnType);
 		if (pDefContextItemType)
 		{
 			if (pDefContextItemType->type == script::entitydef::DefContext::DC_TYPE_FIXED_ARRAY)
