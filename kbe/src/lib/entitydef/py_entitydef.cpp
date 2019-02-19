@@ -1359,6 +1359,25 @@ SCRIPT_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
 
+class Space : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Space, ScriptObject)
+public:
+	Space(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~Space() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Space)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Space)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Space)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Space, 0, 0, 0, 0, 0)
+
 class Proxy : public script::ScriptObject
 {
 	BASE_SCRIPT_HREADER(Proxy, ScriptObject)
@@ -1468,6 +1487,7 @@ static bool execPython(COMPONENT_TYPE componentType)
 	KBE_ASSERT(kbeModule);
 
 	Entity::registerScript(kbeModule);
+	Space::registerScript(kbeModule);
 	EntityComponent::registerScript(kbeModule);
 
 	if (componentType == BASEAPP_TYPE)
@@ -1496,6 +1516,7 @@ static bool execPython(COMPONENT_TYPE componentType)
 	bool otherPartSuccess = loadAllScriptForComponentType(componentType);
 
 	Entity::unregisterScript();
+	Space::unregisterScript();
 	EntityComponent::unregisterScript();
 
 	if (componentType == BASEAPP_TYPE)
@@ -1604,9 +1625,29 @@ static bool registerDefTypes()
 }
 
 //-------------------------------------------------------------------------------------
+static bool registerEntities()
+{
+	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
+	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
+	{
+		DefContext& defContext = iter->second;
+
+		if (defContext.type != DefContext::DC_TYPE_ENTITY)
+			continue;
+
+		ScriptDefModule* pScriptModule = EntityDef::registerNewScriptDefModule(defContext.moduleName);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 static bool registerEntityDef()
 {
 	if (!registerDefTypes())
+		return false;
+
+	if (!registerEntities())
 		return false;
 
 	return true;
