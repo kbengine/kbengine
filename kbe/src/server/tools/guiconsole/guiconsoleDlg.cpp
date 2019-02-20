@@ -98,7 +98,7 @@ public:
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		std::string str;
-		s >> str;
+		s.readBlob(str);
 		dlg->onReceiveRemoteLog(str);
 	};
 };
