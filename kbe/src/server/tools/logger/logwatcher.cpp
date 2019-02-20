@@ -109,7 +109,7 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
-	(*pBundle) << pLogItem->logstream.str().c_str();
+	(*pBundle).appendBlob(pLogItem->logstream.str());
 	pChannel->send(pBundle);
 }
 
