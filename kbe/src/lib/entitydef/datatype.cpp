@@ -1673,8 +1673,9 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 bool FixedArrayType::initialize(XML* xml, TiXmlNode* node, const std::string& parentName)
 {
 	dataType_ = NULL;
+
 	TiXmlNode* arrayNode = xml->enterNode(node, "of");
-	if(arrayNode == NULL)
+	if (arrayNode == NULL)
 	{
 		ERROR_MSG("FixedArrayType::initialize: not found \"of\".\n");
 		return false;
@@ -1682,43 +1683,45 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node, const std::string& pa
 
 	std::string strType = xml->getValStr(arrayNode);
 
-	if(strType == "ARRAY")
+	if (strType == "ARRAY")
 	{
 		FixedArrayType* dataType = new FixedArrayType();
 
-		if(dataType->initialize(xml, arrayNode, std::string("_") + parentName +
-			dataType->aliasName() + "_ArrayType"))
+		std::string childName = std::string("_") + parentName +
+			dataType->aliasName() + "_ArrayType";
+
+		if (dataType->initialize(xml, arrayNode, childName))
 		{
 			dataType_ = dataType;
 			dataType_->incRef();
 
-			DataTypes::addDataType(std::string("_") + parentName +
-				dataType->aliasName() + "_ArrayType", dataType);
+			DataTypes::addDataType(childName, dataType);
 		}
 		else
 		{
 			ERROR_MSG("FixedArrayType::initialize: Array is wrong.\n");
+			delete dataType;
 			return false;
 		}
 	}
 	else
 	{
 		DataType* dataType = DataTypes::getDataType(strType);
-		if(dataType != NULL)
+		if (dataType != NULL)
 		{
 			dataType_ = dataType;
 			dataType_->incRef();
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n", 
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n",
 				"ARRAY", strType.c_str()));
-			
+
 			return false;
-		}			
+		}
 	}
 
-	if(dataType_ == NULL)
+	if (dataType_ == NULL)
 	{
 		ERROR_MSG("FixedArrayType::initialize: dataType is NULL.\n");
 		return false;
@@ -2036,7 +2039,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 				pDictItemDataType->dataType = dataType;
 
-				if(dataType->initialize(xml, typeNode, std::string("_") + parentName + std::string("_") + typeName + "_ArrayType"))
+				std::string childName = std::string("_") + parentName + std::string("_") + typeName + "_ArrayType";
+				if (dataType->initialize(xml, typeNode, childName))
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
@@ -2046,7 +2050,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 
-					if(dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
+					if (dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
 					{
 						persistent = false;
 					}
@@ -2055,11 +2059,11 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					pDictItemDataType->databaseLength = databaseLength;
 					EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
-					DataTypes::addDataType(std::string("_") + parentName + std::string("_") + typeName + "_ArrayType", dataType);
+					DataTypes::addDataType(childName, dataType);
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n", 
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n",
 						typeName.c_str(), strType.c_str()));
 
 					return false;
@@ -2141,11 +2145,11 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 bool FixedDictType::loadImplModule(std::string moduleName)
 {
 	KBE_ASSERT(implObj_ == NULL);
-	
+
 	std::vector<std::string> res_;
 	strutil::kbe_split<char>(moduleName, '.', res_);
-	
-	if(res_.size() != 2)
+
+	if (res_.size() != 2)
 	{
 		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.ClassName|moduleName.xxInstance]\n",
 			moduleName.c_str()));
@@ -2159,11 +2163,19 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		SCRIPT_ERROR_CHECK();
 		return false;
 	}
-	
-	implObj_ = PyObject_GetAttrString(implModule, res_[1].c_str());
-	Py_DECREF(implModule);
 
-	if (!implObj_)
+	PyObject* pyImplObj = PyObject_GetAttrString(implModule, res_[1].c_str());
+	bool ret = setImplModule(pyImplObj);
+	Py_DECREF(implModule);
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool FixedDictType::setImplModule(PyObject* pyobj)
+{
+	implObj_ = pyobj;
+
+	if (!pyobj)
 	{
 		SCRIPT_ERROR_CHECK()
 		return false;
@@ -2188,14 +2200,14 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		SCRIPT_ERROR_CHECK()
 		return false;
 	}
-	
+
 	pygetDictFromObj_ = PyObject_GetAttrString(implObj_, "getDictFromObj");
 	if (!pygetDictFromObj_)
 	{
 		SCRIPT_ERROR_CHECK()
 		return false;
 	}
-	
+
 	pyisSameType_ = PyObject_GetAttrString(implObj_, "isSameType");
 	if (!pyisSameType_)
 	{
