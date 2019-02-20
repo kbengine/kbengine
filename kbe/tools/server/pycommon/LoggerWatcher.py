@@ -179,9 +179,12 @@ class LoggerWatcher:
 				print( "Unknown command.(id = %s)" % cmdID )
 				pos += dataLen
 				continue
-			
-			result.append( self.msgBuffer[pos:pos + dataLen] )
-			pos += dataLen
+
+			msgLen, = struct.unpack("=I", self.msgBuffer[pos:pos + 4])
+			pos += 4 
+		
+			result.append( self.msgBuffer[pos:pos + msgLen] )
+			pos += msgLen
 		
 		return result
 
