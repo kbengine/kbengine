@@ -1753,7 +1753,19 @@ static bool registerDefTypes()
 }
 
 //-------------------------------------------------------------------------------------
-static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defContext)
+static bool registerDetailLevelInfo(ScriptDefModule* pScriptModule, DefContext& defContext)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerVolatileInfo(ScriptDefModule* pScriptModule, DefContext& defContext)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerDefPropertys(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
 	DefContext::DEF_CONTEXTS& propertys = defContext.propertys;
 
@@ -1777,7 +1789,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 		
 		if (!EntityDef::validDefPropertyName(name))
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: '{}' is limited, in module({}), file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: '{}' is limited, in module({}), file: \"{}\"!\n",
 				name, pScriptModule->getName(), defPropContext.pyObjectSourceFile));
 
 			return false;
@@ -1809,7 +1821,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 
 		if (hasBaseFlags <= 0 && hasCellFlags <= 0)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount flags[{}], is {}.{}, file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: not fount flags[{}], is {}.{}, file: \"{}\"!\n",
 				defPropContext.propertyFlags, pScriptModule->getName(), defPropContext.pyObjectSourceFile));
 
 			return false;
@@ -1822,7 +1834,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 			DefContext* pDefPropTypeContext = DefContext::findDefContext(defPropContext.returnType);
 			if (!pDefPropTypeContext)
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
 					defPropContext.returnType, pScriptModule->getName(), name.c_str(), defPropContext.pyObjectSourceFile));
 
 				return false;
@@ -1848,7 +1860,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 
 		if (dataType == NULL)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
 				defPropContext.returnType, pScriptModule->getName(), name.c_str(), defPropContext.pyObjectSourceFile));
 
 			return false;
@@ -1878,7 +1890,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 
 		if (!ret)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::addPropertyDescription: error, is {}.{}, file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: error, is {}.{}, file: \"{}\"!\n",
 				pScriptModule->getName(), name.c_str(), defPropContext.pyObjectSourceFile));
 
 			return false;
@@ -1889,7 +1901,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 }
 
 //-------------------------------------------------------------------------------------
-static bool loadDefComponents(ScriptDefModule* pScriptModule, DefContext& defContext)
+static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
 	DefContext::DEF_CONTEXTS& propertys = defContext.propertys;
 
@@ -1906,7 +1918,7 @@ static bool loadDefComponents(ScriptDefModule* pScriptModule, DefContext& defCon
 		DefContext* pDefPropTypeContext = DefContext::findDefContext(componentTypeName);
 		if (!pDefPropTypeContext)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::loadDefComponents: not fount type[{}], is {}.{}, file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: not fount type[{}], is {}.{}, file: \"{}\"!\n",
 				componentTypeName, pScriptModule->getName(), componentName, defPropContext.pyObjectSourceFile));
 
 			return false;
@@ -1930,11 +1942,96 @@ static bool loadDefComponents(ScriptDefModule* pScriptModule, DefContext& defCon
 
 		if (!EntityDef::validDefPropertyName(componentName))
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::loadDefComponents: '{}' is limited, in module({}), file: \"{}\"!\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: '{}' is limited, in module({}), file: \"{}\"!\n",
 				componentName, pScriptModule->getName(), defPropContext.pyObjectSourceFile));
 
 			return false;
 		}
+
+		// 查找是否有这个模块，如果有说明已经加载过相关描述，这里无需再次加载
+		ScriptDefModule* pCompScriptDefModule = EntityDef::findScriptModule(componentTypeName.c_str(), false);
+
+		if (!pCompScriptDefModule)
+		{
+			pCompScriptDefModule = EntityDef::registerNewScriptDefModule(componentTypeName);
+			pCompScriptDefModule->isPersistent(false);
+			pCompScriptDefModule->isComponentModule(true);
+		}
+		else
+		{
+			flags = ED_FLAG_UNKOWN;
+
+			if (pCompScriptDefModule->hasBase())
+				flags |= ED_FLAG_BASE;
+
+			if (pCompScriptDefModule->hasCell())
+				flags |= ED_FLAG_CELL_PUBLIC;
+
+			if (pCompScriptDefModule->hasClient())
+			{
+				if (pCompScriptDefModule->hasBase())
+					flags |= ED_FLAG_BASE_AND_CLIENT;
+				else
+					flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
+			}
+
+			EntityDef::addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
+
+			pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
+			continue;
+		}
+
+		// 加载属性描述
+		if (!registerDefPropertys(pScriptModule, defContext))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to loadDefPropertys(), entity:{}\n",
+				pScriptModule->getName()));
+
+			return false;
+		}
+
+		// 尝试加载detailLevelInfo数据
+		if (!registerDetailLevelInfo(pScriptModule, defContext))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to register component:{} detailLevelInfo.\n",
+				pScriptModule->getName()));
+
+			return false;
+		}
+
+		// 尝试加载volatileInfo数据
+		if (!registerVolatileInfo(pScriptModule, defContext))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to register component:{} volatileInfo.\n",
+				pScriptModule->getName()));
+
+			return false;
+		}
+
+		pCompScriptDefModule->autoMatchCompOwn();
+
+		flags = ED_FLAG_UNKOWN;
+
+		if (pCompScriptDefModule->hasBase())
+			flags |= ED_FLAG_BASE;
+
+		if (pCompScriptDefModule->hasCell())
+			flags |= ED_FLAG_CELL_PUBLIC;
+
+		if (pCompScriptDefModule->hasClient())
+		{
+			if (pCompScriptDefModule->hasBase())
+				flags |= ED_FLAG_BASE_AND_CLIENT;
+
+			if (pCompScriptDefModule->hasCell())
+				flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
+		}
+
+		EntityDef::addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+			indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
+
+		pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
 	}
 
 	return true;
@@ -1944,40 +2041,40 @@ static bool loadDefComponents(ScriptDefModule* pScriptModule, DefContext& defCon
 static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
 	// 加载属性描述
-	if (!loadDefPropertys(pScriptModule, defContext))
+	if (!registerDefPropertys(pScriptModule, defContext))
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to loadDefPropertys(), entity:{}\n",
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefPropertys(), entity:{}\n",
 			pScriptModule->getName()));
 
 		return false;
 	}
 
 	// 加载组件描述， 并将他们的方法和属性加入到模块中
-	if (!loadDefComponents(pScriptModule, defContext))
+	if (!registerDefComponents(pScriptModule, defContext))
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to loadDefComponents(), component:{}\n",
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
 			pScriptModule->getName()));
 
 		return false;
 	}
 
-	//// 尝试加载detailLevel数据
-	//if (!loadDetailLevelInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
-	//{
-	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} DetailLevelInfo.\n",
-	//		pScriptModule->getName()));
+	// 尝试加载detailLevelInfo数据
+	if (!registerDetailLevelInfo(pScriptModule, defContext))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to register entity:{} detailLevelInfo.\n",
+			pScriptModule->getName()));
 
-	//	return false;
-	//}
+		return false;
+	}
 
-	//// 尝试加载VolatileInfo数据
-	//if (!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
-	//{
-	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} VolatileInfo.\n",
-	//		pScriptModule->getName()));
+	// 尝试加载volatileInfo数据
+	if (!registerVolatileInfo(pScriptModule, defContext))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to register entity:{} volatileInfo.\n",
+			pScriptModule->getName()));
 
-	//	return false;
-	//}
+		return false;
+	}
 
 	pScriptModule->autoMatchCompOwn();
 	return true;
