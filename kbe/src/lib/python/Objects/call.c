@@ -46,10 +46,6 @@ _Py_CheckFunctionResult(PyObject *callable, PyObject *result, const char *where)
                 PyErr_Format(PyExc_SystemError,
                              "%s returned NULL without setting an error",
                              where);
-#ifdef Py_DEBUG
-            /* Ensure that the bug is caught in debug mode */
-            Py_FatalError("a function returned NULL without setting an error");
-#endif
             return NULL;
         }
     }
