@@ -150,6 +150,7 @@ DefContext::DefContext()
 	persistent = -1;
 	databaseLength = 0;
 	utype = -1;
+	detailLevel = "";
 
 	propertyFlags = "";
 	propertyIndex = "";
@@ -191,6 +192,7 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) << persistent;
 	(*pMemoryStream) << databaseLength;
 	(*pMemoryStream) << utype;
+	(*pMemoryStream) << detailLevel;
 	
 	(*pMemoryStream) << propertyFlags;
 	(*pMemoryStream) << propertyIndex;
@@ -267,7 +269,8 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) >> persistent;
 	(*pMemoryStream) >> databaseLength;
 	(*pMemoryStream) >> utype;
-	
+	(*pMemoryStream) >> detailLevel;
+
 	(*pMemoryStream) >> propertyFlags;
 	(*pMemoryStream) >> propertyIndex;
 	(*pMemoryStream) >> propertyDefaultVal;
@@ -1770,8 +1773,6 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 		uint32						databaseLength = defPropContext.databaseLength;			// 这个属性在数据库中的长度
 		std::string					indexType = defPropContext.propertyIndex;
 		DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
-		std::string					detailLevelStr = "";
-		std::string					defaultStr = defPropContext.propertyDefaultVal;
 		std::string					name = defPropContext.attrName;
 		
 		if (!EntityDef::validDefPropertyName(name))
@@ -1782,11 +1783,11 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 			return false;
 		}
 
-		if (detailLevelStr == "FAR")
+		if (defPropContext.detailLevel == "FAR")
 			detailLevel = DETAIL_LEVEL_FAR;
-		else if (detailLevelStr == "MEDIUM")
+		else if (defPropContext.detailLevel == "MEDIUM")
 			detailLevel = DETAIL_LEVEL_MEDIUM;
-		else if (detailLevelStr == "NEAR")
+		else if (defPropContext.detailLevel == "NEAR")
 			detailLevel = DETAIL_LEVEL_NEAR;
 		else
 			detailLevel = DETAIL_LEVEL_FAR;
@@ -1857,7 +1858,7 @@ static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defCont
 		PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, defPropContext.returnType,
 			name, flags, isPersistent,
 			dataType, isIdentifier, indexType,
-			databaseLength, defaultStr,
+			databaseLength, defPropContext.propertyDefaultVal,
 			detailLevel);
 
 		bool ret = true;

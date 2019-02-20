@@ -72,6 +72,8 @@ public:
 	int databaseLength;
 	int utype;
 
+	std::string detailLevel;
+
 	std::string propertyFlags;
 	std::string propertyIndex;
 	std::string propertyDefaultVal;
