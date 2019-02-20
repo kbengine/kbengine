@@ -136,7 +136,10 @@ bool UInt64Type::isSameType(PyObject* pyValue)
 	}
 
 	if (!PyLong_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("UINT64");
 		return false;
+	}
 
 	PyLong_AsUnsignedLongLong(pyValue);
 	if (!PyErr_Occurred()) 
@@ -263,7 +266,10 @@ bool UInt32Type::isSameType(PyObject* pyValue)
 	}
 
 	if (!PyLong_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("UINT32");
 		return false;
+	}
 
 	PyLong_AsUnsignedLong(pyValue);
 	if (!PyErr_Occurred()) 
@@ -380,8 +386,11 @@ bool Int64Type::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PyLong_Check(pyValue))
+	if (!PyLong_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("INT64");
 		return false;
+	}
 
 	PyLong_AsLongLong(pyValue);
 	if (!PyErr_Occurred()) 
