@@ -26,6 +26,14 @@ namespace KBEngine
 
 		}
 
+		public virtual void onEnterworld()
+		{
+		}
+
+		public virtual void onLeaveworld()
+		{
+		}
+
         public virtual ScriptModule getScriptModule()
         {
 			// 动态生成

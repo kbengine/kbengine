@@ -227,13 +227,15 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	}
 	XML_FOR_END(node);
 
+	if (!script::entitydef::initialize())
+		return false;
+
 	EntityDef::md5().final();
 
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return script::entitydef::initialize() && 
-		loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) &&
+	return loadAllEntityScriptModules(__entitiesPath, scriptBaseTypes) &&
 		initializeWatcher();
 }
 

@@ -1050,8 +1050,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 								(*dbinfo_iter).db_port == dbinfo.db_port &&
 								strcmp(dbinfo.db_name, (*dbinfo_iter).db_name) == 0)
 							{
-								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}\" and \"{}\", file={}!\n",
-									(*dbinfo_iter).name, dbinfo.name, fileName.c_str()));
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}=(databaseName={})\" and \"{}=(databaseName={})\", file={}!\n",
+									(*dbinfo_iter).name, (*dbinfo_iter).db_name, dbinfo.name, dbinfo.db_name, fileName.c_str()));
 
 								return false;
 							}
