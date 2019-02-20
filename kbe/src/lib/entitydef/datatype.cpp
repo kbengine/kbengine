@@ -1719,7 +1719,7 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 
 	if (pDefContext->propertys.size() != 1)
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse ARRAY [{}] error, not found item type! file: \"{}\"\n",
+		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse {} error, not found item type! file: \"{}\"\n",
 			pDefContext->moduleName.c_str(), pDefContext->pyObjectSourceFile));
 
 		return false;
@@ -1766,8 +1766,8 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error, not found item type({}), file: \"{}\"\n",
-				pDefContext->moduleName.c_str(), defContextItemType.returnType, defContextItemType.pyObjectSourceFile));
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse {} error, item({}={}), not a legal data type, file: \"{}\"\n",
+				pDefContext->moduleName.c_str(), defContextItemType.attrName, defContextItemType.returnType, defContextItemType.pyObjectSourceFile));
 
 			return false;
 		}
@@ -2267,9 +2267,6 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find array-type[{}], file: \"{}\"!\n",
-						defContextItem.moduleName.c_str(), defContextItem.attrName.c_str(), defContextItem.pyObjectSourceFile));
-
 					return false;
 				}
 			}
@@ -2281,7 +2278,7 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 		else
 		{
 		FIND_IN_DATATYPES:
-			DataType* dataType = DataTypes::getDataType(defContextItem.returnType);
+			DataType* dataType = DataTypes::getDataType(defContextItem.returnType, false);
 			DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 			pDictItemDataType->dataType = dataType;
 
@@ -2307,8 +2304,8 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find type[{}], file: \"{}\"!\n",
-					defContextItem.moduleName.c_str(), defContextItem.attrName.c_str(), defContextItem.pyObjectSourceFile));
+				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: {}.{} is not a legal data type[{}], file: \"{}\"!\n",
+					defContextItem.moduleName.c_str(), defContextItem.attrName.c_str(), defContextItem.returnType, defContextItem.pyObjectSourceFile));
 
 				return false;
 			}
