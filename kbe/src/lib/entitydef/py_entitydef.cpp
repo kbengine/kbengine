@@ -1900,28 +1900,10 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
-	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
-	//if (!loadInterfaces(defFilePath, moduleName, defxml, defNode, pScriptModule))
-	//{
-	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} interface.\n",
-	//		defContext.moduleName));
-
-	//	return false;
-	//}
-
 	//// 遍历所有的interface， 并将他们的方法和属性加入到模块中
 	//if (!loadComponents(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	//{
 	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} component.\n",
-	//		defContext.moduleName));
-
-	//	return false;
-	//}
-
-	//// 加载父类所有的内容
-	//if (!loadParentClass(defFilePath, moduleName, defxml, defNode, pScriptModule))
-	//{
-	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to load entity:{} parentClass.\n",
 	//		defContext.moduleName));
 
 	//	return false;
