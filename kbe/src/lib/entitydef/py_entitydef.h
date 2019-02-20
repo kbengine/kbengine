@@ -70,6 +70,7 @@ public:
 	int persistent;
 
 	int databaseLength;
+	int utype;
 
 	std::string propertyFlags;
 	std::string propertyIndex;

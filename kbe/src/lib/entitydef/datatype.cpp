@@ -1719,8 +1719,8 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 
 	if (pDefContext->propertys.size() != 1)
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse ARRAY [{}] error, not found item type!\n",
-			pDefContext->moduleName.c_str()));
+		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse ARRAY [{}] error, not found item type! file: \"{}\"\n",
+			pDefContext->moduleName.c_str(), pDefContext->pyObjectSourceFile));
 
 		return false;
 	}
@@ -1766,8 +1766,8 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error, not found item type({})!\n",
-				pDefContext->moduleName.c_str(), defContextItemType.returnType));
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error, not found item type({}), file: \"{}\"\n",
+				pDefContext->moduleName.c_str(), defContextItemType.returnType, defContextItemType.pyObjectSourceFile));
 
 			return false;
 		}
@@ -2209,6 +2209,9 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 
 			if (!setImplModule(implementedBy))
 			{
+				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize(): FIXED_DICT({}) setImplModule error!, file: \"{}\"!\n",
+					this->aliasName(), pDefContext->pyObjectSourceFile));
+
 				return false;
 			}
 
@@ -2264,8 +2267,8 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find array-type[{}]!\n",
-						defContextItem.moduleName.c_str(), defContextItem.attrName.c_str()));
+					ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find array-type[{}], file: \"{}\"!\n",
+						defContextItem.moduleName.c_str(), defContextItem.attrName.c_str(), defContextItem.pyObjectSourceFile));
 
 					return false;
 				}
@@ -2304,8 +2307,8 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find type[{}]!\n",
-					defContextItem.moduleName.c_str(), defContextItem.attrName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize: key[{}] did not find type[{}], file: \"{}\"!\n",
+					defContextItem.moduleName.c_str(), defContextItem.attrName.c_str(), defContextItem.pyObjectSourceFile));
 
 				return false;
 			}
@@ -2314,8 +2317,8 @@ bool FixedDictType::initialize(script::entitydef::DefContext* pDefContext, const
 
 	if (keyTypes_.size() == 0)
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize(): FIXED_DICT({}) no keys! \n",
-			this->aliasName()));
+		ERROR_MSG(fmt::format("PyEntityDef::FixedDictType::initialize(): FIXED_DICT({}) no keys!, file: \"{}\"!\n",
+			this->aliasName(), pDefContext->pyObjectSourceFile));
 
 		return false;
 	}

@@ -32,6 +32,108 @@ DefContext::DEF_CONTEXT_MAP DefContext::allScriptDefContextLineMaps;
 static bool g_inited = false;
 
 //-------------------------------------------------------------------------------------
+static PyObject* __py_array(PyObject* self, PyObject* args)
+{
+	if (PyTuple_GET_SIZE(args) == 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Def.ARRAY: does not set itemType! should be like this \"Def.ARRAY(itemType)\"\n");
+		return NULL;
+	}
+
+	PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
+	PyObject* pyARRAY = PyObject_GetAttrString(entitydefModule, "ARRAY");
+
+	PyObject* pyArrayItemType = PyTuple_GET_ITEM(args, 0);
+	Py_INCREF(pyArrayItemType);
+
+	PyObject* ret = PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, pyARRAY);
+	PyTuple_SET_ITEM(ret, 1, pyArrayItemType);
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+class Entity : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Entity, ScriptObject)
+public:
+	Entity(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~Entity() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Entity)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Entity)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
+
+//-------------------------------------------------------------------------------------
+class Space : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Space, ScriptObject)
+public:
+	Space(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~Space() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Space)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Space)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Space)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Space, 0, 0, 0, 0, 0)
+
+//-------------------------------------------------------------------------------------
+class Proxy : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(Proxy, ScriptObject)
+public:
+	Proxy(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~Proxy() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(Proxy)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
+
+//-------------------------------------------------------------------------------------
+class EntityComponent : public script::ScriptObject
+{
+	BASE_SCRIPT_HREADER(EntityComponent, ScriptObject)
+public:
+	EntityComponent(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
+		ScriptObject(pyType, isInitialised) {}
+	~EntityComponent() {}
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(EntityComponent)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(EntityComponent)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(EntityComponent)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
+
+//-------------------------------------------------------------------------------------
 DefContext::DefContext()
 {
 	optionName = "";
@@ -47,6 +149,7 @@ DefContext::DefContext()
 	hasClient = false;
 	persistent = -1;
 	databaseLength = 0;
+	utype = -1;
 
 	propertyFlags = "";
 	propertyIndex = "";
@@ -87,7 +190,8 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 
 	(*pMemoryStream) << persistent;
 	(*pMemoryStream) << databaseLength;
-
+	(*pMemoryStream) << utype;
+	
 	(*pMemoryStream) << propertyFlags;
 	(*pMemoryStream) << propertyIndex;
 	(*pMemoryStream) << propertyDefaultVal;
@@ -162,7 +266,8 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 
 	(*pMemoryStream) >> persistent;
 	(*pMemoryStream) >> databaseLength;
-
+	(*pMemoryStream) >> utype;
+	
 	(*pMemoryStream) >> propertyFlags;
 	(*pMemoryStream) >> propertyIndex;
 	(*pMemoryStream) >> propertyDefaultVal;
@@ -250,7 +355,7 @@ bool DefContext::addChildContext(DefContext& defContext)
 		{
 			// 当多次assemblyContexts时可能会发生这样的情况
 			// 不做操作即可
-			if (moduleName != defContext.moduleName)
+			if (moduleName != defContext.moduleName || (*iter).pyObjectSourceFile == defContext.pyObjectSourceFile)
 				return true;
 
 			return false;
@@ -444,6 +549,8 @@ static bool registerDefContext(DefContext& defContext)
 
 			return false;
 		}
+
+		return true;
 	}
 
 	DefContext::allScriptDefContextMaps[name] = defContext;
@@ -590,11 +697,13 @@ static bool isRefEntityDefModule(PyObject *pyObj)
 		{	\
 			/* 防止不同系统造成的路径不一致，剔除系统相关路径 */		\
 			OUT = PyUnicode_AsUTF8AndSize(pyFile, NULL);	\
-			strutil::kbe_replace(OUT, "/", "");	\
-			strutil::kbe_replace(OUT, "\\", "");	\
+			strutil::kbe_replace(OUT, "\\\\", "/");	\
+			strutil::kbe_replace(OUT, "\\", "/");	\
+			strutil::kbe_replace(OUT, "//", "/");	\
 			std::string kbe_root = Resmgr::getSingleton().getPyUserScriptsPath();	\
-			strutil::kbe_replace(kbe_root, "/", "");	\
-			strutil::kbe_replace(kbe_root, "\\", "");	\
+			strutil::kbe_replace(kbe_root, "\\\\", "/");	\
+			strutil::kbe_replace(kbe_root, "\\", "/");	\
+			strutil::kbe_replace(kbe_root, "/", "/");	\
 			strutil::kbe_replace(OUT, kbe_root, "");	\
 			Py_DECREF(pyFile);	\
 		}	\
@@ -687,18 +796,35 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		static char * keywords[] =
 		{
 			const_cast<char *> ("exposed"),
+			const_cast<char *> ("utype"),
 			NULL
 		};
 
 		PyObject* pyExposed = NULL;
+		PyObject* pyUtype = NULL;
 
-		if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
-			keywords, &pyExposed))
+		if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OO",
+			keywords, &pyExposed, &pyUtype))
 		{
 			PY_RETURN_ERROR;
 		}
 
+		if (pyExposed && !PyBool_Check(pyExposed))
+		{
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'exposed\' error! not a bool type.\n", defContext.optionName.c_str());
+			PY_RETURN_ERROR;
+		}
+
+		if (pyUtype && !PyLong_Check(pyUtype))
+		{
+			PyErr_Format(PyExc_AssertionError, "Def.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
+			PY_RETURN_ERROR;
+		}
+
 		defContext.exposed = pyExposed == Py_True;
+
+		if (pyUtype)
+			defContext.utype = (int)PyLong_AsLong(pyUtype);
 	}
 	else if (defContext.optionName == "property" || defContext.optionName == "fixed_item")
 	{
@@ -710,6 +836,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				const_cast<char *> ("persistent"),
 				const_cast<char *> ("index"),
 				const_cast<char *> ("databaseLength"),
+				const_cast<char *> ("utype"),
 				NULL
 			};
 
@@ -717,9 +844,10 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			PyObject* pyPersistent = NULL;
 			PyObject* pyIndex = NULL;
 			PyObject* pyDatabaseLength = NULL;
+			PyObject* pyUtype = NULL;
 
-			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OOOO",
-				keywords, &pyFlags, &pyPersistent, &pyIndex, &pyDatabaseLength))
+			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OOOOO",
+				keywords, &pyFlags, &pyPersistent, &pyIndex, &pyDatabaseLength, &pyUtype))
 			{
 				PY_RETURN_ERROR;
 			}
@@ -748,6 +876,12 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				PY_RETURN_ERROR;
 			}
 
+			if(pyUtype && !PyLong_Check(pyUtype))
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
 			defContext.propertyFlags = PyUnicode_AsUTF8AndSize(pyFlags, NULL);
 
 			if (pyPersistent)
@@ -758,6 +892,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 			if (pyDatabaseLength)
 				defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
+
+			if (pyUtype)
+				defContext.utype = (int)PyLong_AsLong(pyUtype);
 		}
 
 		// 对于属性， 我们需要获得返回值作为默认值
@@ -770,6 +907,8 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		if (pyRet != Py_None)
 		{
 			PyObject* pyStrResult = PyObject_Str(pyRet);
+			Py_DECREF(pyRet);
+
 			defContext.propertyDefaultVal = PyUnicode_AsUTF8AndSize(pyStrResult, NULL);
 			Py_DECREF(pyStrResult);
 
@@ -790,8 +929,10 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				Py_DECREF(result);
 			}
 		}
-
-		Py_DECREF(pyRet);
+		else
+		{
+			Py_DECREF(pyRet);
+		}
 	}
 	else if (defContext.optionName == "entity")
 	{
@@ -996,6 +1137,33 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 					std::string svalue = "";
 
+					// 如果是Def.Array则此处可能是一个tuple，参考__py_array
+					if (PyTuple_Check(value) && PyTuple_Size(value) == 2)
+					{
+						PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
+						PyObject* pyARRAY = PyObject_GetAttrString(entitydefModule, "ARRAY");
+						PyObject* item0 = PyTuple_GET_ITEM(value, 0);
+
+						if (pyARRAY == item0)
+						{
+							value = PyTuple_GET_ITEM(value, 1);
+							defContext.optionName = "anonymous_fixed_array";
+
+							if (std::string(skey) != "return")
+							{
+								PyErr_Format(PyExc_AssertionError, "Def.%s: \'Def.ARRAY\' Can only be used to define property types!\n", defContext.optionName.c_str());
+								PY_RETURN_ERROR;
+							}
+						}
+						else
+						{
+							Py_DECREF(pyARRAY);
+							PY_RETURN_ERROR;
+						}
+
+						Py_DECREF(pyARRAY);
+					}
+
 					if (PyUnicode_Check(value))
 					{
 						svalue = PyUnicode_AsUTF8AndSize(value, NULL);
@@ -1004,7 +1172,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 					{
 						PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
 						if (!pyQualname)
+						{
 							PY_RETURN_ERROR;
+						}
 
 						svalue = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
 						Py_DECREF(pyQualname);
@@ -1120,6 +1290,36 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	else if (defContext.optionName == "fixed_array")
 	{
 		noerror = onDefFixedArray(defContext);
+	}
+	else if (defContext.optionName == "anonymous_fixed_array")
+	{
+		// 创建一个新数组
+		DefContext arrayType;
+		arrayType = defContext;
+		arrayType.moduleName += ".anonymous_fixed_array";
+
+		// 防止2个源文件行数一致，底层认为重复添加
+		arrayType.pyObjectSourceFile += "(array)";
+
+		// 增加一个item类别
+		DefContext itemType;
+		itemType = arrayType;
+		itemType.optionName = "fixed_item";
+
+		// 防止2个源文件行数一致，底层认为重复添加
+		itemType.pyObjectSourceFile += "(array_item)";
+
+		noerror = onDefFixedItem(itemType);
+
+		arrayType.returnType = "";
+
+		if(noerror)
+			noerror = onDefFixedArray(arrayType);
+
+		defContext.returnType = arrayType.moduleName;
+
+		if (noerror)
+			noerror = onDefFixedItem(defContext);
 	}
 	else if (defContext.optionName == "fixed_item")
 	{
@@ -1341,82 +1541,6 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 }
 
 //-------------------------------------------------------------------------------------
-class Entity : public script::ScriptObject
-{
-	BASE_SCRIPT_HREADER(Entity, ScriptObject)
-public:
-	Entity(PyTypeObject* pyType = getScriptType(), bool isInitialised = true):
-		ScriptObject(pyType, isInitialised) {}
-	~Entity() {}
-};
-
-SCRIPT_METHOD_DECLARE_BEGIN(Entity)
-SCRIPT_METHOD_DECLARE_END()
-
-SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
-SCRIPT_MEMBER_DECLARE_END()
-
-SCRIPT_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GETSET_DECLARE_END()
-BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
-
-class Space : public script::ScriptObject
-{
-	BASE_SCRIPT_HREADER(Space, ScriptObject)
-public:
-	Space(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
-		ScriptObject(pyType, isInitialised) {}
-	~Space() {}
-};
-
-SCRIPT_METHOD_DECLARE_BEGIN(Space)
-SCRIPT_METHOD_DECLARE_END()
-
-SCRIPT_MEMBER_DECLARE_BEGIN(Space)
-SCRIPT_MEMBER_DECLARE_END()
-
-SCRIPT_GETSET_DECLARE_BEGIN(Space)
-SCRIPT_GETSET_DECLARE_END()
-BASE_SCRIPT_INIT(Space, 0, 0, 0, 0, 0)
-
-class Proxy : public script::ScriptObject
-{
-	BASE_SCRIPT_HREADER(Proxy, ScriptObject)
-public:
-	Proxy(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
-		ScriptObject(pyType, isInitialised) {}
-	~Proxy() {}
-};
-
-SCRIPT_METHOD_DECLARE_BEGIN(Proxy)
-SCRIPT_METHOD_DECLARE_END()
-
-SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
-SCRIPT_MEMBER_DECLARE_END()
-
-SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
-SCRIPT_GETSET_DECLARE_END()
-BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
-
-class EntityComponent : public script::ScriptObject
-{
-	BASE_SCRIPT_HREADER(EntityComponent, ScriptObject)
-public:
-	EntityComponent(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
-		ScriptObject(pyType, isInitialised) {}
-	~EntityComponent() {}
-};
-
-SCRIPT_METHOD_DECLARE_BEGIN(EntityComponent)
-SCRIPT_METHOD_DECLARE_END()
-
-SCRIPT_MEMBER_DECLARE_BEGIN(EntityComponent)
-SCRIPT_MEMBER_DECLARE_END()
-
-SCRIPT_GETSET_DECLARE_BEGIN(EntityComponent)
-SCRIPT_GETSET_DECLARE_END()
-BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
-
 static bool execPython(COMPONENT_TYPE componentType)
 {
 	std::pair<std::wstring, std::wstring> pyPaths = getComponentPythonPaths(componentType);
@@ -1612,8 +1736,8 @@ static bool registerDefTypes()
 			DataType* dataType = DataTypes::getDataType(defContext.returnType, false);
 			if (dataType == NULL)
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: cannot fount type \'{}\' by alias[{}].!\n",
-					defContext.returnType, defContext.moduleName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: cannot fount type \'{}\', by alias[{}], file: \"{}\"!\n",
+					defContext.returnType, defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
 				return false;
 			}
@@ -1628,6 +1752,138 @@ static bool registerDefTypes()
 //-------------------------------------------------------------------------------------
 static bool loadDefPropertys(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
+	DefContext::DEF_CONTEXTS& propertys = defContext.propertys;;
+
+	DefContext::DEF_CONTEXTS::iterator iter = propertys.begin();
+	for (; iter != propertys.end(); ++iter)
+	{
+		DefContext& defPropContext = (*iter);
+
+		ENTITY_PROPERTY_UID			futype = 0;
+		EntityDataFlags				flags = stringToEntityDataFlags(defPropContext.propertyFlags);
+		int32						hasBaseFlags = 0;
+		int32						hasCellFlags = 0;
+		int32						hasClientFlags = 0;
+		DataType*					dataType = NULL;
+		bool						isPersistent = (defPropContext.persistent != 0);
+		bool						isIdentifier = false;								// 是否是一个索引键
+		uint32						databaseLength = defPropContext.databaseLength;			// 这个属性在数据库中的长度
+		std::string					indexType = defPropContext.propertyIndex;
+		DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
+		std::string					detailLevelStr = "";
+		std::string					defaultStr = defPropContext.propertyDefaultVal;
+		std::string					name = defPropContext.attrName;
+		
+		if (!EntityDef::validDefPropertyName(name))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: '{}' is limited, in module({}), file: \"{}\"!\n",
+				name, defContext.moduleName, defPropContext.pyObjectSourceFile));
+
+			return false;
+		}
+
+		if (detailLevelStr == "FAR")
+			detailLevel = DETAIL_LEVEL_FAR;
+		else if (detailLevelStr == "MEDIUM")
+			detailLevel = DETAIL_LEVEL_MEDIUM;
+		else if (detailLevelStr == "NEAR")
+			detailLevel = DETAIL_LEVEL_NEAR;
+		else
+			detailLevel = DETAIL_LEVEL_FAR;
+
+		if (!EntityDef::calcDefPropertyUType(defContext.moduleName, name, defPropContext.utype > 0 ? defPropContext.utype : -1, pScriptModule, futype))
+			return false;
+
+		hasBaseFlags = ((uint32)flags) & ENTITY_BASE_DATA_FLAGS;
+		if (hasBaseFlags > 0)
+			pScriptModule->setBase(true);
+
+		hasCellFlags = ((uint32)flags) & ENTITY_CELL_DATA_FLAGS;
+		if (hasCellFlags > 0)
+			pScriptModule->setCell(true);
+
+		hasClientFlags = ((uint32)flags) & ENTITY_CLIENT_DATA_FLAGS;
+		if (hasClientFlags > 0)
+			pScriptModule->setClient(true);
+
+		if (hasBaseFlags <= 0 && hasCellFlags <= 0)
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount flags[{}], is {}.{}, file: \"{}\"!\n",
+				defPropContext.propertyFlags, defContext.moduleName, defPropContext.pyObjectSourceFile));
+
+			return false;
+		}
+
+		dataType = DataTypes::getDataType(defPropContext.returnType, false);
+
+		if (!dataType)
+		{
+			DefContext* pDefPropTypeContext = DefContext::findDefContext(defPropContext.returnType);
+			if (!pDefPropTypeContext)
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
+					defPropContext.returnType, defContext.moduleName, name.c_str(), defPropContext.pyObjectSourceFile));
+
+				return false;
+			}
+
+			// 组件放到组件函数中处理
+			if (pDefPropTypeContext->type == DefContext::DC_TYPE_COMPONENT)
+				continue;
+
+			if (pDefPropTypeContext->type == DefContext::DC_TYPE_FIXED_ARRAY)
+			{
+				FixedArrayType* dataType1 = new FixedArrayType();
+				if (dataType1->initialize(pDefPropTypeContext, defContext.moduleName + "_" + name))
+					dataType = dataType1;
+				else
+					return false;
+			}
+			else
+			{
+				dataType = DataTypes::getDataType(defPropContext.returnType, false);
+			}
+		}
+
+		if (dataType == NULL)
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::loadDefPropertys: not fount type[{}], is {}.{}, file: \"{}\"!\n",
+				defPropContext.returnType, defContext.moduleName, name.c_str(), defPropContext.pyObjectSourceFile));
+
+			return false;
+		}
+
+		// 产生一个属性描述实例
+		PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, defPropContext.returnType,
+			name, flags, isPersistent,
+			dataType, isIdentifier, indexType,
+			databaseLength, defaultStr,
+			detailLevel);
+
+		bool ret = true;
+
+		// 添加到模块中
+		if (hasCellFlags > 0)
+			ret = pScriptModule->addPropertyDescription(name.c_str(),
+				propertyDescription, CELLAPP_TYPE);
+
+		if (hasBaseFlags > 0)
+			ret = pScriptModule->addPropertyDescription(name.c_str(),
+				propertyDescription, BASEAPP_TYPE);
+
+		if (hasClientFlags > 0)
+			ret = pScriptModule->addPropertyDescription(name.c_str(),
+				propertyDescription, CLIENT_TYPE);
+
+		if (!ret)
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::addPropertyDescription: error, is {}.{}, file: \"{}\"!\n",
+				defContext.moduleName, name.c_str(), defPropContext.pyObjectSourceFile));
+
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -1743,7 +1999,7 @@ bool initialize()
 	if (PyModule_AddStringConstant(entitydefModule, UNIQUE, UNIQUE))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
-			iter->first, iter->first));
+			UNIQUE, UNIQUE));
 
 		return false;
 	}
@@ -1752,7 +2008,7 @@ bool initialize()
 	if (PyModule_AddStringConstant(entitydefModule, INDEX, INDEX))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
-			iter->first, iter->first));
+			INDEX, INDEX));
 
 		return false;
 	}
@@ -1761,10 +2017,12 @@ bool initialize()
 	if (PyModule_AddStringConstant(entitydefModule, thisClass, thisClass))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
-			iter->first, iter->first));
+			thisClass, thisClass));
 
 		return false;
 	}
+	
+	APPEND_SCRIPT_MODULE_METHOD(entitydefModule, ARRAY, __py_array, METH_VARARGS, 0);
 
 	static char allBaseTypeNames[64][MAX_BUF];
 	std::vector< std::string > baseTypeNames = DataTypes::getBaseTypeNames();
