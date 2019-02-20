@@ -23,6 +23,14 @@ public:
 	{
 	}
 
+	virtual void onEnterworld()
+	{
+	}
+
+	virtual void onLeaveworld()
+	{
+	}
+
 	virtual ScriptModule* getScriptModule()
 	{
 		return NULL;

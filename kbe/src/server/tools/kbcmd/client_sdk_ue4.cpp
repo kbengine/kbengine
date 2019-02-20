@@ -2341,6 +2341,49 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
+		{
+			changeContextToHeader();
+			fileBody() += fmt::format("\n\tvoid onComponentsEnterworld() override;\n");
+
+			changeContextToSource();
+			fileBody() += fmt::format("\nvoid {}::onComponentsEnterworld()\n{{\n", newModuleName);
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+			for (; propIter != clientPropertys.end(); ++propIter)
+			{
+				PropertyDescription* pPropertyDescription = propIter->second;
+
+				if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+					continue;
+
+				fileBody() += fmt::format("\t{}->onEnterworld();\n", pPropertyDescription->getName());
+			}
+
+			fileBody() += fmt::format("}}\n");
+		}
+		{
+			changeContextToHeader();
+			fileBody() += fmt::format("\tvoid onComponentsLeaveworld() override;\n");
+
+			changeContextToSource();
+			fileBody() += fmt::format("\nvoid {}::onComponentsLeaveworld()\n{{\n", newModuleName);
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+			for (; propIter != clientPropertys.end(); ++propIter)
+			{
+				PropertyDescription* pPropertyDescription = propIter->second;
+
+				if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+					continue;
+
+				fileBody() += fmt::format("\t{}->onLeaveworld();\n", pPropertyDescription->getName());
+			}
+
+			fileBody() += fmt::format("}}\n");
+		}
+
 		changeContextToHeader();
 		fileBody() += fmt::format("\n\tvoid onGetBase() override;\n");
 

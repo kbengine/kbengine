@@ -157,6 +157,16 @@ public:
 		// 动态生成
 	}
 
+	virtual void onComponentsEnterworld()
+	{
+		// 动态生成， 通知组件onEnterworld
+	}
+
+	virtual void onComponentsLeaveworld()
+	{
+		// 动态生成， 通知组件onLeaveworld
+	}
+
 	virtual void callPropertysSetMethods()
 	{
 		// 动态生成
