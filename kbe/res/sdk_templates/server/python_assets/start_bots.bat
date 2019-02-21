@@ -13,4 +13,4 @@ echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 cd %curpath%
-start %KBE_BIN_PATH%/bots.exe
+start "" "%KBE_BIN_PATH%/bots.exe"
