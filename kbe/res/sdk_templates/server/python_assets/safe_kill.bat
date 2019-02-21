@@ -12,8 +12,8 @@ echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 cd %curpath%
 
-%KBE_BIN_PATH%/kbcmd.exe --getuid > nul
+"%KBE_BIN_PATH%/kbcmd.exe" --getuid > nul
 if not defined uid set uid=%errorlevel%
 echo UID = %uid%
 
-if defined KBE_ROOT (python %KBE_ROOT%/kbe\tools\server\pycluster\cluster_controller.py stop %uid%) else (python ..\kbe\tools\server\pycluster\cluster_controller.py stop %uid%)
+if defined KBE_ROOT (python "%KBE_ROOT%/kbe\tools\server\pycluster\cluster_controller.py" stop %uid%) else (python "..\kbe\tools\server\pycluster\cluster_controller.py" stop %uid%)
