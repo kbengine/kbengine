@@ -24,5 +24,5 @@ start "" "%KBE_BIN_PATH%/cellappmgr.exe" --cid=6000 --gus=6
 start "" "%KBE_BIN_PATH%/baseapp.exe" --cid=7001 --gus=7
 @rem start "" "%KBE_BIN_PATH%/baseapp.exe" --cid=7002 --gus=8 --hide=1
 start "" "%KBE_BIN_PATH%/cellapp.exe" --cid=8001 --gus=9
-@rem start %KBE_BIN_PATH%/cellapp.exe --cid=8002  --gus=10 --hide=1
+@rem start "" "%KBE_BIN_PATH%/cellapp.exe" --cid=8002  --gus=10 --hide=1
 start "" "%KBE_BIN_PATH%/loginapp.exe" --cid=9000 --gus=11
