@@ -1926,10 +1926,7 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		DefContext* pDefPropTypeContext = DefContext::findDefContext(componentTypeName);
 		if (!pDefPropTypeContext)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: not fount type[{}], is {}.{}, file: \"{}\"!\n",
-				componentTypeName, pScriptModule->getName(), componentName, defPropContext.pyObjectSourceFile));
-
-			return false;
+			continue;
 		}
 
 		if (pDefPropTypeContext->type != DefContext::DC_TYPE_COMPONENT)
