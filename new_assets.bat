@@ -12,4 +12,4 @@ echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 cd %curpath%
-start %KBE_BIN_PATH%/kbcmd.exe --newassets=python --outpath=%curpath%\server_assets
+start "" "%KBE_BIN_PATH%/kbcmd.exe" --newassets=python --outpath="%curpath%\server_assets"
