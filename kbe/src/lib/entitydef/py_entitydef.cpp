@@ -1706,12 +1706,13 @@ static bool registerDefTypes()
 
 			if (fixedArray->initialize(&defContext, defContext.moduleName))
 			{
-				DataTypes::addDataType(defContext.moduleName, fixedArray);
+				if (!DataTypes::addDataType(defContext.moduleName, fixedArray))
+					return false;
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error!\n",
-					defContext.moduleName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
 				delete fixedArray;
 				return false;
@@ -1723,12 +1724,13 @@ static bool registerDefTypes()
 
 			if (fixedDict->initialize(&defContext, defContext.moduleName))
 			{
-				DataTypes::addDataType(defContext.moduleName, fixedDict);
+				if (!DataTypes::addDataType(defContext.moduleName, fixedDict))
+					return false;
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error!\n",
-					defContext.moduleName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
 				delete fixedDict;
 				return false;
@@ -1745,7 +1747,13 @@ static bool registerDefTypes()
 				return false;
 			}
 
-			DataTypes::addDataType(defContext.moduleName, dataType);
+			if (!DataTypes::addDataType(defContext.moduleName, dataType))
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: addDataType \"{}\" error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+
+				return false;
+			}
 		}
 	}
 
