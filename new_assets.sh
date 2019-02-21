@@ -8,11 +8,11 @@ bcontain=`echo $currPath|grep $keyStr|wc -l`
 
 if [ $bcontain = 0 ]
 then
-	export KBE_ROOT="$(cd $(dirname $0); pwd)"
+	export KBE_ROOT="$(pwd)"
 else
 	export KBE_ROOT="$(pwd | awk -F "/kbengine" '{print $1}')/kbengine"
 fi
-echo $KBE_ROOT
+
 export KBE_RES_PATH="$KBE_ROOT/kbe/res"
 export KBE_BIN_PATH="$KBE_ROOT/kbe/bin/server"
 
