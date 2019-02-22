@@ -208,6 +208,13 @@ public:
 	void sendToCellapp(Network::Bundle* pBundle);
 	void sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle);
 
+	/**
+		传送回调
+	*/
+	void onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
+	void onTeleportFailure();  
+	void onTeleportSuccess(SPACE_ID spaceID);
+
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
