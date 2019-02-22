@@ -1400,6 +1400,42 @@ void Entity::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport)
+{
+	if(pChannel->isExternal())
+		return;
+	
+	if(spaceID > 0)
+	{
+		if(!fromCellTeleport)
+			onTeleportSuccess(spaceID);
+		else
+			this->spaceID(spaceID);
+	}
+	else
+	{
+		onTeleportFailure();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleportFailure()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"), false);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleportSuccess(SPACE_ID spaceID)
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	this->spaceID(spaceID);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"), false);
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID)
 {
 	if (pChannel && pChannel->isExternal())

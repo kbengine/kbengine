@@ -3152,6 +3152,20 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
+	if(cinfos != NULL && cinfos->pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
+		(*pBundle) << sourceEntityID;
+		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
+		cinfos->pChannel->send(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
 {
 	if(!isReal())
@@ -3560,6 +3574,12 @@ void Entity::onTeleportFailure()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
+	EntityCall* mb = this->baseEntityCall();
+	if(mb)
+	{
+		_sendBaseTeleportResult(this->id(), mb->componentID(), this->spaceID(), lastSpaceID, true);
+	}
+
 	// 如果身上有trap等触发器还得重新添加进去
 	restoreProximitys();
 

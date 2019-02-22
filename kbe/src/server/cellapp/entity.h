@@ -596,6 +596,13 @@ public:
 	static void bufferCallback(bool enable);
 
 private:
+	/** 
+		发送teleport结果到base端
+	*/
+	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
+		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
+
+private:
 	struct BufferedScriptCall
 	{
 		EntityPtr		entityPtr;
