@@ -329,6 +329,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	ENTITY_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,			NETWORK_VARIABLE_MESSAGE)
 
 	// 某个entity请求teleport后的回调结果
+	ENTITY_MESSAGE_DECLARE_ARGS2(onTeleportCB,										NETWORK_FIXED_MESSAGE,
+								SPACE_ID,											spaceID,
+								bool,												fromCellTeleport)
+
+	// 某个entity请求teleport后的回调结果
 	ENTITY_MESSAGE_DECLARE_ARGS1(onGetDBID,											NETWORK_FIXED_MESSAGE,
 								DBID,												dbid)
 
