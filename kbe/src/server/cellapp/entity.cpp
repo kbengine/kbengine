@@ -3315,104 +3315,6 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport)
-{
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
-	if(cinfos != NULL && cinfos->pChannel != NULL)
-	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
-		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
-		(*pBundle) << sourceEntityID;
-		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
-		cinfos->pChannel->send(pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
-{
-	DEBUG_MSG(fmt::format("{}::teleportFromBaseapp: {}, targetEntityID={}, cell={}, sourceBaseAppID={}.\n", 
-		this->scriptName(), this->id(), targetEntityID, cellAppID, sourceBaseAppID));
-
-	SPACE_ID lastSpaceID = this->spaceID();
-
-	if (!isReal())
-	{
-		ERROR_MSG(fmt::format("{}::teleportFromBaseapp: not is real entity({}), sourceBaseAppID={}.\n",
-			this->scriptName(), this->id(), sourceBaseAppID));
-
-		_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
-		return;
-	}
-
-	if(hasFlags(ENTITY_FLAGS_TELEPORT_START))
-	{
-		ERROR_MSG(fmt::format("{}::teleportFromBaseapp: In transit! entity={}, sourceBaseAppID={}.\n",
-			this->scriptName(), this->id(), sourceBaseAppID));
-
-		_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
-		return;
-	}
-	
-	// 如果不在一个cell上
-	if(cellAppID != g_componentID)
-	{
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellAppID);
-		if(cinfos == NULL || cinfos->pChannel == NULL)
-		{
-			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, teleport error, not found cellapp, targetEntityID, cellAppID={}.\n",
-				this->scriptName(), this->id(), targetEntityID, cellAppID));
-
-			_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
-			return;
-		}
-
-		// 目标cell不是当前， 我们现在可以将entity迁往目的地了
-	}
-	else
-	{
-		Entity* entity = Cellapp::getSingleton().findEntity(targetEntityID);
-		if(entity == NULL || entity->isDestroyed())
-		{
-			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found targetEntity({}).\n",
-				this->scriptName(), this->id(), targetEntityID));
-
-			_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
-			return;
-		}
-		
-		// 找到space
-		SPACE_ID spaceID = entity->spaceID();
-
-		// 如果是不同space跳转
-		if(spaceID != this->spaceID())
-		{
-			SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
-			if(space == NULL || !space->isGood())
-			{
-				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
-					this->scriptName(), this->id(), spaceID));
-
-				_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
-				return;
-			}
-			
-			SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
-			currspace->removeEntity(this);
-			space->addEntityAndEnterWorld(this);
-			_sendBaseTeleportResult(this->id(), sourceBaseAppID, spaceID, lastSpaceID, false);
-		}
-		else
-		{
-			WARNING_MSG(fmt::format("{}::teleportFromBaseapp: {} targetSpace({}) == currSpaceID({}).\n",
-				this->scriptName(), this->id(), spaceID, this->spaceID()));
-
-			_sendBaseTeleportResult(this->id(), sourceBaseAppID, spaceID, lastSpaceID, false);
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
 {
 	if(!isReal())
@@ -3821,12 +3723,6 @@ void Entity::onTeleportFailure()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
-	EntityCall* mb = this->baseEntityCall();
-	if(mb)
-	{
-		_sendBaseTeleportResult(this->id(), mb->componentID(), this->spaceID(), lastSpaceID, true);
-	}
-
 	// 如果身上有trap等触发器还得重新添加进去
 	restoreProximitys();
 
