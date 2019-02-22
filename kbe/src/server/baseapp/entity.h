@@ -224,24 +224,6 @@ public:
 	void sendToCellapp(Network::Bundle* pBundle);
 	void sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle);
 
-	/** 
-		传送
-	*/
-	DECLARE_PY_MOTHOD_ARG1(pyTeleport, PyObject_ptr);
-
-	/**
-		传送回调
-	*/
-	void onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
-	void onTeleportFailure();  
-	void onTeleportSuccess(SPACE_ID spaceID);
-
-	/** 网络接口
-		某个entity请求teleport到这个entity的space上。
-	*/
-	void reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
-		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
-
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
