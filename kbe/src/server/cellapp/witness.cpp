@@ -380,10 +380,20 @@ void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 			// 只需要撤销离开状态并将其还原到ENTITYREF_FLAG_NORMAL即可
 			// 如果是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING状态那么此时应该将它设置为进入状态 ENTITYREF_FLAG_ENTER_CLIENT_PENDING
 			if ((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
-				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
-			else
-				pEntityRef->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+			{
+				EntityCall* pClientMB = pEntity_->clientEntityCall();
+				if (pClientMB)
+				{
+					Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
+					ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
+					_addViewEntityIDToBundle(pSendBundle, pEntityRef);
+					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
+					pClientMB->sendCall(pSendBundle);
+				}
+			}
 
+			pEntityRef->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
 			pSelfEntity->onEnteredView(pEntity);
