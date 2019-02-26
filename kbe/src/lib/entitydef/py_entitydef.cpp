@@ -1399,6 +1399,19 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 			defContext.moduleName = PyUnicode_AsUTF8AndSize(key, NULL);
 			defContext.returnType = typeName;
 
+			PyObject* kbeModule = PyImport_AddModule("KBEngine");
+			KBE_ASSERT(kbeModule);
+
+			PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
+			if (!pyComponentName)
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.rename(): get KBEngine.component error!\n");
+				PY_RETURN_ERROR;
+			}
+
+			defContext.componentType = ComponentName2ComponentType(PyUnicode_AsUTF8AndSize(pyComponentName, NULL));
+			Py_DECREF(pyComponentName);
+
 			if (!onDefRename(defContext))
 				return NULL;
 		}
