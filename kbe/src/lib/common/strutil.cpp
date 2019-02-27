@@ -288,7 +288,7 @@ namespace strutil {
 			return utf8::distance(utf8str.c_str(), 
 				utf8str.c_str() + utf8str.size());
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			utf8str = "";
 			return 0;
@@ -315,7 +315,7 @@ namespace strutil {
 
 			utf8str.resize(oend - (&utf8str[0]));
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			utf8str = "";
 		}
@@ -340,7 +340,7 @@ namespace strutil {
 			utf8::utf8to16(utf8str, utf8str + csize, wstr);
 			wstr[len] = L'\0';
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			if (wsize > 0)
 				wstr[0] = L'\0';
@@ -363,7 +363,7 @@ namespace strutil {
 				utf8::utf8to16(utf8str.c_str(), 
 				utf8str.c_str() + utf8str.size(), &wstr[0]);
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			wstr = L"";
 			return false;
@@ -383,7 +383,7 @@ namespace strutil {
 			utf8str2.resize(oend - (&utf8str2[0]));             // remove unused tail
 			utf8str = utf8str2;
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			utf8str = "";
 			return false;
@@ -405,7 +405,7 @@ namespace strutil {
 			utf8str2.resize(oend - (&utf8str2[0]));             // remove unused tail
 			utf8str = utf8str2;
 		}
-		catch (std::exception)
+		catch (std::exception& e)
 		{
 			utf8str = "";
 			return false;
