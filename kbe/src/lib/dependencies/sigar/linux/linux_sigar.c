@@ -23,10 +23,7 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <sys/utsname.h>
-
-#ifdef HAVE_SYS_SYSMACROS_H
 #include <sys/sysmacros.h>
-#endif
 
 #include "sigar.h"
 #include "sigar_private.h"
