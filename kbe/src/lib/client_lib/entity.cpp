@@ -70,6 +70,8 @@ isControlled_(false)
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+	stopMove();
+
 	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(cellEntityCall_);
