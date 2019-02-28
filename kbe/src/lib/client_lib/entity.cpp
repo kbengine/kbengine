@@ -70,6 +70,8 @@ isControlled_(false)
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+	stopMove();
+
 	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(cellEntityCall_);
@@ -374,6 +376,12 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			else
 				pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
 
+			if (pPropertyDescription == NULL)
+			{
+				ERROR_MSG(fmt::format("{}::onUpdatePropertys: not found EntityComponentProperty(uid={}, aliasID={})!\n", pScriptModule_->getName(), uid, aliasID));
+				return;
+			}
+
 			// 然后得到组件属性，再从其中找到子属性
 			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PyObject_GetAttrString(this, pPropertyDescription->getName()));
 			if (!pEntityComponent)
@@ -389,7 +397,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found uid={}, aliasID={}, child_uid={}\n", uid, aliasID, child_uid));
 
 			if (setToObj != static_cast<PyObject*>(this))
 				Py_DECREF(setToObj);

@@ -1399,6 +1399,19 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 			defContext.moduleName = PyUnicode_AsUTF8AndSize(key, NULL);
 			defContext.returnType = typeName;
 
+			PyObject* kbeModule = PyImport_AddModule("KBEngine");
+			KBE_ASSERT(kbeModule);
+
+			PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
+			if (!pyComponentName)
+			{
+				PyErr_Format(PyExc_AssertionError, "Def.rename(): get KBEngine.component error!\n");
+				PY_RETURN_ERROR;
+			}
+
+			defContext.componentType = ComponentName2ComponentType(PyUnicode_AsUTF8AndSize(pyComponentName, NULL));
+			Py_DECREF(pyComponentName);
+
 			if (!onDefRename(defContext))
 				return NULL;
 		}
@@ -1706,12 +1719,13 @@ static bool registerDefTypes()
 
 			if (fixedArray->initialize(&defContext, defContext.moduleName))
 			{
-				DataTypes::addDataType(defContext.moduleName, fixedArray);
+				if (!DataTypes::addDataType(defContext.moduleName, fixedArray))
+					return false;
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error!\n",
-					defContext.moduleName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
 				delete fixedArray;
 				return false;
@@ -1723,12 +1737,13 @@ static bool registerDefTypes()
 
 			if (fixedDict->initialize(&defContext, defContext.moduleName))
 			{
-				DataTypes::addDataType(defContext.moduleName, fixedDict);
+				if (!DataTypes::addDataType(defContext.moduleName, fixedDict))
+					return false;
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error!\n",
-					defContext.moduleName.c_str()));
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
 				delete fixedDict;
 				return false;
@@ -1745,7 +1760,13 @@ static bool registerDefTypes()
 				return false;
 			}
 
-			DataTypes::addDataType(defContext.moduleName, dataType);
+			if (!DataTypes::addDataType(defContext.moduleName, dataType))
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: addDataType \"{}\" error! file: \"{}\"!\n",
+					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+
+				return false;
+			}
 		}
 	}
 
@@ -1918,10 +1939,7 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		DefContext* pDefPropTypeContext = DefContext::findDefContext(componentTypeName);
 		if (!pDefPropTypeContext)
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: not fount type[{}], is {}.{}, file: \"{}\"!\n",
-				componentTypeName, pScriptModule->getName(), componentName, defPropContext.pyObjectSourceFile));
-
-			return false;
+			continue;
 		}
 
 		if (pDefPropTypeContext->type != DefContext::DC_TYPE_COMPONENT)
