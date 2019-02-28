@@ -42,6 +42,11 @@ public:
 	*/
 	struct DB_ITEM_DATA
 	{
+		DB_ITEM_DATA()
+		{
+			sqlkey = NULL;
+		}
+
 		char sqlval[MAX_BUF];
 		const char* sqlkey;
 		std::string extraDatas;
