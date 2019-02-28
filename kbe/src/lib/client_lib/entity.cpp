@@ -376,7 +376,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 			if (pPropertyDescription == NULL)
 			{
-				ERROR_MSG(fmt::format("{}::onUpdatePropertys: not found EntityComponentProperty({})!\n", pScriptModule_->getName(), uid));
+				ERROR_MSG(fmt::format("{}::onUpdatePropertys: not found EntityComponentProperty(uid={}, aliasID={})!\n", pScriptModule_->getName(), uid, aliasID));
 				return;
 			}
 
@@ -395,7 +395,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found uid={}, aliasID={}, child_uid={}\n", uid, aliasID, child_uid));
 
 			if (setToObj != static_cast<PyObject*>(this))
 				Py_DECREF(setToObj);
