@@ -84,7 +84,7 @@ public: // methods
 		m_pFirstFree = m_pMemory;
 
 		// Clear the memory
-		memset( m_pMemory, 0, sizeof( FSA_ELEMENT ) * m_MaxElements );
+		memset( (void*)m_pMemory, 0, sizeof( FSA_ELEMENT ) * m_MaxElements );
 
 		// Point at first element
 		FSA_ELEMENT *pElement = m_pFirstFree;
