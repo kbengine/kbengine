@@ -433,13 +433,13 @@ void Channel::delayedSend()
 //-------------------------------------------------------------------------------------
 const char * Channel::c_str() const
 {
-	static char dodgyString[ MAX_BUF ] = {"None"};
-	char tdodgyString[ MAX_BUF ] = {0};
+	static char dodgyString[MAX_BUF * 2] = { "None" };
+	char tdodgyString[MAX_BUF] = { 0 };
 
-	if(pEndPoint_ && !pEndPoint_->addr().isNone())
+	if (pEndPoint_ && !pEndPoint_->addr().isNone())
 		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
 
-	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d/%d/%d", tdodgyString, id_, 
+	kbe_snprintf(dodgyString, MAX_BUF * 2, "%s/%d/%d/%d", tdodgyString, id_,
 		this->condemn(), this->isDestroyed());
 
 	return dodgyString;
