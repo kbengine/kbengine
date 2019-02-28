@@ -374,6 +374,12 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			else
 				pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
 
+			if (pPropertyDescription == NULL)
+			{
+				ERROR_MSG(fmt::format("{}::onUpdatePropertys: not found EntityComponentProperty({})!\n", pScriptModule_->getName(), uid));
+				return;
+			}
+
 			// 然后得到组件属性，再从其中找到子属性
 			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PyObject_GetAttrString(this, pPropertyDescription->getName()));
 			if (!pEntityComponent)
