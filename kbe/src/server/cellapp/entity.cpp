@@ -4343,11 +4343,26 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 
 			const char* ccattr = PyUnicode_AsUTF8AndSize(pyObj, NULL);
 
-			char *pClass;
-			char *pMethod;
+			const char *pClass = NULL;
+			const char *pMethod = NULL;
 
-			pClass = strtok(const_cast<char*>(ccattr), ".");
-			pMethod = strtok(NULL, ".");
+			std::vector<std::string>  vec;
+			std::string str(ccattr);
+			strutil::kbe_split(str, '.', vec);
+
+			if (vec.size() == 1)
+			{
+				pMethod = vec[0].c_str();
+			}
+			else if (vec.size() == 2)
+			{
+				pClass = vec[0].c_str();
+				pMethod = vec[1].c_str();
+			}
+			else
+			{
+				pMethod = ccattr;
+			}
 
 			ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(pClass);
 
