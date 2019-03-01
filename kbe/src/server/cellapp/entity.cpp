@@ -4439,7 +4439,7 @@ void Entity::createEventsFromStream(KBEngine::MemoryStream& s)
 			std::string callbackName;
 			s >> callbackName;
 
-			if (eventName == "None")
+			if (callbackName == "None")
 				continue;
 
 			std::vector<std::string> callBackNameVec;
