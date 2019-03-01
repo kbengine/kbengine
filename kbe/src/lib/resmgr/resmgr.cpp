@@ -273,29 +273,29 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 	struct dirent *filename;
 	DIR *dir;
 
-    char* cpath = strutil::wchar2char(path.c_str());
-    char pathstr[MAX_PATH];
-    strcpy(pathstr, cpath);
-    free(cpath);
+	char* cpath = strutil::wchar2char(path.c_str());
+	char pathstr[MAX_PATH];
+	strcpy(pathstr, cpath);
+	free(cpath);
 
 	dir = opendir(pathstr);
-	if(dir == NULL)
+	if (dir == NULL)
 	{
 		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", pathstr));
 		return false;
 	}
 
-	while((filename = readdir(dir)) != NULL)
+	while ((filename = readdir(dir)) != NULL)
 	{
-		if(strcmp(filename->d_name, ".") == 0 || strcmp(filename->d_name, "..") == 0)
+		if (strcmp(filename->d_name, ".") == 0 || strcmp(filename->d_name, "..") == 0)
 			continue;
 
 		struct stat s;
-		char pathstrtmp[MAX_PATH];
-		sprintf(pathstrtmp,"%s%s",pathstr, filename->d_name);
+		char pathstrtmp[MAX_PATH * 2];
+		sprintf(pathstrtmp, "%s%s", pathstr, filename->d_name);
 		lstat(pathstrtmp, &s);
 
-		if(S_ISDIR(s.st_mode))
+		if (S_ISDIR(s.st_mode))
 		{
 			wchar_t* wstr = strutil::char2wchar(pathstrtmp);
 			listPathRes(wstr, extendName, results);
@@ -305,20 +305,20 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 		{
 			wchar_t* wstr = strutil::char2wchar(filename->d_name);
 
-			if(extendName.size() == 0 || extendName == L"*" || extendName == L"*.*")
+			if (extendName.size() == 0 || extendName == L"*" || extendName == L"*.*")
 			{
 				results.push_back(path + wstr);
 			}
 			else
 			{
-				if(extendNames.size() > 0)
+				if (extendNames.size() > 0)
 				{
 					std::vector<std::wstring> vec;
 					strutil::kbe_split<wchar_t>(wstr, L'.', vec);
 
-					for(size_t ext = 0; ext < extendNames.size(); ++ext)
+					for (size_t ext = 0; ext < extendNames.size(); ++ext)
 					{
-						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
+						if (extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
 						{
 							results.push_back(path + wstr);
 						}
