@@ -288,8 +288,10 @@ void CoordinateSystem::moveNodeX(CoordinateNode* pNode, float px, CoordinateNode
 			(pNode->pPrevX() == pCurrNode ? "-" : "+"), pNode->c_str(), pCurrNode->c_str()));
 #endif
 
-		if (pCurrNode->x() > px)
+		if (pNode->pPrevX() == pCurrNode)
 		{
+			KBE_ASSERT(pCurrNode->x() >= px);
+
 			CoordinateNode* pPreNode = pCurrNode->pPrevX();
 			pCurrNode->pPrevX(pNode);
 			if (pPreNode)
@@ -314,6 +316,8 @@ void CoordinateSystem::moveNodeX(CoordinateNode* pNode, float px, CoordinateNode
 		}
 		else
 		{
+			KBE_ASSERT(pCurrNode->x() <= px);
+
 			CoordinateNode* pNextNode = pCurrNode->pNextX();
 			if (pNextNode != pNode)
 			{
@@ -361,7 +365,7 @@ void CoordinateSystem::moveNodeX(CoordinateNode* pNode, float px, CoordinateNode
 		DEBUG_MSG(fmt::format("CoordinateSystem::update end: [{}X] ({}), pCurrNode=>({})\n",
 			(pNode->pPrevX() == pCurrNode ? "-" : "+"), pNode->c_str(), pCurrNode->c_str()));
 #endif
-	}
+		}
 }
 
 //-------------------------------------------------------------------------------------
@@ -374,8 +378,10 @@ void CoordinateSystem::moveNodeY(CoordinateNode* pNode, float py, CoordinateNode
 			(pNode->pPrevY() == pCurrNode ? "-" : "+"), pNode->c_str(), pCurrNode->c_str()));
 #endif
 
-		if (pCurrNode->y() > py)
+		if (pNode->pPrevY() == pCurrNode)
 		{
+			KBE_ASSERT(pCurrNode->y() >= py);
+
 			CoordinateNode* pPreNode = pCurrNode->pPrevY();
 			pCurrNode->pPrevY(pNode);
 			if (pPreNode)
@@ -400,6 +406,8 @@ void CoordinateSystem::moveNodeY(CoordinateNode* pNode, float py, CoordinateNode
 		}
 		else
 		{
+			KBE_ASSERT(pCurrNode->y() <= py);
+
 			CoordinateNode* pNextNode = pCurrNode->pNextY();
 			if (pNextNode != pNode)
 			{
@@ -460,8 +468,10 @@ void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode
 			(pNode->pPrevZ() == pCurrNode ? "-" : "+"), pNode->c_str(), pCurrNode->c_str()));
 #endif
 
-		if (pCurrNode->z() > pz)
+		if (pNode->pPrevZ() == pCurrNode)
 		{
+			KBE_ASSERT(pCurrNode->z() >= pz);
+
 			CoordinateNode* pPreNode = pCurrNode->pPrevZ();
 			pCurrNode->pPrevZ(pNode);
 			if (pPreNode)
@@ -486,6 +496,8 @@ void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode
 		}
 		else
 		{
+			KBE_ASSERT(pCurrNode->z() <= pz);
+
 			CoordinateNode* pNextNode = pCurrNode->pNextZ();
 			if (pNextNode != pNode)
 			{
@@ -506,8 +518,8 @@ void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode
 
 				pNode->pPrevZ(pCurrNode);
 				pNode->pNextZ(pNextNode);
+			}
 		}
-	}
 
 		if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 		{
