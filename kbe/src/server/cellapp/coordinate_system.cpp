@@ -643,7 +643,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 		}
 	}
 
-
 	pNode->resetOld();
 	//pNode->removeFlags(COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
