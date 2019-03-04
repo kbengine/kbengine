@@ -155,7 +155,9 @@
 						totallen += expectSize;
 						length -= expectSize;
 
+						int wpos = stream.wpos;
 						int frpos = stream.rpos + (int)expectSize;
+						stream.wpos = frpos;
 
 						Message msg = Messages.clientMessages[msgid];
 						
@@ -174,6 +176,7 @@
 										+ frpos + ", msgID=" + msgid + ", msglen=" + expectSize + ".");
 
 								stream.rpos = frpos;
+								stream.wpos = wpos;
 						}
 						else
 						{
