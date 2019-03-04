@@ -92,4 +92,10 @@ INLINE void RangeTriggerNode::pRangeTrigger(RangeTrigger* pRangeTrigger)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool RangeTriggerNode::isPositive() const
+{
+	return hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY);
+}
+
+//-------------------------------------------------------------------------------------
 }
