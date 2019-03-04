@@ -365,7 +365,7 @@ void CoordinateSystem::moveNodeX(CoordinateNode* pNode, float px, CoordinateNode
 		DEBUG_MSG(fmt::format("CoordinateSystem::update end: [{}X] ({}), pCurrNode=>({})\n",
 			(pNode->pPrevX() == pCurrNode ? "-" : "+"), pNode->c_str(), pCurrNode->c_str()));
 #endif
-		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -626,7 +626,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				break;
 			}
 		}
-			}
+	}
 
 	if (pNode->zz() != pNode->old_zz())
 	{
@@ -657,10 +657,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 			{
 				pNode->z(pNode->zz());
 				break;
+			}
 		}
 	}
-		}
-
 
 	pNode->resetOld();
 	//pNode->removeFlags(COORDINATE_NODE_FLAG_PENDING);
