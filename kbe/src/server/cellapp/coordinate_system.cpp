@@ -555,10 +555,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
-
-				if (pNode->pPrevX() == NULL)
-					break;
-
 				pCurrNode = pNode->pPrevX();
 			}
 
@@ -569,10 +565,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
-
-				if (pNode->pNextX() == NULL)
-					break;
-
 				pCurrNode = pNode->pNextX();
 			}
 
@@ -596,10 +588,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeY(pNode, pNode->yy(), pCurrNode);
-
-				if (pNode->pPrevY() == NULL)
-					break;
-
 				pCurrNode = pNode->pPrevY();
 			}
 
@@ -610,10 +598,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeY(pNode, pNode->yy(), pCurrNode);
-
-				if (pNode->pNextY() == NULL)
-					break;
-
 				pCurrNode = pNode->pNextY();
 			}
 
@@ -637,10 +621,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
-
-				if (pNode->pPrevZ() == NULL)
-					break;
-
 				pCurrNode = pNode->pPrevZ();
 			}
 
@@ -651,10 +631,6 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
-
-				if (pNode->pNextZ() == NULL)
-					break;
-
 				pCurrNode = pNode->pNextZ();
 			}
 
