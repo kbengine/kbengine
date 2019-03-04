@@ -3248,7 +3248,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 					if(msglen > 0 && frpos != stream.rpos)
 					{
-						KBEngine.WARNING_MSG("process message(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
+						KBEngine.WARNING_MSG("KBEngineApp::onmessage(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
 						+ frpos + ". msgID=" + app.currMsgID + ", msglen=" + app.currMsgLen);
 					}
 				
