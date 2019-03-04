@@ -172,7 +172,7 @@
 						
 						if (expectSize > 0 && frpos != stream.rpos)
 						{
-								Dbg.WARNING_MSG("MessageReaderTCP::process(" + msg.name + "): rpos(" + stream.rpos + ") invalid, expect="
+								Dbg.WARNING_MSG("MessageReader::process(" + msg.name + "): rpos(" + stream.rpos + ") invalid, expect="
 										+ frpos + ", msgID=" + msgid + ", msglen=" + expectSize + ".");
 
 								stream.rpos = frpos;
