@@ -83,6 +83,16 @@ public:
 	bool startProfile(std::string name, int8 type, uint32 timinglen);
 
 	void addThreadTask(thread::TPTask* tptask);
+
+	void getHistoryCmdsByPrefix(CString prefix, std::vector<CString>& outCmds) {
+		std::map<CString, int>::iterator it = m_historyCommandMap.begin();
+		int lenPrefix = prefix.GetLength();
+		for (; it != m_historyCommandMap.end(); it++) {
+			if (prefix == it->first.Left(lenPrefix).MakeLower()) {
+				outCmds.push_back(it->first);
+			}
+		}
+	}
 protected:
 	HICON m_hIcon;
 
@@ -125,8 +135,8 @@ private:
 	CGraphsWindow	m_graphsWindow;
 
 	bool m_isInit;
-	std::deque<CString> m_historyCommand;
-	int8 m_historyCommandIndex;
+	std::map<CString, int> m_historyCommandMap;
+	int m_historyCommandIndex;
 	bool m_isUsingHistroy;
 	CToolBar m_ToolBar;
 	CImageList m_ImageList;
@@ -141,4 +151,41 @@ public:
 	afx_msg void OnHelpAbout();
 	afx_msg void OnClose();
 	afx_msg void OnDestroy();
+};
+
+class CommandMapHelper
+{
+public:
+	CommandMapHelper(int idx) :m_cmdmap_idx(idx) {}
+	bool operator ()(const std::map<CString, int>::value_type &pair)
+	{
+		return pair.second == m_cmdmap_idx;
+	}
+	static CString GetKeyByIdx(std::map<CString, int>& cmdMap, int idx) {
+		std::map<CString, int>::iterator it = cmdMap.end();
+		it = std::find_if(cmdMap.begin(), cmdMap.end(), CommandMapHelper(idx));
+		if (it != cmdMap.end()) {
+			return it->first;
+		}
+		return L"";
+	}
+	static void InsertOrUpdateCmd(std::map<CString, int>& cmdMap, CString& cmd) {
+		std::map<CString, int>::iterator cur = cmdMap.find(cmd);
+		if (cur != cmdMap.end()) {
+			int idx = cur->second;
+			for (std::map<CString, int>::iterator it = cmdMap.begin(); it != cmdMap.end(); it++) {
+				if (it->second > idx) {
+					it->second--;
+				}
+			}
+			cur->second = cmdMap.size() - 1;
+		}
+		else {
+			int idx = static_cast<int>(cmdMap.size());
+			cmdMap[cmd] = idx;
+		}
+	}
+
+private:
+	int m_cmdmap_idx;
 };

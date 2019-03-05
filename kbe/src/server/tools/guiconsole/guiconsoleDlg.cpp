@@ -335,7 +335,7 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	m_spaceViewWnd(),
 	m_graphsWindow(),
 	m_isInit(false),
-	m_historyCommand(),
+	m_historyCommandMap(),
 	m_historyCommandIndex(0),
 	m_isUsingHistroy(false),
 	threadPool_()
@@ -480,13 +480,10 @@ void CguiconsoleDlg::onReceiveRemoteLog(std::string str)
 
 void CguiconsoleDlg::historyCommandCheck()
 {
-	if(m_historyCommand.size() > 50)
-		m_historyCommand.pop_front();
-
 	if(m_historyCommandIndex < 0)
-		m_historyCommandIndex = m_historyCommand.size() - 1;
+		m_historyCommandIndex = m_historyCommandMap.size() - 1;
 
-	if(m_historyCommandIndex > (int)m_historyCommand.size() - 1)
+	if(m_historyCommandIndex > (int)m_historyCommandMap.size() - 1)
 		m_historyCommandIndex = 0; 
 }
 
@@ -503,9 +500,9 @@ CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
 	m_isUsingHistroy = true;
 	historyCommandCheck();
 
-	if(m_historyCommand.size() == 0)
+	if(m_historyCommandMap.size() == 0)
 		return L"";
-	return m_historyCommand[m_historyCommandIndex];
+	return CommandMapHelper::GetKeyByIdx(m_historyCommandMap, m_historyCommandIndex);
 }
 
 HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
@@ -562,12 +559,10 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	
 	m_isUsingHistroy = false;
 
-	m_historyCommand.push_back(strCommand);
-	historyCommandCheck();
-	m_historyCommandIndex = m_historyCommand.size() - 1;
+	CommandMapHelper::InsertOrUpdateCmd(m_historyCommandMap, strCommand);
+	m_historyCommandIndex = m_historyCommandMap.size()-1;
 
 	CString strCommand1 = strCommand;
-
 	/*
 	// 对普通的输入加入print 让服务器回显信息
     if((strCommand.Find(L"=")) == -1 &&
@@ -586,7 +581,6 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	std::wstring incmd = strCommand.GetBuffer(0);
 	std::string outcmd;
 	strutil::wchar2utf8(incmd, outcmd);
-
 	
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
@@ -621,25 +615,29 @@ void CguiconsoleDlg::saveHistory()
 {
     //创建一个XML的文档对象。
     TiXmlDocument *pDocument = new TiXmlDocument();
-
-	int i = 0;
-	std::deque<CString>::iterator iter = m_historyCommand.begin();
 	TiXmlElement *rootElement = new TiXmlElement("root");
 	pDocument->LinkEndChild(rootElement);
 
-	for(; iter != m_historyCommand.end(); iter++)
-	{
-		char key[256] = {0};
-		kbe_snprintf(key, 256, "item%d", i++);
-		TiXmlElement *rootElementChild = new TiXmlElement(key);
-		rootElement->LinkEndChild(rootElementChild);
+	const int MaxHistoryCmd = 50;
+	int nCmds = m_historyCommandMap.size();
+	int idxStart = nCmds - MaxHistoryCmd;
+	if (idxStart < 0)
+		idxStart = 0;
+	int i = 0;
+	for (; idxStart < nCmds; idxStart++) {
+		CString cmd = CommandMapHelper::GetKeyByIdx(m_historyCommandMap, idxStart);
+		if (!cmd.IsEmpty()) {
+			char key[256] = { 0 };
+			kbe_snprintf(key, 256, "item%d", i++);
+			TiXmlElement *rootElementChild = new TiXmlElement(key);
+			rootElement->LinkEndChild(rootElementChild);
 
-		std::wstring strCommand = (*iter);
-		std::string str;
-		
-		strutil::wchar2utf8(strCommand, str);
-		TiXmlText *content = new TiXmlText(str.data());
-		rootElementChild->LinkEndChild(content);
+			std::wstring strCommand = cmd;
+			std::string str;
+			strutil::wchar2utf8(strCommand, str);
+			TiXmlText *content = new TiXmlText(str.data());
+			rootElementChild->LinkEndChild(content);
+		}
 	}
 
     CString appPath = GetAppPath();
@@ -673,6 +671,7 @@ void CguiconsoleDlg::loadHistory()
 	TiXmlNode* node = rootElement->FirstChild();
 	if(node)
 	{
+		m_historyCommandIndex = 0;
 		do																				
 		{	
 			if(node->FirstChild() != NULL)
@@ -683,7 +682,10 @@ void CguiconsoleDlg::loadHistory()
 					std::wstring strCommand;
 					strutil::utf82wchar(c, strCommand);
 					CString sstrCommand = strCommand.data();
-					m_historyCommand.push_back(sstrCommand);
+					std::map<CString, int>::iterator it = m_historyCommandMap.find(sstrCommand);
+					if (it == m_historyCommandMap.end()) {
+						m_historyCommandMap[sstrCommand] = m_historyCommandIndex++;
+					}
 				}
 			}
 		}while((node = node->NextSibling()));												
