@@ -570,95 +570,71 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 	if (pNode->xx() != pNode->old_xx())
 	{
-		while (true)
+		CoordinateNode* pCurrNode = pNode->pPrevX();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->x() > pNode->xx()) ||
+			(pCurrNode->x() == pNode->xx() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
 		{
-			CoordinateNode* pCurrNode = pNode->pPrevX();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->x() > pNode->xx()) ||
-				(pCurrNode->x() == pNode->xx() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
-			{
-				moveNodeX(pNode, pNode->xx(), pCurrNode);
-				pCurrNode = pNode->pPrevX();
-			}
-
-			pCurrNode = pNode->pNextX();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->x() < pNode->xx()) ||
-				(pCurrNode->x() == pNode->xx() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
-			{
-				moveNodeX(pNode, pNode->xx(), pCurrNode);
-				pCurrNode = pNode->pNextX();
-			}
-
-			if ((pNode->pPrevX() == NULL || (pNode->xx() >= pNode->pPrevX()->x())) &&
-				(pNode->pNextX() == NULL || (pNode->xx() <= pNode->pNextX()->x())))
-			{
-				pNode->x(pNode->xx());
-				break;
-			}
+			moveNodeX(pNode, pNode->xx(), pCurrNode);
+			pCurrNode = pNode->pPrevX();
 		}
+
+		pCurrNode = pNode->pNextX();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->x() < pNode->xx()) ||
+			(pCurrNode->x() == pNode->xx() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
+		{
+			moveNodeX(pNode, pNode->xx(), pCurrNode);
+			pCurrNode = pNode->pNextX();
+		}
+
+		pNode->x(pNode->xx());
 	}
 
 	if (CoordinateSystem::hasY && pNode->yy() != pNode->old_yy())
 	{
-		while (true)
+		CoordinateNode* pCurrNode = pNode->pPrevY();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->y() > pNode->yy()) ||
+			(pCurrNode->y() == pNode->yy() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
 		{
-			CoordinateNode* pCurrNode = pNode->pPrevY();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->y() > pNode->yy()) ||
-				(pCurrNode->y() == pNode->yy() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
-			{
-				moveNodeY(pNode, pNode->yy(), pCurrNode);
-				pCurrNode = pNode->pPrevY();
-			}
-
-			pCurrNode = pNode->pNextY();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->y() < pNode->yy()) ||
-				(pCurrNode->y() == pNode->yy() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
-			{
-				moveNodeY(pNode, pNode->yy(), pCurrNode);
-				pCurrNode = pNode->pNextY();
-			}
-
-			if ((pNode->pPrevY() == NULL || (pNode->yy() >= pNode->pPrevY()->y())) &&
-				(pNode->pNextY() == NULL || (pNode->yy() <= pNode->pNextY()->y())))
-			{
-				pNode->y(pNode->yy());
-				break;
-			}
+			moveNodeY(pNode, pNode->yy(), pCurrNode);
+			pCurrNode = pNode->pPrevY();
 		}
+
+		pCurrNode = pNode->pNextY();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->y() < pNode->yy()) ||
+			(pCurrNode->y() == pNode->yy() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
+		{
+			moveNodeY(pNode, pNode->yy(), pCurrNode);
+			pCurrNode = pNode->pNextY();
+		}
+
+		pNode->y(pNode->yy());
 	}
 
 	if (pNode->zz() != pNode->old_zz())
 	{
-		while (true)
+		CoordinateNode* pCurrNode = pNode->pPrevZ();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->z() > pNode->zz()) ||
+			(pCurrNode->z() == pNode->zz() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
 		{
-			CoordinateNode* pCurrNode = pNode->pPrevZ();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->z() > pNode->zz()) ||
-				(pCurrNode->z() == pNode->zz() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY))))
-			{
-				moveNodeZ(pNode, pNode->zz(), pCurrNode);
-				pCurrNode = pNode->pPrevZ();
-			}
-
-			pCurrNode = pNode->pNextZ();
-			while (pCurrNode && pCurrNode != pNode &&
-				((pCurrNode->z() < pNode->zz()) ||
-				(pCurrNode->z() == pNode->zz() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
-			{
-				moveNodeZ(pNode, pNode->zz(), pCurrNode);
-				pCurrNode = pNode->pNextZ();
-			}
-
-			if ((pNode->pPrevZ() == NULL || (pNode->zz() >= pNode->pPrevZ()->z())) &&
-				(pNode->pNextZ() == NULL || (pNode->zz() <= pNode->pNextZ()->z())))
-			{
-				pNode->z(pNode->zz());
-				break;
-			}
+			moveNodeZ(pNode, pNode->zz(), pCurrNode);
+			pCurrNode = pNode->pPrevZ();
 		}
+
+		pCurrNode = pNode->pNextZ();
+		while (pCurrNode && pCurrNode != pNode &&
+			((pCurrNode->z() < pNode->zz()) ||
+			(pCurrNode->z() == pNode->zz() && !pCurrNode->hasFlags(COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY))))
+		{
+			moveNodeZ(pNode, pNode->zz(), pCurrNode);
+			pCurrNode = pNode->pNextZ();
+		}
+
+		pNode->z(pNode->zz());
 	}
 
 	pNode->resetOld();
