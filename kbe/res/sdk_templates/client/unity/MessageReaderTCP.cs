@@ -155,11 +155,8 @@
 						totallen += expectSize;
 						length -= expectSize;
 
-                        int wpos = stream.wpos;
-                        int frpos = stream.rpos + (int)expectSize;
-                        stream.wpos = frpos;
-
-                        Message msg = Messages.clientMessages[msgid];
+						int frpos = stream.rpos + (int)expectSize;
+						Message msg = Messages.clientMessages[msgid];
 						
 #if UNITY_EDITOR
 						Dbg.profileStart(msg.name);
@@ -170,18 +167,13 @@
 						Dbg.profileEnd(msg.name);
 #endif
 
-                        if (expectSize > 0 && frpos != stream.rpos)
-                        {
-                            Dbg.WARNING_MSG("MessageReaderTCP::process(" + msg.name + "): rpos(" + stream.rpos + ") invalid, expect="
-                                + frpos + ", msgID=" + msgid + ", msglen=" + expectSize + ".");
-
-                            stream.rpos = frpos;
-                            stream.wpos = wpos;
-                        }
-                        else
-                        {
-                            stream.clear();
-                        }
+						if (expectSize > 0 && frpos != stream.rpos)
+						{
+							Dbg.WARNING_MSG("MessageReaderTCP::process(" + msg.name + "): rpos(" + stream.rpos + ") invalid, expect="
+								+ frpos + ". msgID=" + msgid + ", msglen=" + expectSize + ".");
+						}
+						
+						stream.clear();
 						
 						state = READ_STATE.READ_STATE_MSGID;
 						expectSize = 2;
