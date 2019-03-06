@@ -10,6 +10,8 @@ public class KBEnginePlugins : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        bEnableUndefinedIdentifierWarnings = false;
+
         string CryptoPPPath = Target.UEThirdPartySourceDirectory + "CryptoPP/5.6.5/lib/";
         string[] PrivateModules = new string[] { "CoreUObject", "Engine", "Slate", "SlateCore", "Networking", "Sockets" };
 

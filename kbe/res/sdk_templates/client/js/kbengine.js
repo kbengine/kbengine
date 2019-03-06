@@ -3240,11 +3240,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				else
 				{
 					var wpos = stream.wpos;
-					var rpos = stream.rpos + msglen;
-					stream.wpos = rpos;
+					var frpos = stream.rpos + msglen;
+					stream.wpos = frpos;
+
 					msgHandler.handleMessage(stream);
+
+					if(msglen > 0 && frpos != stream.rpos)
+					{
+						KBEngine.WARNING_MSG("KBEngineApp::onmessage(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
+						+ frpos + ". msgID=" + app.currMsgID + ", msglen=" + app.currMsgLen);
+					}
+				
 					stream.wpos = wpos;
-					stream.rpos = rpos;
+					stream.rpos = frpos;
 				}
 
 				app.currMsgID = 0;
@@ -3362,7 +3370,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		var dateObject = new Date();
-		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > (KBEngine.app.args.serverHeartbeatTick / 2))
+		if(KBEngine.app.args.serverHeartbeatTick > 0 && (dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > (KBEngine.app.args.serverHeartbeatTick / 2))
 		{
 			// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
 			// 此时应该通知客户端掉线了
