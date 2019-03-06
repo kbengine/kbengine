@@ -155,10 +155,7 @@
 						totallen += expectSize;
 						length -= expectSize;
 
-						int wpos = stream.wpos;
 						int frpos = stream.rpos + (int)expectSize;
-						stream.wpos = frpos;
-
 						Message msg = Messages.clientMessages[msgid];
 						
 #if UNITY_EDITOR
@@ -173,15 +170,10 @@
 						if (expectSize > 0 && frpos != stream.rpos)
 						{
 								Dbg.WARNING_MSG("MessageReader::process(" + msg.name + "): rpos(" + stream.rpos + ") invalid, expect="
-										+ frpos + ", msgID=" + msgid + ", msglen=" + expectSize + ".");
-
-								stream.rpos = frpos;
-								stream.wpos = wpos;
+										+ frpos + ". msgID=" + msgid + ", msglen=" + expectSize + ".");
 						}
-						else
-						{
-								stream.clear();
-						}
+					
+						stream.clear();
 						
 						state = READ_STATE.READ_STATE_MSGID;
 						expectSize = 2;

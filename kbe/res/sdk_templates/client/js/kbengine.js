@@ -3370,7 +3370,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		var dateObject = new Date();
-		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > (KBEngine.app.args.serverHeartbeatTick / 2))
+		if(KBEngine.app.args.serverHeartbeatTick > 0 && (dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > (KBEngine.app.args.serverHeartbeatTick / 2))
 		{
 			// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
 			// 此时应该通知客户端掉线了
