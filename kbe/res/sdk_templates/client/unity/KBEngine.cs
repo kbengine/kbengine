@@ -327,7 +327,7 @@
 			// 更新玩家的位置与朝向到服务端
 			updatePlayerToServer();
 			
-			if(span.Seconds > _args.serverHeartbeatTick)
+			if(_args.serverHeartbeatTick > 0 && span.Seconds > _args.serverHeartbeatTick)
 			{
 				span = _lastTickCBTime - _lastTickTime;
 				
