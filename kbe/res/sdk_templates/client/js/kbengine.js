@@ -3240,19 +3240,11 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				else
 				{
 					var wpos = stream.wpos;
-					var frpos = stream.rpos + msglen;
-					stream.wpos = frpos;
-
+					var rpos = stream.rpos + msglen;
+					stream.wpos = rpos;
 					msgHandler.handleMessage(stream);
-
-					if(msglen > 0 && frpos != stream.rpos)
-					{
-						KBEngine.WARNING_MSG("KBEngineApp::onmessage(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
-						+ frpos + ". msgID=" + app.currMsgID + ", msglen=" + app.currMsgLen);
-					}
-				
 					stream.wpos = wpos;
-					stream.rpos = frpos;
+					stream.rpos = rpos;
 				}
 
 				app.currMsgID = 0;
