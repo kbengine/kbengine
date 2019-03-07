@@ -86,6 +86,8 @@ void ClientSDKUpdater::onImportClientSDK(const UKBEventData* eventData)
 		}
 
 		MemoryStream::reclaimObject(pSdkFileStream);
+		pSdkFileStream = nullptr;
+		
 		free(fileData);
 		fileData = nullptr;
 		downloadFiles += 1;
