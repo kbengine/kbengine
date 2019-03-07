@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "KBEventTypes.h"
 
@@ -44,3 +44,6 @@ const FString KBEventTypes::onLoseControlledEntity = "onLoseControlledEntity";
 const FString KBEventTypes::onStreamDataStarted = "onStreamDataStarted";
 const FString KBEventTypes::onStreamDataRecv = "onStreamDataRecv";
 const FString KBEventTypes::onStreamDataCompleted = "onStreamDataCompleted";
+
+// ------------------------------------SDK更新相关-------------------------------------
+const FString KBEventTypes::onImportClientSDKSuccessfully = "onImportClientSDKSuccessfully";

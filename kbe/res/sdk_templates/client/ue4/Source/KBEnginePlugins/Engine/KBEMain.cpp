@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "KBEMain.h"
 #include "KBEngine.h"
@@ -29,6 +29,9 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
 	SEND_BUFFER_MAX = TCP_PACKET_MAX;
 	RECV_BUFFER_MAX = TCP_PACKET_MAX;
+
+	pUpdaterObj = NULL;
+	automaticallyUpdateSDK = true;
 }
 
 void UKBEMain::InitializeComponent()
@@ -61,6 +64,8 @@ void UKBEMain::BeginPlay()
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
+	installEvents();
+	
 #ifdef KBENGINE_NO_CRYPTO
 	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
 	{
@@ -72,6 +77,13 @@ void UKBEMain::BeginPlay()
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (pUpdaterObj != nullptr)
+	{
+		delete pUpdaterObj;
+		pUpdaterObj = nullptr;
+	}
+
+	deregisterEvents();
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -95,6 +107,63 @@ void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 	}
 
 	KBEngineApp::getSingleton().process();
+}
+
+void UKBEMain::installEvents()
+{
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onVersionNotMatch, onVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+}
+
+void UKBEMain::deregisterEvents()
+{
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully);
+}
+
+void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
+{
+	downloadSDKFromServer();
+}
+
+void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
+{
+	downloadSDKFromServer();
+}
+
+bool UKBEMain::isUpdateSDK()
+{
+	#if WITH_EDITOR
+		return automaticallyUpdateSDK;
+	#endif
+		return false;
+}
+
+void UKBEMain::downloadSDKFromServer()
+{
+	if (isUpdateSDK())
+	{
+		if (pUpdaterObj == nullptr)
+		{
+			pUpdaterObj = new ClientSDKUpdater();
+		}
+
+		pUpdaterObj->downloadSDKFromServer();
+	}
+	else
+	{
+		if(pUpdaterObj != nullptr)
+		{
+			delete pUpdaterObj;
+		}
+	}
+}
+
+void UKBEMain::onImportClientSDKSuccessfully(const UKBEventData* pEventData)
+{
+	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, true);
 }
 
 FString UKBEMain::getClientVersion()
