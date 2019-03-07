@@ -29,6 +29,12 @@ ClientSDKUpdater::ClientSDKUpdater()
 
 ClientSDKUpdater::~ClientSDKUpdater()
 {
+	if (pSdkFileStream != nullptr)
+	{
+		MemoryStream::reclaimObject(pSdkFileStream);
+		pSdkFileStream = nullptr;
+	}
+	
 	deregisterEvents();
 }
 
