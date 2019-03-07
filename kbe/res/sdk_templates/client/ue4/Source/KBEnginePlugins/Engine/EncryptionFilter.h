@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "KBECommon.h"
 
 #ifndef KBENGINE_NO_CRYPTO

@@ -626,3 +626,11 @@ public:
 	TArray<uint8> fileDatas;
 };
 
+UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_onImportClientSDKSuccessfully : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+
+};

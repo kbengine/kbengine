@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "KBECommon.h"
 #include "KBEvent.h"
+#include "ClientSDKUpdater.h"
 #include "Components/ActorComponent.h"
 #include "KBEMain.generated.h"
 
@@ -47,6 +48,18 @@ public:
 
 	// Called every frame
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
+
+
+	void installEvents();
+	void deregisterEvents();
+
+	void onVersionNotMatch(const UKBEventData* pEventData);
+	void onScriptVersionNotMatch(const UKBEventData* pEventData);
+
+	bool isUpdateSDK();
+	void downloadSDKFromServer();
+	void onImportClientSDKSuccessfully(const UKBEventData* pEventData);
+
 
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
 	FString getClientVersion();
@@ -119,4 +132,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int UDP_RECV_BUFFER_MAX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	bool automaticallyUpdateSDK;
+
+	ClientSDKUpdater* pUpdaterObj;
+
 };

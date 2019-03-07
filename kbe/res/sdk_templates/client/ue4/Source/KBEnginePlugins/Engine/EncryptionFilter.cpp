@@ -1,4 +1,4 @@
-﻿#include "EncryptionFilter.h"
+#include "EncryptionFilter.h"
 #include "MemoryStream.h"
 #include "MessageReader.h"
 #include "PacketSenderTCP.h"
@@ -10,8 +10,6 @@
 #include "rdrand.h"
 #include "secblock.h"
 #endif
-
-
 
 BlowfishFilter::BlowfishFilter(int keySize):
 	isGood_(false),
