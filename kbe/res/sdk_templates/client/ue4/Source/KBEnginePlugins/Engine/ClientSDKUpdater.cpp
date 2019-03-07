@@ -14,9 +14,6 @@ using namespace std;
 
 ClientSDKUpdater::ClientSDKUpdater()
 {
-	if (pSdkFileStream != nullptr)
-		MemoryStream::reclaimObject(pSdkFileStream);
-
 	pSdkFileStream = nullptr;
 	sdkPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir());
 	sdkPath += "kbengine_ue4_plugins";
@@ -29,6 +26,12 @@ ClientSDKUpdater::ClientSDKUpdater()
 
 ClientSDKUpdater::~ClientSDKUpdater()
 {
+	if (pSdkFileStream != nullptr)
+	{
+		MemoryStream::reclaimObject(pSdkFileStream);
+		pSdkFileStream = nullptr;
+	}
+
 	deregisterEvents();
 }
 
