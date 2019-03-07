@@ -390,6 +390,22 @@ void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 					_addViewEntityIDToBundle(pSendBundle, pEntityRef);
 					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
 					pClientMB->sendCall(pSendBundle);
+
+					KBE_ASSERT(clientViewSize_ > 0);
+					--clientViewSize_;
+
+					VIEW_ENTITIES::iterator iter1 = viewEntities_.begin();
+					for (; iter1 != viewEntities_.end(); iter1++)
+					{
+						if ((*iter1)->id() == pEntityRef->id())
+						{
+							viewEntities_.erase(iter1);
+							break;
+						}
+					}
+
+					viewEntities_.push_back(pEntityRef);
+					updateEntitiesAliasID();
 				}
 			}
 
