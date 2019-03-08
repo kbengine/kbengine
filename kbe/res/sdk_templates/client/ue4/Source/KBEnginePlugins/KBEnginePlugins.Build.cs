@@ -15,18 +15,15 @@ public class KBEnginePlugins : ModuleRules
         string CryptoPPPath = Target.UEThirdPartySourceDirectory + "CryptoPP/5.6.5/lib/";
         string[] PrivateModules = new string[] { "CoreUObject", "Engine", "Slate", "SlateCore", "Networking", "Sockets" };
 
-        if (Target.Platform == UnrealTargetPlatform.Win64)
+        if (Target.Platform == UnrealTargetPlatform.Win64 && Directory.Exists(CryptoPPPath))
         {
-            if (Directory.Exists(CryptoPPPath))
-            {
-                List<string> PrivateModuleList = new List<string>(PrivateModules);
-                PrivateModuleList.Add("CryptoPP");
-                PrivateModules = PrivateModuleList.ToArray();
-            }
-            else
-            {
-                PublicDefinitions.Add("KBENGINE_NO_CRYPTO");
-            }
+            List<string> PrivateModuleList = new List<string>(PrivateModules);
+            PrivateModuleList.Add("CryptoPP");
+            PrivateModules = PrivateModuleList.ToArray();
+        }
+        else
+        {
+            PublicDefinitions.Add("KBENGINE_NO_CRYPTO");
         }
 
         PublicIncludePaths.AddRange(
