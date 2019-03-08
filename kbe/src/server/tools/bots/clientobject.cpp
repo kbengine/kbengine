@@ -104,9 +104,30 @@ void ClientObject::reset(void)
 	state_ = C_STATE_INIT;
 }
 
+void ClientObject::clearStates(void)
+{
+	if (pTCPPacketReceiverEx_)
+		Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+
+	pServerChannel_->stopSend();
+	pServerChannel_->pPacketSender(NULL);
+
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
+
+	if (pServerChannel_->pEndPoint())
+	{
+		pServerChannel_->pEndPoint()->destroySSL();
+		pServerChannel_->pEndPoint()->close();
+		pServerChannel_->pEndPoint(NULL);
+	}
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
+	clearStates();
+
 	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
@@ -173,14 +194,7 @@ bool ClientObject::initCreate()
 //-------------------------------------------------------------------------------------
 bool ClientObject::initLoginBaseapp()
 {
-	if(pTCPPacketReceiverEx_)
-		Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
-
-	pServerChannel_->stopSend();
-	pServerChannel_->pPacketSender(NULL);
-
-	SAFE_RELEASE(pTCPPacketSenderEx_);
-	SAFE_RELEASE(pTCPPacketReceiverEx_);
+	clearStates();
 
 	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	

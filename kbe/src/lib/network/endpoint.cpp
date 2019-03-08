@@ -110,15 +110,7 @@ EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj(const std::string& log
 //-------------------------------------------------------------------------------------
 void EndPoint::onReclaimObject()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	socket_ = INVALID_SOCKET;
-#else
-	socket_ = -1;
-#endif
-
-	address_ = Address::NONE;
-
-	destroySSL();
+	close();
 }
 
 //-------------------------------------------------------------------------------------

@@ -53,6 +53,11 @@ INLINE void Channel::pPacketSender(PacketSender* pPacketSender)
 	pPacketSender_ = pPacketSender;
 }
 
+INLINE void Channel::pPacketReceiver(PacketReceiver* pPacketReceiver)
+{
+	pPacketReceiver_ = pPacketReceiver;
+}
+
 INLINE void Channel::pushBundle(Bundle* pBundle)
 {
 	bundles_.push_back(pBundle);

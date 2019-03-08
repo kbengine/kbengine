@@ -150,6 +150,7 @@ public:
 	INLINE PacketSender* pPacketSender() const;
 	INLINE void pPacketSender(PacketSender* pPacketSender);
 	INLINE PacketReceiver* pPacketReceiver() const;
+	INLINE void pPacketReceiver(PacketReceiver* pPacketReceiver);
 
 	Traits traits() const { return traits_; }
 	bool isExternal() const { return traits_ == EXTERNAL; }
@@ -161,7 +162,8 @@ public:
 
 	const char * c_str() const;
 	ChannelID id() const	{ return id_; }
-	
+	void id(ChannelID v) { id_ = v; }
+
 	uint32	numPacketsSent() const		{ return numPacketsSent_; }
 	uint32	numPacketsReceived() const	{ return numPacketsReceived_; }
 	uint32	numBytesSent() const		{ return numBytesSent_; }
@@ -190,6 +192,14 @@ public:
 	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
+
+	void setFlags(bool add, uint32 flag)
+	{
+		if (add)
+			flags_ |= flag;
+		else
+			flags_ &= ~flag;
+	}
 
 	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }

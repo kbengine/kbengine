@@ -217,8 +217,15 @@ INLINE int EndPoint::quitMulticastGroup(u_int32_t networkAddr)
 INLINE int EndPoint::close()
 {
 	destroySSL();
+	address_ = Address::NONE;
 
-	if (socket_ == -1)
+#if KBE_PLATFORM == PLATFORM_WIN32
+	const KBESOCKET invalidSocket = INVALID_SOCKET;
+#else
+	const KBESOCKET invalidSocket = -1;
+#endif
+
+	if (socket_ == invalidSocket)
 	{
 		return 0;
 	}
@@ -231,7 +238,7 @@ INLINE int EndPoint::close()
 
 	if (ret == 0)
 	{
-		this->setFileDescriptor(-1);
+		this->setFileDescriptor(invalidSocket);
 	}
 
 	return ret;

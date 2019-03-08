@@ -67,6 +67,8 @@ public:
 	virtual void finalise();
 	virtual void reset(void);
 
+	void clearStates(void);
+
 	bool initCreate();
 	bool initLoginBaseapp();
 
