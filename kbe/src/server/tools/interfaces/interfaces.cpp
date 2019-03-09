@@ -145,6 +145,7 @@ bool Interfaces::initializeBegin()
 bool Interfaces::inInitialize()
 {
 	PythonApp::inInitialize();
+
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
 	return true;
