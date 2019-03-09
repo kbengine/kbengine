@@ -265,8 +265,9 @@ void Bots::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Bots::handleGameTick()
 {
-	// time_t t = ::time(NULL);
-	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	//time_t t = ::time(NULL);
+	//DEBUG_MSG(fmt::format("Bots::handleGameTick[{}]:{}\n", t, time_));
+
 	ClientApp::handleGameTick();
 
 	pEventPoller_->processPendingEvents(0.0);
@@ -577,8 +578,8 @@ void Bots::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE componentT
 		pTargetChannel = pChannel;
 	}
 
-	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
-	//	pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
+	//DEBUG_MSG(fmt::format("Bots::onAppActiveTick[:p]: {}:{} lastReceivedTime:{} at {}.\n",
+	//	(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pChannel->c_str()));
 }
 
 //-------------------------------------------------------------------------------------

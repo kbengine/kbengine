@@ -211,8 +211,8 @@ void Dbmgr::handleMainTick()
 {
 	AUTO_SCOPED_PROFILE("mainTick");
 	
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 // time_t t = ::time(NULL);
+	 // DEBUG_MSG(fmt::format("Dbmgr::handleGameTick[{}]:{}\n", t, time_));
 	
 	threadPool_.onMainThreadTick();
 	DBUtil::handleMainTick();
