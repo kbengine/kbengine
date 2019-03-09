@@ -129,7 +129,7 @@ void Baseappmgr::handleTimeout(TimerHandle handle, void * arg)
 void Baseappmgr::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG(fmt::format("Baseappmgr::handleGameTick[{}]:{}\n", t, time_));
+	// DEBUG_MSG(fmt::format("Baseappmgr::handleGameTick[{}]:{}\n", t, g_kbetime));
 	
 	++g_kbetime;
 	threadPool_.onMainThreadTick();

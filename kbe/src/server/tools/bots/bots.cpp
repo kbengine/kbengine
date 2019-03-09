@@ -278,7 +278,9 @@ void Bots::handleTimeout(TimerHandle handle, void * arg)
 void Bots::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	// static int kbeTime = 0;
+	// DEBUG_MSG(fmt::format("Bots::handleGameTick[{}]:{}\n", t, ++kbeTime));
+
 	ClientApp::handleGameTick();
 
 	pEventPoller_->processPendingEvents(0.0);
