@@ -15,7 +15,7 @@ public class KBEnginePlugins : ModuleRules
         string CryptoPPPath = Target.UEThirdPartySourceDirectory + "CryptoPP/5.6.5/lib/";
         string[] PrivateModules = new string[] { "CoreUObject", "Engine", "Slate", "SlateCore", "Networking", "Sockets" };
 
-        if (Directory.Exists(CryptoPPPath))
+        if (Target.Platform == UnrealTargetPlatform.Win64 && Directory.Exists(CryptoPPPath))
         {
             List<string> PrivateModuleList = new List<string>(PrivateModules);
             PrivateModuleList.Add("CryptoPP");

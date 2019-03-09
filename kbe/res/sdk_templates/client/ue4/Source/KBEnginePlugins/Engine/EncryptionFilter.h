@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "KBECommon.h"
 
 #ifndef KBENGINE_NO_CRYPTO
@@ -17,6 +17,8 @@ class MessageReader;
 class EncryptionFilter
 {
 public:
+	virtual ~EncryptionFilter() {}
+
 	virtual void encrypt(MemoryStream *pMemoryStream) = 0;
 	virtual void encrypt(uint8 *buf, MessageLengthEx len) = 0;
 	virtual void encrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len) = 0;
