@@ -118,9 +118,6 @@ void KBCMD::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void KBCMD::handleMainTick()
 {
-	//time_t t = ::time(NULL);
-	//DEBUG_MSG("KBCMD::handleGameTick[%"PRTime"]:%u\n", t, time_);
-
 	threadPool_.onMainThreadTick();
 }
 

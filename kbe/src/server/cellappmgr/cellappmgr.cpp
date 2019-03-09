@@ -190,8 +190,8 @@ void Cellappmgr::updateBestCellapp()
 //-------------------------------------------------------------------------------------
 void Cellappmgr::handleGameTick()
 {
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	// time_t t = ::time(NULL);
+	// DEBUG_MSG(fmt::format("Cellappmgr::handleGameTick[{}]:{}\n", t, time_));
 	
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
