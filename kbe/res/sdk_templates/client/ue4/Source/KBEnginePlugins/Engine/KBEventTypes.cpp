@@ -1,5 +1,3 @@
-#pragma once
-
 #include "KBEventTypes.h"
 
 const FString KBEventTypes::createAccount = "createAccount";
