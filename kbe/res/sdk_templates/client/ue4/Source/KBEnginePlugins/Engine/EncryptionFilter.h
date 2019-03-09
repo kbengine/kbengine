@@ -9,6 +9,7 @@
 #include "modes.h"
 #endif
 
+
 class MemoryStream;
 class PacketSender;
 class MessageReader;
@@ -16,6 +17,8 @@ class MessageReader;
 class EncryptionFilter
 {
 public:
+	virtual ~EncryptionFilter() {}
+
 	virtual void encrypt(MemoryStream *pMemoryStream) = 0;
 	virtual void encrypt(uint8 *buf, MessageLengthEx len) = 0;
 	virtual void encrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len) = 0;
