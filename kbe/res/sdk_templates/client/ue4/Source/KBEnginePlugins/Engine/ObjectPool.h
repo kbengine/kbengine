@@ -4,11 +4,14 @@ template<typename T>
 class ObjectPool
 {
 public:
+	typedef TDoubleLinkedList< T* > OBJECT_LIST;
+	typedef typename TDoubleLinkedList< T* >::TDoubleLinkedListNode OBJECT_NODE;
+
 	~ObjectPool()
 	{
 		while (objects_.Num() > 0)
 		{
-			TDoubleLinkedList< T* >::TDoubleLinkedListNode* node = objects_.GetHead();
+			OBJECT_NODE* node = objects_.GetHead();
 			T* t = node->GetValue();
 			delete t;
 			objects_.RemoveNode(node);
@@ -19,7 +22,7 @@ public:
 	{
 		if (objects_.Num() > 0)
 		{
-			TDoubleLinkedList< T* >::TDoubleLinkedListNode* node = objects_.GetHead();
+			OBJECT_NODE* node = objects_.GetHead();
 			T* t = node->GetValue();
 			objects_.RemoveNode(node);
 			return t;
@@ -37,5 +40,5 @@ public:
 	}
 
 private:
-	TDoubleLinkedList< T* > objects_;
+	OBJECT_LIST objects_;
 };
