@@ -173,7 +173,7 @@ void Cellappmgr::updateBestCellapp()
 void Cellappmgr::handleGameTick()
 {
 	//time_t t = ::time(NULL);
-	//DEBUG_MSG(fmt::format("Cellappmgr::handleGameTick[{}]:{}\n", t, time_));
+	//DEBUG_MSG(fmt::format("Cellappmgr::handleGameTick[{}]:{}\n", t, g_kbetime));
 	
 	++g_kbetime;
 	threadPool_.onMainThreadTick();

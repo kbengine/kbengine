@@ -109,8 +109,9 @@ void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Interfaces::handleMainTick()
 {
-	//time_t t = ::time(NULL);
-	//DEBUG_MSG(fmt::format("Interfaces::handleGameTick[{}]:{}\n", t, time_));
+	// time_t t = ::time(NULL);
+	// static int kbeTime = 0;
+	// DEBUG_MSG(fmt::format("Interfaces::handleGameTick[{}]:{}\n", t, ++kbeTime));
 	
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);

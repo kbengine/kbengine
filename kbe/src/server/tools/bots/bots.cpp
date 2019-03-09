@@ -265,8 +265,9 @@ void Bots::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Bots::handleGameTick()
 {
-	//time_t t = ::time(NULL);
-	//DEBUG_MSG(fmt::format("Bots::handleGameTick[{}]:{}\n", t, time_));
+	// time_t t = ::time(NULL);
+	// static int kbeTime = 0;
+	// DEBUG_MSG(fmt::format("Bots::handleGameTick[{}]:{}\n", t, ++kbeTime));
 
 	ClientApp::handleGameTick();
 

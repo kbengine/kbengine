@@ -698,7 +698,7 @@ template<class E>
 void EntityApp<E>::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG(fmt::format("EntityApp::handleGameTick[{}]:{}\n", t, time_));
+	// DEBUG_MSG(fmt::format("EntityApp::handleGameTick[{}]:{}\n", t, g_kbetime));
 
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
