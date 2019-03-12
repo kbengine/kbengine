@@ -109,6 +109,12 @@ bool EntityDef::finalise(bool isReload)
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityDef::isReload()
+{
+	return g_isReload;
+}
+
+//-------------------------------------------------------------------------------------
 void EntityDef::reload(bool fullReload)
 {
 	g_isReload = true;
@@ -1567,7 +1573,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		PyObject* pyModule = 
 			PyImport_ImportModule(const_cast<char*>(moduleName.c_str()));
 
-		if(g_isReload)
+		if (g_isReload && pyModule)
 			pyModule = PyImport_ReloadModule(pyModule);
 
 		// 检查该模块路径是否是KBE脚本目录下的，防止因用户取名与python模块名称冲突而误导入了系统模块
