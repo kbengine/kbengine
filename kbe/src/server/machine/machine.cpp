@@ -665,7 +665,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
 	uint64 cid = 0;
-	int16 gus = 0;
+	uint16 gus = 0;
 	std::string KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -1077,7 +1077,7 @@ void Machine::onSignalled(int sigNum)
 
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM != PLATFORM_WIN32
-uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, uint16 gus, 
 	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	uint16 childpid;
@@ -1154,7 +1154,7 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 
 #else
 
-DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus,
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, uint16 gus,
 	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	STARTUPINFO si;
