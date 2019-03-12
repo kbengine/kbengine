@@ -242,7 +242,7 @@ class Machines:
 		msg.writeInt32(self.uid)
 		msg.writeInt32(componentType)
 		msg.writeUint64(cid)
-		msg.writeInt16(gus)
+		msg.writeUint16(gus)
 		msg.writeUint16(socket.htons(self.replyPort)) # reply port
 		msg.writeString(kbe_root)
 		msg.writeString(kbe_res_path)
