@@ -178,6 +178,9 @@ public:
     bool isControlled() { return isControlled_; }
     void onControlled(bool p_controlled);
 
+	bool isPlayer();
+	DECLARE_PY_MOTHOD_ARG0(pyIsPlayer);
+
 protected:
 	EntityCall*								cellEntityCall_;					// 这个entity的cell-entityCall
 	EntityCall*								baseEntityCall_;					// 这个entity的base-entityCall
