@@ -97,13 +97,13 @@ public:
 	/**
 	* 在linux下启动一个新进程
 	*/
-	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, uint16 gus, 
 		std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH);
 #else
 	/**
 	* 在windows下启动一个新进程
 	*/
-	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, uint16 gus, 
 		std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH);
 #endif
 

@@ -36,7 +36,7 @@ static PyObject* __py_array(PyObject* self, PyObject* args)
 {
 	if (PyTuple_GET_SIZE(args) == 0)
 	{
-		PyErr_Format(PyExc_AssertionError, "Def.ARRAY: does not set itemType! should be like this \"Def.ARRAY(itemType)\"\n");
+		PyErr_Format(PyExc_AssertionError, "EntityDef.ARRAY: does not set itemType! should be like this \"EntityDef.ARRAY(itemType)\"\n");
 		return NULL;
 	}
 
@@ -473,7 +473,7 @@ static bool registerDefContext(DefContext& defContext)
 	{
 		if(!EntityDef::validDefPropertyName(name))
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: '%s' is limited!\n\n",
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s' is limited!\n\n",
 				defContext.optionName.c_str(), name.c_str());
 
 			return false;
@@ -492,7 +492,7 @@ static bool registerDefContext(DefContext& defContext)
 
 		if (!flagsGood)
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: '%s'(%s) not a valid %s property flags!\n\n",
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s'(%s) not a valid %s property flags!\n\n",
 				defContext.optionName.c_str(), name.c_str(), defContext.propertyFlags.c_str(), COMPONENT_NAME_EX(defContext.componentType));
 
 			return false;
@@ -513,7 +513,7 @@ static bool registerDefContext(DefContext& defContext)
 	{
 		if (!DataTypes::validTypeName(name))
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: Not allowed to use the prefix \"_\"! typeName=%s\n",
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: Not allowed to use the prefix \"_\"! typeName=%s\n",
 				defContext.optionName.c_str(), name.c_str());
 
 			return false;
@@ -547,7 +547,7 @@ static bool registerDefContext(DefContext& defContext)
 				return true;
 			}
 
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' already exists!\n",
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' already exists!\n",
 				defContext.optionName.c_str(), name.c_str());
 
 			return false;
@@ -767,7 +767,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
 	if (!pyComponentName)
 	{
-		PyErr_Format(PyExc_AssertionError, "Def.__py_def_call(): get KBEngine.component error!\n");
+		PyErr_Format(PyExc_AssertionError, "EntityDef.__py_def_call(): get KBEngine.component error!\n");
 		PY_RETURN_ERROR;
 	}
 
@@ -776,7 +776,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 	if (!args || PyTuple_Size(args) < 1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Def.__py_def_call(Def.%s): error!\n", defContext.optionName.c_str());
+		PyErr_Format(PyExc_AssertionError, "EntityDef.__py_def_call(EntityDef.%s): error!\n", defContext.optionName.c_str());
 		PY_RETURN_ERROR;
 	}
 
@@ -814,13 +814,13 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 		if (pyExposed && !PyBool_Check(pyExposed))
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'exposed\' error! not a bool type.\n", defContext.optionName.c_str());
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'exposed\' error! not a bool type.\n", defContext.optionName.c_str());
 			PY_RETURN_ERROR;
 		}
 
 		if (pyUtype && !PyLong_Check(pyUtype))
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
 			PY_RETURN_ERROR;
 		}
 
@@ -857,31 +857,31 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 			if (!pyFlags || !isRefEntityDefModule(pyFlags))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'flags\' must be referenced from the [Def.ALL_CLIENTS, Def.*] module!\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'flags\' must be referenced from the [EntityDef.ALL_CLIENTS, EntityDef.*] module!\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
 			if (!isRefEntityDefModule(pyIndex))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'index\' must be referenced from the [Def.UNIQUE, Def.INDEX] module!\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'index\' must be referenced from the [EntityDef.UNIQUE, EntityDef.INDEX] module!\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
 			if (pyDatabaseLength && !PyLong_Check(pyDatabaseLength))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
 			if (pyPersistent && !PyBool_Check(pyPersistent))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
 			if(pyUtype && !PyLong_Check(pyUtype))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'utype\' error! not a number type.\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
@@ -1022,7 +1022,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else
 	{
-		PyErr_Format(PyExc_AssertionError, "Def.%s: not support!\n", defContext.optionName.c_str());
+		PyErr_Format(PyExc_AssertionError, "EntityDef.%s: not support!\n", defContext.optionName.c_str());
 		PY_RETURN_ERROR;
 	}
 
@@ -1038,10 +1038,10 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			if (outs.size() != 2)
 			{
 				if(PyFunction_Check(pyFunc))
-					PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' must be defined in the entity module!\n", 
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' must be defined in the entity module!\n", 
 						defContext.optionName.c_str(), moduleQualname);
 				else
-					PyErr_Format(PyExc_AssertionError, "Def.%s: please check the command format is: Def.%s(..)\n", 
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: please check the command format is: EntityDef.%s(..)\n", 
 						defContext.optionName.c_str(), defContext.optionName.c_str());
 
 				PY_RETURN_ERROR;
@@ -1054,7 +1054,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		{
 			if (outs.size() != 1)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: error! such as: @Def.rename()\n\tdef ENTITY_ID() -> int: pass\n", defContext.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: error! such as: @EntityDef.rename()\n\tdef ENTITY_ID() -> EntityDef.INT32: pass\n", defContext.optionName.c_str());
 				PY_RETURN_ERROR;
 			}
 
@@ -1110,7 +1110,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 					Py_ssize_t argsSize = PyList_Size(pyGetMethodArgsResult);
 					if (argsSize == 0)
 					{
-						PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), moduleQualname);
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' did not find \'self\' parameter!\n", defContext.optionName.c_str(), moduleQualname);
 						PY_RETURN_ERROR;
 					}
 
@@ -1140,7 +1140,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 					std::string svalue = "";
 
-					// 如果是Def.Array则此处可能是一个tuple，参考__py_array
+					// 如果是EntityDef.Array则此处可能是一个tuple，参考__py_array
 					if (PyTuple_Check(value) && PyTuple_Size(value) == 2)
 					{
 						PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
@@ -1154,7 +1154,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 							if (std::string(skey) != "return")
 							{
-								PyErr_Format(PyExc_AssertionError, "Def.%s: \'Def.ARRAY\' Can only be used to define property types!\n", defContext.optionName.c_str());
+								PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'EntityDef.ARRAY\' Can only be used to define property types!\n", defContext.optionName.c_str());
 								PY_RETURN_ERROR;
 							}
 						}
@@ -1211,7 +1211,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		Py_ssize_t basesSize = PyTuple_Size(pyBases);
 		if (basesSize == 0)
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), moduleQualname);
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' does not inherit the KBEngine.Entity class!\n", defContext.optionName.c_str(), moduleQualname);
 			Py_XDECREF(pyBases);
 			PY_RETURN_ERROR;
 		}
@@ -1257,7 +1257,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	{
 		if (defContext.annotationsMaps.size() != defContext.argsvecs.size())
 		{
-			PyErr_Format(PyExc_AssertionError, "Def.%s: \'%s\' all parameters must have annotations!\n", defContext.optionName.c_str(), moduleQualname);
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' all parameters must have annotations!\n", defContext.optionName.c_str(), moduleQualname);
 			PY_RETURN_ERROR;
 		}
 
@@ -1365,7 +1365,7 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 	Py_XDECREF(cc.pyArgs.get());
 	Py_XDECREF(cc.pyKwargs.get());
 
-	// 类似这种定义方式 Def.rename(ENTITY_ID=int)
+	// 类似这种定义方式 EntityDef.rename(ENTITY_ID=EntityDef.INT32)
 	if (kwargs)
 	{
 		PyObject *key, *value;
@@ -1374,14 +1374,14 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 		while (PyDict_Next(kwargs, &pos, &key, &value)) {
 			if (!PyType_Check(value))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: arg2 not legal type! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
 				return NULL;
 			}
 
 			PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
 			if (!pyQualname)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: arg2 get __qualname__ error! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
 				return NULL;
 			}
 
@@ -1390,7 +1390,7 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 
 			if (!PyUnicode_Check(key))
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.%s: arg1 must be a string! such as: Def.rename(ENTITY_ID=int)\n", cc.optionName.c_str());
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg1 must be a string! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
 				return NULL;
 			}
 
@@ -1405,7 +1405,7 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 			PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
 			if (!pyComponentName)
 			{
-				PyErr_Format(PyExc_AssertionError, "Def.rename(): get KBEngine.component error!\n");
+				PyErr_Format(PyExc_AssertionError, "EntityDef.rename(): get KBEngine.component error!\n");
 				PY_RETURN_ERROR;
 			}
 
@@ -1421,8 +1421,79 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 
 	g_callContexts.push(cc);
 
-	// @Def.rename()
+	// @EntityDef.rename()
 	// def ENTITY_ID() -> int: pass
+	return PyCFunction_New(&__call_def_parse, self);
+}
+
+static PyObject* __py_def_fixed_array(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	CallContext cc;
+	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
+	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+	cc.optionName = "fixed_array";
+
+	Py_XDECREF(cc.pyArgs.get());
+	Py_XDECREF(cc.pyKwargs.get());
+
+	// 类似这种定义方式 EntityDef.fixed_array(XXArray=EntityDef.INT32)
+	if (kwargs)
+	{
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(kwargs, &pos, &key, &value)) {
+			if (!PyType_Check(value))
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+				return NULL;
+			}
+
+			PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
+			if (!pyQualname)
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+				return NULL;
+			}
+
+			std::string typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
+			Py_DECREF(pyQualname);
+
+			if (!PyUnicode_Check(key))
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg1 must be a string! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+				return NULL;
+			}
+
+			DefContext defContext;
+			defContext.optionName = cc.optionName;
+			defContext.moduleName = PyUnicode_AsUTF8AndSize(key, NULL);
+			defContext.returnType = typeName;
+
+			PyObject* kbeModule = PyImport_AddModule("KBEngine");
+			KBE_ASSERT(kbeModule);
+
+			PyObject* pyComponentName = PyObject_GetAttrString(kbeModule, "component");
+			if (!pyComponentName)
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.fixed_array(): get KBEngine.component error!\n");
+				PY_RETURN_ERROR;
+			}
+
+			defContext.componentType = ComponentName2ComponentType(PyUnicode_AsUTF8AndSize(pyComponentName, NULL));
+			Py_DECREF(pyComponentName);
+
+			if (!onDefRename(defContext))
+				return NULL;
+		}
+
+		S_Return;
+	}
+
+	g_callContexts.push(cc);
+
+	// @EntityDef.fixed_array()
+	// class XXXArray：
 	return PyCFunction_New(&__call_def_parse, self);
 }
 
@@ -1443,7 +1514,6 @@ PY_DEF_HOOK(entity)
 PY_DEF_HOOK(interface)
 PY_DEF_HOOK(component)
 PY_DEF_HOOK(fixed_dict)
-PY_DEF_HOOK(fixed_array)
 PY_DEF_HOOK(fixed_item)
 
 //-------------------------------------------------------------------------------------
@@ -2138,7 +2208,7 @@ bool initialize()
 	{
 		if (PyModule_AddStringConstant(entitydefModule, iter->first.c_str(), iter->first.c_str()))
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+			ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 				iter->first, iter->first));
 
 			return false;
@@ -2148,7 +2218,7 @@ bool initialize()
 	static const char* UNIQUE = "UNIQUE";
 	if (PyModule_AddStringConstant(entitydefModule, UNIQUE, UNIQUE))
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 			UNIQUE, UNIQUE));
 
 		return false;
@@ -2157,7 +2227,7 @@ bool initialize()
 	static const char* INDEX = "INDEX";
 	if (PyModule_AddStringConstant(entitydefModule, INDEX, INDEX))
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 			INDEX, INDEX));
 
 		return false;
@@ -2166,7 +2236,7 @@ bool initialize()
 	static const char* thisClass = "thisClass";
 	if (PyModule_AddStringConstant(entitydefModule, thisClass, thisClass))
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 			thisClass, thisClass));
 
 		return false;
@@ -2184,7 +2254,7 @@ bool initialize()
 		kbe_snprintf(allBaseTypeNames[idx], MAX_BUF, "%s", baseTypeNames[idx].c_str());
 		if (PyModule_AddStringConstant(entitydefModule, allBaseTypeNames[idx], allBaseTypeNames[idx]))
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set Def.{} to {}\n",
+			ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 				allBaseTypeNames[idx], allBaseTypeNames[idx]));
 
 			return false;
@@ -2227,6 +2297,7 @@ bool finalise(bool isReload)
 //-------------------------------------------------------------------------------------
 void reload(bool fullReload)
 {
+	g_inited = false;
 }
 
 //-------------------------------------------------------------------------------------
