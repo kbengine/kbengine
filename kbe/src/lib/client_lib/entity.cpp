@@ -623,6 +623,7 @@ void Entity::onBecomePlayer()
 
 		if(pyClass == NULL)
 		{
+			// 不在强制需要实现Player**类
 			PyErr_Clear();
 		}
 		else
