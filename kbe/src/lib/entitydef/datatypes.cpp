@@ -34,6 +34,9 @@ void DataTypes::finalise(void)
 	uid_dataTypes_.clear();
 	dataTypesLowerName_.clear();
 	dataTypes_.clear();
+	dataTypesOrders_.clear();
+
+	_g_baseTypeEndIndex = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -90,6 +93,10 @@ std::vector< std::string > DataTypes::getBaseTypeNames()
 //-------------------------------------------------------------------------------------
 bool DataTypes::loadTypes(std::string& file)
 {
+	// 允许纯脚本定义，则可能没有这个文件
+	if (access(file.c_str(), 0) != 0)
+		return true;
+
 	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
 	return loadTypes(xml);
 }
