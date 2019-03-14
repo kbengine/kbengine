@@ -52,6 +52,9 @@ void DataTypes::finalise(void)
 	uid_dataTypes_.clear();
 	dataTypesLowerName_.clear();
 	dataTypes_.clear();
+	dataTypesOrders_.clear();
+
+	_g_baseTypeEndIndex = 0;
 }
 
 //-------------------------------------------------------------------------------------

@@ -45,6 +45,7 @@ namespace client
 CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("isPlayer",					pyIsPlayer,						METH_VARARGS,				0)
 CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -374,7 +375,7 @@ PyObject* Entity::pyGetPosition()
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	if(pClientApp_->entityID() == this->id())
+	if(pyIsPlayer())
 		return;
 
 	EventData_PositionChanged eventdata;
@@ -430,7 +431,7 @@ PyObject* Entity::pyGetDirection()
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
-	if(pClientApp_->entityID() == this->id())
+	if(pyIsPlayer())
 		return;
 
 	EventData_DirectionChanged eventdata;
@@ -530,8 +531,8 @@ void Entity::onBecomePlayer()
 
 		if(pyClass == NULL)
 		{
-			SCRIPT_ERROR_CHECK();
-			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->pScriptModule_->getName(), moduleName));
+			// 不在强制需要实现Player**类
+			PyErr_Clear();
 		}
 		else
 		{
@@ -739,6 +740,21 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	pobj->cancelController(id);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::isPlayer()
+{
+	return id() == pClientApp_->entityID();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyIsPlayer()
+{
+	if (isPlayer())
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------
