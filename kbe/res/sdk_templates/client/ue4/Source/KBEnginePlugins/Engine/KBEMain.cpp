@@ -20,14 +20,14 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 	// ...
 
 	ip = TEXT("127.0.0.1");
-	port = @{KBE_LOGIN_PORT};
-	syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
-	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
+	port = 20013;
+	syncPlayerMS = 1000 / 10;
+	useAliasEntityID = true;
 	isOnInitCallPropertysSetMethods = true;
 	forceDisableUDP = false;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
 	networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
-	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
+	serverHeartbeatTick = 60;
 	TCP_SEND_BUFFER_MAX = TCP_PACKET_MAX;
 	TCP_RECV_BUFFER_MAX = TCP_PACKET_MAX;
 	UDP_SEND_BUFFER_MAX = 128;
@@ -67,6 +67,7 @@ void UKBEMain::BeginPlay()
 	pArgs->UDP_SEND_BUFFER_MAX = UDP_SEND_BUFFER_MAX;
 	pArgs->UDP_RECV_BUFFER_MAX = UDP_RECV_BUFFER_MAX;
 
+	KBEngineApp::destroyKBEngineApp();
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
@@ -96,23 +97,7 @@ void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 // Called every frame
 void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-
-	KBEvent::processOutEvents();
-
-	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	Entity* kbe_player = KBEngineApp::getSingleton().player();
-
-	// 每个tick将UE4的玩家坐标写入到KBE插件中的玩家实体坐标，插件会定期同步给服务器
-	if (kbe_player && ue4_player)
-	{
-		UE4Pos2KBPos(kbe_player->position, ue4_player->GetActorLocation());
-		UE4Dir2KBDir(kbe_player->direction, ue4_player->GetActorRotation());
-
-		kbe_player->isOnGround(ue4_player->GetMovementComponent() && ue4_player->GetMovementComponent()->IsMovingOnGround());
-	}
-
-	KBEngineApp::getSingleton().process();
+	
 }
 
 void UKBEMain::installEvents()
@@ -163,6 +148,7 @@ void UKBEMain::downloadSDKFromServer()
 		if(pUpdaterObj != nullptr)
 		{
 			delete pUpdaterObj;
+			pUpdaterObj = nullptr;
 		}
 	}
 }

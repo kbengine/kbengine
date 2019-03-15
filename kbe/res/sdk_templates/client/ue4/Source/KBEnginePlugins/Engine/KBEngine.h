@@ -1,10 +1,11 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "KBECommon.h"
 #include "ServerErrorDescrs.h"
 #include "Interfaces.h"
+#include "KBETicker.h"
 
 class KBEngineArgs;
 class Entity;
@@ -29,7 +30,7 @@ public:
 	
 public:
 	static KBEngineApp& getSingleton();
-
+	static void destroyKBEngineApp();
 public:
 	bool isInitialized() const {
 		return pArgs_ != NULL;
@@ -38,6 +39,9 @@ public:
 	bool initialize(KBEngineArgs* pArgs);
 	void destroy();
 	void reset();
+	
+	void installRealTimeUpdate();
+	void uninstallRealTimeUpdate();
 
 	NetworkInterfaceBase* pNetworkInterface() const {
 		return pNetworkInterface_;
@@ -510,6 +514,7 @@ protected:
 	FString component_;
 
 	EncryptionFilter *pFilter_;
+	UKBETicker *pUKBETicker_;
 
 };
 

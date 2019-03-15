@@ -1,4 +1,4 @@
-
+﻿
 #include "KBEngine.h"
 #include "KBEngineArgs.h"
 #include "Entity.h"
@@ -37,12 +37,12 @@ KBEngineApp::KBEngineApp() :
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
-	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
+	serverProtocolMD5_(TEXT("78D6E7A3B539900D86F0C2145E44AEB3")),
+	serverEntitydefMD5_(TEXT("90AA620FCF194B85FBE7A8E4F4F8F938")),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
-	useAliasEntityID_(@{KBE_USE_ALIAS_ENTITYID}),
+	useAliasEntityID_(true),
 	controlledEntities_(),
 	entityServerPos_(),
 	spacedatas_(),
@@ -56,9 +56,11 @@ KBEngineApp::KBEngineApp() :
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
 	component_(TEXT("client")),
-	pFilter_(NULL)
+	pFilter_(NULL),
+	pUKBETicker_(nullptr)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
+	installRealTimeUpdate();
 }
 
 KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
@@ -78,12 +80,12 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
-	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
+	serverProtocolMD5_(TEXT("78D6E7A3B539900D86F0C2145E44AEB3")),
+	serverEntitydefMD5_(TEXT("90AA620FCF194B85FBE7A8E4F4F8F938")),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
-	useAliasEntityID_(@{KBE_USE_ALIAS_ENTITYID}),
+	useAliasEntityID_(true),
 	controlledEntities_(),
 	entityServerPos_(),
 	spacedatas_(),
@@ -97,10 +99,12 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
 	component_(TEXT("client")),
-	pFilter_(NULL)
+	pFilter_(NULL),
+	pUKBETicker_(nullptr)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 	initialize(pArgs);
+	installRealTimeUpdate();
 }
 
 KBEngineApp::~KBEngineApp()
@@ -109,14 +113,24 @@ KBEngineApp::~KBEngineApp()
 	INFO_MSG("KBEngineApp::~KBEngineApp(): destructed!");
 }
 
+KBEngineApp* pKBEngineApp = nullptr;
+
 KBEngineApp& KBEngineApp::getSingleton() 
 {
-	static KBEngineApp* pKBEngineApp = NULL;
-
-	if (!pKBEngineApp)
+	if(!pKBEngineApp)
 		pKBEngineApp = new KBEngineApp();
 
 	return *pKBEngineApp;
+}
+
+void KBEngineApp::destroyKBEngineApp() 
+{
+	if(pKBEngineApp)
+	{
+		delete pKBEngineApp;
+		pKBEngineApp = nullptr;
+		KBEvent::clear();
+	}
 }
 
 bool KBEngineApp::initialize(KBEngineArgs* pArgs)
@@ -192,6 +206,7 @@ void KBEngineApp::destroy()
 	KBE_SAFE_RELEASE(pArgs_);
 	KBE_SAFE_RELEASE(pNetworkInterface_);
 	KBE_SAFE_RELEASE(pFilter_);
+	uninstallRealTimeUpdate();
 }
 
 void KBEngineApp::resetMessages()
@@ -217,9 +232,9 @@ void KBEngineApp::reset()
 	serverdatas_.Empty();
 
 	serverVersion_ = TEXT("");
-	clientVersion_ = TEXT("@{KBE_VERSION}");
+	clientVersion_ = TEXT("2.4.1");
 	serverScriptVersion_ = TEXT("");
-	clientScriptVersion_ = TEXT("@{KBE_SCRIPT_VERSION}");
+	clientScriptVersion_ = TEXT("0.1.0");
 
 	entity_uuid_ = 0;
 	entity_id_ = 0;
@@ -241,6 +256,24 @@ void KBEngineApp::reset()
 	baseappUdpPort_ = 0;
 
 	initNetwork();
+}
+
+void KBEngineApp::installRealTimeUpdate()
+{
+	if (pUKBETicker_ == nullptr)
+	{
+		pUKBETicker_ = NewObject<UKBETicker>();
+		pUKBETicker_->AddToRoot();
+	}
+}
+
+void KBEngineApp::uninstallRealTimeUpdate()
+{
+	if (pUKBETicker_)
+	{
+		pUKBETicker_->RemoveFromRoot();
+		pUKBETicker_ = nullptr;
+	}
 }
 
 bool KBEngineApp::initNetwork()
