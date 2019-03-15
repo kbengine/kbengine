@@ -140,6 +140,11 @@ bool ClientObject::initCreate()
 	}
 	
 	ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
+	if (infos.login_port_max > infos.login_port_min)
+	{
+		infos.login_port = infos.login_port_min + (rand() % (infos.login_port_max - infos.login_port_min + 1));
+	}
+
 	u_int32_t address;
 
 	Network::Address::string2ip(infos.login_ip, address);
