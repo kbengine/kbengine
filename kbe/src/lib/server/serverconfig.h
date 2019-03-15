@@ -185,6 +185,8 @@ typedef struct EngineComponentInfo
 
 	float loadSmoothingBias;								// baseapp负载滤平衡调整值， 
 	uint32 login_port;										// 服务器登录端口 目前bots在用
+	uint32 login_port_min;									// 服务器登录端口使用指定范围 目前bots在用
+	uint32 login_port_max;
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 
 	ENTITY_ID ids_criticallyLowSize;						// id剩余这么多个时向dbmgr申请新的id资源
