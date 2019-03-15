@@ -1322,9 +1322,21 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP);
 
-		node = xml->enterNode(rootNode, "port");	
+		node = xml->enterNode(rootNode, "port_min");	
 		if(node != NULL)
-			_botsInfo.login_port = xml->getValInt(node);
+			_botsInfo.login_port_min = xml->getValInt(node);
+
+		node = xml->enterNode(rootNode, "port_max");
+		if (node != NULL)
+			_botsInfo.login_port_max = xml->getValInt(node);
+
+		if (_botsInfo.login_port_min < 0)
+			_botsInfo.login_port_min = 0;
+			
+		if (_botsInfo.login_port_max < _botsInfo.login_port_min)
+			_botsInfo.login_port_max = _botsInfo.login_port_min;
+		
+		_botsInfo.login_port = _botsInfo.login_port_min;
 
 		node = xml->enterNode(rootNode, "isOnInitCallPropertysSetMethods");
 		if (node != NULL)
