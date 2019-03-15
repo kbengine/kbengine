@@ -146,6 +146,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									accountName,
 									std::string,									password)
 
+	// 前端请求从网关登出。
+	BASEAPP_MESSAGE_EXPOSED(logoutBaseapp)
+	BASEAPP_MESSAGE_DECLARE_ARGS2(logoutBaseapp,									NETWORK_FIXED_MESSAGE,
+									uint64,											key,
+									ENTITY_ID,										entityID)
+
 	// 前端请求重新登录到网关上。
 	BASEAPP_MESSAGE_EXPOSED(reloginBaseapp)
 	BASEAPP_MESSAGE_DECLARE_ARGS4(reloginBaseapp,									NETWORK_VARIABLE_MESSAGE,
@@ -303,12 +309,6 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 客户端直接发送消息给cell实体
 	ENTITY_MESSAGE_EXPOSED(forwardEntityMessageToCellappFromClient)
 	ENTITY_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,			NETWORK_VARIABLE_MESSAGE)
-	
-	// 某个entity请求teleport到本entity的space上
-	ENTITY_MESSAGE_DECLARE_ARGS3(reqTeleportOther,									NETWORK_FIXED_MESSAGE,
-								ENTITY_ID,											reqTeleportEntityID,
-								COMPONENT_ID,										reqTeleportEntityAppID,
-								COMPONENT_ID,										reqTeleportEntityBaseAppID)
 
 	// 某个entity请求teleport后的回调结果
 	ENTITY_MESSAGE_DECLARE_ARGS2(onTeleportCB,										NETWORK_FIXED_MESSAGE,

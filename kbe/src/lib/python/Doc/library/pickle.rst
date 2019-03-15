@@ -1,6 +1,14 @@
 :mod:`pickle` --- Python object serialization
 =============================================
 
+.. module:: pickle
+   :synopsis: Convert Python objects to streams of bytes and back.
+
+.. sectionauthor:: Jim Kerr <jbkerr@sr.hp.com>.
+.. sectionauthor:: Barry Warsaw <barry@python.org>
+
+**Source code:** :source:`Lib/pickle.py`
+
 .. index::
    single: persistence
    pair: persistent; objects
@@ -9,11 +17,7 @@
    pair: flattening; objects
    pair: pickling; objects
 
-.. module:: pickle
-   :synopsis: Convert Python objects to streams of bytes and back.
-.. sectionauthor:: Jim Kerr <jbkerr@sr.hp.com>.
-.. sectionauthor:: Barry Warsaw <barry@python.org>
-
+--------------
 
 The :mod:`pickle` module implements binary protocols for serializing and
 de-serializing a Python object structure.  *"Pickling"* is the process
@@ -26,9 +30,9 @@ avoid confusion, the terms used here are "pickling" and "unpickling".
 
 .. warning::
 
-   The :mod:`pickle` module is not intended to be secure against erroneous or
-   maliciously constructed data.  Never unpickle data received from an untrusted
-   or unauthenticated source.
+   The :mod:`pickle` module is not secure against erroneous or maliciously
+   constructed data.  Never unpickle data received from an untrusted or
+   unauthenticated source.
 
 
 Relationship to other Python modules
@@ -67,7 +71,9 @@ The :mod:`pickle` module differs from :mod:`marshal` in several significant ways
   :file:`.pyc` files, the Python implementers reserve the right to change the
   serialization format in non-backwards compatible ways should the need arise.
   The :mod:`pickle` serialization format is guaranteed to be backwards compatible
-  across Python releases.
+  across Python releases provided a compatible pickle protocol is chosen and
+  pickling and unpickling code deals with Python 2 to Python 3 type differences
+  if your data is crossing that unique breaking change language boundary.
 
 Comparison with ``json``
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -192,7 +198,7 @@ process more convenient:
    number is specified, :data:`HIGHEST_PROTOCOL` is selected.
 
    The *file* argument must have a write() method that accepts a single bytes
-   argument.  It can thus be an on-disk file opened for binary writing, a
+   argument.  It can thus be an on-disk file opened for binary writing, an
    :class:`io.BytesIO` instance, or any other custom object that meets this
    interface.
 
@@ -221,7 +227,7 @@ process more convenient:
    The argument *file* must have two methods, a read() method that takes an
    integer argument, and a readline() method that requires no arguments.  Both
    methods should return bytes.  Thus *file* can be an on-disk file opened for
-   binary reading, a :class:`io.BytesIO` object, or any other custom object
+   binary reading, an :class:`io.BytesIO` object, or any other custom object
    that meets this interface.
 
    Optional keyword arguments are *fix_imports*, *encoding* and *errors*,
@@ -231,11 +237,14 @@ process more convenient:
    *errors* tell pickle how to decode 8-bit string instances pickled by Python
    2; these default to 'ASCII' and 'strict', respectively.  The *encoding* can
    be 'bytes' to read these 8-bit string instances as bytes objects.
+   Using ``encoding='latin1'`` is required for unpickling NumPy arrays and
+   instances of :class:`~datetime.datetime`, :class:`~datetime.date` and
+   :class:`~datetime.time` pickled by Python 2.
 
 .. function:: loads(bytes_object, \*, fix_imports=True, encoding="ASCII", errors="strict")
 
    Read a pickled object hierarchy from a :class:`bytes` object and return the
-   reconstituted object hierarchy specified therein
+   reconstituted object hierarchy specified therein.
 
    The protocol version of the pickle is detected automatically, so no
    protocol argument is needed.  Bytes past the pickled object's
@@ -248,6 +257,9 @@ process more convenient:
    *errors* tell pickle how to decode 8-bit string instances pickled by Python
    2; these default to 'ASCII' and 'strict', respectively.  The *encoding* can
    be 'bytes' to read these 8-bit string instances as bytes objects.
+   Using ``encoding='latin1'`` is required for unpickling NumPy arrays and
+   instances of :class:`~datetime.datetime`, :class:`~datetime.date` and
+   :class:`~datetime.time` pickled by Python 2.
 
 
 The :mod:`pickle` module defines three exceptions:
@@ -288,7 +300,7 @@ The :mod:`pickle` module exports two classes, :class:`Pickler` and
    number is specified, :data:`HIGHEST_PROTOCOL` is selected.
 
    The *file* argument must have a write() method that accepts a single bytes
-   argument.  It can thus be an on-disk file opened for binary writing, a
+   argument.  It can thus be an on-disk file opened for binary writing, an
    :class:`io.BytesIO` instance, or any other custom object that meets this
    interface.
 
@@ -357,7 +369,7 @@ The :mod:`pickle` module exports two classes, :class:`Pickler` and
    The argument *file* must have two methods, a read() method that takes an
    integer argument, and a readline() method that requires no arguments.  Both
    methods should return bytes.  Thus *file* can be an on-disk file object
-   opened for binary reading, a :class:`io.BytesIO` object, or any other
+   opened for binary reading, an :class:`io.BytesIO` object, or any other
    custom object that meets this interface.
 
    Optional keyword arguments are *fix_imports*, *encoding* and *errors*,
@@ -366,7 +378,7 @@ The :mod:`pickle` module exports two classes, :class:`Pickler` and
    Python 2 names to the new names used in Python 3.  The *encoding* and
    *errors* tell pickle how to decode 8-bit string instances pickled by Python
    2; these default to 'ASCII' and 'strict', respectively.  The *encoding* can
-   be 'bytes' to read these ß8-bit string instances as bytes objects.
+   be 'bytes' to read these 8-bit string instances as bytes objects.
 
    .. method:: load()
 
@@ -425,7 +437,7 @@ The following types can be pickled:
 Attempts to pickle unpicklable objects will raise the :exc:`PicklingError`
 exception; when this happens, an unspecified number of bytes may have already
 been written to the underlying file.  Trying to pickle a highly recursive data
-structure may exceed the maximum recursion depth, a :exc:`RuntimeError` will be
+structure may exceed the maximum recursion depth, a :exc:`RecursionError` will be
 raised in this case.  You can carefully raise this limit with
 :func:`sys.setrecursionlimit`.
 
@@ -488,7 +500,7 @@ methods:
 
 .. method:: object.__getnewargs_ex__()
 
-   In protocols 4 and newer, classes that implements the
+   In protocols 2 and newer, classes that implements the
    :meth:`__getnewargs_ex__` method can dictate the values passed to the
    :meth:`__new__` method upon unpickling.  The method must return a pair
    ``(args, kwargs)`` where *args* is a tuple of positional arguments
@@ -500,15 +512,22 @@ methods:
    class requires keyword-only arguments.  Otherwise, it is recommended for
    compatibility to implement :meth:`__getnewargs__`.
 
+   .. versionchanged:: 3.6
+      :meth:`__getnewargs_ex__` is now used in protocols 2 and 3.
+
 
 .. method:: object.__getnewargs__()
 
-   This method serve a similar purpose as :meth:`__getnewargs_ex__` but
-   for protocols 2 and newer.  It must return a tuple of arguments `args`
-   which will be passed to the :meth:`__new__` method upon unpickling.
+   This method serves a similar purpose as :meth:`__getnewargs_ex__`, but
+   supports only positional arguments.  It must return a tuple of arguments
+   ``args`` which will be passed to the :meth:`__new__` method upon unpickling.
 
-   In protocols 4 and newer, :meth:`__getnewargs__` will not be called if
-   :meth:`__getnewargs_ex__` is defined.
+   :meth:`__getnewargs__` will not be called if :meth:`__getnewargs_ex__` is
+   defined.
+
+   .. versionchanged:: 3.6
+      Before Python 3.6, :meth:`__getnewargs__` was called instead of
+      :meth:`__getnewargs_ex__` in protocols 2 and 3.
 
 
 .. method:: object.__getstate__()
@@ -859,7 +878,7 @@ For the simplest code, use the :func:`dump` and :func:`load` functions. ::
    data = {
        'a': [1, 2.0, 3, 4+6j],
        'b': ("character string", b"byte string"),
-       'c': set([None, True, False])
+       'c': {None, True, False}
    }
 
    with open('data.pickle', 'wb') as f:

@@ -21,45 +21,37 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErrHook::info_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErrHook::info_msg(const char* msg, uint32 msglen)
 {
 	if(isPrint_)
 		ScriptStdOutErr::info_msg(msg, msglen);
 
-	std::wstring str;
-	str.assign(msg, msglen);
-	wbuffer_ += str;
+	buffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		if(buffer_)
+		if(pBuffer_)
 		{
-			std::string out;
-			strutil::wchar2utf8(wbuffer_, out);		
-			(*buffer_) += out;
-			wbuffer_ = L"";
+			(*pBuffer_) += buffer_;
+			buffer_ = "";
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErrHook::error_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErrHook::error_msg(const char* msg, uint32 msglen)
 {
 	if(isPrint_)
 		ScriptStdOutErr::error_msg(msg, msglen);
 
-	std::wstring str;
-	str.assign(msg, msglen);
-	wbuffer_ += str;
+	buffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		if(buffer_)
+		if(pBuffer_)
 		{
-			std::string out;
-			strutil::wchar2utf8(wbuffer_, out);		
-			(*buffer_) += out;
-			wbuffer_ = L"";
+			(*pBuffer_) += buffer_;
+			buffer_ = "";
 		}
 	}
 }

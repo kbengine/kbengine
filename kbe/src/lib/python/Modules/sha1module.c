@@ -18,13 +18,19 @@
 
 #include "Python.h"
 #include "hashlib.h"
+#include "pystrhex.h"
 
+/*[clinic input]
+module _sha1
+class SHA1Type "SHA1object *" "&PyType_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=3dc9a20d1becb759]*/
 
 /* Some useful types */
 
 #if SIZEOF_INT == 4
 typedef unsigned int SHA1_INT32;        /* 32-bit integer */
-typedef PY_LONG_LONG SHA1_INT64;        /* 64-bit integer */
+typedef long long SHA1_INT64;        /* 64-bit integer */
 #else
 /* not defined. compilation will die. */
 #endif
@@ -48,6 +54,7 @@ typedef struct {
     struct sha1_state hash_state;
 } SHA1object;
 
+#include "clinic/sha1module.c.h"
 
 /* ------------------------------------------------------------------------
  *
@@ -309,10 +316,15 @@ SHA1_dealloc(PyObject *ptr)
 
 /* External methods for a hash object */
 
-PyDoc_STRVAR(SHA1_copy__doc__, "Return a copy of the hash object.");
+/*[clinic input]
+SHA1Type.copy
+
+Return a copy of the hash object.
+[clinic start generated code]*/
 
 static PyObject *
-SHA1_copy(SHA1object *self, PyObject *unused)
+SHA1Type_copy_impl(SHA1object *self)
+/*[clinic end generated code: output=b4e001264620f02a input=b7eae10df6f89b36]*/
 {
     SHA1object *newobj;
 
@@ -323,11 +335,15 @@ SHA1_copy(SHA1object *self, PyObject *unused)
     return (PyObject *)newobj;
 }
 
-PyDoc_STRVAR(SHA1_digest__doc__,
-"Return the digest value as a string of binary data.");
+/*[clinic input]
+SHA1Type.digest
+
+Return the digest value as a bytes object.
+[clinic start generated code]*/
 
 static PyObject *
-SHA1_digest(SHA1object *self, PyObject *unused)
+SHA1Type_digest_impl(SHA1object *self)
+/*[clinic end generated code: output=2f05302a7aa2b5cb input=13824b35407444bd]*/
 {
     unsigned char digest[SHA1_DIGESTSIZE];
     struct sha1_state temp;
@@ -337,68 +353,54 @@ SHA1_digest(SHA1object *self, PyObject *unused)
     return PyBytes_FromStringAndSize((const char *)digest, SHA1_DIGESTSIZE);
 }
 
-PyDoc_STRVAR(SHA1_hexdigest__doc__,
-"Return the digest value as a string of hexadecimal digits.");
+/*[clinic input]
+SHA1Type.hexdigest
+
+Return the digest value as a string of hexadecimal digits.
+[clinic start generated code]*/
 
 static PyObject *
-SHA1_hexdigest(SHA1object *self, PyObject *unused)
+SHA1Type_hexdigest_impl(SHA1object *self)
+/*[clinic end generated code: output=4161fd71e68c6659 input=97691055c0c74ab0]*/
 {
     unsigned char digest[SHA1_DIGESTSIZE];
     struct sha1_state temp;
-    PyObject *retval;
-    Py_UCS1 *hex_digest;
-    int i, j;
 
     /* Get the raw (binary) digest value */
     temp = self->hash_state;
     sha1_done(&temp, digest);
 
-    /* Create a new string */
-    retval = PyUnicode_New(SHA1_DIGESTSIZE * 2, 127);
-    if (!retval)
-            return NULL;
-    hex_digest = PyUnicode_1BYTE_DATA(retval);
-
-    /* Make hex version of the digest */
-    for(i=j=0; i<SHA1_DIGESTSIZE; i++) {
-        unsigned char c;
-        c = (digest[i] >> 4) & 0xf;
-        hex_digest[j++] = Py_hexdigits[c];
-        c = (digest[i] & 0xf);
-        hex_digest[j++] = Py_hexdigits[c];
-    }
-#ifdef Py_DEBUG
-    assert(_PyUnicode_CheckConsistency(retval, 1));
-#endif
-    return retval;
+    return _Py_strhex((const char *)digest, SHA1_DIGESTSIZE);
 }
 
-PyDoc_STRVAR(SHA1_update__doc__,
-"Update this hash object's state with the provided string.");
+/*[clinic input]
+SHA1Type.update
+
+    obj: object
+    /
+
+Update this hash object's state with the provided string.
+[clinic start generated code]*/
 
 static PyObject *
-SHA1_update(SHA1object *self, PyObject *args)
+SHA1Type_update(SHA1object *self, PyObject *obj)
+/*[clinic end generated code: output=d9902f0e5015e9ae input=aad8e07812edbba3]*/
 {
-    PyObject *obj;
     Py_buffer buf;
-
-    if (!PyArg_ParseTuple(args, "O:update", &obj))
-        return NULL;
 
     GET_BUFFER_VIEW_OR_ERROUT(obj, &buf);
 
     sha1_process(&self->hash_state, buf.buf, buf.len);
 
     PyBuffer_Release(&buf);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef SHA1_methods[] = {
-    {"copy",      (PyCFunction)SHA1_copy,      METH_NOARGS,  SHA1_copy__doc__},
-    {"digest",    (PyCFunction)SHA1_digest,    METH_NOARGS,  SHA1_digest__doc__},
-    {"hexdigest", (PyCFunction)SHA1_hexdigest, METH_NOARGS,  SHA1_hexdigest__doc__},
-    {"update",    (PyCFunction)SHA1_update,    METH_VARARGS, SHA1_update__doc__},
+    SHA1TYPE_COPY_METHODDEF
+    SHA1TYPE_DIGEST_METHODDEF
+    SHA1TYPE_HEXDIGEST_METHODDEF
+    SHA1TYPE_UPDATE_METHODDEF
     {NULL,        NULL}         /* sentinel */
 };
 
@@ -440,7 +442,7 @@ static PyGetSetDef SHA1_getseters[] = {
 static PyTypeObject SHA1type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_sha1.sha1",               /*tp_name*/
-    sizeof(SHA1object), /*tp_size*/
+    sizeof(SHA1object), /*tp_basicsize*/
     0,                  /*tp_itemsize*/
     /* methods */
     SHA1_dealloc,       /*tp_dealloc*/
@@ -474,27 +476,26 @@ static PyTypeObject SHA1type = {
 
 /* The single module-level function: new() */
 
-PyDoc_STRVAR(SHA1_new__doc__,
-"Return a new SHA1 hash object; optionally initialized with a string.");
+/*[clinic input]
+_sha1.sha1
+
+    string: object(c_default="NULL") = b''
+
+Return a new SHA1 hash object; optionally initialized with a string.
+[clinic start generated code]*/
 
 static PyObject *
-SHA1_new(PyObject *self, PyObject *args, PyObject *kwdict)
+_sha1_sha1_impl(PyObject *module, PyObject *string)
+/*[clinic end generated code: output=e5982830d1dece51 input=27ea54281d995ec2]*/
 {
-    static char *kwlist[] = {"string", NULL};
     SHA1object *new;
-    PyObject *data_obj = NULL;
     Py_buffer buf;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwdict, "|O:new", kwlist,
-                                     &data_obj)) {
-        return NULL;
-    }
-
-    if (data_obj)
-        GET_BUFFER_VIEW_OR_ERROUT(data_obj, &buf);
+    if (string)
+        GET_BUFFER_VIEW_OR_ERROUT(string, &buf);
 
     if ((new = newSHA1object()) == NULL) {
-        if (data_obj)
+        if (string)
             PyBuffer_Release(&buf);
         return NULL;
     }
@@ -503,11 +504,11 @@ SHA1_new(PyObject *self, PyObject *args, PyObject *kwdict)
 
     if (PyErr_Occurred()) {
         Py_DECREF(new);
-        if (data_obj)
+        if (string)
             PyBuffer_Release(&buf);
         return NULL;
     }
-    if (data_obj) {
+    if (string) {
         sha1_process(&new->hash_state, buf.buf, buf.len);
         PyBuffer_Release(&buf);
     }
@@ -519,7 +520,7 @@ SHA1_new(PyObject *self, PyObject *args, PyObject *kwdict)
 /* List of functions exported by this module */
 
 static struct PyMethodDef SHA1_functions[] = {
-    {"sha1",(PyCFunction)SHA1_new, METH_VARARGS|METH_KEYWORDS,SHA1_new__doc__},
+    _SHA1_SHA1_METHODDEF
     {NULL,      NULL}            /* Sentinel */
 };
 

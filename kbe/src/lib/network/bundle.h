@@ -71,9 +71,9 @@ class Bundle : public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Bundle > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Bundle>& ObjPool();
-	static Bundle* createPoolObject();
+	static Bundle* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Bundle* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
@@ -104,6 +104,8 @@ public:
 	void clear(bool isRecl);
 	bool empty() const;
 	
+	void copy(const Bundle& bundle);
+
 	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
 

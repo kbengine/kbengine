@@ -54,7 +54,6 @@ pShutdowner_(NULL),
 pActiveTimerHandle_(NULL),
 threadPool_()
 {
-	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
@@ -125,8 +124,8 @@ bool ServerApp::loadConfig()
 bool ServerApp::installSignals()
 {
 	g_kbeSignalHandlers.attachApp(this);
+	g_kbeSignalHandlers.ignoreSignal(SIGPIPE);
 	g_kbeSignalHandlers.addSignal(SIGINT, this);
-	g_kbeSignalHandlers.addSignal(SIGPIPE, this);
 	g_kbeSignalHandlers.addSignal(SIGHUP, this);
 	return true;
 }
@@ -156,9 +155,9 @@ bool ServerApp::initialize()
 		return false;
 
 #ifdef ENABLE_WATCHERS
-	return ret && initializeWatcher();
+	return ret && Network::initialize() && initializeWatcher();
 #else
-	return ret;
+	return ret && Network::initialize();
 #endif
 }
 
@@ -189,13 +188,13 @@ void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	std::string path;
 	s >> path;
 
-	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj();
+	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj(OBJECTPOOL_POINT);
 	WatcherPaths::root().readWatchers(path, readStreamPtr.get()->get());
 
-	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj();
+	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj(OBJECTPOOL_POINT);
 	WatcherPaths::root().readChildPaths(path, path, readStreamPtr1.get()->get());
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 
@@ -204,7 +203,7 @@ void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	(*pBundle).append(readStreamPtr.get()->get());
 	pChannel->send(pBundle);
 
-	Network::Bundle* pBundle1 = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle1 = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle1).newMessage(msgHandler);
 
 	type = 1;
@@ -287,8 +286,9 @@ void ServerApp::onChannelDeregister(Network::Channel * pChannel)
 void ServerApp::onChannelTimeOut(Network::Channel * pChannel)
 {
 	INFO_MSG(fmt::format("ServerApp::onChannelTimeOut: "
-		"Channel {0} timed out.\n", pChannel->c_str()));
+		"Channel {0} timeout!\n", pChannel->c_str()));
 
+	pChannel->condemn("timedout");
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
 	Network::Channel::reclaimPoolObject(pChannel);
@@ -441,8 +441,8 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		cinfos->pChannel->updateLastReceivedTime();
 	}
 
-	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
-	//	pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
+	//DEBUG_MSG(fmt::format("ServerApp::onAppActiveTick[:p]: {}:{} lastReceivedTime:{} at {}.\n",
+	//	(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pChannel->c_str()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -464,7 +464,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 
 	//DEBUG_MSG(fmt::format("ServerApp::lookApp: {}, componentID={}\n", pChannel->c_str(), g_componentID));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
@@ -485,7 +485,7 @@ void ServerApp::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 	
 	DEBUG_MSG(fmt::format("ServerApp::reqCloseServer: {}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	bool success = true;
 	(*pBundle) << success;

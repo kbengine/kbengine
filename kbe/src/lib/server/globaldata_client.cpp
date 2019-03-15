@@ -55,7 +55,7 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Map::write:unpickle is error. key={}, val={}\n",
+		ERROR_MSG(fmt::format("Map::write:unpickle error. key={}, val={}\n",
 			(pyKey ? PyBytes_AsString(pyKey) : "NULL"), (pyValue ? PyBytes_AsString(pyValue)  : "NULL")));
 
 		PyErr_Print();
@@ -87,7 +87,7 @@ bool GlobalDataClient::del(PyObject* pyKey)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Map::del: delete key is error! key={}.\n", "NULL"));
+		ERROR_MSG(fmt::format("Map::del: delete key error! key={}.\n", "NULL"));
 		PyErr_Print();
 	}
 
@@ -113,7 +113,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 		Network::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
 		
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChanged);
 		

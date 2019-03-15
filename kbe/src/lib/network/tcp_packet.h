@@ -14,9 +14,9 @@ class TCPPacket : public Packet
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacket > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<TCPPacket>& ObjPool();
-	static TCPPacket* createPoolObject();
+	static TCPPacket* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(TCPPacket* obj);
 	static void destroyObjPool();
 

@@ -334,7 +334,7 @@ NavTileHandle* NavTileHandle::_create(const std::string& res)
 
 	if (map->HasError()) 
 	{
-		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) is error!\n", res));
+		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) error!\n", res));
 		delete map;
 		return NULL;
 	}

@@ -545,9 +545,6 @@ class NamedNodeMap(object):
     def __lt__(self, other):
         return self._cmp(other) < 0
 
-    def __ne__(self, other):
-        return self._cmp(other) != 0
-
     def __getitem__(self, attname_or_tuple):
         if isinstance(attname_or_tuple, tuple):
             return self._attrsNS[attname_or_tuple]
@@ -648,9 +645,10 @@ class TypeInfo(object):
 
     def __repr__(self):
         if self.namespace:
-            return "<TypeInfo %r (from %r)>" % (self.name, self.namespace)
+            return "<%s %r (from %r)>" % (self.__class__.__name__, self.name,
+                                          self.namespace)
         else:
-            return "<TypeInfo %r>" % self.name
+            return "<%s %r>" % (self.__class__.__name__, self.name)
 
     def _get_name(self):
         return self.name
@@ -1320,7 +1318,7 @@ class DocumentType(Identified, Childless, Node):
                     entity.encoding = e.encoding
                     entity.version = e.version
                     clone.entities._seq.append(entity)
-                    e._call_user_data_handler(operation, n, entity)
+                    e._call_user_data_handler(operation, e, entity)
             self._call_user_data_handler(operation, self, clone)
             return clone
         else:
@@ -1923,7 +1921,7 @@ def _clone_node(node, deep, newOwnerDocument):
                 entity.ownerDocument = newOwnerDocument
                 clone.entities._seq.append(entity)
                 if hasattr(e, '_call_user_data_handler'):
-                    e._call_user_data_handler(operation, n, entity)
+                    e._call_user_data_handler(operation, e, entity)
     else:
         # Note the cloning of Document and DocumentType nodes is
         # implementation specific.  minidom handles those cases

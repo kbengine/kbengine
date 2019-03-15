@@ -69,11 +69,12 @@ public:
 	/** 
 		初始化相关接口 
 	*/
+	bool initialize();
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
 	
-	virtual bool canShutdown();
+	virtual ShutdownHandler::CAN_SHUTDOWN_STATE canShutdown();
 	virtual void onShutdownBegin();
 	virtual void onShutdown(bool first);
 	virtual void onShutdownEnd();
@@ -280,6 +281,11 @@ public:
 		新用户请求登录到网关上
 	*/
 	void loginBaseapp(Network::Channel* pChannel, std::string& accountName, std::string& password);
+
+	/** 网络接口
+		到网关上登出，仅仅断开连接并触发实体的onClientDead，实体销毁由用户决定
+	*/
+	void logoutBaseapp(Network::Channel* pChannel, uint64 key, ENTITY_ID entityID);
 
 	/**
 		踢出一个Channel

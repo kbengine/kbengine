@@ -57,7 +57,7 @@
     <ClCompile Include="timestamp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="format.cpp">
+    <ClCompile Include="ssl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -134,7 +134,7 @@
     <ClInclude Include="timestamp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="format.h">
+    <ClInclude Include="ssl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,13 +1,15 @@
 BIN  = bots
 SRCS =						\
 	bots					\
-	bots_interface				\
-	clientobject				\
-	create_and_login_handler		\
+	bots_interface			\
+	clientobject			\
+	create_and_login_handler\
 	profile					\
 	main					\
 	pybots					\
-	tcp_packet_receiver_ex			\
+	kcp_packet_receiver_ex	\
+	kcp_packet_sender_ex	\
+	tcp_packet_receiver_ex	\
 	tcp_packet_sender_ex
 
 ASMS =

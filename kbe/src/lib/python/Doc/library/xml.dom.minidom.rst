@@ -3,6 +3,7 @@
 
 .. module:: xml.dom.minidom
    :synopsis: Minimal Document Object Model (DOM) implementation.
+
 .. moduleauthor:: Paul Prescod <paul@prescod.net>
 .. sectionauthor:: Paul Prescod <paul@prescod.net>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
@@ -15,7 +16,7 @@
 Model interface, with an API similar to that in other languages.  It is intended
 to be simpler than the full DOM and also significantly smaller.  Users who are
 not already proficient with the DOM should consider using the
-:mod:`xml.etree.ElementTree` module for their XML processing instead
+:mod:`xml.etree.ElementTree` module for their XML processing instead.
 
 
 .. warning::
@@ -30,10 +31,10 @@ DOM applications typically start by parsing some XML into a DOM.  With
 
    from xml.dom.minidom import parse, parseString
 
-   dom1 = parse('c:\\temp\\mydata.xml') # parse an XML file by name
+   dom1 = parse('c:\\temp\\mydata.xml')  # parse an XML file by name
 
    datasource = open('c:\\temp\\mydata.xml')
-   dom2 = parse(datasource)   # parse an open file
+   dom2 = parse(datasource)  # parse an open file
 
    dom3 = parseString('<myxml>Some data<empty/> some more data</myxml>')
 
@@ -54,7 +55,7 @@ instead:
 
 .. function:: parseString(string, parser=None)
 
-   Return a :class:`Document` that represents the *string*. This method creates a
+   Return a :class:`Document` that represents the *string*. This method creates an
    :class:`io.StringIO` object for the string and passes that on to :func:`parse`.
 
 Both functions return a :class:`Document` object representing the content of the
@@ -93,14 +94,14 @@ document: the one that holds all others.  Here is an example program::
 
 When you are finished with a DOM tree, you may optionally call the
 :meth:`unlink` method to encourage early cleanup of the now-unneeded
-objects.  :meth:`unlink` is a :mod:`xml.dom.minidom`\ -specific
+objects.  :meth:`unlink` is an :mod:`xml.dom.minidom`\ -specific
 extension to the DOM API that renders the node and its descendants are
 essentially useless.  Otherwise, Python's garbage collector will
 eventually take care of the objects in the tree.
 
 .. seealso::
 
-   `Document Object Model (DOM) Level 1 Specification <http://www.w3.org/TR/REC-DOM-Level-1/>`_
+   `Document Object Model (DOM) Level 1 Specification <https://www.w3.org/TR/REC-DOM-Level-1/>`_
       The W3C recommendation for the DOM supported by :mod:`xml.dom.minidom`.
 
 
@@ -155,7 +156,7 @@ module documentation.  This section lists the differences between the API and
    encoding. Encoding this string in an encoding other than UTF-8 is
    likely incorrect, since UTF-8 is the default encoding of XML.
 
-.. method:: Node.toprettyxml(indent="", newl="", encoding="")
+.. method:: Node.toprettyxml(indent="\\t", newl="\\n", encoding=None)
 
    Return a pretty-printed version of the document. *indent* specifies the
    indentation string and defaults to a tabulator; *newl* specifies the string
@@ -247,9 +248,9 @@ utility to most DOM users.
 
 .. rubric:: Footnotes
 
-.. [#] The encoding name included in the XML output should conform to
+.. [1] The encoding name included in the XML output should conform to
    the appropriate standards. For example, "UTF-8" is valid, but
    "UTF8" is not valid in an XML document's declaration, even though
    Python accepts it as an encoding name.
-   See http://www.w3.org/TR/2006/REC-xml11-20060816/#NT-EncodingDecl
-   and http://www.iana.org/assignments/character-sets\ .
+   See https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-EncodingDecl
+   and https://www.iana.org/assignments/character-sets/character-sets.xhtml.

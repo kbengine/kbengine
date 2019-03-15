@@ -2,6 +2,7 @@
 /* Traceback implementation */
 
 #include "Python.h"
+#include "internal/pystate.h"
 
 #include "code.h"
 #include "frameobject.h"
@@ -13,7 +14,7 @@
 
 #define OFF(x) offsetof(PyTracebackObject, x)
 
-#define PUTS(fd, str) write(fd, str, (int)strlen(str))
+#define PUTS(fd, str) _Py_write_noraise(fd, str, (int)strlen(str))
 #define MAX_STRING_LENGTH 500
 #define MAX_FRAME_DEPTH 100
 #define MAX_NTHREADS 100
@@ -26,6 +27,65 @@ _Py_IDENTIFIER(close);
 _Py_IDENTIFIER(open);
 _Py_IDENTIFIER(path);
 
+/*[clinic input]
+class TracebackType "PyTracebackObject *" "&PyTraceback_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=928fa06c10151120]*/
+
+#include "clinic/traceback.c.h"
+
+static PyObject *
+tb_create_raw(PyTracebackObject *next, PyFrameObject *frame, int lasti,
+              int lineno)
+{
+    PyTracebackObject *tb;
+    if ((next != NULL && !PyTraceBack_Check(next)) ||
+                    frame == NULL || !PyFrame_Check(frame)) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+    tb = PyObject_GC_New(PyTracebackObject, &PyTraceBack_Type);
+    if (tb != NULL) {
+        Py_XINCREF(next);
+        tb->tb_next = next;
+        Py_XINCREF(frame);
+        tb->tb_frame = frame;
+        tb->tb_lasti = lasti;
+        tb->tb_lineno = lineno;
+        PyObject_GC_Track(tb);
+    }
+    return (PyObject *)tb;
+}
+
+/*[clinic input]
+@classmethod
+TracebackType.__new__ as tb_new
+
+  tb_next: object
+  tb_frame: object(type='PyFrameObject *', subclass_of='&PyFrame_Type')
+  tb_lasti: int
+  tb_lineno: int
+
+Create a new traceback object.
+[clinic start generated code]*/
+
+static PyObject *
+tb_new_impl(PyTypeObject *type, PyObject *tb_next, PyFrameObject *tb_frame,
+            int tb_lasti, int tb_lineno)
+/*[clinic end generated code: output=fa077debd72d861a input=01cbe8ec8783fca7]*/
+{
+    if (tb_next == Py_None) {
+        tb_next = NULL;
+    } else if (!PyTraceBack_Check(tb_next)) {
+        return PyErr_Format(PyExc_TypeError,
+                            "expected traceback object or None, got '%s'",
+                            Py_TYPE(tb_next)->tp_name);
+    }
+
+    return tb_create_raw((PyTracebackObject *)tb_next, tb_frame, tb_lasti,
+                         tb_lineno);
+}
+
 static PyObject *
 tb_dir(PyTracebackObject *self)
 {
@@ -33,16 +93,69 @@ tb_dir(PyTracebackObject *self)
                                    "tb_lasti", "tb_lineno");
 }
 
+static PyObject *
+tb_next_get(PyTracebackObject *self, void *Py_UNUSED(_))
+{
+    PyObject* ret = (PyObject*)self->tb_next;
+    if (!ret) {
+        ret = Py_None;
+    }
+    Py_INCREF(ret);
+    return ret;
+}
+
+static int
+tb_next_set(PyTracebackObject *self, PyObject *new_next, void *Py_UNUSED(_))
+{
+    if (!new_next) {
+        PyErr_Format(PyExc_TypeError, "can't delete tb_next attribute");
+        return -1;
+    }
+
+    /* We accept None or a traceback object, and map None -> NULL (inverse of
+       tb_next_get) */
+    if (new_next == Py_None) {
+        new_next = NULL;
+    } else if (!PyTraceBack_Check(new_next)) {
+        PyErr_Format(PyExc_TypeError,
+                     "expected traceback object, got '%s'",
+                     Py_TYPE(new_next)->tp_name);
+        return -1;
+    }
+
+    /* Check for loops */
+    PyTracebackObject *cursor = (PyTracebackObject *)new_next;
+    while (cursor) {
+        if (cursor == self) {
+            PyErr_Format(PyExc_ValueError, "traceback loop detected");
+            return -1;
+        }
+        cursor = cursor->tb_next;
+    }
+
+    PyObject *old_next = (PyObject*)self->tb_next;
+    Py_XINCREF(new_next);
+    self->tb_next = (PyTracebackObject *)new_next;
+    Py_XDECREF(old_next);
+
+    return 0;
+}
+
+
 static PyMethodDef tb_methods[] = {
    {"__dir__", (PyCFunction)tb_dir, METH_NOARGS},
    {NULL, NULL, 0, NULL},
 };
 
 static PyMemberDef tb_memberlist[] = {
-    {"tb_next",         T_OBJECT,       OFF(tb_next),   READONLY},
     {"tb_frame",        T_OBJECT,       OFF(tb_frame),  READONLY},
     {"tb_lasti",        T_INT,          OFF(tb_lasti),  READONLY},
     {"tb_lineno",       T_INT,          OFF(tb_lineno), READONLY},
+    {NULL}      /* Sentinel */
+};
+
+static PyGetSetDef tb_getsetters[] = {
+    {"tb_next", (getter)tb_next_get, (setter)tb_next_set, NULL, NULL},
     {NULL}      /* Sentinel */
 };
 
@@ -65,11 +178,12 @@ tb_traverse(PyTracebackObject *tb, visitproc visit, void *arg)
     return 0;
 }
 
-static void
+static int
 tb_clear(PyTracebackObject *tb)
 {
     Py_CLEAR(tb->tb_next);
     Py_CLEAR(tb->tb_frame);
+    return 0;
 }
 
 PyTypeObject PyTraceBack_Type = {
@@ -93,7 +207,7 @@ PyTypeObject PyTraceBack_Type = {
     0,                  /* tp_setattro */
     0,                                          /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
-    0,                                          /* tp_doc */
+    tb_new__doc__,                              /* tp_doc */
     (traverseproc)tb_traverse,                  /* tp_traverse */
     (inquiry)tb_clear,                          /* tp_clear */
     0,                                          /* tp_richcompare */
@@ -102,44 +216,68 @@ PyTypeObject PyTraceBack_Type = {
     0,                                          /* tp_iternext */
     tb_methods,         /* tp_methods */
     tb_memberlist,      /* tp_members */
-    0,                                          /* tp_getset */
+    tb_getsetters,                              /* tp_getset */
     0,                                          /* tp_base */
     0,                                          /* tp_dict */
+    0,                                          /* tp_descr_get */
+    0,                                          /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    0,                                          /* tp_init */
+    0,                                          /* tp_alloc */
+    tb_new,                                     /* tp_new */
 };
-
-static PyTracebackObject *
-newtracebackobject(PyTracebackObject *next, PyFrameObject *frame)
-{
-    PyTracebackObject *tb;
-    if ((next != NULL && !PyTraceBack_Check(next)) ||
-                    frame == NULL || !PyFrame_Check(frame)) {
-        PyErr_BadInternalCall();
-        return NULL;
-    }
-    tb = PyObject_GC_New(PyTracebackObject, &PyTraceBack_Type);
-    if (tb != NULL) {
-        Py_XINCREF(next);
-        tb->tb_next = next;
-        Py_XINCREF(frame);
-        tb->tb_frame = frame;
-        tb->tb_lasti = frame->f_lasti;
-        tb->tb_lineno = PyFrame_GetLineNumber(frame);
-        PyObject_GC_Track(tb);
-    }
-    return tb;
-}
 
 int
 PyTraceBack_Here(PyFrameObject *frame)
 {
-    PyThreadState *tstate = PyThreadState_GET();
-    PyTracebackObject *oldtb = (PyTracebackObject *) tstate->curexc_traceback;
-    PyTracebackObject *tb = newtracebackobject(oldtb, frame);
-    if (tb == NULL)
+    PyObject *exc, *val, *tb, *newtb;
+    PyErr_Fetch(&exc, &val, &tb);
+    newtb = tb_create_raw((PyTracebackObject *)tb, frame, frame->f_lasti,
+                          PyFrame_GetLineNumber(frame));
+    if (newtb == NULL) {
+        _PyErr_ChainExceptions(exc, val, tb);
         return -1;
-    tstate->curexc_traceback = (PyObject *)tb;
-    Py_XDECREF(oldtb);
+    }
+    PyErr_Restore(exc, val, newtb);
+    Py_XDECREF(tb);
     return 0;
+}
+
+/* Insert a frame into the traceback for (funcname, filename, lineno). */
+void _PyTraceback_Add(const char *funcname, const char *filename, int lineno)
+{
+    PyObject *globals;
+    PyCodeObject *code;
+    PyFrameObject *frame;
+    PyObject *exc, *val, *tb;
+
+    /* Save and clear the current exception. Python functions must not be
+       called with an exception set. Calling Python functions happens when
+       the codec of the filesystem encoding is implemented in pure Python. */
+    PyErr_Fetch(&exc, &val, &tb);
+
+    globals = PyDict_New();
+    if (!globals)
+        goto error;
+    code = PyCode_NewEmpty(filename, funcname, lineno);
+    if (!code) {
+        Py_DECREF(globals);
+        goto error;
+    }
+    frame = PyFrame_New(PyThreadState_Get(), code, globals, NULL);
+    Py_DECREF(globals);
+    Py_DECREF(code);
+    if (!frame)
+        goto error;
+    frame->f_lineno = lineno;
+
+    PyErr_Restore(exc, val, tb);
+    PyTraceBack_Here(frame);
+    Py_DECREF(frame);
+    return;
+
+error:
+    _PyErr_ChainExceptions(exc, val, tb);
 }
 
 static PyObject *
@@ -198,7 +336,7 @@ _Py_FindSourceFile(PyObject *filename, char* namebuf, size_t namelen, PyObject *
         }
         strcpy(namebuf, PyBytes_AS_STRING(path));
         Py_DECREF(path);
-        if (strlen(namebuf) != len)
+        if (strlen(namebuf) != (size_t)len)
             continue; /* v contains '\0' */
         if (len > 0 && namebuf[len-1] != SEP)
             namebuf[len++] = SEP;
@@ -276,24 +414,32 @@ _Py_DisplaySourceLine(PyObject *f, PyObject *filename, int lineno, int indent)
     }
     fob = _PyObject_CallMethodId(io, &PyId_TextIOWrapper, "Os", binary, encoding);
     Py_DECREF(io);
-    Py_DECREF(binary);
     PyMem_FREE(found_encoding);
 
     if (fob == NULL) {
         PyErr_Clear();
+
+        res = _PyObject_CallMethodId(binary, &PyId_close, NULL);
+        Py_DECREF(binary);
+        if (res)
+            Py_DECREF(res);
+        else
+            PyErr_Clear();
         return 0;
     }
+    Py_DECREF(binary);
 
     /* get the line number lineno */
     for (i = 0; i < lineno; i++) {
         Py_XDECREF(lineobj);
         lineobj = PyFile_GetLine(fob, -1);
         if (!lineobj) {
+            PyErr_Clear();
             err = -1;
             break;
         }
     }
-    res = _PyObject_CallMethodId(fob, &PyId_close, "");
+    res = _PyObject_CallMethodId(fob, &PyId_close, NULL);
     if (res)
         Py_DECREF(res);
     else
@@ -366,27 +512,70 @@ tb_displayline(PyObject *f, PyObject *filename, int lineno, PyObject *name)
     return err;
 }
 
+static const int TB_RECURSIVE_CUTOFF = 3; // Also hardcoded in traceback.py.
+
+static int
+tb_print_line_repeated(PyObject *f, long cnt)
+{
+    cnt -= TB_RECURSIVE_CUTOFF;
+    PyObject *line = PyUnicode_FromFormat(
+        (cnt > 1)
+          ? "  [Previous line repeated %ld more times]\n"
+          : "  [Previous line repeated %ld more time]\n",
+        cnt);
+    if (line == NULL) {
+        return -1;
+    }
+    int err = PyFile_WriteObject(line, f, Py_PRINT_RAW);
+    Py_DECREF(line);
+    return err;
+}
+
 static int
 tb_printinternal(PyTracebackObject *tb, PyObject *f, long limit)
 {
     int err = 0;
-    long depth = 0;
+    Py_ssize_t depth = 0;
+    PyObject *last_file = NULL;
+    int last_line = -1;
+    PyObject *last_name = NULL;
+    long cnt = 0;
     PyTracebackObject *tb1 = tb;
     while (tb1 != NULL) {
         depth++;
         tb1 = tb1->tb_next;
     }
+    while (tb != NULL && depth > limit) {
+        depth--;
+        tb = tb->tb_next;
+    }
     while (tb != NULL && err == 0) {
-        if (depth <= limit) {
+        if (last_file == NULL ||
+            tb->tb_frame->f_code->co_filename != last_file ||
+            last_line == -1 || tb->tb_lineno != last_line ||
+            last_name == NULL || tb->tb_frame->f_code->co_name != last_name) {
+            if (cnt > TB_RECURSIVE_CUTOFF) {
+                err = tb_print_line_repeated(f, cnt);
+            }
+            last_file = tb->tb_frame->f_code->co_filename;
+            last_line = tb->tb_lineno;
+            last_name = tb->tb_frame->f_code->co_name;
+            cnt = 0;
+        }
+        cnt++;
+        if (err == 0 && cnt <= TB_RECURSIVE_CUTOFF) {
             err = tb_displayline(f,
                                  tb->tb_frame->f_code->co_filename,
                                  tb->tb_lineno,
                                  tb->tb_frame->f_code->co_name);
+            if (err == 0) {
+                err = PyErr_CheckSignals();
+            }
         }
-        depth--;
         tb = tb->tb_next;
-        if (err == 0)
-            err = PyErr_CheckSignals();
+    }
+    if (err == 0 && cnt > TB_RECURSIVE_CUTOFF) {
+        err = tb_print_line_repeated(f, cnt);
     }
     return err;
 }
@@ -407,26 +596,15 @@ PyTraceBack_Print(PyObject *v, PyObject *f)
         return -1;
     }
     limitv = PySys_GetObject("tracebacklimit");
-    if (limitv) {
-        PyObject *exc_type, *exc_value, *exc_tb;
-
-        PyErr_Fetch(&exc_type, &exc_value, &exc_tb);
-        limit = PyLong_AsLong(limitv);
-        if (limit == -1 && PyErr_Occurred()) {
-            if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
-                limit = PyTraceBack_LIMIT;
-            }
-            else {
-                Py_XDECREF(exc_type);
-                Py_XDECREF(exc_value);
-                Py_XDECREF(exc_tb);
-                return 0;
-            }
+    if (limitv && PyLong_Check(limitv)) {
+        int overflow;
+        limit = PyLong_AsLongAndOverflow(limitv, &overflow);
+        if (overflow > 0) {
+            limit = LONG_MAX;
         }
         else if (limit <= 0) {
-            limit = PyTraceBack_LIMIT;
+            return 0;
         }
-        PyErr_Restore(exc_type, exc_value, exc_tb);
     }
     err = PyFile_WriteString("Traceback (most recent call last):\n", f);
     if (!err)
@@ -438,40 +616,26 @@ PyTraceBack_Print(PyObject *v, PyObject *f)
 
    This function is signal safe. */
 
-static void
-reverse_string(char *text, const size_t len)
+void
+_Py_DumpDecimal(int fd, unsigned long value)
 {
-    char tmp;
-    size_t i, j;
-    if (len == 0)
-        return;
-    for (i=0, j=len-1; i < j; i++, j--) {
-        tmp = text[i];
-        text[i] = text[j];
-        text[j] = tmp;
-    }
-}
+    /* maximum number of characters required for output of %lld or %p.
+       We need at most ceil(log10(256)*SIZEOF_LONG_LONG) digits,
+       plus 1 for the null byte.  53/22 is an upper bound for log10(256). */
+    char buffer[1 + (sizeof(unsigned long)*53-1) / 22 + 1];
+    char *ptr, *end;
 
-/* Format an integer in range [0; 999999] to decimal,
-   and write it into the file fd.
-
-   This function is signal safe. */
-
-static void
-dump_decimal(int fd, int value)
-{
-    char buffer[7];
-    int len;
-    if (value < 0 || 999999 < value)
-        return;
-    len = 0;
+    end = &buffer[Py_ARRAY_LENGTH(buffer) - 1];
+    ptr = end;
+    *ptr = '\0';
     do {
-        buffer[len] = '0' + (value % 10);
+        --ptr;
+        assert(ptr >= buffer);
+        *ptr = '0' + (value % 10);
         value /= 10;
-        len++;
     } while (value);
-    reverse_string(buffer, len);
-    write(fd, buffer, len);
+
+    _Py_write_noraise(fd, ptr, end - ptr);
 }
 
 /* Format an integer in range [0; 0xffffffff] to hexadecimal of 'width' digits,
@@ -479,27 +643,31 @@ dump_decimal(int fd, int value)
 
    This function is signal safe. */
 
-static void
-dump_hexadecimal(int fd, unsigned long value, int width)
+void
+_Py_DumpHexadecimal(int fd, unsigned long value, Py_ssize_t width)
 {
-    int len;
-    char buffer[sizeof(unsigned long) * 2 + 1];
-    len = 0;
+    char buffer[sizeof(unsigned long) * 2 + 1], *ptr, *end;
+    const Py_ssize_t size = Py_ARRAY_LENGTH(buffer) - 1;
+
+    if (width > size)
+        width = size;
+    /* it's ok if width is negative */
+
+    end = &buffer[size];
+    ptr = end;
+    *ptr = '\0';
     do {
-        buffer[len] = Py_hexdigits[value & 15];
+        --ptr;
+        assert(ptr >= buffer);
+        *ptr = Py_hexdigits[value & 15];
         value >>= 4;
-        len++;
-    } while (len < width || value);
-    reverse_string(buffer, len);
-    write(fd, buffer, len);
+    } while ((end - ptr) < width || value);
+
+    _Py_write_noraise(fd, ptr, end - ptr);
 }
 
-/* Write an unicode object into the file fd using ascii+backslashreplace.
-
-   This function is signal safe. */
-
-static void
-dump_ascii(int fd, PyObject *text)
+void
+_Py_DumpASCII(int fd, PyObject *text)
 {
     PyASCIIObject *ascii = (PyASCIIObject *)text;
     Py_ssize_t i, size;
@@ -509,57 +677,63 @@ dump_ascii(int fd, PyObject *text)
     wchar_t *wstr = NULL;
     Py_UCS4 ch;
 
+    if (!PyUnicode_Check(text))
+        return;
+
     size = ascii->length;
     kind = ascii->state.kind;
-    if (ascii->state.compact) {
+    if (kind == PyUnicode_WCHAR_KIND) {
+        wstr = ((PyASCIIObject *)text)->wstr;
+        if (wstr == NULL)
+            return;
+        size = ((PyCompactUnicodeObject *)text)->wstr_length;
+    }
+    else if (ascii->state.compact) {
         if (ascii->state.ascii)
             data = ((PyASCIIObject*)text) + 1;
         else
             data = ((PyCompactUnicodeObject*)text) + 1;
     }
-    else if (kind != PyUnicode_WCHAR_KIND) {
+    else {
         data = ((PyUnicodeObject *)text)->data.any;
         if (data == NULL)
             return;
-    }
-    else {
-        wstr = ((PyASCIIObject *)text)->wstr;
-        if (wstr == NULL)
-            return;
-        size = ((PyCompactUnicodeObject *)text)->wstr_length;
     }
 
     if (MAX_STRING_LENGTH < size) {
         size = MAX_STRING_LENGTH;
         truncated = 1;
     }
-    else
+    else {
         truncated = 0;
+    }
 
     for (i=0; i < size; i++) {
         if (kind != PyUnicode_WCHAR_KIND)
             ch = PyUnicode_READ(kind, data, i);
         else
             ch = wstr[i];
-        if (ch < 128) {
+        if (' ' <= ch && ch <= 126) {
+            /* printable ASCII character */
             char c = (char)ch;
-            write(fd, &c, 1);
+            _Py_write_noraise(fd, &c, 1);
         }
-        else if (ch < 0xff) {
+        else if (ch <= 0xff) {
             PUTS(fd, "\\x");
-            dump_hexadecimal(fd, ch, 2);
+            _Py_DumpHexadecimal(fd, ch, 2);
         }
-        else if (ch < 0xffff) {
+        else if (ch <= 0xffff) {
             PUTS(fd, "\\u");
-            dump_hexadecimal(fd, ch, 4);
+            _Py_DumpHexadecimal(fd, ch, 4);
         }
         else {
             PUTS(fd, "\\U");
-            dump_hexadecimal(fd, ch, 8);
+            _Py_DumpHexadecimal(fd, ch, 8);
         }
     }
-    if (truncated)
+    if (truncated) {
         PUTS(fd, "...");
+    }
 }
 
 /* Write a frame into the file fd: "File "xxx", line xxx in xxx".
@@ -577,9 +751,9 @@ dump_frame(int fd, PyFrameObject *frame)
     if (code != NULL && code->co_filename != NULL
         && PyUnicode_Check(code->co_filename))
     {
-        write(fd, "\"", 1);
-        dump_ascii(fd, code->co_filename);
-        write(fd, "\"", 1);
+        PUTS(fd, "\"");
+        _Py_DumpASCII(fd, code->co_filename);
+        PUTS(fd, "\"");
     } else {
         PUTS(fd, "???");
     }
@@ -587,16 +761,23 @@ dump_frame(int fd, PyFrameObject *frame)
     /* PyFrame_GetLineNumber() was introduced in Python 2.7.0 and 3.2.0 */
     lineno = PyCode_Addr2Line(code, frame->f_lasti);
     PUTS(fd, ", line ");
-    dump_decimal(fd, lineno);
+    if (lineno >= 0) {
+        _Py_DumpDecimal(fd, (unsigned long)lineno);
+    }
+    else {
+        PUTS(fd, "???");
+    }
     PUTS(fd, " in ");
 
     if (code != NULL && code->co_name != NULL
-        && PyUnicode_Check(code->co_name))
-        dump_ascii(fd, code->co_name);
-    else
+       && PyUnicode_Check(code->co_name)) {
+        _Py_DumpASCII(fd, code->co_name);
+    }
+    else {
         PUTS(fd, "???");
+    }
 
-    write(fd, "\n", 1);
+    PUTS(fd, "\n");
 }
 
 static void
@@ -626,6 +807,12 @@ dump_traceback(int fd, PyThreadState *tstate, int write_header)
     }
 }
 
+/* Dump the traceback of a Python thread into fd. Use write() to write the
+   traceback and retry if write() is interrupted by a signal (failed with
+   EINTR), but don't call the Python signal handler.
+
+   The caller is responsible to call PyErr_CheckSignals() to call Python signal
+   handlers if signals were received. */
 void
 _Py_DumpTraceback(int fd, PyThreadState *tstate)
 {
@@ -644,16 +831,53 @@ write_thread_id(int fd, PyThreadState *tstate, int is_current)
         PUTS(fd, "Current thread 0x");
     else
         PUTS(fd, "Thread 0x");
-    dump_hexadecimal(fd, (unsigned long)tstate->thread_id, sizeof(long)*2);
+    _Py_DumpHexadecimal(fd,
+                        tstate->thread_id,
+                        sizeof(unsigned long) * 2);
     PUTS(fd, " (most recent call first):\n");
 }
 
+/* Dump the traceback of all Python threads into fd. Use write() to write the
+   traceback and retry if write() is interrupted by a signal (failed with
+   EINTR), but don't call the Python signal handler.
+
+   The caller is responsible to call PyErr_CheckSignals() to call Python signal
+   handlers if signals were received. */
 const char*
 _Py_DumpTracebackThreads(int fd, PyInterpreterState *interp,
-                         PyThreadState *current_thread)
+                         PyThreadState *current_tstate)
 {
     PyThreadState *tstate;
     unsigned int nthreads;
+
+    if (current_tstate == NULL) {
+        /* _Py_DumpTracebackThreads() is called from signal handlers by
+           faulthandler.
+
+           SIGSEGV, SIGFPE, SIGABRT, SIGBUS and SIGILL are synchronous signals
+           and are thus delivered to the thread that caused the fault. Get the
+           Python thread state of the current thread.
+
+           PyThreadState_Get() doesn't give the state of the thread that caused
+           the fault if the thread released the GIL, and so this function
+           cannot be used. Read the thread specific storage (TSS) instead: call
+           PyGILState_GetThisThreadState(). */
+        current_tstate = PyGILState_GetThisThreadState();
+    }
+
+    if (interp == NULL) {
+        if (current_tstate == NULL) {
+            interp = _PyGILState_GetInterpreterStateUnsafe();
+            if (interp == NULL) {
+                /* We need the interpreter state to get Python threads */
+                return "unable to get the interpreter state";
+            }
+        }
+        else {
+            interp = current_tstate->interp;
+        }
+    }
+    assert(interp != NULL);
 
     /* Get the current interpreter from the current thread */
     tstate = PyInterpreterState_ThreadHead(interp);
@@ -663,19 +887,21 @@ _Py_DumpTracebackThreads(int fd, PyInterpreterState *interp,
     /* Dump the traceback of each thread */
     tstate = PyInterpreterState_ThreadHead(interp);
     nthreads = 0;
+    _Py_BEGIN_SUPPRESS_IPH
     do
     {
         if (nthreads != 0)
-            write(fd, "\n", 1);
+            PUTS(fd, "\n");
         if (nthreads >= MAX_NTHREADS) {
             PUTS(fd, "...\n");
             break;
         }
-        write_thread_id(fd, tstate, tstate == current_thread);
+        write_thread_id(fd, tstate, tstate == current_tstate);
         dump_traceback(fd, tstate, 0);
         tstate = PyThreadState_Next(tstate);
         nthreads++;
     } while (tstate != NULL);
+    _Py_END_SUPPRESS_IPH
 
     return NULL;
 }

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,29 +23,30 @@
     <ProjectGuid>{70E890EA-9496-4F7C-B903-5FCF87A73AC4}</ProjectGuid>
     <RootNamespace>db_redis</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -95,7 +96,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -117,7 +118,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -139,7 +140,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -159,7 +160,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/hiredis/redis-win/deps/hiredis;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

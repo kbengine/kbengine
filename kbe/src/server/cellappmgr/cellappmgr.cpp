@@ -66,6 +66,7 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 	cellapps_(),
 	cellapp_cids_()
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -171,8 +172,8 @@ void Cellappmgr::updateBestCellapp()
 //-------------------------------------------------------------------------------------
 void Cellappmgr::handleGameTick()
 {
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	//time_t t = ::time(NULL);
+	//DEBUG_MSG(fmt::format("Cellappmgr::handleGameTick[{}]:{}\n", t, g_kbetime));
 	
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
@@ -219,7 +220,7 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
@@ -326,7 +327,7 @@ void Cellappmgr::reqCreateCellEntityInNewSpace(Network::Channel* pChannel, Memor
 
 	static SPACE_ID spaceID = 1;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(CellappInterface::onCreateCellEntityInNewSpaceFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -406,7 +407,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	s >> spaceID;
 	s >> hasClient;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -452,6 +453,10 @@ void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componen
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
 	cellapp.flags(flags);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	if (cinfos)
+		cinfos->appFlags = flags;
 	
 	updateBestCellapp();
 }
@@ -525,7 +530,7 @@ void Cellappmgr::addCellappComponentID(COMPONENT_ID cid)
 //-------------------------------------------------------------------------------------
 void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleQueryAppsLoadsHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 
@@ -547,7 +552,7 @@ void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleQuerySpacesHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 

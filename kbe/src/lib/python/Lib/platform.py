@@ -13,7 +13,6 @@
 #    Python bug tracker (http://bugs.python.org) and assign them to "lemburg".
 #
 #    Still needed:
-#    * more support for WinCE
 #    * support for MS-DOS (PythonDX ?)
 #    * support for Amiga and other still unsupported platforms running Python
 #    * support for additional Linux distributions
@@ -26,12 +25,14 @@
 #      Betancourt, Randall Hopper, Karl Putland, John Farrell, Greg
 #      Andruk, Just van Rossum, Thomas Heller, Mark R. Levinson, Mark
 #      Hammond, Bill Tutt, Hans Nowak, Uwe Zessin (OpenVMS support),
-#      Colin Kong, Trent Mick, Guido van Rossum, Anthony Baxter
+#      Colin Kong, Trent Mick, Guido van Rossum, Anthony Baxter, Steve
+#      Dower
 #
 #    History:
 #
 #    <see CVS and SVN checkin messages for history>
 #
+#    1.0.8 - changed Windows support to read version from kernel32.dll
 #    1.0.7 - added DEV_NULL
 #    1.0.6 - added linux_distribution()
 #    1.0.5 - fixed Java support to allow running the module on Jython
@@ -59,7 +60,7 @@
 #            though
 #    0.5.2 - fixed uname() to return '' instead of 'unknown' in all
 #            return values (the system uname command tends to return
-#            'unknown' instead of just leaving the field emtpy)
+#            'unknown' instead of just leaving the field empty)
 #    0.5.1 - included code for slackware dist; added exception handlers
 #            to cover up situations where platforms don't have os.popen
 #            (e.g. Mac) or fail on socket.gethostname(); fixed libc
@@ -109,10 +110,12 @@ __copyright__ = """
 
 """
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 import collections
 import sys, os, re, subprocess
+
+import warnings
 
 ### Globals & Constants
 
@@ -133,6 +136,35 @@ except AttributeError:
 # Constant used by test_platform to test linux_distribution().
 _UNIXCONFDIR = '/etc'
 
+# Helper for comparing two version number strings.
+# Based on the description of the PHP's version_compare():
+# http://php.net/manual/en/function.version-compare.php
+
+_ver_stages = {
+    # any string not found in this dict, will get 0 assigned
+    'dev': 10,
+    'alpha': 20, 'a': 20,
+    'beta': 30, 'b': 30,
+    'c': 40,
+    'RC': 50, 'rc': 50,
+    # number, will get 100 assigned
+    'pl': 200, 'p': 200,
+}
+
+_component_re = re.compile(r'([0-9]+|[._+-])')
+
+def _comparable_version(version):
+    result = []
+    for v in _component_re.split(version):
+        if v not in '._+-':
+            try:
+                v = int(v, 10)
+                t = 100
+            except ValueError:
+                t = _ver_stages.get(v, 0)
+            result.extend((t, v))
+    return result
+
 ### Platform specific APIs
 
 _libc_search = re.compile(b'(__libc_init)'
@@ -141,9 +173,7 @@ _libc_search = re.compile(b'(__libc_init)'
                           b'|'
                           br'(libc(_\w+)?\.so(?:\.(\d[0-9.]*))?)', re.ASCII)
 
-def libc_ver(executable=sys.executable, lib='', version='',
-
-             chunksize=16384):
+def libc_ver(executable=sys.executable, lib='', version='', chunksize=16384):
 
     """ Tries to determine the libc version that the file executable
         (which defaults to the Python interpreter) is linked against.
@@ -158,45 +188,47 @@ def libc_ver(executable=sys.executable, lib='', version='',
         The file is read and scanned in chunks of chunksize bytes.
 
     """
+    V = _comparable_version
     if hasattr(os.path, 'realpath'):
         # Python 2.2 introduced os.path.realpath(); it is used
         # here to work around problems with Cygwin not being
         # able to open symlinks for reading
         executable = os.path.realpath(executable)
-    f = open(executable, 'rb')
-    binary = f.read(chunksize)
-    pos = 0
-    while 1:
-        if b'libc' in binary or b'GLIBC' in binary:
-            m = _libc_search.search(binary, pos)
-        else:
-            m = None
-        if not m:
-            binary = f.read(chunksize)
-            if not binary:
-                break
-            pos = 0
-            continue
-        libcinit, glibc, glibcversion, so, threads, soversion = [
-            s.decode('latin1') if s is not None else s
-            for s in m.groups()]
-        if libcinit and not lib:
-            lib = 'libc'
-        elif glibc:
-            if lib != 'glibc':
-                lib = 'glibc'
-                version = glibcversion
-            elif glibcversion > version:
-                version = glibcversion
-        elif so:
-            if lib != 'glibc':
+    with open(executable, 'rb') as f:
+        binary = f.read(chunksize)
+        pos = 0
+        while pos < len(binary):
+            if b'libc' in binary or b'GLIBC' in binary:
+                m = _libc_search.search(binary, pos)
+            else:
+                m = None
+            if not m or m.end() == len(binary):
+                chunk = f.read(chunksize)
+                if chunk:
+                    binary = binary[max(pos, len(binary) - 1000):] + chunk
+                    pos = 0
+                    continue
+                if not m:
+                    break
+            libcinit, glibc, glibcversion, so, threads, soversion = [
+                s.decode('latin1') if s is not None else s
+                for s in m.groups()]
+            if libcinit and not lib:
                 lib = 'libc'
-                if soversion and soversion > version:
-                    version = soversion
-                if threads and version[-len(threads):] != threads:
-                    version = version + threads
-        pos = m.end()
-    f.close()
+            elif glibc:
+                if lib != 'glibc':
+                    lib = 'glibc'
+                    version = glibcversion
+                elif V(glibcversion) > V(version):
+                    version = glibcversion
+            elif so:
+                if lib != 'glibc':
+                    lib = 'libc'
+                    if soversion and (not version or V(soversion) > V(version)):
+                        version = soversion
+                    if threads and version[-len(threads):] != threads:
+                        version = version + threads
+            pos = m.end()
     return lib, version
 
 def _dist_try_harder(distname, version, id):
@@ -211,27 +243,29 @@ def _dist_try_harder(distname, version, id):
     if os.path.exists('/var/adm/inst-log/info'):
         # SuSE Linux stores distribution information in that file
         distname = 'SuSE'
-        for line in open('/var/adm/inst-log/info'):
-            tv = line.split()
-            if len(tv) == 2:
-                tag, value = tv
-            else:
-                continue
-            if tag == 'MIN_DIST_VERSION':
-                version = value.strip()
-            elif tag == 'DIST_IDENT':
-                values = value.split('-')
-                id = values[2]
+        with open('/var/adm/inst-log/info') as f:
+            for line in f:
+                tv = line.split()
+                if len(tv) == 2:
+                    tag, value = tv
+                else:
+                    continue
+                if tag == 'MIN_DIST_VERSION':
+                    version = value.strip()
+                elif tag == 'DIST_IDENT':
+                    values = value.split('-')
+                    id = values[2]
         return distname, version, id
 
     if os.path.exists('/etc/.installed'):
         # Caldera OpenLinux has some infos in that file (thanks to Colin Kong)
-        for line in open('/etc/.installed'):
-            pkg = line.split('-')
-            if len(pkg) >= 2 and pkg[0] == 'OpenLinux':
-                # XXX does Caldera support non Intel platforms ? If yes,
-                #     where can we find the needed id ?
-                return 'OpenLinux', pkg[1], id
+        with open('/etc/.installed') as f:
+            for line in f:
+                pkg = line.split('-')
+                if len(pkg) >= 2 and pkg[0] == 'OpenLinux':
+                    # XXX does Caldera support non Intel platforms ? If yes,
+                    #     where can we find the needed id ?
+                    return 'OpenLinux', pkg[1], id
 
     if os.path.isdir('/usr/lib/setup'):
         # Check for slackware version tag file (thanks to Greg Andruk)
@@ -249,13 +283,13 @@ def _dist_try_harder(distname, version, id):
 
 _release_filename = re.compile(r'(\w+)[-_](release|version)', re.ASCII)
 _lsb_release_version = re.compile(r'(.+)'
-                                   ' release '
-                                   '([\d.]+)'
-                                   '[^(]*(?:\((.+)\))?', re.ASCII)
+                                  r' release '
+                                  r'([\d.]+)'
+                                  r'[^(]*(?:\((.+)\))?', re.ASCII)
 _release_version = re.compile(r'([^0-9]+)'
-                               '(?: release )?'
-                               '([\d.]+)'
-                               '[^(]*(?:\((.+)\))?', re.ASCII)
+                              r'(?: release )?'
+                              r'([\d.]+)'
+                              r'[^(]*(?:\((.+)\))?', re.ASCII)
 
 # See also http://www.novell.com/coolsolutions/feature/11251.html
 # and http://linuxmafia.com/faq/Admin/release-files.html
@@ -298,6 +332,14 @@ def linux_distribution(distname='', version='', id='',
 
                        supported_dists=_supported_dists,
                        full_distribution_name=1):
+    import warnings
+    warnings.warn("dist() and linux_distribution() functions are deprecated "
+                  "in Python 3.5", DeprecationWarning, stacklevel=2)
+    return _linux_distribution(distname, version, id, supported_dists,
+                               full_distribution_name)
+
+def _linux_distribution(distname, version, id, supported_dists,
+                        full_distribution_name):
 
     """ Tries to determine the name of the Linux OS distribution name.
 
@@ -364,9 +406,12 @@ def dist(distname='', version='', id='',
         args given as parameters.
 
     """
-    return linux_distribution(distname, version, id,
-                              supported_dists=supported_dists,
-                              full_distribution_name=0)
+    import warnings
+    warnings.warn("dist() and linux_distribution() functions are deprecated "
+                  "in Python 3.5", DeprecationWarning, stacklevel=2)
+    return _linux_distribution(distname, version, id,
+                               supported_dists=supported_dists,
+                               full_distribution_name=0)
 
 def popen(cmd, mode='r', bufsize=-1):
 
@@ -375,6 +420,7 @@ def popen(cmd, mode='r', bufsize=-1):
     import warnings
     warnings.warn('use os.popen instead', DeprecationWarning, stacklevel=2)
     return os.popen(cmd, mode, bufsize)
+
 
 def _norm_version(version, build=''):
 
@@ -394,8 +440,8 @@ def _norm_version(version, build=''):
     return version
 
 _ver_output = re.compile(r'(?:([\w ]+) ([\w.]+) '
-                         '.*'
-                         '\[.* ([\d.]+)\])')
+                         r'.*'
+                         r'\[.* ([\d.]+)\])')
 
 # Examples of VER command output:
 #
@@ -426,7 +472,7 @@ def _syscmd_ver(system='', release='', version='',
     # Try some common cmd strings
     for cmd in ('ver', 'command /c ver', 'cmd /c ver'):
         try:
-            pipe = popen(cmd)
+            pipe = os.popen(cmd)
             info = pipe.read()
             if pipe.close():
                 raise OSError('command failed')
@@ -455,188 +501,82 @@ def _syscmd_ver(system='', release='', version='',
         version = _norm_version(version)
     return system, release, version
 
-def _win32_getvalue(key, name, default=''):
+_WIN32_CLIENT_RELEASES = {
+    (5, 0): "2000",
+    (5, 1): "XP",
+    # Strictly, 5.2 client is XP 64-bit, but platform.py historically
+    # has always called it 2003 Server
+    (5, 2): "2003Server",
+    (5, None): "post2003",
 
-    """ Read a value for name from the registry key.
+    (6, 0): "Vista",
+    (6, 1): "7",
+    (6, 2): "8",
+    (6, 3): "8.1",
+    (6, None): "post8.1",
 
-        In case this fails, default is returned.
+    (10, 0): "10",
+    (10, None): "post10",
+}
 
-    """
-    try:
-        # Use win32api if available
-        from win32api import RegQueryValueEx
-    except ImportError:
-        # On Python 2.0 and later, emulate using winreg
-        import winreg
-        RegQueryValueEx = winreg.QueryValueEx
-    try:
-        return RegQueryValueEx(key, name)
-    except:
-        return default
+# Server release name lookup will default to client names if necessary
+_WIN32_SERVER_RELEASES = {
+    (5, 2): "2003Server",
+
+    (6, 0): "2008Server",
+    (6, 1): "2008ServerR2",
+    (6, 2): "2012Server",
+    (6, 3): "2012ServerR2",
+    (6, None): "post2012ServerR2",
+}
 
 def win32_ver(release='', version='', csd='', ptype=''):
-
-    """ Get additional version information from the Windows Registry
-        and return a tuple (version, csd, ptype) referring to version
-        number, CSD level (service pack), and OS type (multi/single
-        processor).
-
-        As a hint: ptype returns 'Uniprocessor Free' on single
-        processor NT machines and 'Multiprocessor Free' on multi
-        processor machines. The 'Free' refers to the OS version being
-        free of debugging code. It could also state 'Checked' which
-        means the OS version uses debugging code, i.e. code that
-        checks arguments, ranges, etc. (Thomas Heller).
-
-        Note: this function works best with Mark Hammond's win32
-        package installed, but also on Python 2.3 and later. It
-        obviously only runs on Win32 compatible platforms.
-
-    """
-    # XXX Is there any way to find out the processor type on WinXX ?
-    # XXX Is win32 available on Windows CE ?
-    #
-    # Adapted from code posted by Karl Putland to comp.lang.python.
-    #
-    # The mappings between reg. values and release names can be found
-    # here: http://msdn.microsoft.com/library/en-us/sysinfo/base/osversioninfo_str.asp
-
-    # Import the needed APIs
     try:
-        from win32api import RegQueryValueEx, RegOpenKeyEx, \
-             RegCloseKey, GetVersionEx
-        from win32con import HKEY_LOCAL_MACHINE, VER_PLATFORM_WIN32_NT, \
-             VER_PLATFORM_WIN32_WINDOWS, VER_NT_WORKSTATION
+        from sys import getwindowsversion
     except ImportError:
-        # Emulate the win32api module using Python APIs
-        try:
-            sys.getwindowsversion
-        except AttributeError:
-            # No emulation possible, so return the defaults...
-            return release, version, csd, ptype
-        else:
-            # Emulation using winreg (added in Python 2.0) and
-            # sys.getwindowsversion() (added in Python 2.3)
-            import winreg
-            GetVersionEx = sys.getwindowsversion
-            RegQueryValueEx = winreg.QueryValueEx
-            RegOpenKeyEx = winreg.OpenKeyEx
-            RegCloseKey = winreg.CloseKey
-            HKEY_LOCAL_MACHINE = winreg.HKEY_LOCAL_MACHINE
-            VER_PLATFORM_WIN32_WINDOWS = 1
-            VER_PLATFORM_WIN32_NT = 2
-            VER_NT_WORKSTATION = 1
-            VER_NT_SERVER = 3
-            REG_SZ = 1
-
-    # Find out the registry key and some general version infos
-    winver = GetVersionEx()
-    maj, min, buildno, plat, csd = winver
-    version = '%i.%i.%i' % (maj, min, buildno & 0xFFFF)
-    if hasattr(winver, "service_pack"):
-        if winver.service_pack != "":
-            csd = 'SP%s' % winver.service_pack_major
-    else:
-        if csd[:13] == 'Service Pack ':
-            csd = 'SP' + csd[13:]
-
-    if plat == VER_PLATFORM_WIN32_WINDOWS:
-        regkey = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
-        # Try to guess the release name
-        if maj == 4:
-            if min == 0:
-                release = '95'
-            elif min == 10:
-                release = '98'
-            elif min == 90:
-                release = 'Me'
-            else:
-                release = 'postMe'
-        elif maj == 5:
-            release = '2000'
-
-    elif plat == VER_PLATFORM_WIN32_NT:
-        regkey = 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion'
-        if maj <= 4:
-            release = 'NT'
-        elif maj == 5:
-            if min == 0:
-                release = '2000'
-            elif min == 1:
-                release = 'XP'
-            elif min == 2:
-                release = '2003Server'
-            else:
-                release = 'post2003'
-        elif maj == 6:
-            if hasattr(winver, "product_type"):
-                product_type = winver.product_type
-            else:
-                product_type = VER_NT_WORKSTATION
-                # Without an OSVERSIONINFOEX capable sys.getwindowsversion(),
-                # or help from the registry, we cannot properly identify
-                # non-workstation versions.
-                try:
-                    key = RegOpenKeyEx(HKEY_LOCAL_MACHINE, regkey)
-                    name, type = RegQueryValueEx(key, "ProductName")
-                    # Discard any type that isn't REG_SZ
-                    if type == REG_SZ and name.find("Server") != -1:
-                        product_type = VER_NT_SERVER
-                except OSError:
-                    # Use default of VER_NT_WORKSTATION
-                    pass
-
-            if min == 0:
-                if product_type == VER_NT_WORKSTATION:
-                    release = 'Vista'
-                else:
-                    release = '2008Server'
-            elif min == 1:
-                if product_type == VER_NT_WORKSTATION:
-                    release = '7'
-                else:
-                    release = '2008ServerR2'
-            elif min == 2:
-                if product_type == VER_NT_WORKSTATION:
-                    release = '8'
-                else:
-                    release = '2012Server'
-            else:
-                release = 'post2012Server'
-
-    else:
-        if not release:
-            # E.g. Win3.1 with win32s
-            release = '%i.%i' % (maj, min)
         return release, version, csd, ptype
-
-    # Open the registry key
     try:
-        keyCurVer = RegOpenKeyEx(HKEY_LOCAL_MACHINE, regkey)
-        # Get a value to make sure the key exists...
-        RegQueryValueEx(keyCurVer, 'SystemRoot')
+        from winreg import OpenKeyEx, QueryValueEx, CloseKey, HKEY_LOCAL_MACHINE
+    except ImportError:
+        from _winreg import OpenKeyEx, QueryValueEx, CloseKey, HKEY_LOCAL_MACHINE
+
+    winver = getwindowsversion()
+    maj, min, build = winver.platform_version or winver[:3]
+    version = '{0}.{1}.{2}'.format(maj, min, build)
+
+    release = (_WIN32_CLIENT_RELEASES.get((maj, min)) or
+               _WIN32_CLIENT_RELEASES.get((maj, None)) or
+               release)
+
+    # getwindowsversion() reflect the compatibility mode Python is
+    # running under, and so the service pack value is only going to be
+    # valid if the versions match.
+    if winver[:2] == (maj, min):
+        try:
+            csd = 'SP{}'.format(winver.service_pack_major)
+        except AttributeError:
+            if csd[:13] == 'Service Pack ':
+                csd = 'SP' + csd[13:]
+
+    # VER_NT_SERVER = 3
+    if getattr(winver, 'product_type', None) == 3:
+        release = (_WIN32_SERVER_RELEASES.get((maj, min)) or
+                   _WIN32_SERVER_RELEASES.get((maj, None)) or
+                   release)
+
+    key = None
+    try:
+        key = OpenKeyEx(HKEY_LOCAL_MACHINE,
+                        r'SOFTWARE\Microsoft\Windows NT\CurrentVersion')
+        ptype = QueryValueEx(key, 'CurrentType')[0]
     except:
-        return release, version, csd, ptype
+        pass
+    finally:
+        if key:
+            CloseKey(key)
 
-    # Parse values
-    #subversion = _win32_getvalue(keyCurVer,
-    #                            'SubVersionNumber',
-    #                            ('',1))[0]
-    #if subversion:
-    #   release = release + subversion # 95a, 95b, etc.
-    build = _win32_getvalue(keyCurVer,
-                            'CurrentBuildNumber',
-                            ('', 1))[0]
-    ptype = _win32_getvalue(keyCurVer,
-                           'CurrentType',
-                           (ptype, 1))[0]
-
-    # Normalize version
-    version = _norm_version(version, build)
-
-    # Close key
-    RegCloseKey(keyCurVer)
     return release, version, csd, ptype
+
 
 def _mac_ver_xml():
     fn = '/System/Library/CoreServices/SystemVersion.plist'
@@ -1179,28 +1119,30 @@ def processor():
 ### Various APIs for extracting information from sys.version
 
 _sys_version_parser = re.compile(
-    r'([\w.+]+)\s*'
-    '\(#?([^,]+),\s*([\w ]+),\s*([\w :]+)\)\s*'
-    '\[([^\]]+)\]?', re.ASCII)
+    r'([\w.+]+)\s*'  # "version<space>"
+    r'\(#?([^,]+)'  # "(#buildno"
+    r'(?:,\s*([\w ]*)'  # ", builddate"
+    r'(?:,\s*([\w :]*))?)?\)\s*'  # ", buildtime)<space>"
+    r'\[([^\]]+)\]?', re.ASCII)  # "[compiler]"
 
 _ironpython_sys_version_parser = re.compile(
     r'IronPython\s*'
-    '([\d\.]+)'
-    '(?: \(([\d\.]+)\))?'
-    ' on (.NET [\d\.]+)', re.ASCII)
+    r'([\d\.]+)'
+    r'(?: \(([\d\.]+)\))?'
+    r' on (.NET [\d\.]+)', re.ASCII)
 
 # IronPython covering 2.6 and 2.7
 _ironpython26_sys_version_parser = re.compile(
     r'([\d.]+)\s*'
-    '\(IronPython\s*'
-    '[\d.]+\s*'
-    '\(([\d.]+)\) on ([\w.]+ [\d.]+(?: \(\d+-bit\))?)\)'
+    r'\(IronPython\s*'
+    r'[\d.]+\s*'
+    r'\(([\d.]+)\) on ([\w.]+ [\d.]+(?: \(\d+-bit\))?)\)'
 )
 
 _pypy_sys_version_parser = re.compile(
     r'([\w.+]+)\s*'
-    '\(#?([^,]+),\s*([\w ]+),\s*([\w :]+)\)\s*'
-    '\[PyPy [^\]]+\]?')
+    r'\(#?([^,]+),\s*([\w ]+),\s*([\w :]+)\)\s*'
+    r'\[PyPy [^\]]+\]?')
 
 _sys_version_cache = {}
 
@@ -1260,6 +1202,8 @@ def _sys_version(sys_version=None):
                 'failed to parse Jython sys.version: %s' %
                 repr(sys_version))
         version, buildno, builddate, buildtime, _ = match.groups()
+        if builddate is None:
+            builddate = ''
         compiler = sys.platform
 
     elif "PyPy" in sys_version:
@@ -1282,13 +1226,15 @@ def _sys_version(sys_version=None):
         version, buildno, builddate, buildtime, compiler = \
               match.groups()
         name = 'CPython'
-        builddate = builddate + ' ' + buildtime
+        if builddate is None:
+            builddate = ''
+        elif buildtime:
+            builddate = builddate + ' ' + buildtime
 
-    if hasattr(sys, '_mercurial'):
+    if hasattr(sys, '_git'):
+        _, branch, revision = sys._git
+    elif hasattr(sys, '_mercurial'):
         _, branch, revision = sys._mercurial
-    elif hasattr(sys, 'subversion'):
-        # sys.subversion was added in Python 2.5
-        _, branch, revision = sys.subversion
     else:
         branch = ''
         revision = ''
@@ -1343,7 +1289,7 @@ def python_branch():
     """ Returns a string identifying the Python implementation
         branch.
 
-        For CPython this is the Subversion branch from which the
+        For CPython this is the SCM branch from which the
         Python binary was built.
 
         If not available, an empty string is returned.
@@ -1357,7 +1303,7 @@ def python_revision():
     """ Returns a string identifying the Python implementation
         revision.
 
-        For CPython this is the Subversion revision from which the
+        For CPython this is the SCM revision from which the
         Python binary was built.
 
         If not available, an empty string is returned.
@@ -1426,7 +1372,15 @@ def platform(aliased=0, terse=0):
 
     elif system in ('Linux',):
         # Linux based systems
-        distname, distversion, distid = dist('')
+        with warnings.catch_warnings():
+            # see issue #1322 for more information
+            warnings.filterwarnings(
+                'ignore',
+                r'dist\(\) and linux_distribution\(\) '
+                'functions are deprecated .*',
+                DeprecationWarning,
+            )
+            distname, distversion, distid = dist('')
         if distname and not terse:
             platform = _platform(system, release, machine, processor,
                                  'with',

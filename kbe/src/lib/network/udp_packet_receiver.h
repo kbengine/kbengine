@@ -25,15 +25,15 @@ class UDPPacketReceiver : public PacketReceiver
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacketReceiver > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<UDPPacketReceiver>& ObjPool();
-	static UDPPacketReceiver* createPoolObject();
+	static UDPPacketReceiver* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(UDPPacketReceiver* obj);
 	static void destroyObjPool();
 
 	UDPPacketReceiver():PacketReceiver(){}
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~UDPPacketReceiver();
+	virtual ~UDPPacketReceiver();
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 	
@@ -42,8 +42,16 @@ public:
 		return UDP_PACKET_RECEIVER;
 	}
 
+	virtual ProtocolSubType protocolSubType() const {
+		return SUB_PROTOCOL_UDP;
+	}
+
+	virtual bool processRecv(UDPPacket* pReceiveWindow);
+	virtual bool processRecv(bool expectingPacket);
+
+	virtual Channel* findChannel(const Address& addr);
+
 protected:
-	bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
 
 protected:

@@ -13,10 +13,11 @@ fallback token code OP, but the parser needs the actual token code.
 """
 
 # Python imports
+import collections
 import pickle
 
 # Local imports
-from . import token, tokenize
+from . import token
 
 
 class Grammar(object):
@@ -85,15 +86,31 @@ class Grammar(object):
         self.start = 256
 
     def dump(self, filename):
-        """Dump the grammar tables to a pickle file."""
+        """Dump the grammar tables to a pickle file.
+
+        dump() recursively changes all dict to OrderedDict, so the pickled file
+        is not exactly the same as what was passed in to dump(). load() uses the
+        pickled file to create the tables, but  only changes OrderedDict to dict
+        at the top level; it does not recursively change OrderedDict to dict.
+        So, the loaded tables are different from the original tables that were
+        passed to load() in that some of the OrderedDict (from the pickled file)
+        are not changed back to dict. For parsing, this has no effect on
+        performance because OrderedDict uses dict's __getitem__ with nothing in
+        between.
+        """
         with open(filename, "wb") as f:
-            pickle.dump(self.__dict__, f, 2)
+            d = _make_deterministic(self.__dict__)
+            pickle.dump(d, f, 2)
 
     def load(self, filename):
         """Load the grammar tables from a pickle file."""
         with open(filename, "rb") as f:
             d = pickle.load(f)
         self.__dict__.update(d)
+
+    def loads(self, pkl):
+        """Load the grammar tables from a pickle bytes object."""
+        self.__dict__.update(pickle.loads(pkl))
 
     def copy(self):
         """
@@ -122,6 +139,17 @@ class Grammar(object):
         print("labels")
         pprint(self.labels)
         print("start", self.start)
+
+
+def _make_deterministic(top):
+    if isinstance(top, dict):
+        return collections.OrderedDict(
+            sorted(((k, _make_deterministic(v)) for k, v in top.items())))
+    if isinstance(top, list):
+        return [_make_deterministic(e) for e in top]
+    if isinstance(top, tuple):
+        return tuple(_make_deterministic(e) for e in top)
+    return top
 
 
 # Map from operator to number (since tokenize doesn't do this)

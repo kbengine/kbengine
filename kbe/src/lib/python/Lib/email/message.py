@@ -4,18 +4,17 @@
 
 """Basic message object for the email package object model."""
 
-__all__ = ['Message']
+__all__ = ['Message', 'EmailMessage']
 
 import re
 import uu
 import quopri
-import warnings
 from io import BytesIO, StringIO
 
 # Intrapackage imports
 from email import utils
 from email import errors
-from email._policybase import compat32
+from email._policybase import Policy, compat32
 from email import charset as _charset
 from email._encoded_words import decode_b
 Charset = _charset.Charset
@@ -273,7 +272,7 @@ class Message:
                     bpayload = payload.encode('ascii')
                 except UnicodeError:
                     # This won't happen for RFC compliant messages (messages
-                    # containing only ASCII codepoints in the unicode input).
+                    # containing only ASCII code points in the unicode input).
                     # If it does happen, turn the string into bytes in a way
                     # guaranteed not to fail.
                     bpayload = payload.encode('raw-unicode-escape')
@@ -710,7 +709,7 @@ class Message:
         message, it will be set to "text/plain" and the new parameter and
         value will be appended as per RFC 2045.
 
-        An alternate header can specified in the header argument, and all
+        An alternate header can be specified in the header argument, and all
         parameters will be quoted as necessary unless requote is False.
 
         If charset is specified, the parameter will be encoded according to RFC
@@ -927,20 +926,21 @@ class Message:
         """
         return [part.get_content_charset(failobj) for part in self.walk()]
 
+    def get_content_disposition(self):
+        """Return the message's content-disposition if it exists, or None.
+
+        The return values can be either 'inline', 'attachment' or None
+        according to the rfc2183.
+        """
+        value = self.get('content-disposition')
+        if value is None:
+            return None
+        c_d = _splitparam(value)[0].lower()
+        return c_d
+
     # I.e. def walk(self): ...
     from email.iterators import walk
 
-# XXX Support for temporary deprecation hack for is_attachment property.
-class _IsAttachment:
-    def __init__(self, value):
-        self.value = value
-    def __call__(self):
-        return self.value
-    def __bool__(self):
-        warnings.warn("is_attachment will be a method, not a property, in 3.5",
-                      DeprecationWarning,
-                      stacklevel=3)
-        return self.value
 
 class MIMEPart(Message):
 
@@ -950,12 +950,29 @@ class MIMEPart(Message):
             policy = default
         Message.__init__(self, policy)
 
-    @property
+
+    def as_string(self, unixfrom=False, maxheaderlen=None, policy=None):
+        """Return the entire formatted message as a string.
+
+        Optional 'unixfrom', when true, means include the Unix From_ envelope
+        header.  maxheaderlen is retained for backward compatibility with the
+        base Message class, but defaults to None, meaning that the policy value
+        for max_line_length controls the header maximum length.  'policy' is
+        passed to the Generator instance used to serialize the mesasge; if it
+        is not specified the policy associated with the message instance is
+        used.
+        """
+        policy = self.policy if policy is None else policy
+        if maxheaderlen is None:
+            maxheaderlen = policy.max_line_length
+        return super().as_string(maxheaderlen=maxheaderlen, policy=policy)
+
+    def __str__(self):
+        return self.as_string(policy=self.policy.clone(utf8=True))
+
     def is_attachment(self):
         c_d = self.get('content-disposition')
-        result = False if c_d is None else c_d.content_disposition == 'attachment'
-        # XXX transitional hack to raise deprecation if not called.
-        return _IsAttachment(result)
+        return False if c_d is None else c_d.content_disposition == 'attachment'
 
     def _find_body(self, part, preferencelist):
         if part.is_attachment():
@@ -1024,7 +1041,7 @@ class MIMEPart(Message):
         maintype, subtype = self.get_content_type().split('/')
         if maintype != 'multipart' or subtype == 'alternative':
             return
-        parts = self.get_payload()
+        parts = self.get_payload().copy()
         if maintype == 'multipart' and subtype == 'related':
             # For related, we treat everything but the root as an attachment.
             # The root may be indicated by 'start'; if there's no start or we
@@ -1045,7 +1062,7 @@ class MIMEPart(Message):
             yield from parts
             return
         # Otherwise we more or less invert the remaining logic in get_body.
-        # This only really works in edge cases (ex: non-text relateds or
+        # This only really works in edge cases (ex: non-text related or
         # alternatives) if the sending agent sets content-disposition.
         seen = []   # Only skip the first example of each candidate type.
         for part in parts:

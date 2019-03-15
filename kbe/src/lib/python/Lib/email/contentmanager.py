@@ -126,12 +126,13 @@ def _finalize_set(msg, disposition, filename, cid, params):
             msg.set_param(key, value)
 
 
-# XXX: This is a cleaned-up version of base64mime.body_encode.  It would
-# be nice to drop both this and quoprimime.body_encode in favor of
-# enhanced binascii routines that accepted a max_line_length parameter.
+# XXX: This is a cleaned-up version of base64mime.body_encode (including a bug
+# fix in the calculation of unencoded_bytes_per_line).  It would be nice to
+# drop both this and quoprimime.body_encode in favor of enhanced binascii
+# routines that accepted a max_line_length parameter.
 def _encode_base64(data, max_line_length):
     encoded_lines = []
-    unencoded_bytes_per_line = max_line_length * 3 // 4
+    unencoded_bytes_per_line = max_line_length // 4 * 3
     for i in range(0, len(data), unencoded_bytes_per_line):
         thisline = data[i:i+unencoded_bytes_per_line]
         encoded_lines.append(binascii.b2a_base64(thisline).decode('ascii'))
@@ -141,7 +142,7 @@ def _encode_base64(data, max_line_length):
 def _encode_text(string, charset, cte, policy):
     lines = string.encode(charset).splitlines()
     linesep = policy.linesep.encode('ascii')
-    def embeded_body(lines): return linesep.join(lines) + linesep
+    def embedded_body(lines): return linesep.join(lines) + linesep
     def normal_body(lines): return b'\n'.join(lines) + b'\n'
     if cte==None:
         # Use heuristics to decide on the "best" encoding.
@@ -152,7 +153,7 @@ def _encode_text(string, charset, cte, policy):
         if (policy.cte_type == '8bit' and
                 max(len(x) for x in lines) <= policy.max_line_length):
             return '8bit', normal_body(lines).decode('ascii', 'surrogateescape')
-        sniff = embeded_body(lines[:10])
+        sniff = embedded_body(lines[:10])
         sniff_qp = quoprimime.body_encode(sniff.decode('latin-1'),
                                           policy.max_line_length)
         sniff_base64 = binascii.b2a_base64(sniff)
@@ -171,7 +172,7 @@ def _encode_text(string, charset, cte, policy):
         data = quoprimime.body_encode(normal_body(lines).decode('latin-1'),
                                       policy.max_line_length)
     elif cte == 'base64':
-        data = _encode_base64(embeded_body(lines), policy.max_line_length)
+        data = _encode_base64(embedded_body(lines), policy.max_line_length)
     else:
         raise ValueError("Unknown content transfer encoding {}".format(cte))
     return cte, data

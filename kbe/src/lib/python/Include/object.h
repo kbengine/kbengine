@@ -65,6 +65,7 @@ whose size is determined when the object is allocated.
 #error Py_LIMITED_API is incompatible with Py_DEBUG, Py_TRACE_REFS, and Py_REF_DEBUG
 #endif
 
+
 #ifdef Py_TRACE_REFS
 /* Define pointers to support a doubly-linked list of all live heap objects. */
 #define _PyObject_HEAD_EXTRA            \
@@ -117,6 +118,7 @@ typedef struct {
 #define Py_TYPE(ob)             (((PyObject*)(ob))->ob_type)
 #define Py_SIZE(ob)             (((PyVarObject*)(ob))->ob_size)
 
+#ifndef Py_LIMITED_API
 /********************* String Literals ****************************************/
 /* This structure helps managing static strings. The basic usage goes like this:
    Instead of doing
@@ -133,7 +135,7 @@ typedef struct {
    usage, the string "foo" is interned, and the structures are linked. On interpreter
    shutdown, all strings are released (through _PyUnicode_ClearStaticStrings).
 
-   Alternatively, _Py_static_string allows to choose the variable name.
+   Alternatively, _Py_static_string allows choosing the variable name.
    _PyUnicode_FromId returns a borrowed reference to the interned string.
    _PyObject_{Get,Set,Has}AttrId are __getattr__ versions using _Py_Identifier*.
 */
@@ -143,9 +145,11 @@ typedef struct _Py_Identifier {
     PyObject *object;
 } _Py_Identifier;
 
-#define _Py_static_string_init(value) { 0, value, 0 }
+#define _Py_static_string_init(value) { .next = NULL, .string = value, .object = NULL }
 #define _Py_static_string(varname, value)  static _Py_Identifier varname = _Py_static_string_init(value)
 #define _Py_IDENTIFIER(varname) _Py_static_string(PyId_##varname, #varname)
+
+#endif /* !Py_LIMITED_API */
 
 /*
 Type objects contain a string containing the type name (to help somewhat
@@ -275,6 +279,9 @@ typedef struct {
     binaryfunc nb_inplace_true_divide;
 
     unaryfunc nb_index;
+
+    binaryfunc nb_matrix_multiply;
+    binaryfunc nb_inplace_matrix_multiply;
 } PyNumberMethods;
 
 typedef struct {
@@ -297,6 +304,11 @@ typedef struct {
     objobjargproc mp_ass_subscript;
 } PyMappingMethods;
 
+typedef struct {
+    unaryfunc am_await;
+    unaryfunc am_aiter;
+    unaryfunc am_anext;
+} PyAsyncMethods;
 
 typedef struct {
      getbufferproc bf_getbuffer;
@@ -342,7 +354,8 @@ typedef struct _typeobject {
     printfunc tp_print;
     getattrfunc tp_getattr;
     setattrfunc tp_setattr;
-    void *tp_reserved; /* formerly known as tp_compare */
+    PyAsyncMethods *tp_as_async; /* formerly known as tp_compare (Python 2)
+                                    or tp_reserved (Python 3) */
     reprfunc tp_repr;
 
     /* Method suites for standard classes */
@@ -449,6 +462,7 @@ typedef struct _heaptypeobject {
     /* Note: there's a dependency on the order of these members
        in slotptr() in typeobject.c . */
     PyTypeObject ht_type;
+    PyAsyncMethods as_async;
     PyNumberMethods as_number;
     PyMappingMethods as_mapping;
     PySequenceMethods as_sequence; /* as_sequence comes after as_mapping,
@@ -487,6 +501,7 @@ PyAPI_FUNC(PyObject *) PyType_GenericAlloc(PyTypeObject *, Py_ssize_t);
 PyAPI_FUNC(PyObject *) PyType_GenericNew(PyTypeObject *,
                                                PyObject *, PyObject *);
 #ifndef Py_LIMITED_API
+PyAPI_FUNC(const char *) _PyType_Name(PyTypeObject *);
 PyAPI_FUNC(PyObject *) _PyType_Lookup(PyTypeObject *, PyObject *);
 PyAPI_FUNC(PyObject *) _PyType_LookupId(PyTypeObject *, _Py_Identifier *);
 PyAPI_FUNC(PyObject *) _PyObject_LookupSpecial(PyObject *, _Py_Identifier *);
@@ -501,11 +516,12 @@ PyAPI_FUNC(PyObject *) _PyType_GetTextSignatureFromInternalDoc(const char *, con
 #endif
 
 /* Generic operations on objects */
-struct _Py_Identifier;
 #ifndef Py_LIMITED_API
+struct _Py_Identifier;
 PyAPI_FUNC(int) PyObject_Print(PyObject *, FILE *, int);
 PyAPI_FUNC(void) _Py_BreakPoint(void);
 PyAPI_FUNC(void) _PyObject_Dump(PyObject *);
+PyAPI_FUNC(int) _PyObject_IsFreed(PyObject *);
 #endif
 PyAPI_FUNC(PyObject *) PyObject_Repr(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_Str(PyObject *);
@@ -519,11 +535,22 @@ PyAPI_FUNC(int) PyObject_HasAttrString(PyObject *, const char *);
 PyAPI_FUNC(PyObject *) PyObject_GetAttr(PyObject *, PyObject *);
 PyAPI_FUNC(int) PyObject_SetAttr(PyObject *, PyObject *, PyObject *);
 PyAPI_FUNC(int) PyObject_HasAttr(PyObject *, PyObject *);
+#ifndef Py_LIMITED_API
 PyAPI_FUNC(int) _PyObject_IsAbstract(PyObject *);
 PyAPI_FUNC(PyObject *) _PyObject_GetAttrId(PyObject *, struct _Py_Identifier *);
 PyAPI_FUNC(int) _PyObject_SetAttrId(PyObject *, struct _Py_Identifier *, PyObject *);
 PyAPI_FUNC(int) _PyObject_HasAttrId(PyObject *, struct _Py_Identifier *);
-#ifndef Py_LIMITED_API
+/* Replacements of PyObject_GetAttr() and _PyObject_GetAttrId() which
+   don't raise AttributeError.
+
+   Return 1 and set *result != NULL if an attribute is found.
+   Return 0 and set *result == NULL if an attribute is not found;
+   an AttributeError is silenced.
+   Return -1 and set *result == NULL if an error other than AttributeError
+   is raised.
+*/
+PyAPI_FUNC(int) _PyObject_LookupAttr(PyObject *, PyObject *, PyObject **);
+PyAPI_FUNC(int) _PyObject_LookupAttrId(PyObject *, struct _Py_Identifier *, PyObject **);
 PyAPI_FUNC(PyObject **) _PyObject_GetDictPtr(PyObject *);
 #endif
 PyAPI_FUNC(PyObject *) PyObject_SelfIter(PyObject *);
@@ -533,7 +560,9 @@ PyAPI_FUNC(PyObject *) _PyObject_NextNotImplemented(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_GenericGetAttr(PyObject *, PyObject *);
 PyAPI_FUNC(int) PyObject_GenericSetAttr(PyObject *,
                                               PyObject *, PyObject *);
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03030000
 PyAPI_FUNC(int) PyObject_GenericSetDict(PyObject *, PyObject *, void *);
+#endif
 PyAPI_FUNC(Py_hash_t) PyObject_Hash(PyObject *);
 PyAPI_FUNC(Py_hash_t) PyObject_HashNotImplemented(PyObject *);
 PyAPI_FUNC(int) PyObject_IsTrue(PyObject *);
@@ -546,13 +575,15 @@ PyAPI_FUNC(void) PyObject_CallFinalizer(PyObject *);
 PyAPI_FUNC(int) PyObject_CallFinalizerFromDealloc(PyObject *);
 #endif
 
+#ifndef Py_LIMITED_API
 /* Same as PyObject_Generic{Get,Set}Attr, but passing the attributes
    dict as the last parameter. */
 PyAPI_FUNC(PyObject *)
-_PyObject_GenericGetAttrWithDict(PyObject *, PyObject *, PyObject *);
+_PyObject_GenericGetAttrWithDict(PyObject *, PyObject *, PyObject *, int);
 PyAPI_FUNC(int)
 _PyObject_GenericSetAttrWithDict(PyObject *, PyObject *,
                                  PyObject *, PyObject *);
+#endif /* !Py_LIMITED_API */
 
 /* Helper to look up a builtin object */
 #ifndef Py_LIMITED_API
@@ -572,9 +603,6 @@ PyAPI_FUNC(PyObject *) PyObject_Dir(PyObject *);
 PyAPI_FUNC(int) Py_ReprEnter(PyObject *);
 PyAPI_FUNC(void) Py_ReprLeave(PyObject *);
 
-/* Helper for passing objects to printf and the like */
-#define PyObject_REPR(obj) _PyUnicode_AsString(PyObject_Repr(obj))
-
 /* Flag bits for printing: */
 #define Py_PRINT_RAW    1       /* No string quotes etc. */
 
@@ -588,7 +616,7 @@ introducing new functionality between major revisions (to avoid mid-version
 changes in the PYTHON_API_VERSION).
 
 Arbitration of the flag bit positions will need to be coordinated among
-all extension writers who publically release their extensions (this will
+all extension writers who publicly release their extensions (this will
 be fewer than you might expect!)..
 
 Most flags were removed as of Python 3.0 to make room for new flags.  (Some
@@ -700,7 +728,6 @@ you can count such references to the type object.)
 PyAPI_DATA(Py_ssize_t) _Py_RefTotal;
 PyAPI_FUNC(void) _Py_NegativeRefcount(const char *fname,
                                             int lineno, PyObject *op);
-PyAPI_FUNC(PyObject *) _PyDict_Dummy(void);
 PyAPI_FUNC(Py_ssize_t) _Py_GetRefTotal(void);
 #define _Py_INC_REFTOTAL        _Py_RefTotal++
 #define _Py_DEC_REFTOTAL        _Py_RefTotal--
@@ -710,6 +737,10 @@ PyAPI_FUNC(Py_ssize_t) _Py_GetRefTotal(void);
                 _Py_NegativeRefcount(__FILE__, __LINE__,        \
                                      (PyObject *)(OP));         \
 }
+/* Py_REF_DEBUG also controls the display of refcounts and memory block
+ * allocations at the interactive prompt and at interpreter shutdown
+ */
+PyAPI_FUNC(void) _PyDebug_PrintTotalRefs(void);
 #else
 #define _Py_INC_REFTOTAL
 #define _Py_DEC_REFTOTAL
@@ -771,11 +802,11 @@ PyAPI_FUNC(void) _Py_Dealloc(PyObject *);
         --(_py_decref_tmp)->ob_refcnt != 0)             \
             _Py_CHECK_REFCNT(_py_decref_tmp)            \
         else                                            \
-        _Py_Dealloc(_py_decref_tmp);                    \
+            _Py_Dealloc(_py_decref_tmp);                \
     } while (0)
 
 /* Safely decref `op` and set `op` to NULL, especially useful in tp_clear
- * and tp_dealloc implementatons.
+ * and tp_dealloc implementations.
  *
  * Note that "the obvious" code can be deadly:
  *
@@ -832,6 +863,42 @@ PyAPI_FUNC(void) _Py_Dealloc(PyObject *);
             Py_DECREF(_py_xdecref_tmp);               \
     } while (0)
 
+#ifndef Py_LIMITED_API
+/* Safely decref `op` and set `op` to `op2`.
+ *
+ * As in case of Py_CLEAR "the obvious" code can be deadly:
+ *
+ *     Py_DECREF(op);
+ *     op = op2;
+ *
+ * The safe way is:
+ *
+ *      Py_SETREF(op, op2);
+ *
+ * That arranges to set `op` to `op2` _before_ decref'ing, so that any code
+ * triggered as a side-effect of `op` getting torn down no longer believes
+ * `op` points to a valid object.
+ *
+ * Py_XSETREF is a variant of Py_SETREF that uses Py_XDECREF instead of
+ * Py_DECREF.
+ */
+
+#define Py_SETREF(op, op2)                      \
+    do {                                        \
+        PyObject *_py_tmp = (PyObject *)(op);   \
+        (op) = (op2);                           \
+        Py_DECREF(_py_tmp);                     \
+    } while (0)
+
+#define Py_XSETREF(op, op2)                     \
+    do {                                        \
+        PyObject *_py_tmp = (PyObject *)(op);   \
+        (op) = (op2);                           \
+        Py_XDECREF(_py_tmp);                    \
+    } while (0)
+
+#endif /* ifndef Py_LIMITED_API */
+
 /*
 These are provided as conveniences to Python runtime embedders, so that
 they can have object code that is not dependent on Python compilation flags.
@@ -839,8 +906,10 @@ they can have object code that is not dependent on Python compilation flags.
 PyAPI_FUNC(void) Py_IncRef(PyObject *);
 PyAPI_FUNC(void) Py_DecRef(PyObject *);
 
+#ifndef Py_LIMITED_API
 PyAPI_DATA(PyTypeObject) _PyNone_Type;
 PyAPI_DATA(PyTypeObject) _PyNotImplemented_Type;
+#endif /* !Py_LIMITED_API */
 
 /*
 _Py_NoneStruct is an object of undefined type which can be used in contexts
@@ -873,10 +942,31 @@ PyAPI_DATA(PyObject) _Py_NotImplementedStruct; /* Don't use this directly */
 #define Py_GT 4
 #define Py_GE 5
 
+/*
+ * Macro for implementing rich comparisons
+ *
+ * Needs to be a macro because any C-comparable type can be used.
+ */
+#define Py_RETURN_RICHCOMPARE(val1, val2, op)                               \
+    do {                                                                    \
+        switch (op) {                                                       \
+        case Py_EQ: if ((val1) == (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;  \
+        case Py_NE: if ((val1) != (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;  \
+        case Py_LT: if ((val1) < (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;   \
+        case Py_GT: if ((val1) > (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;   \
+        case Py_LE: if ((val1) <= (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;  \
+        case Py_GE: if ((val1) >= (val2)) Py_RETURN_TRUE; Py_RETURN_FALSE;  \
+        default:                                                            \
+            Py_UNREACHABLE();                                               \
+        }                                                                   \
+    } while (0)
+
+#ifndef Py_LIMITED_API
 /* Maps Py_LT to Py_GT, ..., Py_GE to Py_LE.
  * Defined in object.c.
  */
 PyAPI_DATA(int) _Py_SwappedOp[];
+#endif /* !Py_LIMITED_API */
 
 
 /*
@@ -969,16 +1059,16 @@ without deallocating anything (and so unbounded call-stack depth is avoided).
 When the call stack finishes unwinding again, code generated by the END macro
 notices this, and calls another routine to deallocate all the objects that
 may have been added to the list of deferred deallocations.  In effect, a
-chain of N deallocations is broken into N / PyTrash_UNWIND_LEVEL pieces,
+chain of N deallocations is broken into (N-1)/(PyTrash_UNWIND_LEVEL-1) pieces,
 with the call stack never exceeding a depth of PyTrash_UNWIND_LEVEL.
 */
 
+#ifndef Py_LIMITED_API
 /* This is the old private API, invoked by the macros before 3.2.4.
    Kept for binary compatibility of extensions using the stable ABI. */
 PyAPI_FUNC(void) _PyTrash_deposit_object(PyObject*);
 PyAPI_FUNC(void) _PyTrash_destroy_chain(void);
-PyAPI_DATA(int) _PyTrash_delete_nesting;
-PyAPI_DATA(PyObject *) _PyTrash_delete_later;
+#endif /* !Py_LIMITED_API */
 
 /* The new thread-safe private API, invoked by the macros below. */
 PyAPI_FUNC(void) _PyTrash_thread_deposit_object(PyObject*);

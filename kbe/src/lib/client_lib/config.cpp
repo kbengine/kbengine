@@ -255,12 +255,76 @@ bool Config::loadConfig(std::string fileName)
 						Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
 			}
-		};
+		}
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
 			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
+		}
+
+		TiXmlNode* rudpChildnode = xml->enterNode(rootNode, "reliableUDP");
+		if (rudpChildnode)
+		{
+			childnode = xml->enterNode(rudpChildnode, "readPacketsQueueSize");
+			if (childnode)
+			{
+				TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+				if (childnode1)
+					Network::g_rudp_intReadPacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+				childnode1 = xml->enterNode(childnode, "external");
+				if (childnode1)
+					Network::g_rudp_extReadPacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "writePacketsQueueSize");
+			if (childnode)
+			{
+				TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+				if (childnode1)
+					Network::g_rudp_intWritePacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+				childnode1 = xml->enterNode(childnode, "external");
+				if (childnode1)
+					Network::g_rudp_extWritePacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "tickInterval");
+			if (childnode)
+			{
+				Network::g_rudp_tickInterval = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "minRTO");
+			if (childnode)
+			{
+				Network::g_rudp_minRTO = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "mtu");
+			if (childnode)
+			{
+				Network::g_rudp_mtu = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "missAcksResend");
+			if (childnode)
+			{
+				Network::g_rudp_missAcksResend = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "congestionControl");
+			if (childnode)
+			{
+				Network::g_rudp_congestionControl = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "nodelay");
+			if (childnode)
+			{
+				Network::g_rudp_nodelay = (xml->getValStr(childnode) == "true");
+			}
 		}
 	}
 

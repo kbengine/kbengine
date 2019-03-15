@@ -6,6 +6,7 @@
 #include "helper/memory_helper.h"
 
 #include "serverapp.h"
+#include "Python.h"
 #include "common/common.h"
 #include "common/kbekey.h"
 #include "common/stringconv.h"
@@ -30,13 +31,14 @@ inline void START_MSG(const char * name, uint64 appuid)
 	std::string s = (fmt::format("---- {} "
 			"Version: {}. "
 			"ScriptVersion: {}. "
+			"Pythoncore: {}. "
 			"Protocol: {}. "
 			"Config: {} {}. "
 			"Built: {} {}. "
 			"AppID: {}. "
 			"UID: {}. "
 			"PID: {} ----\n",
-		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
+		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(), PY_VERSION,
 		Network::MessageHandlers::getDigestStr(),
 		KBE_CONFIG, KBE_ARCH, __TIME__, __DATE__,
 		appuid, getUserUID(), getProcessPID()));
@@ -101,8 +103,9 @@ inline void setEvns()
 
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
-			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
+	int32 extlisteningTcpPort_min = -1, int32 extlisteningTcpPort_max = -1, 
+	int32 extlisteningUdpPort_min = -1, int32 extlisteningUdpPort_max = -1, const char * extlisteningInterface = "",
+	int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
 	setEvns();
 	startLeakDetection(componentType, g_componentID);
@@ -125,7 +128,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Network::g_SOMAXCONN = g_kbeSrvConfig.tcp_SOMAXCONN(g_componentType);
 
 	Network::NetworkInterface networkInterface(&dispatcher, 
-		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 
+		extlisteningTcpPort_min, extlisteningTcpPort_max, extlisteningUdpPort_min, extlisteningUdpPort_max, extlisteningInterface,
 		channelCommon.extReadBufferSize, channelCommon.extWriteBufferSize,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface,
 		channelCommon.intReadBufferSize, channelCommon.intWriteBufferSize);
@@ -133,11 +136,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::getSingleton().pNetworkInterface(&networkInterface);
 
 	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
-			networkInterface.intaddr(), networkInterface.extaddr());
+			networkInterface.intTcpAddr(), networkInterface.extTcpAddr(), networkInterface.extUdpAddr());
 	
 	if(getUserUID() <= 0)
 	{
-		WARNING_MSG(fmt::format("invalid UID({}) <= 0, please check UID for environment!\n", getUserUID()));
+		int getuid = getUserUID();
+		autoFixUserDigestUID();
+		WARNING_MSG(fmt::format("invalid UID({}) <= 0, please check UID for environment! automatically set to {}.\n", getuid, getUserUID()));
 	}
 
 	Components::getSingleton().initialize(&networkInterface, componentType, g_componentID);
@@ -320,7 +325,7 @@ int main(int argc, char* argv[])																						\
 	g_componentID = genUUID64();																						\
 	parseMainCommandArgs(argc, argv);																					\
 	char dumpname[MAX_BUF] = {0};																						\
-	kbe_snprintf(dumpname, MAX_BUF, "%"PRAppID, g_componentID);															\
+	kbe_snprintf(dumpname, MAX_BUF, "%" PRAppID, g_componentID);														\
 	KBEngine::exception::installCrashHandler(1, dumpname);																\
 	int retcode = -1;																									\
 	THREAD_TRY_EXECUTION;																								\

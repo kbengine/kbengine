@@ -51,6 +51,7 @@ public:
 			pid = 0;
 			externalAddressEx[0] = '\0';
 			logTime = timestamp();
+			appFlags = APP_FLAGS_NONE;
 		}
 
 		KBEShared_ptr<Network::Address> pIntAddr, pExtAddr;		// 内部和外部地址
@@ -74,6 +75,7 @@ public:
 		uint64 extradata, extradata1, extradata2, extradata3;
 		uint32 pid;
 		uint64 logTime;
+		uint32 appFlags;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;

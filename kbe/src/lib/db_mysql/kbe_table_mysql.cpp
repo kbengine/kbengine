@@ -17,49 +17,105 @@ namespace KBEngine {
 bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 {
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_entitylog "
-			"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
-			"entityType int unsigned not null DEFAULT 0,"
-			"entityID int unsigned not null DEFAULT 0,"
-			"ip varchar(64),"
-			"port int unsigned not null DEFAULT 0,"
-			"componentID bigint unsigned not null DEFAULT 0,"
-			"logger bigint unsigned not null DEFAULT 0,"
-			"PRIMARY KEY (entityDBID, entityType))"
+		"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
+		"entityType int unsigned not null DEFAULT 0,"
+		"entityID int unsigned not null DEFAULT 0,"
+		"ip varchar(64),"
+		"port int unsigned not null DEFAULT 0,"
+		"componentID bigint unsigned not null DEFAULT 0,"
+		"serverGroupID bigint unsigned not null DEFAULT 0,"
+		"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
-	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
 		return false;
-	
+
 	// 清除过期的日志
 	KBEServerLogTableMysql serverLogTable(NULL);
-	
-	std::vector<COMPONENT_ID> cids = serverLogTable.queryTimeOutServers(pdbi);
-	
-	if (!serverLogTable.clearTimeoutLogs(pdbi, cids))
-		return false;
-	
-	cids.push_back(g_componentID);
-	
-	sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
-	
-	char tbuf[MAX_BUF];
+	std::vector<COMPONENT_ID> cids;
 
-	std::vector<COMPONENT_ID>::iterator citer = cids.begin();
-	for(; citer != cids.end(); ++citer)
 	{
-		kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
-		sqlstr += tbuf;
-		sqlstr += ",";
+		cids = serverLogTable.queryTimeOutServers(pdbi);
+
+		if (!serverLogTable.clearServers(pdbi, cids))
+			return false;
+
+		cids.push_back((uint64)getUserUID());
+
+		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where serverGroupID in (");
+
+		char tbuf[MAX_BUF];
+
+		std::vector<COMPONENT_ID>::iterator citer = cids.begin();
+		for (; citer != cids.end(); ++citer)
+		{
+			kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
+			sqlstr += tbuf;
+			sqlstr += ",";
+		}
+
+		if (sqlstr[sqlstr.size() - 1] == ',')
+			sqlstr.erase(sqlstr.end() - 1);
+
+		sqlstr += ")";
+
+		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+			return false;
 	}
 
-	if (sqlstr[sqlstr.size() - 1] == ',')
-		sqlstr.erase(sqlstr.end() - 1);
+	// 获得所有服务器
+	cids = serverLogTable.queryServers(pdbi);
 
-	sqlstr += ")";
+	// 查询所有entitylog筛选出在serverlog中找不到记录的log并清理这些无效记录
+	{
+		sqlstr = fmt::format("select distinct(serverGroupID) from " KBE_TABLE_PERFIX "_entitylog");
 
-	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
-		return false;
-	
+		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+			return false;
+
+		std::vector<COMPONENT_ID> erases_ids;
+
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
+		if (pResult)
+		{
+			MYSQL_ROW arow;
+			while ((arow = mysql_fetch_row(pResult)) != NULL)
+			{
+				COMPONENT_ID serverGroupID = 0;
+				KBEngine::StringConv::str2value(serverGroupID, arow[0]);
+
+				// 如果找不到服务器log就添加到删除列表
+				if (std::find(cids.begin(), cids.end(), serverGroupID) == cids.end())
+					erases_ids.push_back(serverGroupID);
+			}
+
+			mysql_free_result(pResult);
+		}
+
+		if (erases_ids.size() > 0)
+		{
+			sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where serverGroupID in (");
+
+			char tbuf[MAX_BUF];
+
+			std::vector<COMPONENT_ID>::iterator citer = erases_ids.begin();
+			for (; citer != erases_ids.end(); ++citer)
+			{
+				kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
+				sqlstr += tbuf;
+				sqlstr += ",";
+			}
+
+			if (sqlstr[sqlstr.size() - 1] == ',')
+				sqlstr.erase(sqlstr.end() - 1);
+
+			sqlstr += ")";
+
+			if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+				return false;
+		}
+	}
+
 	return true;
 }
 
@@ -67,7 +123,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_entitylog (entityDBID, entityType, entityID, ip, port, componentID, logger) values(";
+	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_entitylog (entityDBID, entityType, entityID, ip, port, componentID, serverGroupID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -97,7 +153,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -129,7 +185,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "select entityID, ip, port, componentID, logger from " KBE_TABLE_PERFIX "_entitylog where entityDBID=";
+	std::string sqlstr = "select entityID, ip, port, componentID, serverGroupID from " KBE_TABLE_PERFIX "_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
@@ -147,7 +203,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 	
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
-	entitylog.logger = 0;
+	entitylog.serverGroupID = 0;
 	entitylog.entityID = 0;
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
@@ -162,7 +218,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 			kbe_snprintf(entitylog.ip, MAX_IP, "%s", arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
-			StringConv::str2value(entitylog.logger, arow[4]);
+			StringConv::str2value(entitylog.serverGroupID, arow[4]);
 		}
 
 		mysql_free_result(pResult);
@@ -194,6 +250,24 @@ bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTIT
 }
 
 //-------------------------------------------------------------------------------------
+bool KBEEntityLogTableMysql::eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID)
+{
+	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_entitylog where componentID=";
+
+	char tbuf[MAX_BUF];
+
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, componentID);
+	sqlstr += tbuf;
+
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 KBEEntityLogTableMysql::KBEEntityLogTableMysql(EntityTables* pEntityTables):
 KBEEntityLogTable(pEntityTables)
 {
@@ -208,8 +282,8 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 
 	sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_serverlog "
 			"(heartbeatTime bigint(20) unsigned not null DEFAULT 0,"
-			"logger bigint unsigned not null DEFAULT 0,"
-			"PRIMARY KEY (logger))"
+			"serverGroupID bigint unsigned not null DEFAULT 0,"
+			"PRIMARY KEY (serverGroupID))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
@@ -220,7 +294,7 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 //-------------------------------------------------------------------------------------
 bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 {
-	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, logger) values(";
+	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, serverGroupID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -228,7 +302,7 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ") ON DUPLICATE KEY UPDATE heartbeatTime=";
 
@@ -263,10 +337,10 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 //-------------------------------------------------------------------------------------
 bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlog)
 {
-	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where logger=";
+	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where serverGroupID=";
 
 	char tbuf[MAX_BUF];
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 
 	sqlstr += " LIMIT 1";
@@ -297,11 +371,42 @@ bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlo
 }
 
 //-------------------------------------------------------------------------------------
+std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryServers(DBInterface * pdbi)
+{
+	std::vector<COMPONENT_ID> cids;
+
+	std::string sqlstr = "select heartbeatTime,serverGroupID from " KBE_TABLE_PERFIX "_serverlog";
+
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return cids;
+	}
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
+	if (pResult)
+	{
+		MYSQL_ROW arow;
+		while ((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			ServerLog serverlog;
+			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
+			KBEngine::StringConv::str2value(serverlog.serverGroupID, arow[1]);
+
+			cids.push_back(serverlog.serverGroupID);
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return cids;
+}
+
+//-------------------------------------------------------------------------------------
 std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterface * pdbi)
 {
 	std::vector<COMPONENT_ID> cids;
 
-	std::string sqlstr = "select heartbeatTime,logger from " KBE_TABLE_PERFIX "_serverlog";
+	std::string sqlstr = "select heartbeatTime,serverGroupID from " KBE_TABLE_PERFIX "_serverlog";
 
 	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
@@ -316,13 +421,13 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 		{
 			ServerLog serverlog;
 			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
-			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
+			KBEngine::StringConv::str2value(serverlog.serverGroupID, arow[1]);
 			
-			if(serverlog.logger == g_componentID)
+			if(serverlog.serverGroupID == (uint64)getUserUID())
 				continue;
 			
 			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
-				cids.push_back(serverlog.logger);
+				cids.push_back(serverlog.serverGroupID);
 		}
 
 		mysql_free_result(pResult);
@@ -332,19 +437,19 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEServerLogTableMysql::clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
+bool KBEServerLogTableMysql::clearServers(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
 {
 	if(cids.size() == 0)
 		return true;
 	
-	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_serverlog where logger in (";
+	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_serverlog where serverGroupID in (";
 
 	char tbuf[MAX_BUF];
 
 	std::vector<COMPONENT_ID>::const_iterator citer = cids.begin();
 	for(; citer != cids.end(); ++citer)
 	{
-		if((*citer) == g_componentID)
+		if((*citer) == (uint64)getUserUID())
 			continue;
 
 		kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
@@ -378,7 +483,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 
 	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_accountinfos "
 		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
-		"`password` varchar({}),"
+		"`password` varchar({}) not null,"
 			"`bindata` blob,"
 			"`email` varchar(191) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
@@ -801,14 +906,14 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 
 	if(!pTable->setFlagsDeadline(pdbi, info.name, info.flags, info.deadline))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline error({})!\n", 
 				code, pdbi->getstrerror()));
 		return false;
 	}
 
 	if(!pTable->updatePassword(pdbi, info.name, password))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		return false;
@@ -835,7 +940,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 	if(!pdbi->query(fmt::format("update " KBE_TABLE_PERFIX "_accountinfos set entityDBID={} where accountName like \"{}\"", 
 		info.dbid, tbuf), false))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		SAFE_RELEASE_ARRAY(tbuf);

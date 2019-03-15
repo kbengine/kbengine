@@ -17,6 +17,7 @@ namespace KBEngine
 EntityCall::ENTITYCALLS EntityCall::entityCalls;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityCall)
+SCRIPT_METHOD_DECLARE("getComponent",		pyGetComponent,		METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(EntityCall)
@@ -80,9 +81,7 @@ RemoteEntityMethod* EntityCall::createRemoteMethod(MethodDescription* pMethodDes
 //-------------------------------------------------------------------------------------
 PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 
@@ -115,8 +114,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 	
 	if(pMethodDescription != NULL)
 	{
-		free(ccattr);
-
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
 			if(!pMethodDescription->isExposed())
@@ -164,8 +161,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		
 		if(mbtype != -1)
 		{
-			free(ccattr);
-
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
 				return new EntityCall(pScriptModule_, &addr_, componentID_, 
@@ -178,8 +173,7 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 			}
 		}
 	}
-	
-	free(ccattr);
+
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 
@@ -228,13 +222,13 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error! size != 4.\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error! size != 4.\n");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "iKHh", &eid, &componentID, &utype, &type))
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error!\n");
 		S_Return;
 	}
 
@@ -286,5 +280,90 @@ void EntityCall::newCall(Network::Bundle& bundle)
 		bundle << (ENTITY_PROPERTY_UID)0;
 }
 
+//-------------------------------------------------------------------------------------
+PyObject* EntityCall::pyGetComponent(const std::string& componentName, bool all)
+{
+	std::vector<EntityComponentCall*> founds =
+		EntityComponentCall::getComponents(componentName, this, pScriptModule_);
+
+	if (!all)
+	{
+		if (founds.size() > 0)
+			return founds[0];
+
+		Py_RETURN_NONE;
+	}
+	else
+	{
+		PyObject* pyObj = PyTuple_New(founds.size());
+
+		for (int i = 0; i < (int)founds.size(); ++i)
+		{
+			PyTuple_SetItem(pyObj, i, founds[i]);
+		}
+
+		return pyObj;
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityCall::__py_pyGetComponent(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
+	EntityCall* pobj = static_cast<EntityCall*>(self);
+
+	if (currargsSize == 0 || currargsSize > 2)
+	{
+		PyErr_Format(PyExc_AssertionError,
+			"EntityCall::getComponent: args require 1-2 args, gived %d!\n",
+			currargsSize);
+
+		PyErr_PrintEx(0);
+		Py_RETURN_NONE;
+	}
+
+	char* componentName = NULL;
+	if (currargsSize == 1)
+	{
+		if (PyArg_ParseTuple(args, "s", &componentName) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: args error!");
+			PyErr_PrintEx(0);
+			Py_RETURN_NONE;
+		}
+
+		if (!componentName)
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: componentName error!");
+			PyErr_PrintEx(0);
+			Py_RETURN_NONE;
+		}
+
+		return pobj->pyGetComponent(componentName, false);
+	}
+	else if (currargsSize == 2)
+	{
+		PyObject* pyobj = NULL;
+		if (PyArg_ParseTuple(args, "sO", &componentName, &pyobj) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: args error!");
+			PyErr_PrintEx(0);
+			Py_RETURN_NONE;
+		}
+
+		if (!componentName)
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: componentName error!");
+			PyErr_PrintEx(0);
+			Py_RETURN_NONE;
+		}
+
+		return pobj->pyGetComponent(componentName, (pyobj == Py_True));
+	}
+
+	Py_RETURN_NONE;
+}
 //-------------------------------------------------------------------------------------
 }

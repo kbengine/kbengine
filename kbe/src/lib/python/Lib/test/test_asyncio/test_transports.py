@@ -42,6 +42,7 @@ class TransportTests(unittest.TestCase):
         self.assertRaises(NotImplementedError, transport.can_write_eof)
         self.assertRaises(NotImplementedError, transport.pause_reading)
         self.assertRaises(NotImplementedError, transport.resume_reading)
+        self.assertRaises(NotImplementedError, transport.is_reading)
         self.assertRaises(NotImplementedError, transport.close)
         self.assertRaises(NotImplementedError, transport.abort)
 
@@ -69,7 +70,8 @@ class TransportTests(unittest.TestCase):
             def get_write_buffer_size(self):
                 return 512
 
-        transport = MyTransport()
+        loop = mock.Mock()
+        transport = MyTransport(loop=loop)
         transport._protocol = mock.Mock()
 
         self.assertFalse(transport._protocol_paused)

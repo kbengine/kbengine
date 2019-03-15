@@ -66,20 +66,21 @@ class N:
 class PickleTest:
     # Helper to check picklability
     def check_pickle(self, itorg, seq):
-        d = pickle.dumps(itorg)
-        it = pickle.loads(d)
-        self.assertEqual(type(itorg), type(it))
-        self.assertEqual(list(it), seq)
+        for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+            d = pickle.dumps(itorg, proto)
+            it = pickle.loads(d)
+            self.assertEqual(type(itorg), type(it))
+            self.assertEqual(list(it), seq)
 
-        it = pickle.loads(d)
-        try:
-            next(it)
-        except StopIteration:
-            self.assertFalse(seq[1:])
-            return
-        d = pickle.dumps(it)
-        it = pickle.loads(d)
-        self.assertEqual(list(it), seq[1:])
+            it = pickle.loads(d)
+            try:
+                next(it)
+            except StopIteration:
+                self.assertFalse(seq[1:])
+                continue
+            d = pickle.dumps(it, proto)
+            it = pickle.loads(d)
+            self.assertEqual(list(it), seq[1:])
 
 class EnumerateTestCase(unittest.TestCase, PickleTest):
 
@@ -222,7 +223,7 @@ class TestReversed(unittest.TestCase, PickleTest):
     def test_objmethods(self):
         # Objects must have __len__() and __getitem__() implemented.
         class NoLen(object):
-            def __getitem__(self): return 1
+            def __getitem__(self, i): return 1
         nl = NoLen()
         self.assertRaises(TypeError, reversed, nl)
 
@@ -230,6 +231,13 @@ class TestReversed(unittest.TestCase, PickleTest):
             def __len__(self): return 2
         ngi = NoGetItem()
         self.assertRaises(TypeError, reversed, ngi)
+
+        class Blocked(object):
+            def __getitem__(self, i): return 1
+            def __len__(self): return 2
+            __reversed__ = None
+        b = Blocked()
+        self.assertRaises(TypeError, reversed, b)
 
     def test_pickle(self):
         for data in 'abc', range(5), tuple(enumerate('abc')), range(1,17,5):
@@ -257,16 +265,5 @@ class TestLongStart(EnumerateStartTestCase):
                        (sys.maxsize+3,'c')]
 
 
-def test_main(verbose=None):
-    support.run_unittest(__name__)
-
-    # verify reference counting
-    if verbose and hasattr(sys, "gettotalrefcount"):
-        counts = [None] * 5
-        for i in range(len(counts)):
-            support.run_unittest(__name__)
-            counts[i] = sys.gettotalrefcount()
-        print(counts)
-
 if __name__ == "__main__":
-    test_main(verbose=True)
+    unittest.main()

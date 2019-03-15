@@ -83,19 +83,19 @@ std::string ClientSDKUE4::typeToType(const std::string& type)
 	}
 	else if (type == "PYTHON")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_DICT")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_TUPLE")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_LIST")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "BLOB")
 	{
@@ -314,7 +314,8 @@ bool ClientSDKUE4::writeEngineMessagesModuleBegin()
 	strutil::kbe_replace(fileBody(), "#REPLACE#", "");
 
 	fileBody() += "#pragma once\n\n";
-	fileBody() += "#include \"KBECommon.h\"\n\n";
+	fileBody() += "#include \"KBECommon.h\"\n";
+	fileBody() += "#include \"MemoryStream.h\"\n\n";
 
 	fileBody() += "// engine-c++ messages\n\n";
 	fileBody() += fmt::format("class KBENGINEPLUGINS_API {}\n{{\npublic:", "Message");
@@ -1297,6 +1298,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
 		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", typeName);
+		std::map<std::string, std::string> allClassName;
 
 		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
 
@@ -1318,10 +1320,24 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 
 					std::string className = pKeyDataType->aliasName();
 
-					createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t");
+					if (strlen(pFixedArrayType->aliasName()) == 0 || pFixedArrayType->aliasName()[0] == '_')
+					{
+						std::map<std::string, std::string>::iterator findChildClassNameIter = allClassName.find(className + "_ChildArray");
 
-					fileBody() += fmt::format("\tDATATYPE_{} {}_DataType;\n\n",
-						className + "_ChildArray", keyiter->first, className + "_ChildArray");
+						if (findChildClassNameIter == allClassName.end())
+						{
+							allClassName[className + "_ChildArray"] = typeName;
+							createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t");
+						}
+
+						fileBody() += fmt::format("\tDATATYPE_{} {}_DataType;\n\n",
+							className + "_ChildArray", keyiter->first, className + "_ChildArray");
+					}
+					else
+					{
+						fileBody() += fmt::format("\tDATATYPE_{} {}_DataType;\n\n",
+							className, keyiter->first, className);
+					}
 				}
 				else
 				{
@@ -1426,7 +1442,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 		}
 
 		std::string readName;
-		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\n", className);
+		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", className);
 
 		bool isFixedType = strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
 			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0;
@@ -1577,6 +1593,13 @@ bool ClientSDKUE4::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule*
 //-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
+	// 如果pDescr为None，并且是客户端方法，那么需要强制设定useMethodDescrAlias为true，否则默认为false将会出现问题
+	if (!pDescr && componentType == CLIENT_TYPE)
+	{
+		fileBody() += fmt::format("\tp{}Module->useMethodDescrAlias = true;\n", pScriptDefModule->getName());
+		return true;
+	}
+
 	fileBody() += fmt::format("\tTArray<DATATYPE_BASE*> {}_{}_args;\n", pScriptDefModule->getName(), pDescr->getName());
 
 	const std::vector<DataType*>& args = pDescr->getArgTypes();
@@ -2045,7 +2068,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	if (!pEntityScriptDefModule->isComponentModule())
 		initBody_ = "\tEntity(),\n\tpBaseEntityCall(NULL),\n\tpCellEntityCall(NULL),\n";
 	else
-		initBody_ = "\tEntityComponent(),\n";
+		initBody_ = "\tEntityComponent(),\n\tpBaseEntityCall(NULL),\n\tpCellEntityCall(NULL),\n";
 
 	fileBody() = headerBody;
 	strutil::kbe_replace(fileBody(), "#REPLACE#", fmt::format("\tPlease inherit this module, such as: (class {} : public {}{})\n",
@@ -2101,6 +2124,11 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	if (pEntityScriptDefModule->isComponentModule())
 	{
 		fileBody() += fmt::format("class KBENGINEPLUGINS_API {} : public EntityComponent\n{{\npublic:\n", newModuleName);
+
+		// 写entityCall属性
+		fileBody() += fmt::format("\tEntityBaseEntityCall_{}* pBaseEntityCall;\n", newModuleName);
+		fileBody() += fmt::format("\tEntityCellEntityCall_{}* pCellEntityCall;\n", newModuleName);
+		fileBody() += fmt::format("\tScriptModule* getScriptModule();\n\n");
 
 		changeContextToSource();
 		fileBody() += fmt::format("#include \"{}.h\"\n", newModuleName);
@@ -2192,7 +2220,8 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 			fileBody() += fmt::format("\t{}->pOwner = this;\n", pPropertyDescription->getName());
-			fileBody() += fmt::format("\t{}->ownerID = id_;\n\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t{}->ownerID = id_;\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t{}->entityComponentPropertyID = {};\n\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
 		}
 	}
 
@@ -2202,12 +2231,6 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
-		fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
-		fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
-
-		fileBody() += fmt::format("\tif(pCellEntityCall)\n");
-		fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
-
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
 		for (; propIter != clientPropertys.end(); ++propIter)
@@ -2223,7 +2246,61 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 		}
 	}
 
-	fileBody() += "}\n\n";
+	fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
+	fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
+
+	fileBody() += fmt::format("\tif(pCellEntityCall)\n");
+	fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
+
+	fileBody() += "}\n";
+
+	// attach组件
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\n\tvoid attachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::attachComponents()\n{{\n", newModuleName);
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onAttached(this);\n", pPropertyDescription->getName());
+		}
+
+		fileBody() += fmt::format("}}\n");
+	}
+
+	// detach组件
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\tvoid detachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::detachComponents()\n{{\n", newModuleName);
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onDetached(this);\n", pPropertyDescription->getName());
+		}
+
+		fileBody() += fmt::format("}}\n\n");
+	}
 
 	changeContextToHeader();
 	fileBody() += "\n};\n\n";
@@ -2242,8 +2319,71 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 	// EntityCall
 	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
 
+	if (pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\n\tvoid createFromStream(MemoryStream& stream) override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::createFromStream(MemoryStream& stream)\n{{\n", newModuleName);
+		fileBody() += fmt::format("\tEntityComponent::createFromStream(stream);\n");
+		fileBody() += fmt::format("\tpBaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		fileBody() += fmt::format("\tpCellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		fileBody() += fmt::format("}}\n");
+	}
+
+	if (pEntityScriptDefModule->isComponentModule())
+	{
+		sourcefileBody_ += fmt::format("\nScriptModule* {}::getScriptModule()\n{{\n", newModuleName);
+		sourcefileBody_ += fmt::format("\treturn *EntityDef::moduledefs.Find(\"{}\");\n", pEntityScriptDefModule->getName());
+		sourcefileBody_ += "}\n";
+	}
+
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
+		{
+			changeContextToHeader();
+			fileBody() += fmt::format("\n\tvoid onComponentsEnterworld() override;\n");
+
+			changeContextToSource();
+			fileBody() += fmt::format("\nvoid {}::onComponentsEnterworld()\n{{\n", newModuleName);
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+			for (; propIter != clientPropertys.end(); ++propIter)
+			{
+				PropertyDescription* pPropertyDescription = propIter->second;
+
+				if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+					continue;
+
+				fileBody() += fmt::format("\t{}->onEnterworld();\n", pPropertyDescription->getName());
+			}
+
+			fileBody() += fmt::format("}}\n");
+		}
+		{
+			changeContextToHeader();
+			fileBody() += fmt::format("\tvoid onComponentsLeaveworld() override;\n");
+
+			changeContextToSource();
+			fileBody() += fmt::format("\nvoid {}::onComponentsLeaveworld()\n{{\n", newModuleName);
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+			for (; propIter != clientPropertys.end(); ++propIter)
+			{
+				PropertyDescription* pPropertyDescription = propIter->second;
+
+				if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+					continue;
+
+				fileBody() += fmt::format("\t{}->onLeaveworld();\n", pPropertyDescription->getName());
+			}
+
+			fileBody() += fmt::format("}}\n");
+		}
+
 		changeContextToHeader();
 		fileBody() += fmt::format("\n\tvoid onGetBase() override;\n");
 
@@ -2327,13 +2467,73 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 		{
 			fileBody() += fmt::format("\tuint16 methodUtype = 0;\n", pEntityScriptDefModule->getName());
 			fileBody() += fmt::format("\tuint16 componentPropertyUType = 0;\n\n");
-			fileBody() += fmt::format("\tif (sm->useMethodDescrAlias)\n\t{{\n");
+			fileBody() += fmt::format("\tif (sm->usePropertyDescrAlias)\n\t{{\n");
 			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint8();\n");
-			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint8>();\n");
 			fileBody() += fmt::format("\t}}\n\telse\n\t{{\n");
-			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n");
+			fileBody() += fmt::format("\t\tcomponentPropertyUType = stream.readUint16();\n\t}}\n\n");
+
+			fileBody() += fmt::format("\tif (sm->useMethodDescrAlias)\n\t{{\n");
+			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint8>();\n");
+
+			bool foundComponentNoUseMethodDescrAlias = false;
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+			for (; propIter != clientPropertys.end(); ++propIter)
+			{
+				PropertyDescription* pPropertyDescription = propIter->second;
+
+				if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+					continue;
+
+				EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+				if (!pEntityComponentType->pScriptDefModule()->useMethodDescrAlias())
+				{
+					foundComponentNoUseMethodDescrAlias = true;
+					break;
+				}
+			}
+
+			if (foundComponentNoUseMethodDescrAlias)
+			{
+				sourcefileBody_ += fmt::format("\n\t\tif(componentPropertyUType > 0)\n");
+				sourcefileBody_ += fmt::format("\t\t{{\n");
+				sourcefileBody_ += fmt::format("\t\t\tbool useComponentMethodDescrAlias = true;\n");
+				sourcefileBody_ += fmt::format("\t\t\tProperty* pComponentPropertyDescription = sm->idpropertys[componentPropertyUType];\n\n");
+				sourcefileBody_ += fmt::format("\t\t\tswitch(pComponentPropertyDescription->properUtype)\n");
+				sourcefileBody_ += fmt::format("\t\t\t{{\n");
+
+				for (propIter = clientPropertys.begin(); propIter != clientPropertys.end(); ++propIter)
+				{
+					PropertyDescription* pPropertyDescription = propIter->second;
+
+					if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+						continue;
+
+					EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+					if (!pEntityComponentType->pScriptDefModule()->useMethodDescrAlias())
+					{
+						sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
+						sourcefileBody_ += fmt::format("\t\t\t\t\tuseComponentMethodDescrAlias = false;\n", pPropertyDescription->getName());
+						sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+					}
+				}
+
+				sourcefileBody_ += fmt::format("\t\t\t\tdefault:\n");
+				sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+				sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
+
+				sourcefileBody_ += fmt::format("\t\t\tif(!useComponentMethodDescrAlias)\n");
+				sourcefileBody_ += fmt::format("\t\t\t{{\n");
+				sourcefileBody_ += fmt::format("\t\t\t\tstream.rpos(stream.rpos() - 1);\n");
+				sourcefileBody_ += fmt::format("\t\t\t\tmethodUtype = stream.read<uint16>();\n");
+				sourcefileBody_ += fmt::format("\t\t\t}}\n");
+
+				sourcefileBody_ += fmt::format("\t\t}}\n");
+			}
+
+			fileBody() += fmt::format("\t}}\n\telse\n\t{{\n");
 			fileBody() += fmt::format("\t\tmethodUtype = stream.read<uint16>();\n\t}}\n\n");
-			fileBody() += fmt::format("\tMethod* pMethod = sm->idmethods[methodUtype];\n\n");
 
 			fileBody() += fmt::format("\tif(componentPropertyUType > 0)\n\t{{\n");
 			if (entityComponentSize > 0)
@@ -2357,6 +2557,8 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 				}
 
 				fileBody() += fmt::format("\t\t}}\n");
+
+				
 			}
 			else
 			{
@@ -2365,6 +2567,8 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 			fileBody() += fmt::format("\n\t\treturn;\n");
 			fileBody() += fmt::format("\t}}\n\n");
+
+			fileBody() += fmt::format("\tMethod* pMethod = sm->idmethods[methodUtype];\n\n");
 		}
 		else
 		{
@@ -2422,15 +2626,15 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 							pDataType->aliasName(), pMethodDescription->getName(), i);
 
 						fileBody() += fmt::format("\t\t\t((DATATYPE_{}*)pMethod->args[{}])->createFromStreamEx(stream, {}_arg{});\n",
-							pDataType->aliasName(), (i - 1), pDataType->aliasName(), pMethodDescription->getName(), i);
+							pDataType->aliasName(), (i - 1), pMethodDescription->getName(), i);
 					}
 					else
 					{
 						fileBody() += fmt::format("\t\t\t{} {}_arg{};\n",
 							typestr, pMethodDescription->getName(), i);
 
-						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {} {}_arg{});\n",
-							typeID, (i - 1), typestr, pMethodDescription->getName(), i);
+						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {}_arg{});\n",
+							typeID, (i - 1), pMethodDescription->getName(), i);
 					}
 				}
 				else
@@ -2594,7 +2798,8 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 
-	if (clientPropertys.size() > 0)
+	// entity即使在属性小于0时仍然存在默认属性，而组件则可能因为没有属性导致空switch编译出错
+	if (!pEntityScriptDefModule->isComponentModule() || clientPropertys.size() > 0)
 	{
 		fileBody() += fmt::format("\t\tswitch(pProp->properUtype)\n\t\t{{\n");
 
@@ -2635,7 +2840,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 				{
 					fileBody() += fmt::format("\t\t\tcase {}:\n\t\t\t{{\n", pPropertyDescription->getUType());
 					fileBody() += fmt::format("\t\t\t\tstream.readUint32();\n");
-					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t}}\n");
+					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t\t}}\n");
 					continue;
 				}
 				else
@@ -2931,7 +3136,7 @@ bool ClientSDKUE4::writeEntityProperty_STRING(ScriptDefModule* pEntityScriptDefM
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	fileBody() += fmt::format("\tFString {};\n", pPropertyDescription->getName());
-	initBody_ += fmt::format("\t{}(TEXT({})),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
+	initBody_ += fmt::format("\t{}(TEXT(\"{}\")),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : ""));
 
 	std::string name = pPropertyDescription->getName();
 	name[0] = std::toupper(name[0]);
@@ -2944,7 +3149,7 @@ bool ClientSDKUE4::writeEntityProperty_UNICODE(ScriptDefModule* pEntityScriptDef
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	fileBody() += fmt::format("\tFString {};\n", pPropertyDescription->getName());
-	initBody_ += fmt::format("\t{}(TEXT({})),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
+	initBody_ += fmt::format("\t{}(TEXT(\"{}\")),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : ""));
 
 	std::string name = pPropertyDescription->getName();
 	name[0] = std::toupper(name[0]);
@@ -3004,7 +3209,7 @@ bool ClientSDKUE4::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDefMo
 
 		bool ret = writeTypeItemType_ARRAY(pPropertyDescription->getName(), pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType());
 		std::vector<std::string> values;
-		values = KBEngine::strutil::kbe_splits(fileBody(), " ");
+		KBEngine::strutil::kbe_splits(fileBody(), " ", values);
 		fileBody() = s + fileBody();
 
 		std::string name = pPropertyDescription->getName();

@@ -7,7 +7,6 @@ GetPassWarning - This UserWarning is issued when getpass() cannot prevent
                  echoing of the password contents while reading.
 
 On Windows, the msvcrt module will be used.
-On the Mac EasyDialogs.AskPassword is used, if available.
 
 """
 
@@ -99,7 +98,7 @@ def win_getpass(prompt='Password: ', stream=None):
     """Prompt for password with echo off, using Windows getch()."""
     if sys.stdin is not sys.__stdin__:
         return fallback_getpass(prompt, stream)
-    import msvcrt
+
     for c in prompt:
         msvcrt.putwch(c)
     pw = ""

@@ -84,12 +84,12 @@ public:
 	}
 
 	/**
-	返回这个接口的名称
+		返回这个接口的名称
 	*/
 	const char* name() const { return name_; }
 
 	/**
-	返回这个接口的索引
+		返回这个接口的索引
 	*/
 	uint16 dbIndex() const { return dbIndex_; }
 

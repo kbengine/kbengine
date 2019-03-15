@@ -568,26 +568,35 @@ inline const char * getUsername()
 #if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD dwSize = MAX_NAME;
 	wchar_t wusername[MAX_NAME];
-	::GetUserNameW(wusername, &dwSize);	
-	
+	::GetUserNameW(wusername, &dwSize);
+
 	static char username[MAX_NAME];
 	memset(username, 0, MAX_NAME);
 
-	if(dwSize > 0)
+	if (dwSize > 0)
 	{
 		size_t outsize = 0;
-		strutil::wchar2char((wchar_t*)&wusername, &outsize);
 
-		if(outsize == 0)
+		char* ptest = strutil::wchar2char((wchar_t*)&wusername, &outsize);
+
+		if (outsize == 0)
 		{
 			// 可能是中文名，不支持中文名称
 			strcpy(username, "error_name");
 		}
+		else
+		{
+			if(ptest)
+				kbe_snprintf(username, MAX_NAME, "%s", ptest);
+		}
+
+		if (ptest)
+			free(ptest);
 	}
-	
+
 	return username;
 #else
-	char * pUsername = cuserid( NULL );
+	char * pUsername = cuserid(NULL);
 	return pUsername ? pUsername : "";
 #endif
 }
@@ -629,6 +638,49 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
     }
 
 	return newTime - oldTime;
+}
+
+/* get system time */
+inline void kbe_timeofday(long *sec, long *usec)
+{
+#if defined(__unix)
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	if (sec) *sec = time.tv_sec;
+	if (usec) *usec = time.tv_usec;
+#else
+	static long mode = 0, addsec = 0;
+	BOOL retval;
+	static int64 freq = 1;
+	int64 qpc;
+	if (mode == 0) {
+		retval = QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+		freq = (freq == 0) ? 1 : freq;
+		retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+		addsec = (long)time(NULL);
+		addsec = addsec - (long)((qpc / freq) & 0x7fffffff);
+		mode = 1;
+	}
+	retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+	retval = retval * 2;
+	if (sec) *sec = (long)(qpc / freq) + addsec;
+	if (usec) *usec = (long)((qpc % freq) * 1000000 / freq);
+#endif
+}
+
+/* get clock in millisecond 64 */
+inline int64 kbe_clock64(void)
+{
+	long s, u;
+	int64 value;
+	kbe_timeofday(&s, &u);
+	value = ((int64)s) * 1000 + (u / 1000);
+	return value;
+}
+
+inline uint32 kbe_clock()
+{
+	return (uint32)(kbe_clock64() & 0xfffffffful);
 }
 
 /* 产生一个64位的uuid 

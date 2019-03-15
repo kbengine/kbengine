@@ -77,8 +77,6 @@ Space::Space(ENTITY_ID id, const ScriptDefModule* pScriptModule):
 Entity(id, pScriptModule, getScriptType(), true),
 createToCellappIndex_(0)
 {
-	Baseapp::getSingleton().incProxicesCount();
-
 	CreateSpaceTimerHandler* pHandler = new CreateSpaceTimerHandler(this);
 		ScriptTimers * pTimers = &scriptTimers_;
 
@@ -92,7 +90,6 @@ createToCellappIndex_(0)
 //-------------------------------------------------------------------------------------
 Space::~Space()  
 {
-	Baseapp::getSingleton().decProxicesCount();
 }
 
 //-------------------------------------------------------------------------------------

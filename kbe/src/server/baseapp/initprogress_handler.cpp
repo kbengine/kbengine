@@ -171,7 +171,7 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(BaseappmgrInterface::onBaseappInitProgress);
 	(*pBundle) << g_componentID << v;

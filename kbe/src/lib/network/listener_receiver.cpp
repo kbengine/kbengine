@@ -33,55 +33,6 @@ ListenerReceiver::~ListenerReceiver()
 }
 
 //-------------------------------------------------------------------------------------
-int ListenerReceiver::handleInputNotification(int fd)
-{
-	int tickcount = 0;
-
-	while(tickcount ++ < 256)
-	{
-		EndPoint* pNewEndPoint = endpoint_.accept();
-		if(pNewEndPoint == NULL){
-
-			if(tickcount == 1)
-			{
-				WARNING_MSG(fmt::format("PacketReceiver::handleInputNotification: accept endpoint({}) {}! channelSize={}\n",
-					fd, kbe_strerror(), networkInterface_.channels().size()));
-				
-				this->dispatcher().errorReporter().reportException(
-						REASON_GENERAL_NETWORK);
-			}
-
-			break;
-		}
-		else
-		{
-			Channel* pChannel = Network::Channel::createPoolObject();
-			bool ret = pChannel->initialize(networkInterface_, pNewEndPoint, traits_);
-			if(!ret)
-			{
-				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: initialize({}) is failed!\n",
-					pChannel->c_str()));
-
-				pChannel->destroy();
-				Network::Channel::reclaimPoolObject(pChannel);
-				return 0;
-			}
-
-			if(!networkInterface_.registerChannel(pChannel))
-			{
-				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: registerChannel({}) is failed!\n",
-					pChannel->c_str()));
-
-				pChannel->destroy();
-				Network::Channel::reclaimPoolObject(pChannel);
-			}
-		}
-	}
-
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
 EventDispatcher & ListenerReceiver::dispatcher()
 {
 	return networkInterface_.dispatcher();

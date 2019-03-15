@@ -3,6 +3,7 @@
 
 .. module:: webbrowser
    :synopsis: Easy-to-use controller for Web browsers.
+
 .. moduleauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 
@@ -20,7 +21,7 @@ available.  If text-mode browsers are used, the calling process will block until
 the user exits the browser.
 
 If the environment variable :envvar:`BROWSER` exists, it is interpreted as the
-:data:`os.pathsep`-separated list of browsers to try ahead of the the platform
+:data:`os.pathsep`-separated list of browsers to try ahead of the platform
 defaults.  When the value of a list part contains the string ``%s``, then it is
 interpreted as a literal browser command line to be used with the argument URL
 substituted for ``%s``; if the part does not contain ``%s``, it is simply
@@ -33,7 +34,7 @@ browsers are not available on Unix, the controlling process will launch a new
 browser and wait.
 
 The script :program:`webbrowser` can be used as a command-line interface for the
-module. It accepts an URL as the argument. It accepts the following optional
+module. It accepts a URL as the argument. It accepts the following optional
 parameters: ``-n`` opens the URL in a new browser window, if possible;
 ``-t`` opens the URL in a new browser page ("tab"). The options are,
 naturally, mutually exclusive.  Usage example::
@@ -82,7 +83,7 @@ The following functions are defined:
    caller's environment.
 
 
-.. function:: register(name, constructor, instance=None)
+.. function:: register(name, constructor, instance=None, *, preferred=False)
 
    Register the browser type *name*.  Once a browser type is registered, the
    :func:`get` function can return a controller for that browser type.  If
@@ -90,9 +91,14 @@ The following functions are defined:
    parameters to create an instance when needed.  If *instance* is provided,
    *constructor* will never be called, and may be ``None``.
 
-   This entry point is only useful if you plan to either set the :envvar:`BROWSER`
-   variable or call :func:`get` with a nonempty argument matching the name of a
-   handler you declare.
+   Setting *preferred* to ``True`` makes this browser a preferred result for
+   a :func:`get` call with no argument.  Otherwise, this entry point is only
+   useful if you plan to either set the :envvar:`BROWSER` variable or call
+   :func:`get` with a nonempty argument matching the name of a handler you
+   declare.
+
+   .. versionchanged:: 3.7
+      *preferred* keyword-only parameter was added.
 
 A number of browser types are predefined.  This table gives the type names that
 may be passed to the :func:`get` function and the corresponding instantiations

@@ -2,12 +2,11 @@
 
 # Python imports
 import os
-import unittest
 from itertools import chain
 from operator import itemgetter
 
 # Local imports
-from lib2to3 import pygram, pytree, refactor, fixer_util
+from lib2to3 import pygram, fixer_util
 from lib2to3.tests import support
 
 
@@ -260,6 +259,10 @@ class Test_apply(FixerTestCase):
         s = """apply(f, *args)"""
         self.unchanged(s)
 
+    def test_unchanged_6b(self):
+        s = """apply(f, **kwds)"""
+        self.unchanged(s)
+
     def test_unchanged_7(self):
         s = """apply(func=f, args=args, kwds=kwds)"""
         self.unchanged(s)
@@ -287,30 +290,30 @@ class Test_reload(FixerTestCase):
 
     def test(self):
         b = """reload(a)"""
-        a = """import imp\nimp.reload(a)"""
+        a = """import importlib\nimportlib.reload(a)"""
         self.check(b, a)
 
     def test_comment(self):
         b = """reload( a ) # comment"""
-        a = """import imp\nimp.reload( a ) # comment"""
+        a = """import importlib\nimportlib.reload( a ) # comment"""
         self.check(b, a)
 
         # PEP 8 comments
         b = """reload( a )  # comment"""
-        a = """import imp\nimp.reload( a )  # comment"""
+        a = """import importlib\nimportlib.reload( a )  # comment"""
         self.check(b, a)
 
     def test_space(self):
         b = """reload( a )"""
-        a = """import imp\nimp.reload( a )"""
+        a = """import importlib\nimportlib.reload( a )"""
         self.check(b, a)
 
         b = """reload( a)"""
-        a = """import imp\nimp.reload( a)"""
+        a = """import importlib\nimportlib.reload( a)"""
         self.check(b, a)
 
         b = """reload(a )"""
-        a = """import imp\nimp.reload(a )"""
+        a = """import importlib\nimportlib.reload(a )"""
         self.check(b, a)
 
     def test_unchanged(self):
@@ -1198,36 +1201,36 @@ class Test_execfile(FixerTestCase):
 
     def test_conversion(self):
         b = """execfile("fn")"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'))"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'))"""
         self.check(b, a)
 
         b = """execfile("fn", glob)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'), glob)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'), glob)"""
         self.check(b, a)
 
         b = """execfile("fn", glob, loc)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'), glob, loc)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'), glob, loc)"""
         self.check(b, a)
 
         b = """execfile("fn", globals=glob)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'), globals=glob)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'), globals=glob)"""
         self.check(b, a)
 
         b = """execfile("fn", locals=loc)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'), locals=loc)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'), locals=loc)"""
         self.check(b, a)
 
         b = """execfile("fn", globals=glob, locals=loc)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'), globals=glob, locals=loc)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'), globals=glob, locals=loc)"""
         self.check(b, a)
 
     def test_spacing(self):
         b = """execfile( "fn" )"""
-        a = """exec(compile(open( "fn" ).read(), "fn", 'exec'))"""
+        a = """exec(compile(open( "fn", "rb" ).read(), "fn", 'exec'))"""
         self.check(b, a)
 
         b = """execfile("fn",  globals = glob)"""
-        a = """exec(compile(open("fn").read(), "fn", 'exec'),  globals = glob)"""
+        a = """exec(compile(open("fn", "rb").read(), "fn", 'exec'),  globals = glob)"""
         self.check(b, a)
 
 
@@ -2920,98 +2923,6 @@ class Test_unicode(FixerTestCase):
         a = f + r"""r'\\\u20ac\U0001d121\\u20ac'"""
         self.check(b, a)
 
-class Test_callable(FixerTestCase):
-    fixer = "callable"
-
-    def test_prefix_preservation(self):
-        b = """callable(    x)"""
-        a = """import collections\nisinstance(    x, collections.Callable)"""
-        self.check(b, a)
-
-        b = """if     callable(x): pass"""
-        a = """import collections
-if     isinstance(x, collections.Callable): pass"""
-        self.check(b, a)
-
-    def test_callable_call(self):
-        b = """callable(x)"""
-        a = """import collections\nisinstance(x, collections.Callable)"""
-        self.check(b, a)
-
-    def test_global_import(self):
-        b = """
-def spam(foo):
-    callable(foo)"""[1:]
-        a = """
-import collections
-def spam(foo):
-    isinstance(foo, collections.Callable)"""[1:]
-        self.check(b, a)
-
-        b = """
-import collections
-def spam(foo):
-    callable(foo)"""[1:]
-        # same output if it was already imported
-        self.check(b, a)
-
-        b = """
-from collections import *
-def spam(foo):
-    callable(foo)"""[1:]
-        a = """
-from collections import *
-import collections
-def spam(foo):
-    isinstance(foo, collections.Callable)"""[1:]
-        self.check(b, a)
-
-        b = """
-do_stuff()
-do_some_other_stuff()
-assert callable(do_stuff)"""[1:]
-        a = """
-import collections
-do_stuff()
-do_some_other_stuff()
-assert isinstance(do_stuff, collections.Callable)"""[1:]
-        self.check(b, a)
-
-        b = """
-if isinstance(do_stuff, Callable):
-    assert callable(do_stuff)
-    do_stuff(do_stuff)
-    if not callable(do_stuff):
-        exit(1)
-    else:
-        assert callable(do_stuff)
-else:
-    assert not callable(do_stuff)"""[1:]
-        a = """
-import collections
-if isinstance(do_stuff, Callable):
-    assert isinstance(do_stuff, collections.Callable)
-    do_stuff(do_stuff)
-    if not isinstance(do_stuff, collections.Callable):
-        exit(1)
-    else:
-        assert isinstance(do_stuff, collections.Callable)
-else:
-    assert not isinstance(do_stuff, collections.Callable)"""[1:]
-        self.check(b, a)
-
-    def test_callable_should_not_change(self):
-        a = """callable(*x)"""
-        self.unchanged(a)
-
-        a = """callable(x, y)"""
-        self.unchanged(a)
-
-        a = """callable(x, kw=y)"""
-        self.unchanged(a)
-
-        a = """callable()"""
-        self.unchanged(a)
 
 class Test_filter(FixerTestCase):
     fixer = "filter"
@@ -3043,10 +2954,23 @@ class Test_filter(FixerTestCase):
         a = """x = [x for x in range(10) if x%2 == 0]"""
         self.check(b, a)
 
-        # XXX This (rare) case is not supported
-##         b = """x = filter(f, 'abc')[0]"""
-##         a = """x = list(filter(f, 'abc'))[0]"""
-##         self.check(b, a)
+    def test_filter_trailers(self):
+        b = """x = filter(None, 'abc')[0]"""
+        a = """x = [_f for _f in 'abc' if _f][0]"""
+        self.check(b, a)
+
+        b = """x = len(filter(f, 'abc')[0])"""
+        a = """x = len(list(filter(f, 'abc'))[0])"""
+        self.check(b, a)
+
+        b = """x = filter(lambda x: x%2 == 0, range(10))[0]"""
+        a = """x = [x for x in range(10) if x%2 == 0][0]"""
+        self.check(b, a)
+
+        # Note the parens around x
+        b = """x = filter(lambda (x): x%2 == 0, range(10))[0]"""
+        a = """x = [x for x in range(10) if x%2 == 0][0]"""
+        self.check(b, a)
 
     def test_filter_nochange(self):
         a = """b.join(filter(f, 'abc'))"""
@@ -3111,6 +3035,23 @@ class Test_map(FixerTestCase):
         a = """x =    list(map(   f,    'abc'   ))"""
         self.check(b, a)
 
+    def test_map_trailers(self):
+        b = """x = map(f, 'abc')[0]"""
+        a = """x = list(map(f, 'abc'))[0]"""
+        self.check(b, a)
+
+        b = """x = map(None, l)[0]"""
+        a = """x = list(l)[0]"""
+        self.check(b, a)
+
+        b = """x = map(lambda x:x, l)[0]"""
+        a = """x = [x for x in l][0]"""
+        self.check(b, a)
+
+        b = """x = map(f, 'abc')[0][1]"""
+        a = """x = list(map(f, 'abc'))[0][1]"""
+        self.check(b, a)
+
     def test_trailing_comment(self):
         b = """x = map(f, 'abc')   #   foo"""
         a = """x = list(map(f, 'abc'))   #   foo"""
@@ -3154,11 +3095,6 @@ class Test_map(FixerTestCase):
             list(map(f, x))
             """
         self.warns(b, a, "You should use a for loop here")
-
-        # XXX This (rare) case is not supported
-##         b = """x = map(f, 'abc')[0]"""
-##         a = """x = list(map(f, 'abc'))[0]"""
-##         self.check(b, a)
 
     def test_map_nochange(self):
         a = """b.join(map(f, 'abc'))"""
@@ -3219,12 +3155,25 @@ class Test_zip(FixerTestCase):
         super(Test_zip, self).check(b, a)
 
     def test_zip_basic(self):
+        b = """x = zip()"""
+        a = """x = list(zip())"""
+        self.check(b, a)
+
         b = """x = zip(a, b, c)"""
         a = """x = list(zip(a, b, c))"""
         self.check(b, a)
 
         b = """x = len(zip(a, b))"""
         a = """x = len(list(zip(a, b)))"""
+        self.check(b, a)
+
+    def test_zip_trailers(self):
+        b = """x = zip(a, b, c)[0]"""
+        a = """x = list(zip(a, b, c))[0]"""
+        self.check(b, a)
+
+        b = """x = zip(a, b, c)[0][1]"""
+        a = """x = list(zip(a, b, c))[0][1]"""
         self.check(b, a)
 
     def test_zip_nochange(self):
@@ -3320,6 +3269,10 @@ class Test_types(FixerTestCase):
 
         b = """types.NoneType"""
         a = """type(None)"""
+        self.check(b, a)
+
+        b = "types.StringTypes"
+        a = "(str,)"
         self.check(b, a)
 
 class Test_idioms(FixerTestCase):
@@ -4456,7 +4409,7 @@ class Test_operator(FixerTestCase):
 
     def test_operator_isCallable(self):
         b = "operator.isCallable(x)"
-        a = "hasattr(x, '__call__')"
+        a = "callable(x)"
         self.check(b, a)
 
     def test_operator_sequenceIncludes(self):
@@ -4474,12 +4427,12 @@ class Test_operator(FixerTestCase):
 
     def test_operator_isSequenceType(self):
         b = "operator.isSequenceType(x)"
-        a = "import collections\nisinstance(x, collections.Sequence)"
+        a = "import collections.abc\nisinstance(x, collections.abc.Sequence)"
         self.check(b, a)
 
     def test_operator_isMappingType(self):
         b = "operator.isMappingType(x)"
-        a = "import collections\nisinstance(x, collections.Mapping)"
+        a = "import collections.abc\nisinstance(x, collections.abc.Mapping)"
         self.check(b, a)
 
     def test_operator_isNumberType(self):
@@ -4515,7 +4468,7 @@ class Test_operator(FixerTestCase):
 
     def test_bare_isCallable(self):
         s = "isCallable(x)"
-        t = "You should use 'hasattr(x, '__call__')' here."
+        t = "You should use 'callable(x)' here."
         self.warns_unchanged(s, t)
 
     def test_bare_sequenceIncludes(self):
@@ -4525,12 +4478,12 @@ class Test_operator(FixerTestCase):
 
     def test_bare_operator_isSequenceType(self):
         s = "isSequenceType(z)"
-        t = "You should use 'isinstance(z, collections.Sequence)' here."
+        t = "You should use 'isinstance(z, collections.abc.Sequence)' here."
         self.warns_unchanged(s, t)
 
     def test_bare_operator_isMappingType(self):
         s = "isMappingType(x)"
-        t = "You should use 'isinstance(x, collections.Mapping)' here."
+        t = "You should use 'isinstance(x, collections.abc.Mapping)' here."
         self.warns_unchanged(s, t)
 
     def test_bare_operator_isNumberType(self):

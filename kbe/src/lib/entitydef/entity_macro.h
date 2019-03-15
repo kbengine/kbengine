@@ -192,11 +192,9 @@ namespace KBEngine{
 #define DEBUG_CREATE_ENTITY_NAMESPACE																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
-			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE= strutil::wchar2char(PyUnicode_AsWideCharStringRet1);\
+			const char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);			\
 			PyObject* pytsval = PyObject_Str(value);														\
-			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
-			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
+			const char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);								\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
 												scriptName(),												\
@@ -204,24 +202,17 @@ namespace KBEngine{
 												this->id(),													\
 																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
 																cccpytsval));								\
-			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
-			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
-			free(cccpytsval);																				\
-			PyMem_Free(cwpytsval);																			\
 		}																									\
 
 
 #define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
+			const char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);					\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",							\
 												scriptName(),												\
 												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
 															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
-			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
-			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
 
 
@@ -269,11 +260,12 @@ namespace KBEngine{
 
 
 // 实体的标志
-#define ENTITY_FLAGS_UNKNOWN			0x00000000
-#define ENTITY_FLAGS_DESTROYING			0x00000001
-#define ENTITY_FLAGS_INITING			0x00000002
-#define ENTITY_FLAGS_TELEPORT_START		0x00000004
-#define ENTITY_FLAGS_TELEPORT_STOP		0x00000008
+#define ENTITY_FLAGS_UNKNOWN						0x00000000
+#define ENTITY_FLAGS_DESTROYING						0x00000001
+#define ENTITY_FLAGS_INITING						0x00000002
+#define ENTITY_FLAGS_TELEPORT_START					0x00000004
+#define ENTITY_FLAGS_TELEPORT_STOP					0x00000008
+#define ENTITY_FLAGS_DESTROY_AFTER_GETCELL			0x00000010
 
 #define ENTITY_HEADER(CLASS)																				\
 public:																										\
@@ -346,6 +338,7 @@ public:																										\
 				if(PyObject_TypeCheck(pComponentProperty, EntityComponent::getScriptType()))				\
 				{																							\
 					EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pComponentProperty);	\
+					pEntityComponent->updateOwner(id(), this);												\
 					pEntityComponent->onAttached();															\
 				}																							\
 				else																						\
@@ -366,9 +359,9 @@ public:																										\
 		onInitializeScript();																				\
 	}																										\
 																											\
-	void initializeEntity(PyObject* dictData)																\
+	void initializeEntity(PyObject* dictData, bool persistentData = false)									\
 	{																										\
-		createNamespace(dictData);																			\
+		createNamespace(dictData, persistentData);															\
 		initializeScript();																					\
 	}																										\
 																											\
@@ -395,7 +388,7 @@ public:																										\
 		return _reload(fullReload);																			\
 	}																										\
 																											\
-	void createNamespace(PyObject* dictData)																\
+	void createNamespace(PyObject* dictData, bool persistentData = false)									\
 	{																										\
 		if(dictData == NULL)																				\
 			return;																							\
@@ -417,7 +410,30 @@ public:																										\
 		if(cellDataDict == NULL)																			\
 		{																									\
 			PyErr_Clear();																					\
-			EntityComponent::convertDictDataToEntityComponent(id(), pScriptModule_, dictData);				\
+			EntityComponent::convertDictDataToEntityComponent(id(), this, pScriptModule_, dictData, persistentData); \
+		}																									\
+		else																								\
+		{																									\
+			PyObject* cellDataDictNew = PyDict_GetItemString(dictData, "cellData");							\
+			if (cellDataDictNew)																			\
+			{																								\
+				if(PyDict_Check(cellDataDictNew))															\
+				{																							\
+					PyDict_Update(cellDataDict, cellDataDictNew);											\
+				}																							\
+				else																						\
+				{																							\
+					ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "					\
+						"cellData is not a dict.\n",														\
+						scriptName(), id_));																\
+				}																							\
+																											\
+				PyDict_DelItemString(dictData, "cellData");													\
+			}																								\
+			else																							\
+			{																								\
+				PyErr_Clear();																				\
+			}																								\
 		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
@@ -425,9 +441,7 @@ public:																										\
 			DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			if(PyObject_HasAttr(this, key) > 0)																\
 			{																								\
-				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);			\
-				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
-				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
+				const char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);									\
 																											\
 				PropertyDescription* pCompPropertyDescription =												\
 					pScriptModule_->findComponentPropertyDescription(ccattr);								\
@@ -437,7 +451,7 @@ public:																										\
 					if(PyDict_Check(value) /* createDictDataFromPersistentStream 流程导致非字典 */)			\
 					{																						\
 						EntityComponent* pEntityComponent = (EntityComponent*)PyObject_GetAttr(this, key);	\
-						pEntityComponent->updateFromDict(value);											\
+						pEntityComponent->updateFromDict(this, value);										\
 						Py_DECREF(pEntityComponent);														\
 					}																						\
 					else																					\
@@ -450,7 +464,6 @@ public:																										\
 					PyObject_SetAttr(this, key, value);														\
 				}																							\
 																											\
-				free(ccattr);																				\
 				continue;																					\
 			}																								\
 																											\
@@ -471,7 +484,22 @@ public:																										\
 				}																							\
 			}																								\
 			else																							\
+			{																								\
+				const char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);									\
+																											\
+				PropertyDescription* pCompPropertyDescription =												\
+					pScriptModule_->findComponentPropertyDescription(ccattr);								\
+																											\
+																											\
+				if (pCompPropertyDescription)																\
+				{																							\
+					/* 一般在base上可能放在cellData中是字典，而没有cell的实体需要pass这个设置 */					\
+					if(PyDict_Check(value))																	\
+						continue;																			\
+				}																							\
+																											\
 				PyObject_SetAttr(this, key, value);															\
+			}																								\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
@@ -496,9 +524,26 @@ public:																										\
 		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
 								pScriptModule_->getCellPropertyDescriptions_uidmap();						\
 																											\
-		size_t count = 0;																					\
+		size_t count = propertyDescrs.size();																\
 																											\
-		while(mstream->length() > 0 && count < propertyDescrs.size())										\
+		{																									\
+			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.begin();			\
+			for(; iter != propertyDescrs.end(); ++iter)														\
+			{																								\
+				/* 由于存在一种情况， 组件def中没有内容， 但有cell脚本，此时baseapp上无法判断他是否有cell属性，所以写celldata时没有数据写入 */ \
+				if (iter->second->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)						\
+				{																							\
+					EntityComponentType* pEntityComponentType = (EntityComponentType*)iter->second->getDataType();	\
+					if (pEntityComponentType->pScriptDefModule()->getCellPropertyDescriptions().size() == 0)\
+					{																						\
+						--count;																			\
+						continue;																			\
+					}																						\
+				}																							\
+			}																								\
+		}																									\
+																											\
+		while(mstream->length() > 0 && count-- > 0)															\
 		{																									\
 			(*mstream) >> uid /* 父属性 */ >> uid;															\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
@@ -530,8 +575,6 @@ public:																										\
 				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
 				Py_DECREF(pyobj);																			\
 			}																								\
-																											\
-			++count;																						\
 		}																									\
 																											\
 		return cellData;																					\
@@ -705,9 +748,7 @@ public:																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);											\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(pPropertyDescrs_)																				\
@@ -719,7 +760,6 @@ public:																										\
 				kbe_snprintf(err, 255, "property[%s] defined in %s.def, del failed!", ccattr, scriptName());\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
-				free(ccattr);																				\
 				return 0;																					\
 			}																								\
 		}																									\
@@ -730,20 +770,16 @@ public:																										\
 			kbe_snprintf(err, 255, "method[%s] defined in %s.def, del failed!", ccattr, scriptName());		\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
-			free(ccattr);																					\
 			return 0;																						\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptDelAttribute(attr);													\
 	}																										\
 																											\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);											\
 																											\
 		if(pPropertyDescrs_)																				\
 		{																									\
@@ -758,7 +794,6 @@ public:																										\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 																											\
@@ -767,7 +802,6 @@ public:																										\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 				else																						\
@@ -783,13 +817,11 @@ public:																										\
 							Py_DECREF(pySetObj);															\
 					}																						\
 																											\
-					free(ccattr);																			\
 					return pySetObj == NULL ? -1 : 0;														\
 				}																							\
 			}																								\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
@@ -910,11 +942,7 @@ public:																										\
 																											\
 				if(pystr_extra)																				\
 				{																							\
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
-					strextra = ccattr;																		\
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
-					free(ccattr);																			\
+					strextra = PyUnicode_AsUTF8AndSize(pystr_extra, NULL);									\
 				}																							\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
@@ -956,11 +984,7 @@ public:																										\
 																											\
 				if(pystr_extra)																				\
 				{																							\
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
-					strextra = ccattr;																		\
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
-					free(ccattr);																			\
+					strextra = PyUnicode_AsUTF8AndSize(pystr_extra, NULL);									\
 				}																							\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
@@ -1032,7 +1056,7 @@ public:																										\
 																											\
 		if (!PyCallable_Check(pyCallback))																	\
 		{																									\
-			PyErr_Format(PyExc_TypeError, "{}::registerEvent: '%.200s' object is not callable! eventName=%s, entityID={}",\
+			PyErr_Format(PyExc_TypeError, "%s::registerEvent: '%.200s' object is not callable! eventName=%s, entityID=%d",\
 				scriptName(), (pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str(), id());		\
 			PyErr_PrintEx(0);																				\
 			return false;																					\
@@ -1044,7 +1068,7 @@ public:																										\
 		{																									\
 			if((*iter).get() == pyCallback)																	\
 			{																								\
-				PyErr_Format(PyExc_TypeError, "{}::registerEvent: This callable('%.200s') has been registered! eventName=%s, entityID={}",\
+				PyErr_Format(PyExc_TypeError, "%s::registerEvent: This callable('%.200s') has been registered! eventName=%s, entityID=%d",\
 					scriptName(), (pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str(), id());	\
 				PyErr_PrintEx(0);																			\
 				return false;																				\
@@ -1115,11 +1139,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		const char* eventName;																				\
+		const char* eventName = NULL;																		\
 		PyObject* pycallback = NULL;																		\
 		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError, "%s::registerEvent:: args error!", pobj->scriptName());		\
+			PyErr_PrintEx(0);																				\
+			pycallback = NULL;																				\
+			Py_RETURN_FALSE;																				\
+		}																									\
+																											\
+		if(!eventName)																						\
+		{																									\
+			PyErr_Format(PyExc_AssertionError, "%s::registerEvent:: eventName error!", pobj->scriptName());	\
 			PyErr_PrintEx(0);																				\
 			pycallback = NULL;																				\
 			Py_RETURN_FALSE;																				\
@@ -1143,11 +1175,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		const char* eventName;																				\
+		const char* eventName = NULL;																		\
 		PyObject* pycallback = NULL;																		\
 		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError, "%s::deregisterEvent:: args error!", pobj->scriptName());	\
+			PyErr_PrintEx(0);																				\
+			pycallback = NULL;																				\
+			Py_RETURN_FALSE;																				\
+		}																									\
+																											\
+		if(!eventName)																						\
+		{																									\
+			PyErr_Format(PyExc_AssertionError, "%s::deregisterEvent:: eventName error!", pobj->scriptName());\
 			PyErr_PrintEx(0);																				\
 			pycallback = NULL;																				\
 			Py_RETURN_FALSE;																				\
@@ -1171,12 +1211,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		char* eventName;																					\
+		char* eventName = NULL;																				\
 		if(currargsSize == 1)																				\
 		{																									\
 			if(PyArg_ParseTuple(args, "s", &eventName) == -1)												\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID={}", pobj->scriptName(), pobj->id());		\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID=%d", pobj->scriptName(), pobj->id());		\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
+			if(!eventName)																					\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_FALSE;																			\
 			}																								\
@@ -1188,7 +1235,14 @@ public:																										\
 			PyObject* pyobj = NULL;																			\
 			if (PyArg_ParseTuple(args, "sO", &eventName, &pyobj) == -1)										\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID={}", pobj->scriptName(), pobj->id());		\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID=%d", pobj->scriptName(), pobj->id());		\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
+			if(!eventName)																					\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_FALSE;																			\
 			}																								\
@@ -1202,14 +1256,19 @@ public:																										\
 		else																								\
 		{																									\
 			PyObject* pyEvnName = PyTuple_GET_ITEM(args, 0);												\
-			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEvnName, NULL);			\
-			eventName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);								\
-			PyMem_Free(PyUnicode_AsWideCharStringRet0);														\
+																											\
+			if(!PyUnicode_Check(pyEvnName))																	\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
+			eventName = const_cast<char*>(PyUnicode_AsUTF8AndSize(pyEvnName, NULL));						\
 																											\
 			PyObject* pyargs = PyTuple_GetSlice(args, 1, currargsSize);										\
 			pobj->fireEvent(eventName, pyargs);																\
 			Py_DECREF(pyargs);																				\
-			free(eventName);																				\
 		}																									\
 																											\
 		Py_RETURN_TRUE;																						\
@@ -1257,12 +1316,19 @@ public:																										\
 			Py_RETURN_NONE;																					\
 		}																									\
 																											\
-		char* componentName;																				\
+		char* componentName = NULL;																			\
 		if(currargsSize == 1)																				\
 		{																									\
 			if(PyArg_ParseTuple(args, "s", &componentName) == -1)											\
 			{																								\
 				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_NONE;																				\
+			}																								\
+																											\
+			if(!componentName)																				\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: componentName error!", pobj->scriptName());\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_NONE;																				\
 			}																								\
@@ -1276,7 +1342,14 @@ public:																										\
 			{																								\
 				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
 				PyErr_PrintEx(0);																			\
-				Py_RETURN_FALSE;																			\
+				Py_RETURN_NONE;																				\
+			}																								\
+																											\
+			if(!componentName)																				\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: componentName error!", pobj->scriptName());\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_NONE;																				\
 			}																								\
 																											\
 			return pobj->pyGetComponent(componentName, (pyobj == Py_True));									\
@@ -1473,6 +1546,10 @@ public:																										\
 			if(dataType)																					\
 			{																								\
 				PyObject* defObj = propertyDescription->newDefaultVal();									\
+																											\
+				if(dataType->type() == DATA_TYPE_ENTITY_COMPONENT)											\
+					((EntityComponent*)defObj)->updateOwner(id(), this);									\
+																											\
 				PyObject_SetAttrString(static_cast<PyObject*>(this),										\
 							propertyDescription->getName(), defObj);										\
 				Py_DECREF(defObj);																			\

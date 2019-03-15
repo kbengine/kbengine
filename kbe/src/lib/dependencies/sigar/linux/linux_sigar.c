@@ -23,11 +23,13 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <sys/utsname.h>
+#include <sys/sysmacros.h>
 
 #include "sigar.h"
 #include "sigar_private.h"
 #include "sigar_util.h"
 #include "sigar_os.h"
+
 
 #define pageshift(x) ((x) << sigar->pagesize)
 

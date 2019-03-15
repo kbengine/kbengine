@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,29 +23,30 @@
     <ProjectGuid>{E17527D0-CCA7-4063-924B-C09A1BD43EC3}</ProjectGuid>
     <RootNamespace>bots</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -97,8 +98,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -113,7 +114,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;entitydef_d.lib;client_lib_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;crypt32.lib;Version.lib;wldap32.lib;netapi32.lib;resmgr_d.lib;python37_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;fmt_d.lib;helper_d.lib;math_d.lib;network_d.lib;libcurl_d.lib;thread_d.lib;entitydef_d.lib;client_lib_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;../../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -125,8 +126,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -140,7 +141,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;openssl_uptable.obj;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;entitydef_d.lib;client_lib_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;openssl_uptable.obj;crypt32.lib;Version.lib;wldap32.lib;netapi32.lib;resmgr_d.lib;python37_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;fmt_d.lib;helper_d.lib;math_d.lib;network_d.lib;libcurl_d.lib;thread_d.lib;entitydef_d.lib;client_lib_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;../../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -152,8 +153,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -167,7 +168,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;crypt32.lib;_ssl.pyd;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;client_lib.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;crypt32.lib;Version.lib;wldap32.lib;netapi32.lib;resmgr.lib;python37.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;fmt.lib;helper.lib;math.lib;network.lib;libcurl.lib;thread.lib;client_lib.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -182,8 +183,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BOTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -197,7 +198,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;openssl_uptable.obj;crypt32.lib;_ssl.pyd;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;client_lib.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;openssl_uptable.obj;crypt32.lib;Version.lib;wldap32.lib;netapi32.lib;resmgr.lib;python37.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;fmt.lib;helper.lib;math.lib;network.lib;libcurl.lib;thread.lib;client_lib.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -214,6 +215,8 @@
     <ClCompile Include="clientobject.cpp" />
     <ClCompile Include="create_and_login_handler.cpp" />
     <ClCompile Include="..\..\..\lib\python\Modules\getbuildinfo.c" />
+    <ClCompile Include="kcp_packet_receiver_ex.cpp" />
+    <ClCompile Include="kcp_packet_sender_ex.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="profile.cpp" />
     <ClCompile Include="pybots.cpp" />
@@ -226,6 +229,8 @@
     <ClInclude Include="bots_interface_macros.h" />
     <ClInclude Include="clientobject.h" />
     <ClInclude Include="create_and_login_handler.h" />
+    <ClInclude Include="kcp_packet_receiver_ex.h" />
+    <ClInclude Include="kcp_packet_sender_ex.h" />
     <ClInclude Include="profile.h" />
     <ClInclude Include="pybots.h" />
     <ClInclude Include="tcp_packet_receiver_ex.h" />

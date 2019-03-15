@@ -1,4 +1,4 @@
-from test.support import run_unittest, check_warnings
+from test.support import check_warnings
 import cgi
 import os
 import sys
@@ -7,6 +7,7 @@ import unittest
 import warnings
 from collections import namedtuple
 from io import StringIO, BytesIO
+from test import support
 
 class HackedSysModule:
     # The regression test will have real values in sys.argv, which
@@ -125,9 +126,27 @@ class CgiTests(unittest.TestCase):
         env = {'boundary': BOUNDARY.encode('latin1'),
                'CONTENT-LENGTH': '558'}
         result = cgi.parse_multipart(fp, env)
-        expected = {'submit': [b' Add '], 'id': [b'1234'],
-                    'file': [b'Testing 123.\n'], 'title': [b'']}
+        expected = {'submit': [' Add '], 'id': ['1234'],
+                    'file': [b'Testing 123.\n'], 'title': ['']}
         self.assertEqual(result, expected)
+
+    def test_parse_multipart_invalid_encoding(self):
+        BOUNDARY = "JfISa01"
+        POSTDATA = """--JfISa01
+Content-Disposition: form-data; name="submit-name"
+Content-Length: 3
+
+\u2603
+--JfISa01"""
+        fp = BytesIO(POSTDATA.encode('utf8'))
+        env = {'boundary': BOUNDARY.encode('latin1'),
+               'CONTENT-LENGTH': str(len(POSTDATA.encode('utf8')))}
+        result = cgi.parse_multipart(fp, env, encoding="ascii",
+                                     errors="surrogateescape")
+        expected = {'submit-name': ["\udce2\udc98\udc83"]}
+        self.assertEqual(result, expected)
+        self.assertEqual("\u2603".encode('utf8'),
+                         result["submit-name"][0].encode('utf8', 'surrogateescape'))
 
     def test_fieldstorage_properties(self):
         fs = cgi.FieldStorage()
@@ -147,7 +166,7 @@ class CgiTests(unittest.TestCase):
     def test_escape(self):
         # cgi.escape() is deprecated.
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', 'cgi\.escape',
+            warnings.filterwarnings('ignore', r'cgi\.escape',
                                      DeprecationWarning)
             self.assertEqual("test &amp; string", cgi.escape("test & string"))
             self.assertEqual("&lt;test string&gt;", cgi.escape("<test string>"))
@@ -186,9 +205,9 @@ class CgiTests(unittest.TestCase):
         cgi.initlog("%s", "Testing initlog 1")
         cgi.log("%s", "Testing log 2")
         self.assertEqual(cgi.logfp.getvalue(), "Testing initlog 1\nTesting log 2\n")
-        if os.path.exists("/dev/null"):
+        if os.path.exists(os.devnull):
             cgi.logfp = None
-            cgi.logfile = "/dev/null"
+            cgi.logfile = os.devnull
             cgi.initlog("%s", "Testing log 3")
             self.addCleanup(cgi.closelog)
             cgi.log("Testing log 4")
@@ -237,6 +256,25 @@ class CgiTests(unittest.TestCase):
             'CONTENT_TYPE': 'multipart/form-data; boundary={}'.format(BOUNDARY),
             'CONTENT_LENGTH': '558'}
         fp = BytesIO(POSTDATA.encode('latin-1'))
+        fs = cgi.FieldStorage(fp, environ=env, encoding="latin-1")
+        self.assertEqual(len(fs.list), 4)
+        expect = [{'name':'id', 'filename':None, 'value':'1234'},
+                  {'name':'title', 'filename':None, 'value':''},
+                  {'name':'file', 'filename':'test.txt', 'value':b'Testing 123.\n'},
+                  {'name':'submit', 'filename':None, 'value':' Add '}]
+        for x in range(len(fs.list)):
+            for k, exp in expect[x].items():
+                got = getattr(fs.list[x], k)
+                self.assertEqual(got, exp)
+
+    def test_fieldstorage_multipart_leading_whitespace(self):
+        env = {
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'multipart/form-data; boundary={}'.format(BOUNDARY),
+            'CONTENT_LENGTH': '560'}
+        # Add some leading whitespace to our post data that will cause the
+        # first line to not be the innerboundary.
+        fp = BytesIO(b"\r\n" + POSTDATA.encode('latin-1'))
         fs = cgi.FieldStorage(fp, environ=env, encoding="latin-1")
         self.assertEqual(len(fs.list), 4)
         expect = [{'name':'id', 'filename':None, 'value':'1234'},
@@ -307,6 +345,35 @@ Content-Type: text/plain
                 got = getattr(files[x], k)
                 self.assertEqual(got, exp)
 
+    def test_fieldstorage_part_content_length(self):
+        BOUNDARY = "JfISa01"
+        POSTDATA = """--JfISa01
+Content-Disposition: form-data; name="submit-name"
+Content-Length: 5
+
+Larry
+--JfISa01"""
+        env = {
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'multipart/form-data; boundary={}'.format(BOUNDARY),
+            'CONTENT_LENGTH': str(len(POSTDATA))}
+        fp = BytesIO(POSTDATA.encode('latin-1'))
+        fs = cgi.FieldStorage(fp, environ=env, encoding="latin-1")
+        self.assertEqual(len(fs.list), 1)
+        self.assertEqual(fs.list[0].name, 'submit-name')
+        self.assertEqual(fs.list[0].value, 'Larry')
+
+    def test_fieldstorage_as_context_manager(self):
+        fp = BytesIO(b'x' * 10)
+        env = {'REQUEST_METHOD': 'PUT'}
+        with cgi.FieldStorage(fp=fp, environ=env) as fs:
+            content = fs.file.read()
+            self.assertFalse(fs.file.closed)
+        self.assertTrue(fs.file.closed)
+        self.assertEqual(content, 'x' * 10)
+        with self.assertRaisesRegex(ValueError, 'I/O operation on closed file'):
+            fs.file.read()
+
     _qs_result = {
         'key1': 'value1',
         'key2': ['value2x', 'value2y'],
@@ -323,6 +390,60 @@ Content-Type: text/plain
         }
         v = gen_result(data, environ)
         self.assertEqual(self._qs_result, v)
+
+    def test_max_num_fields(self):
+        # For application/x-www-form-urlencoded
+        data = '&'.join(['a=a']*11)
+        environ = {
+            'CONTENT_LENGTH': str(len(data)),
+            'CONTENT_TYPE': 'application/x-www-form-urlencoded',
+            'REQUEST_METHOD': 'POST',
+        }
+
+        with self.assertRaises(ValueError):
+            cgi.FieldStorage(
+                fp=BytesIO(data.encode()),
+                environ=environ,
+                max_num_fields=10,
+            )
+
+        # For multipart/form-data
+        data = """---123
+Content-Disposition: form-data; name="a"
+
+3
+---123
+Content-Type: application/x-www-form-urlencoded
+
+a=4
+---123
+Content-Type: application/x-www-form-urlencoded
+
+a=5
+---123--
+"""
+        environ = {
+            'CONTENT_LENGTH':   str(len(data)),
+            'CONTENT_TYPE':     'multipart/form-data; boundary=-123',
+            'QUERY_STRING':     'a=1&a=2',
+            'REQUEST_METHOD':   'POST',
+        }
+
+        # 2 GET entities
+        # 1 top level POST entities
+        # 1 entity within the second POST entity
+        # 1 entity within the third POST entity
+        with self.assertRaises(ValueError):
+            cgi.FieldStorage(
+                fp=BytesIO(data.encode()),
+                environ=environ,
+                max_num_fields=4,
+            )
+        cgi.FieldStorage(
+            fp=BytesIO(data.encode()),
+            environ=environ,
+            max_num_fields=5,
+        )
 
     def testQSAndFormData(self):
         data = """---123
@@ -425,6 +546,11 @@ this is the content of the fake file
             cgi.parse_header('form-data; name="files"; filename="fo\\"o;bar"'),
             ("form-data", {"name": "files", "filename": 'fo"o;bar'}))
 
+    def test_all(self):
+        blacklist = {"logfile", "logfp", "initlog", "dolog", "nolog",
+                     "closelog", "log", "maxlen", "valid_boundary"}
+        support.check__all__(self, cgi, blacklist=blacklist)
+
 
 BOUNDARY = "---------------------------721837373350705526688164684"
 
@@ -481,9 +607,5 @@ Content-Transfer-Encoding: binary
 --AaB03x--
 """
 
-
-def test_main():
-    run_unittest(CgiTests)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

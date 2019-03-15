@@ -329,25 +329,21 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else if(strcmp(type, "STRING") == 0)
 	{
-		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);
-		char* s = strutil::wchar2char(ws);
-		PyMem_Free(ws);
-
+		const char* s = PyUnicode_AsUTF8AndSize(pyVal, NULL);
 		pyobj->stream() << s;
-		free(s);
 	}
 	else if(strcmp(type, "UNICODE") == 0)
 	{
-		PyObject* obj = PyUnicode_AsUTF8String(pyVal);
-		if(obj == NULL)
+		Py_ssize_t size;
+		const char* s = PyUnicode_AsUTF8AndSize(pyVal, &size);
+		if (s == NULL)
 		{
 			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not UNICODE!");
 			PyErr_PrintEx(0);
 			S_Return;
-		}	
+		}
 
-		pyobj->stream().appendBlob(PyBytes_AS_STRING(obj), PyBytes_GET_SIZE(obj));
-		Py_DECREF(obj);
+		pyobj->stream().appendBlob(s, size);
 	}
 	else if(strcmp(type, "PYTHON") == 0 || strcmp(type, "PY_DICT") == 0
 		 || strcmp(type, "PY_TUPLE") == 0  || strcmp(type, "PY_LIST") == 0)

@@ -60,7 +60,7 @@ The following functions provide locale-independent string to number conversions.
    The conversion is independent of the current locale.
 
    If ``endptr`` is ``NULL``, convert the whole string.  Raise
-   ValueError and return ``-1.0`` if the string is not a valid
+   :exc:`ValueError` and return ``-1.0`` if the string is not a valid
    representation of a floating-point number.
 
    If endptr is not ``NULL``, convert as much of the string as
@@ -119,13 +119,13 @@ The following functions provide locale-independent string to number conversions.
    .. versionadded:: 3.1
 
 
-.. c:function:: int PyOS_stricmp(char *s1, char *s2)
+.. c:function:: int PyOS_stricmp(const char *s1, const char *s2)
 
    Case insensitive comparison of strings. The function works almost
    identically to :c:func:`strcmp` except that it ignores the case.
 
 
-.. c:function:: int PyOS_strnicmp(char *s1, char *s2, Py_ssize_t  size)
+.. c:function:: int PyOS_strnicmp(const char *s1, const char *s2, Py_ssize_t  size)
 
    Case insensitive comparison of strings. The function works almost
    identically to :c:func:`strncmp` except that it ignores the case.

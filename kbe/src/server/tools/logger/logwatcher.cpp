@@ -106,10 +106,10 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if(!validDate_(pLogItem->logstream.str()) || !containKeyworlds_(pLogItem->logstream.str()))
 		return;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
-	(*pBundle) << pLogItem->logstream.str().c_str();
+	(*pBundle).appendBlob(pLogItem->logstream.str());
 	pChannel->send(pBundle);
 }
 

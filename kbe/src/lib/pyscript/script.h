@@ -35,6 +35,13 @@ namespace KBEngine{ namespace script{
 
 #endif
 
+#define APPEND_PYSYSPATH(PY_PATHS)									\
+	std::wstring pySysPaths = SCRIPT_PATH;							\
+	wchar_t* pwpySysResPath = strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));	\
+	strutil::kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);\
+	PY_PATHS += pySysPaths;											\
+	free(pwpySysResPath);
+
 
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v);
 
@@ -113,6 +120,11 @@ public:
 	*/
 	INLINE PyObject* getExtraModule(void) const;
 
+	/**
+		获取脚本初始化时导入模块
+	*/
+	INLINE PyObject* getSysInitModules(void) const;
+
 	int run_simpleString(const char* command, std::string* retBufferPtr);
 	INLINE int run_simpleString(std::string command, std::string* retBufferPtr);
 
@@ -128,6 +140,7 @@ public:
 protected:
 	PyObject* 					module_;
 	PyObject*					extraModule_;		// 扩展脚本模块
+	PyObject*					sysInitModules_;	// 初始时sys加载的模块
 
 	ScriptStdOutErr*			pyStdouterr_;
 } ;

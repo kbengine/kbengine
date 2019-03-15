@@ -17,6 +17,11 @@ socket_(-1)
 		address_.ip = networkAddr;
 		address_.port = networkPort;
 	}
+
+	isRefSocket_ = false;
+
+	sslHandle_ = NULL;
+	sslContext_ = NULL;
 }
 
 INLINE EndPoint::EndPoint(Address address):
@@ -30,6 +35,11 @@ socket_(-1)
 	{
 		address_ = address;
 	}
+
+	isRefSocket_ = false;
+
+	sslHandle_ = NULL;
+	sslContext_ = NULL;
 }
 
 INLINE EndPoint::~EndPoint()
@@ -97,7 +107,7 @@ INLINE int EndPoint::setnodelay(bool nodelay)
 
 INLINE int EndPoint::setnonblocking(bool nonblocking)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	int val = nonblocking ? O_NONBLOCK : 0;
 	return ::fcntl(socket_, F_SETFL, val);
 #else
@@ -108,7 +118,7 @@ INLINE int EndPoint::setnonblocking(bool nonblocking)
 
 INLINE int EndPoint::setbroadcast(bool broadcast)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	int val;
 	if (broadcast)
 	{
@@ -124,7 +134,7 @@ INLINE int EndPoint::setbroadcast(bool broadcast)
 
 INLINE int EndPoint::setreuseaddr(bool reuseaddr)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	int val;
 #else
 	bool val;
@@ -144,7 +154,7 @@ INLINE int EndPoint::setlinger(uint16 onoff, uint16 linger)
 
 INLINE int EndPoint::setkeepalive(bool keepalive)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	int val;
 #else
 	bool val;
@@ -166,7 +176,7 @@ INLINE int EndPoint::bind(u_int16_t networkPort, u_int32_t networkAddr)
 
 INLINE int EndPoint::joinMulticastGroup(u_int32_t networkAddr)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	struct ip_mreqn req;
 	req.imr_multiaddr.s_addr = networkAddr;
 	req.imr_address.s_addr = INADDR_ANY;
@@ -179,7 +189,7 @@ INLINE int EndPoint::joinMulticastGroup(u_int32_t networkAddr)
 
 INLINE int EndPoint::quitMulticastGroup(u_int32_t networkAddr)
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	struct ip_mreqn req;
 	req.imr_multiaddr.s_addr = networkAddr;
 	req.imr_address.s_addr = INADDR_ANY;
@@ -192,12 +202,28 @@ INLINE int EndPoint::quitMulticastGroup(u_int32_t networkAddr)
 
 INLINE int EndPoint::close()
 {
-	if (socket_ == -1)
+	destroySSL();
+	address_ = Address::NONE;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	const KBESOCKET invalidSocket = INVALID_SOCKET;
+#else
+	const KBESOCKET invalidSocket = -1;
+#endif
+
+	if (socket_ == invalidSocket)
+		return 0;
+
+	// UDP模式下， socket是服务器listen的fd
+	// socket为引用模式
+	if (isRefSocket_)
 	{
+		this->setFileDescriptor(invalidSocket);
+		isRefSocket_ = false;
 		return 0;
 	}
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	int ret = ::close(socket_);
 #else
 	int ret = ::closesocket(socket_);
@@ -205,7 +231,7 @@ INLINE int EndPoint::close()
 
 	if (ret == 0)
 	{
-		this->setFileDescriptor(-1);
+		this->setFileDescriptor(invalidSocket);
 	}
 
 	return ret;
@@ -299,6 +325,17 @@ INLINE int EndPoint::sendto(void * gramData, int gramSize,
 	return this->sendto(gramData, gramSize, sin);
 }
 
+INLINE int EndPoint::sendto(void * gramData, int gramSize)
+{
+	sockaddr_in	sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = address_.port;
+	sin.sin_addr.s_addr = address_.ip;
+
+	return ::sendto(socket_, (char*)gramData, gramSize,
+		0, (sockaddr*)&sin, sizeof(sin));
+}
+
 INLINE int EndPoint::sendto(void * gramData, int gramSize,
 	struct sockaddr_in & sin)
 {
@@ -364,13 +401,13 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 	socklen_t		sinLen = sizeof(sin);
 	int ret = (int)::accept(socket_, (sockaddr*)&sin, &sinLen);
 
-#if defined(unix)
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (ret < 0) return NULL;
 #else
 	if (ret == INVALID_SOCKET) return NULL;
 #endif
 
-	EndPoint * pNew = EndPoint::createPoolObject();
+	EndPoint * pNew = EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 	pNew->setFileDescriptor(ret);
 	pNew->addr(sin.sin_port, sin.sin_addr.s_addr);
@@ -389,15 +426,21 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 
 INLINE int EndPoint::send(const void * gramData, int gramSize)
 {
+	if (isSSL())
+		return SSL_write(sslHandle_, (char*)gramData, gramSize);
+
 	return ::send(socket_, (char*)gramData, gramSize, 0);
 }
 
 INLINE int EndPoint::recv(void * gramData, int gramSize)
 {
+	if (isSSL())
+		return SSL_read(sslHandle_, (char*)gramData, gramSize);
+
 	return ::recv(socket_, (char*)gramData, gramSize, 0);
 }
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 INLINE int EndPoint::getInterfaceFlags(char * name, int & flags)
 {
 	struct ifreq	request;

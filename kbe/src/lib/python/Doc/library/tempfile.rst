@@ -1,45 +1,50 @@
 :mod:`tempfile` --- Generate temporary files and directories
 ============================================================
 
-.. sectionauthor:: Zack Weinberg <zack@codesourcery.com>
-
-
 .. module:: tempfile
    :synopsis: Generate temporary files and directories.
 
+.. sectionauthor:: Zack Weinberg <zack@codesourcery.com>
+
+**Source code:** :source:`Lib/tempfile.py`
 
 .. index::
    pair: temporary; file name
    pair: temporary; file
 
-**Source code:** :source:`Lib/tempfile.py`
-
 --------------
 
-This module generates temporary files and directories.  It works on all
-supported platforms.  It provides three new functions,
-:func:`NamedTemporaryFile`, :func:`mkstemp`, and :func:`mkdtemp`, which should
-eliminate all remaining need to use the insecure :func:`mktemp` function.
-Temporary file names created by this module no longer contain the process ID;
-instead a string of six random characters is used.
+This module creates temporary files and directories.  It works on all
+supported platforms. :class:`TemporaryFile`, :class:`NamedTemporaryFile`,
+:class:`TemporaryDirectory`, and :class:`SpooledTemporaryFile` are high-level
+interfaces which provide automatic cleanup and can be used as
+context managers. :func:`mkstemp` and
+:func:`mkdtemp` are lower-level functions which require manual cleanup.
 
-Also, all the user-callable functions now take additional arguments which
-allow direct control over the location and name of temporary files.  It is
-no longer necessary to use the global *tempdir* variable.
+All the user-callable functions and constructors take additional arguments which
+allow direct control over the location and name of temporary files and
+directories. Files names used by this module include a string of
+random characters which allows those files to be securely created in
+shared temporary directories.
 To maintain backward compatibility, the argument order is somewhat odd; it
 is recommended to use keyword arguments for clarity.
 
 The module defines the following user-callable items:
 
-.. function:: TemporaryFile(mode='w+b', buffering=None, encoding=None, newline=None, suffix='', prefix='tmp', dir=None)
+.. function:: TemporaryFile(mode='w+b', buffering=None, encoding=None, newline=None, suffix=None, prefix=None, dir=None)
 
    Return a :term:`file-like object` that can be used as a temporary storage area.
-   The file is created using :func:`mkstemp`. It will be destroyed as soon
+   The file is created securely, using the same rules as :func:`mkstemp`. It will be destroyed as soon
    as it is closed (including an implicit close when the object is garbage
-   collected).  Under Unix, the directory entry for the file is removed
+   collected).  Under Unix, the directory entry for the file is either not created at all or is removed
    immediately after the file is created.  Other platforms do not support
    this; your code should not rely on a temporary file created using this
    function having or not having a visible name in the file system.
+
+   The resulting object can be used as a context manager (see
+   :ref:`tempfile-examples`).  On completion of the context or
+   destruction of the file object the temporary file will be removed
+   from the filesystem.
 
    The *mode* parameter defaults to ``'w+b'`` so that the file created can
    be read and written without being closed.  Binary mode is used so that it
@@ -47,20 +52,28 @@ The module defines the following user-callable items:
    stored.  *buffering*, *encoding* and *newline* are interpreted as for
    :func:`open`.
 
-   The *dir*, *prefix* and *suffix* parameters are passed to :func:`mkstemp`.
+   The *dir*, *prefix* and *suffix* parameters have the same meaning and
+   defaults as with :func:`mkstemp`.
 
    The returned object is a true file object on POSIX platforms.  On other
    platforms, it is a file-like object whose :attr:`!file` attribute is the
-   underlying true file object. This file-like object can be used in a
-   :keyword:`with` statement, just like a normal file.
+   underlying true file object.
+
+   The :py:data:`os.O_TMPFILE` flag is used if it is available and works
+   (Linux-specific, requires Linux kernel 3.11 or later).
+
+   .. versionchanged:: 3.5
+
+      The :py:data:`os.O_TMPFILE` flag is now used if available.
 
 
-.. function:: NamedTemporaryFile(mode='w+b', buffering=None, encoding=None, newline=None, suffix='', prefix='tmp', dir=None, delete=True)
+.. function:: NamedTemporaryFile(mode='w+b', buffering=None, encoding=None, newline=None, suffix=None, prefix=None, dir=None, delete=True)
 
    This function operates exactly as :func:`TemporaryFile` does, except that
    the file is guaranteed to have a visible name in the file system (on
    Unix, the directory entry is not unlinked).  That name can be retrieved
-   from the :attr:`name` attribute of the file object.  Whether the name can be
+   from the :attr:`name` attribute of the returned
+   file-like object.  Whether the name can be
    used to open the file a second time, while the named temporary file is
    still open, varies across platforms (it can be so used on Unix; it cannot
    on Windows NT or later).  If *delete* is true (the default), the file is
@@ -70,7 +83,7 @@ The module defines the following user-callable items:
    be used in a :keyword:`with` statement, just like a normal file.
 
 
-.. function:: SpooledTemporaryFile(max_size=0, mode='w+b', buffering=None, encoding=None, newline=None, suffix='', prefix='tmp', dir=None)
+.. function:: SpooledTemporaryFile(max_size=0, mode='w+b', buffering=None, encoding=None, newline=None, suffix=None, prefix=None, dir=None)
 
    This function operates exactly as :func:`TemporaryFile` does, except that
    data is spooled in memory until the file size exceeds *max_size*, or
@@ -82,7 +95,7 @@ The module defines the following user-callable items:
    causes the file to roll over to an on-disk file regardless of its size.
 
    The returned object is a file-like object whose :attr:`_file` attribute
-   is either a :class:`io.BytesIO` or :class:`io.StringIO` object (depending on
+   is either an :class:`io.BytesIO` or :class:`io.StringIO` object (depending on
    whether binary or text *mode* was specified) or a true file
    object, depending on whether :func:`rollover` has been called.  This
    file-like object can be used in a :keyword:`with` statement, just like
@@ -92,12 +105,11 @@ The module defines the following user-callable items:
       the truncate method now accepts a ``size`` argument.
 
 
-.. function:: TemporaryDirectory(suffix='', prefix='tmp', dir=None)
+.. function:: TemporaryDirectory(suffix=None, prefix=None, dir=None)
 
-   This function creates a temporary directory using :func:`mkdtemp`
-   (the supplied arguments are passed directly to the underlying function).
+   This function securely creates a temporary directory using the same rules as :func:`mkdtemp`.
    The resulting object can be used as a context manager (see
-   :ref:`context-managers`).  On completion of the context or destruction
+   :ref:`tempfile-examples`).  On completion of the context or destruction
    of the temporary directory object the newly created temporary directory
    and all its contents are removed from the filesystem.
 
@@ -112,7 +124,7 @@ The module defines the following user-callable items:
    .. versionadded:: 3.2
 
 
-.. function:: mkstemp(suffix='', prefix='tmp', dir=None, text=False)
+.. function:: mkstemp(suffix=None, prefix=None, dir=None, text=False)
 
    Creates a temporary file in the most secure manner possible.  There are
    no race conditions in the file's creation, assuming that the platform
@@ -125,21 +137,28 @@ The module defines the following user-callable items:
    Unlike :func:`TemporaryFile`, the user of :func:`mkstemp` is responsible
    for deleting the temporary file when done with it.
 
-   If *suffix* is specified, the file name will end with that suffix,
+   If *suffix* is not ``None``, the file name will end with that suffix,
    otherwise there will be no suffix.  :func:`mkstemp` does not put a dot
    between the file name and the suffix; if you need one, put it at the
    beginning of *suffix*.
 
-   If *prefix* is specified, the file name will begin with that prefix;
-   otherwise, a default prefix is used.
+   If *prefix* is not ``None``, the file name will begin with that prefix;
+   otherwise, a default prefix is used.  The default is the return value of
+   :func:`gettempprefix` or :func:`gettempprefixb`, as appropriate.
 
-   If *dir* is specified, the file will be created in that directory;
+   If *dir* is not ``None``, the file will be created in that directory;
    otherwise, a default directory is used.  The default directory is chosen
    from a platform-dependent list, but the user of the application can
    control the directory location by setting the *TMPDIR*, *TEMP* or *TMP*
    environment variables.  There is thus no guarantee that the generated
    filename will have any nice properties, such as not requiring quoting
    when passed to external commands via ``os.popen()``.
+
+   If any of *suffix*, *prefix*, and *dir* are not
+   ``None``, they must be the same type.
+   If they are bytes, the returned name will be bytes instead of str.
+   If you want to force a bytes return value with otherwise default behavior,
+   pass ``suffix=b''``.
 
    If *text* is specified, it indicates whether to open the file in binary
    mode (the default) or text mode.  On some platforms, this makes no
@@ -149,8 +168,14 @@ The module defines the following user-callable items:
    file (as would be returned by :func:`os.open`) and the absolute pathname
    of that file, in that order.
 
+   .. versionchanged:: 3.5
+      *suffix*, *prefix*, and *dir* may now be supplied in bytes in order to
+      obtain a bytes return value.  Prior to this, only str was allowed.
+      *suffix* and *prefix* now accept and default to ``None`` to cause
+      an appropriate default value to be used.
 
-.. function:: mkdtemp(suffix='', prefix='tmp', dir=None)
+
+.. function:: mkdtemp(suffix=None, prefix=None, dir=None)
 
    Creates a temporary directory in the most secure manner possible. There
    are no race conditions in the directory's creation.  The directory is
@@ -164,50 +189,21 @@ The module defines the following user-callable items:
 
    :func:`mkdtemp` returns the absolute pathname of the new directory.
 
-
-.. function:: mktemp(suffix='', prefix='tmp', dir=None)
-
-   .. deprecated:: 2.3
-      Use :func:`mkstemp` instead.
-
-   Return an absolute pathname of a file that did not exist at the time the
-   call is made.  The *prefix*, *suffix*, and *dir* arguments are the same
-   as for :func:`mkstemp`.
-
-   .. warning::
-
-      Use of this function may introduce a security hole in your program.  By
-      the time you get around to doing anything with the file name it returns,
-      someone else may have beaten you to the punch.  :func:`mktemp` usage can
-      be replaced easily with :func:`NamedTemporaryFile`, passing it the
-      ``delete=False`` parameter::
-
-         >>> f = NamedTemporaryFile(delete=False)
-         >>> f.name
-         '/tmp/tmptjujjt'
-         >>> f.write(b"Hello World!\n")
-         13
-         >>> f.close()
-         >>> os.unlink(f.name)
-         >>> os.path.exists(f.name)
-         False
-
-The module uses two global variables that tell it how to construct a
-temporary name.  They are initialized at the first call to any of the
-functions above.  The caller may change them, but this is discouraged; use
-the appropriate function arguments, instead.
+   .. versionchanged:: 3.5
+      *suffix*, *prefix*, and *dir* may now be supplied in bytes in order to
+      obtain a bytes return value.  Prior to this, only str was allowed.
+      *suffix* and *prefix* now accept and default to ``None`` to cause
+      an appropriate default value to be used.
 
 
-.. data:: tempdir
+.. function:: gettempdir()
 
-   When set to a value other than ``None``, this variable defines the
-   default value for the *dir* argument to all the functions defined in this
-   module.
+   Return the name of the directory used for temporary files. This
+   defines the default value for the *dir* argument to all functions
+   in this module.
 
-   If ``tempdir`` is unset or ``None`` at any call to any of the above
-   functions, Python searches a standard list of directories and sets
-   *tempdir* to the first one which the calling user can create files in.
-   The list is:
+   Python searches a standard list of directories to find one which
+   the calling user can create files in.  The list is:
 
    #. The directory named by the :envvar:`TMPDIR` environment variable.
 
@@ -225,19 +221,43 @@ the appropriate function arguments, instead.
 
    #. As a last resort, the current working directory.
 
+   The result of this search is cached, see the description of
+   :data:`tempdir` below.
 
-.. function:: gettempdir()
+.. function:: gettempdirb()
 
-   Return the directory currently selected to create temporary files in. If
-   :data:`tempdir` is not ``None``, this simply returns its contents; otherwise,
-   the search described above is performed, and the result returned.
+   Same as :func:`gettempdir` but the return value is in bytes.
 
+   .. versionadded:: 3.5
 
 .. function:: gettempprefix()
 
    Return the filename prefix used to create temporary files.  This does not
    contain the directory component.
 
+.. function:: gettempprefixb()
+
+   Same as :func:`gettempprefix` but the return value is in bytes.
+
+   .. versionadded:: 3.5
+
+The module uses a global variable to store the name of the directory
+used for temporary files returned by :func:`gettempdir`.  It can be
+set directly to override the selection process, but this is discouraged.
+All functions in this module take a *dir* argument which can be used
+to specify the directory and this is the recommended approach.
+
+.. data:: tempdir
+
+   When set to a value other than ``None``, this variable defines the
+   default value for the *dir* argument to the functions defined in this
+   module.
+
+   If ``tempdir`` is ``None`` (the default) at any call to any of the above
+   functions except :func:`gettempprefix` it is initialized following the
+   algorithm described in :func:`gettempdir`.
+
+.. _tempfile-examples:
 
 Examples
 --------
@@ -271,3 +291,43 @@ Here are some examples of typical usage of the :mod:`tempfile` module::
     >>>
     # directory and contents have been removed
 
+
+Deprecated functions and variables
+----------------------------------
+
+A historical way to create temporary files was to first generate a
+file name with the :func:`mktemp` function and then create a file
+using this name. Unfortunately this is not secure, because a different
+process may create a file with this name in the time between the call
+to :func:`mktemp` and the subsequent attempt to create the file by the
+first process. The solution is to combine the two steps and create the
+file immediately. This approach is used by :func:`mkstemp` and the
+other functions described above.
+
+.. function:: mktemp(suffix='', prefix='tmp', dir=None)
+
+   .. deprecated:: 2.3
+      Use :func:`mkstemp` instead.
+
+   Return an absolute pathname of a file that did not exist at the time the
+   call is made.  The *prefix*, *suffix*, and *dir* arguments are similar
+   to those of :func:`mkstemp`, except that bytes file names, ``suffix=None``
+   and ``prefix=None`` are not supported.
+
+   .. warning::
+
+      Use of this function may introduce a security hole in your program.  By
+      the time you get around to doing anything with the file name it returns,
+      someone else may have beaten you to the punch.  :func:`mktemp` usage can
+      be replaced easily with :func:`NamedTemporaryFile`, passing it the
+      ``delete=False`` parameter::
+
+         >>> f = NamedTemporaryFile(delete=False)
+         >>> f.name
+         '/tmp/tmptjujjt'
+         >>> f.write(b"Hello World!\n")
+         13
+         >>> f.close()
+         >>> os.unlink(f.name)
+         >>> os.path.exists(f.name)
+         False

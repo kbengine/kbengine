@@ -8,22 +8,9 @@ import tempfile
 __all__ = ["version", "bootstrap"]
 
 
-_SETUPTOOLS_VERSION = "2.1"
+_SETUPTOOLS_VERSION = "40.6.2"
 
-_PIP_VERSION = "1.5.6"
-
-# pip currently requires ssl support, so we try to provide a nicer
-# error message when that is missing (http://bugs.python.org/issue19744)
-_MISSING_SSL_MESSAGE = ("pip {} requires SSL/TLS".format(_PIP_VERSION))
-try:
-    import ssl
-except ImportError:
-    ssl = None
-    def _require_ssl_for_pip():
-        raise RuntimeError(_MISSING_SSL_MESSAGE)
-else:
-    def _require_ssl_for_pip():
-        pass
+_PIP_VERSION = "18.1"
 
 _PROJECTS = [
     ("setuptools", _SETUPTOOLS_VERSION),
@@ -37,8 +24,8 @@ def _run_pip(args, additional_paths=None):
         sys.path = additional_paths + sys.path
 
     # Install the bundled software
-    import pip
-    pip.main(args)
+    import pip._internal
+    return pip._internal.main(args)
 
 
 def version():
@@ -68,10 +55,24 @@ def bootstrap(*, root=None, upgrade=False, user=False,
 
     Note that calling this function will alter both sys.path and os.environ.
     """
+    # Discard the return value
+    _bootstrap(root=root, upgrade=upgrade, user=user,
+               altinstall=altinstall, default_pip=default_pip,
+               verbosity=verbosity)
+
+
+def _bootstrap(*, root=None, upgrade=False, user=False,
+              altinstall=False, default_pip=False,
+              verbosity=0):
+    """
+    Bootstrap pip into the current Python installation (or the given root
+    directory). Returns pip command status code.
+
+    Note that calling this function will alter both sys.path and os.environ.
+    """
     if altinstall and default_pip:
         raise ValueError("Cannot use altinstall and default_pip together")
 
-    _require_ssl_for_pip()
     _disable_pip_configuration_settings()
 
     # By default, installing pip and setuptools installs all of the
@@ -113,7 +114,7 @@ def bootstrap(*, root=None, upgrade=False, user=False,
         if verbosity:
             args += ["-" + "v" * verbosity]
 
-        _run_pip(args + [p[0] for p in _PROJECTS], additional_paths)
+        return _run_pip(args + [p[0] for p in _PROJECTS], additional_paths)
 
 def _uninstall_helper(*, verbosity=0):
     """Helper to support a clean default uninstall process on Windows
@@ -133,23 +134,17 @@ def _uninstall_helper(*, verbosity=0):
         print(msg.format(pip.__version__, _PIP_VERSION), file=sys.stderr)
         return
 
-    _require_ssl_for_pip()
     _disable_pip_configuration_settings()
 
     # Construct the arguments to be passed to the pip command
-    args = ["uninstall", "-y"]
+    args = ["uninstall", "-y", "--disable-pip-version-check"]
     if verbosity:
         args += ["-" + "v" * verbosity]
 
-    _run_pip(args + [p[0] for p in reversed(_PROJECTS)])
+    return _run_pip(args + [p[0] for p in reversed(_PROJECTS)])
 
 
 def _main(argv=None):
-    if ssl is None:
-        print("Ignoring ensurepip failure: {}".format(_MISSING_SSL_MESSAGE),
-              file=sys.stderr)
-        return
-
     import argparse
     parser = argparse.ArgumentParser(prog="python -m ensurepip")
     parser.add_argument(
@@ -187,20 +182,20 @@ def _main(argv=None):
         "--altinstall",
         action="store_true",
         default=False,
-        help=("Make an alternate install, installing only the X.Y versioned"
-              "scripts (Default: pipX, pipX.Y, easy_install-X.Y)"),
+        help=("Make an alternate install, installing only the X.Y versioned "
+              "scripts (Default: pipX, pipX.Y, easy_install-X.Y)."),
     )
     parser.add_argument(
         "--default-pip",
         action="store_true",
         default=False,
         help=("Make a default pip install, installing the unqualified pip "
-              "and easy_install in addition to the versioned scripts"),
+              "and easy_install in addition to the versioned scripts."),
     )
 
     args = parser.parse_args(argv)
 
-    bootstrap(
+    return _bootstrap(
         root=args.root,
         upgrade=args.upgrade,
         user=args.user,

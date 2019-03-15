@@ -111,6 +111,30 @@
     <ClCompile Include="websocket_packet_reader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="listener_udp_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ikcp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="listener_tcp_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kcp_packet_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kcp_packet_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="udp_packet_sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kcp_packet_sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="http_utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="address.h">
@@ -218,6 +242,27 @@
     <ClInclude Include="websocket_packet_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="listener_udp_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ikcp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="listener_tcp_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kcp_packet_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kcp_packet_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="udp_packet_sender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kcp_packet_sender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -267,6 +312,21 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="tcp_packet_sender.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="listener_udp_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="listener_tcp_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="kcp_packet_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="udp_packet_sender.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="kcp_packet_sender.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

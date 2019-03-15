@@ -24,13 +24,14 @@
 namespace KBEngine{
 
 class Entity;
+class PropertyDescription;
 
 class RealEntityMethod : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(RealEntityMethod, script::ScriptObject)	
 public:	
-	RealEntityMethod(MethodDescription* methodDescription, 
+	RealEntityMethod(PropertyDescription* pComponentPropertyDescription, MethodDescription* methodDescription,
 		Entity* ghostEntity);
 	
 	virtual ~RealEntityMethod();
@@ -50,7 +51,8 @@ public:
 
 	PyObject* callmethod(PyObject* args, PyObject* kwds);
 
-protected:	
+protected:
+	PropertyDescription*					pComponentPropertyDescription_;		// 是否是一个组件中的方法
 	MethodDescription*						methodDescription_;					// 这个方法的描述
 
 	ENTITY_ID								ghostEntityID_;						// ghostEntityID_

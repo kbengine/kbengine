@@ -46,7 +46,8 @@ public:
 		是否是一个保存到数据库中的属性 
 	*/
 	INLINE bool isPersistent(void) const;
-	
+	INLINE void isPersistent(bool v);
+
 	/** 
 		获取这个属性的数据类别 
 	*/
@@ -273,7 +274,9 @@ public:
 
 	virtual bool isSamePersistentType(PyObject* pyValue);
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 
@@ -281,6 +284,8 @@ public:
 		获取这个属性描述在def文件中被定义的默认值
 	*/
 	virtual PyObject* newDefaultVal(void);
+
+	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
 
 protected:
 };

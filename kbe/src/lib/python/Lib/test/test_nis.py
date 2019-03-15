@@ -1,6 +1,5 @@
 from test import support
 import unittest
-import sys
 
 # Skip test if nis module does not exist.
 nis = support.import_module('nis')
@@ -36,8 +35,5 @@ class NisTests(unittest.TestCase):
             if done:
                 break
 
-def test_main():
-    support.run_unittest(NisTests)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

@@ -25,7 +25,7 @@ class PacketFilter : public RefCountable
 public:
 	virtual ~PacketFilter() {}
 
-	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
+	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg);
 
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 };

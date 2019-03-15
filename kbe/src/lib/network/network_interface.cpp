@@ -9,7 +9,8 @@
 #include "network/address.h"
 #include "network/event_dispatcher.h"
 #include "network/packet_receiver.h"
-#include "network/listener_receiver.h"
+#include "network/listener_udp_receiver.h"
+#include "network/listener_tcp_receiver.h"
 #include "network/channel.h"
 #include "network/packet.h"
 #include "network/delayed_channels.h"
@@ -22,44 +23,59 @@ namespace Network
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
-		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
+		int32 extlisteningTcpPort_min, int32 extlisteningTcpPort_max, int32 extlisteningUdpPort_min, int32 extlisteningUdpPort_max, const char * extlisteningInterface,
 		uint32 extrbuffer, uint32 extwbuffer,
 		int32 intlisteningPort, const char * intlisteningInterface,
 		uint32 intrbuffer, uint32 intwbuffer):
-	extEndpoint_(),
-	intEndpoint_(),
+	extTcpEndpoint_(),
+	extUdpEndpoint_(),
+	intTcpEndpoint_(),
 	channelMap_(),
 	pDispatcher_(pDispatcher),
-	pExtensionData_(NULL),
 	pExtListenerReceiver_(NULL),
+	pExtUdpListenerReceiver_(NULL),
 	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
 	pChannelDeregisterHandler_(NULL),
-	isExternal_(extlisteningPort_min != -1),
 	numExtChannels_(0)
 {
-	if(isExternal())
+	if(extlisteningTcpPort_min != -1)
 	{
-		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
+		pExtListenerReceiver_ = new ListenerTcpReceiver(extTcpEndpoint_, Channel::EXTERNAL, *this);
 
-		this->initialize("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max),
-			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
+		this->initialize("EXTERNAL-TCP", htons(extlisteningTcpPort_min), htons(extlisteningTcpPort_max),
+			extlisteningInterface, &extTcpEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
 
 		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
-		if(extlisteningPort_min != -1)
+		if(extlisteningTcpPort_min != -1)
 		{
-			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port, "
+			KBE_ASSERT(extTcpEndpoint_.good() && "Channel::EXTERNAL-TCP: no available port, "
+				"please check for kbengine[_defs].xml!\n");
+		}
+	}
+
+	if (extlisteningUdpPort_min != -1)
+	{
+		pExtUdpListenerReceiver_ = new ListenerUdpReceiver(extUdpEndpoint_, Channel::EXTERNAL, *this);
+
+		this->initialize("EXTERNAL-UDP", htons(extlisteningUdpPort_min), htons(extlisteningUdpPort_max),
+			extlisteningInterface, &extUdpEndpoint_, pExtUdpListenerReceiver_, extrbuffer, extwbuffer);
+
+		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
+		if (extlisteningUdpPort_min != -1)
+		{
+			KBE_ASSERT(extUdpEndpoint_.good() && "Channel::EXTERNAL-UDP: no available udp-port, "
 				"please check for kbengine[_defs].xml!\n");
 		}
 	}
 
 	if(intlisteningPort != -1)
 	{
-		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
+		pIntListenerReceiver_ = new ListenerTcpReceiver(intTcpEndpoint_, Channel::INTERNAL, *this);
 
-		this->initialize("INTERNAL", intlisteningPort, intlisteningPort,
-			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
+		this->initialize("INTERNAL-TCP", intlisteningPort, intlisteningPort,
+			intlisteningInterface, &intTcpEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
 	}
 
 	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
@@ -98,16 +114,22 @@ NetworkInterface::~NetworkInterface()
 //-------------------------------------------------------------------------------------
 void NetworkInterface::closeSocket()
 {
-	if (extEndpoint_.good())
+	if (extTcpEndpoint_.good())
 	{
-		this->dispatcher().deregisterReadFileDescriptor(extEndpoint_);
-		extEndpoint_.close();
+		this->dispatcher().deregisterReadFileDescriptor(extTcpEndpoint_);
+		extTcpEndpoint_.close();
 	}
 
-	if (intEndpoint_.good())
+	if (extUdpEndpoint_.good())
 	{
-		this->dispatcher().deregisterReadFileDescriptor(intEndpoint_);
-		intEndpoint_.close();
+		this->dispatcher().deregisterReadFileDescriptor(extUdpEndpoint_);
+		extUdpEndpoint_.close();
+	}
+
+	if (intTcpEndpoint_.good())
+	{
+		this->dispatcher().deregisterReadFileDescriptor(intTcpEndpoint_);
+		intTcpEndpoint_.close();
 	}
 }
 
@@ -128,7 +150,13 @@ bool NetworkInterface::initialize(const char* pEndPointName, uint16 listeningPor
 	address.ip = 0;
 	address.port = 0;
 
-	pEP->socket(SOCK_STREAM);
+	bool isTCP = strstr(pEndPointName, "-TCP") != NULL;
+
+	if(isTCP)
+		pEP->socket(SOCK_STREAM);
+	else
+		pEP->socket(SOCK_DGRAM);
+
 	if (!pEP->good())
 	{
 		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): couldn't create a socket\n",
@@ -247,19 +275,23 @@ bool NetworkInterface::initialize(const char* pEndPointName, uint16 listeningPor
 		}
 	}
 
+
 	int backlog = Network::g_SOMAXCONN;
-	if(backlog < 5)
+	if (backlog < 5)
 		backlog = 5;
 
-	if(pEP->listen(backlog) == -1)
+	if (isTCP)
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): listen to {} ({})\n",
-			pEndPointName, address.c_str(), kbe_strerror()));
+		if (pEP->listen(backlog) == -1)
+		{
+			ERROR_MSG(fmt::format("NetworkInterface::initialize({}): listen to {} ({})\n",
+				pEndPointName, address.c_str(), kbe_strerror()));
 
-		pEP->close();
-		return false;
+			pEP->close();
+			return false;
+		}
 	}
-	
+
 	INFO_MSG(fmt::format("NetworkInterface::initialize({}): address {}, SOMAXCONN={}.\n", 
 		pEndPointName, address.c_str(), backlog));
 
@@ -282,7 +314,7 @@ void NetworkInterface::sendIfDelayed(Channel & channel)
 void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 {
 	INFO_MSG(fmt::format("NetworkInterface::handleTimeout: EXTERNAL({}), INTERNAL({}).\n", 
-		extaddr().c_str(), intaddr().c_str()));
+		extTcpAddr().c_str(), intTcpAddr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -408,17 +440,24 @@ void NetworkInterface::processChannels(KBEngine::Network::MessageHandlers* pMsgH
 		{
 			++iter;
 		}
-		else if(pChannel->isCondemn())
+		else if(pChannel->condemn() > 0)
 		{
 			++iter;
 
-			deregisterChannel(pChannel);
-			pChannel->destroy();
-			Network::Channel::reclaimPoolObject(pChannel);
+			if (pChannel->condemn() == Network::Channel::FLAG_CONDEMN_AND_WAIT_DESTROY && pChannel->sending())
+			{
+				pChannel->updateTick(pMsgHandlers);
+			}
+			else
+			{
+				deregisterChannel(pChannel);
+				pChannel->destroy();
+				Network::Channel::reclaimPoolObject(pChannel);
+			}
 		}
 		else
 		{
-			pChannel->processPackets(pMsgHandlers);
+			pChannel->updateTick(pMsgHandlers);
 			++iter;
 		}
 	}

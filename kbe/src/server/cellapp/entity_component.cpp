@@ -2,6 +2,8 @@
 
 
 #include "entitydef/entity_component.h"
+#include "entity.h"
+#include "real_entity_method.h"
 
 namespace KBEngine{
 
@@ -23,5 +25,35 @@ SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,		0,					0)
 SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,		0,					0)
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
+{
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+
+	if (ownerID_ > 0)
+	{
+		Entity* pOwner = static_cast<Entity*>(owner());
+
+		if (pOwner)
+		{
+			// 如果是ghost调用def方法则需要rpc调用。
+			if (!pOwner->isReal())
+			{
+				MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pComponentDescrs_)->findCellMethodDescription(ccattr);
+
+				if (pMethodDescription)
+				{
+					return new RealEntityMethod(pPropertyDescription_, pMethodDescription, pOwner);
+				}
+			}
+			else
+			{
+			}
+		}
+	}
+
+	return ScriptObject::onScriptGetAttribute(attr);
+}
 
 }

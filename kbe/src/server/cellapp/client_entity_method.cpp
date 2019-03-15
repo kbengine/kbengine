@@ -112,7 +112,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		// 如果是广播给组件的消息
 		if (pComponentPropertyDescription_)
@@ -130,8 +130,20 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				(*mstream) << (ENTITY_PROPERTY_UID)0;
 		}
 
-		methodDescription->addToStream(mstream, args);
-		
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): srcEntityID(%d), error=%s!\n",
+				srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id(), err.what().c_str());
+			PyErr_PrintEx(0);
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
+
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(srcEntity->id(), (*pSendBundle));
 

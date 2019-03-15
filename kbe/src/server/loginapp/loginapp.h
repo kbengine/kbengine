@@ -52,6 +52,11 @@ public:
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
 
+	/** 信号处理
+	*/
+	virtual bool installSignals();
+	virtual void onSignalled(int sigNum);
+
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& scriptVerInfo, 
@@ -135,7 +140,7 @@ public:
 		baseappmgr返回的登录网关地址
 	*/
 	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
-		std::string& accountName, std::string& addr, uint16 port);
+		std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 
 	/** 网络接口
@@ -155,6 +160,11 @@ public:
 		错误码描述导出
 	*/
 	void importServerErrorsDescr(Network::Channel* pChannel);
+
+	/** 网络接口
+	客户端SDK导出
+	*/
+	void importClientSDK(Network::Channel* pChannel, MemoryStream& s);
 
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Network::Channel* pChannel);

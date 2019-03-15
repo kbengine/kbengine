@@ -26,15 +26,15 @@ class TCPPacketReceiver : public PacketReceiver
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacketReceiver > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<TCPPacketReceiver>& ObjPool();
-	static TCPPacketReceiver* createPoolObject();
+	static TCPPacketReceiver* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(TCPPacketReceiver* obj);
 	static void destroyObjPool();
 	
 	TCPPacketReceiver():PacketReceiver(){}
 	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~TCPPacketReceiver();
+	virtual ~TCPPacketReceiver();
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 
@@ -42,7 +42,7 @@ protected:
 	virtual bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
 
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	
 };
 }

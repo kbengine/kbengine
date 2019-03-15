@@ -7,16 +7,11 @@
 .. moduleauthor:: R. David Murray <rdmurray@bitdance.com>
 .. sectionauthor:: R. David Murray <rdmurray@bitdance.com>
 
+**Source code:** :source:`Lib/email/headerregistry.py`
 
-.. note::
+--------------
 
-   The headerregistry module has been included in the standard library on a
-   :term:`provisional basis <provisional package>`. Backwards incompatible
-   changes (up to and including removal of the module) may occur if deemed
-   necessary by the core developers.
-
-.. versionadded:: 3.3
-   as a :term:`provisional module <provisional package>`.
+.. versionadded:: 3.6 [1]_
 
 Headers are represented by customized subclasses of :class:`str`.  The
 particular class used to represent a given header is determined by the
@@ -83,10 +78,11 @@ headers.
    .. method:: fold(*, policy)
 
       Return a string containing :attr:`~email.policy.Policy.linesep`
-      characters as required to correctly fold the header according
-      to *policy*.  A :attr:`~email.policy.Policy.cte_type` of
-      ``8bit`` will be treated as if it were ``7bit``, since strings
-      may not contain binary data.
+      characters as required to correctly fold the header according to
+      *policy*.  A :attr:`~email.policy.Policy.cte_type` of ``8bit`` will be
+      treated as if it were ``7bit``, since headers may not contain arbitrary
+      binary data.  If :attr:`~email.policy.EmailPolicy.utf8` is ``False``,
+      non-ASCII data will be :rfc:`2047` encoded.
 
 
    ``BaseHeader`` by itself cannot be used to create a header object.  It
@@ -103,7 +99,7 @@ headers.
    values for at least the keys ``decoded`` and ``defects``.  ``decoded``
    should be the string value for the header (that is, the header value fully
    decoded to unicode).  The parse method should assume that *string* may
-   contain transport encoded parts, but should correctly handle all valid
+   contain content-transfer-encoded parts, but should correctly handle all valid
    unicode characters as well so that it can parse un-encoded header values.
 
    ``BaseHeader``'s ``__new__`` then creates the header instance, and calls its
@@ -132,11 +128,10 @@ headers.
    mechanism for encoding non-ASCII text as ASCII characters within a header
    value.  When a *value* containing encoded words is passed to the
    constructor, the ``UnstructuredHeader`` parser converts such encoded words
-   back in to the original unicode, following the :rfc:`2047` rules for
-   unstructured text.  The parser uses heuristics to attempt to decode certain
-   non-compliant encoded words.  Defects are registered in such cases, as well
-   as defects for issues such as invalid characters within the encoded words or
-   the non-encoded text.
+   into unicode, following the :rfc:`2047` rules for unstructured text.  The
+   parser uses heuristics to attempt to decode certain non-compliant encoded
+   words.  Defects are registered in such cases, as well as defects for issues
+   such as invalid characters within the encoded words or the non-encoded text.
 
    This header type provides no additional attributes.
 
@@ -171,7 +166,7 @@ headers.
    :class:`~datetime.datetime` instance.  This means, for example, that
    the following code is valid and does what one would expect::
 
-       msg['Date']  = datetime(2011, 7, 15, 21)
+       msg['Date'] = datetime(2011, 7, 15, 21)
 
    Because this is a naive ``datetime`` it will be interpreted as a UTC
    timestamp, and the resulting value will have a timezone of ``-0000``.  Much
@@ -210,15 +205,16 @@ headers.
       the list of addresses is "flattened" into a one dimensional list).
 
    The ``decoded`` value of the header will have all encoded words decoded to
-   unicode.  :class:`~encodings.idna` encoded domain names are also decoded to unicode.  The
-   ``decoded`` value is set by :attr:`~str.join`\ ing the :class:`str` value of
-   the elements of the ``groups`` attribute with ``', '``.
+   unicode.  :class:`~encodings.idna` encoded domain names are also decoded to
+   unicode.  The ``decoded`` value is set by :attr:`~str.join`\ ing the
+   :class:`str` value of the elements of the ``groups`` attribute with ``',
+   '``.
 
    A list of :class:`.Address` and :class:`.Group` objects in any combination
    may be used to set the value of an address header.  ``Group`` objects whose
    ``display_name`` is ``None`` will be interpreted as single addresses, which
    allows an address list to be copied with groups intact by using the list
-   obtained ``groups`` attribute of the source header.
+   obtained from the ``groups`` attribute of the source header.
 
 
 .. class:: SingleAddressHeader
@@ -264,7 +260,7 @@ variant, :attr:`~.BaseHeader.max_count` is set to 1.
 
 .. class:: ParameterizedMIMEHeader
 
-    MOME headers all start with the prefix 'Content-'.  Each specific header has
+    MIME headers all start with the prefix 'Content-'.  Each specific header has
     a certain value, described under the class for that header.  Some can
     also take a list of supplemental parameters, which have a common format.
     This class serves as a base for all the MIME headers that take parameters.
@@ -451,3 +447,9 @@ construct structured values to assign to specific headers.
       ``display_name`` is none and there is a single ``Address`` in the
       ``addresses`` list, the ``str`` value will be the same as the ``str`` of
       that single ``Address``.
+
+
+.. rubric:: Footnotes
+
+.. [1] Originally added in 3.3 as a :term:`provisional module <provisional
+       package>`

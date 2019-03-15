@@ -3,7 +3,12 @@
 
 .. module:: xml.etree.ElementTree
    :synopsis: Implementation of the ElementTree API.
+
 .. moduleauthor:: Fredrik Lundh <fredrik@pythonware.com>
+
+**Source code:** :source:`Lib/xml/etree/ElementTree.py`
+
+--------------
 
 The :mod:`xml.etree.ElementTree` module implements a simple and efficient API
 for parsing and creating XML data.
@@ -94,7 +99,7 @@ As an :class:`Element`, ``root`` has a tag and a dictionary of attributes::
 It also has children nodes over which we can iterate::
 
    >>> for child in root:
-   ...   print(child.tag, child.attrib)
+   ...     print(child.tag, child.attrib)
    ...
    country {'name': 'Liechtenstein'}
    country {'name': 'Singapore'}
@@ -143,8 +148,8 @@ elements, call :meth:`XMLPullParser.read_events`.  Here is an example::
    [('start', <Element 'mytag' at 0x7fa66db2be58>)]
    >>> parser.feed(' more text</mytag>')
    >>> for event, elem in parser.read_events():
-   ...   print(event)
-   ...   print(elem.tag, 'text=', elem.text)
+   ...     print(event)
+   ...     print(elem.tag, 'text=', elem.text)
    ...
    end
 
@@ -166,7 +171,7 @@ the sub-tree below it (its children, their children, and so on).  For example,
 :meth:`Element.iter`::
 
    >>> for neighbor in root.iter('neighbor'):
-   ...   print(neighbor.attrib)
+   ...     print(neighbor.attrib)
    ...
    {'name': 'Austria', 'direction': 'E'}
    {'name': 'Switzerland', 'direction': 'W'}
@@ -180,9 +185,9 @@ with a particular tag, and :attr:`Element.text` accesses the element's text
 content.  :meth:`Element.get` accesses the element's attributes::
 
    >>> for country in root.findall('country'):
-   ...   rank = country.find('rank').text
-   ...   name = country.get('name')
-   ...   print(name, rank)
+   ...     rank = country.find('rank').text
+   ...     name = country.get('name')
+   ...     print(name, rank)
    ...
    Liechtenstein 1
    Singapore 4
@@ -206,9 +211,9 @@ Let's say we want to add one to each country's rank, and add an ``updated``
 attribute to the rank element::
 
    >>> for rank in root.iter('rank'):
-   ...   new_rank = int(rank.text) + 1
-   ...   rank.text = str(new_rank)
-   ...   rank.set('updated', 'yes')
+   ...     new_rank = int(rank.text) + 1
+   ...     rank.text = str(new_rank)
+   ...     rank.set('updated', 'yes')
    ...
    >>> tree.write('output.xml')
 
@@ -244,9 +249,9 @@ We can remove elements using :meth:`Element.remove`.  Let's say we want to
 remove all countries with a rank higher than 50::
 
    >>> for country in root.findall('country'):
-   ...   rank = int(country.find('rank').text)
-   ...   if rank > 50:
-   ...     root.remove(country)
+   ...     rank = int(country.find('rank').text)
+   ...     if rank > 50:
+   ...         root.remove(country)
    ...
    >>> tree.write('output.xml')
 
@@ -284,6 +289,72 @@ sub-elements for a given element::
    >>> ET.dump(a)
    <a><b /><c><d /></c></a>
 
+Parsing XML with Namespaces
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the XML input has `namespaces
+<https://en.wikipedia.org/wiki/XML_namespace>`__, tags and attributes
+with prefixes in the form ``prefix:sometag`` get expanded to
+``{uri}sometag`` where the *prefix* is replaced by the full *URI*.
+Also, if there is a `default namespace
+<https://www.w3.org/TR/xml-names/#defaulting>`__,
+that full URI gets prepended to all of the non-prefixed tags.
+
+Here is an XML example that incorporates two namespaces, one with the
+prefix "fictional" and the other serving as the default namespace:
+
+.. code-block:: xml
+
+    <?xml version="1.0"?>
+    <actors xmlns:fictional="http://characters.example.com"
+            xmlns="http://people.example.com">
+        <actor>
+            <name>John Cleese</name>
+            <fictional:character>Lancelot</fictional:character>
+            <fictional:character>Archie Leach</fictional:character>
+        </actor>
+        <actor>
+            <name>Eric Idle</name>
+            <fictional:character>Sir Robin</fictional:character>
+            <fictional:character>Gunther</fictional:character>
+            <fictional:character>Commander Clement</fictional:character>
+        </actor>
+    </actors>
+
+One way to search and explore this XML example is to manually add the
+URI to every tag or attribute in the xpath of a
+:meth:`~Element.find` or :meth:`~Element.findall`::
+
+    root = fromstring(xml_text)
+    for actor in root.findall('{http://people.example.com}actor'):
+        name = actor.find('{http://people.example.com}name')
+        print(name.text)
+        for char in actor.findall('{http://characters.example.com}character'):
+            print(' |-->', char.text)
+
+A better way to search the namespaced XML example is to create a
+dictionary with your own prefixes and use those in the search functions::
+
+    ns = {'real_person': 'http://people.example.com',
+          'role': 'http://characters.example.com'}
+
+    for actor in root.findall('real_person:actor', ns):
+        name = actor.find('real_person:name', ns)
+        print(name.text)
+        for char in actor.findall('role:character', ns):
+            print(' |-->', char.text)
+
+These two approaches both output::
+
+    John Cleese
+     |--> Lancelot
+     |--> Archie Leach
+    Eric Idle
+     |--> Sir Robin
+     |--> Gunther
+     |--> Commander Clement
+
+
 Additional resources
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -297,7 +368,7 @@ XPath support
 -------------
 
 This module provides limited support for
-`XPath expressions <http://www.w3.org/TR/xpath>`_ for locating elements in a
+`XPath expressions <https://www.w3.org/TR/xpath>`_ for locating elements in a
 tree.  The goal is to support a small subset of the abbreviated syntax; a full
 XPath engine is outside the scope of the module.
 
@@ -365,6 +436,15 @@ Supported XPath syntax
 +-----------------------+------------------------------------------------------+
 | ``[tag]``             | Selects all elements that have a child named         |
 |                       | ``tag``.  Only immediate children are supported.     |
++-----------------------+------------------------------------------------------+
+| ``[.='text']``        | Selects all elements whose complete text content,    |
+|                       | including descendants, equals the given ``text``.    |
+|                       |                                                      |
+|                       | .. versionadded:: 3.7                                |
++-----------------------+------------------------------------------------------+
+| ``[tag='text']``      | Selects all elements that have a child named         |
+|                       | ``tag`` whose complete text content, including       |
+|                       | descendants, equals the given ``text``.              |
 +-----------------------+------------------------------------------------------+
 | ``[position]``        | Selects all elements that are located at the given   |
 |                       | position.  The position can be either an integer     |
@@ -581,21 +661,29 @@ Element Objects
 
 
    .. attribute:: text
+                  tail
 
-      The *text* attribute can be used to hold additional data associated with
-      the element.  As the name implies this attribute is usually a string but
-      may be any application-specific object.  If the element is created from
-      an XML file the attribute will contain any text found between the element
-      tags.
+      These attributes can be used to hold additional data associated with
+      the element.  Their values are usually strings but may be any
+      application-specific object.  If the element is created from
+      an XML file, the *text* attribute holds either the text between
+      the element's start tag and its first child or end tag, or ``None``, and
+      the *tail* attribute holds either the text between the element's
+      end tag and the next tag, or ``None``.  For the XML data
 
+      .. code-block:: xml
 
-   .. attribute:: tail
+         <a><b>1<c>2<d/>3</c></b>4</a>
 
-      The *tail* attribute can be used to hold additional data associated with
-      the element.  This attribute is usually a string but may be any
-      application-specific object.  If the element is created from an XML file
-      the attribute will contain any text found after the element's end tag and
-      before the next tag.
+      the *a* element has ``None`` for both *text* and *tail* attributes,
+      the *b* element has *text* ``"1"`` and *tail* ``"4"``,
+      the *c* element has *text* ``"2"`` and *tail* ``None``,
+      and the *d* element has *text* ``None`` and *tail* ``"3"``.
+
+      To collect the inner text of an element, see :meth:`itertext`, for
+      example ``"".join(element.itertext())``.
+
+      Applications may store arbitrary objects in these attributes.
 
 
    .. attribute:: attrib
@@ -813,7 +901,7 @@ ElementTree Objects
 
       Creates and returns a tree iterator for the root element.  The iterator
       loops over all elements in this tree, in section order.  *tag* is the tag
-      to look for (default is to return all elements)
+      to look for (default is to return all elements).
 
 
    .. method:: iterfind(match, namespaces=None)
@@ -845,7 +933,7 @@ ElementTree Objects
       *method* is either ``"xml"``, ``"html"`` or ``"text"`` (default is
       ``"xml"``).
       The keyword-only *short_empty_elements* parameter controls the formatting
-      of elements that contain no content.  If *True* (the default), they are
+      of elements that contain no content.  If ``True`` (the default), they are
       emitted as a single self-closed tag, otherwise they are emitted as a pair
       of start/end tags.
 
@@ -900,7 +988,7 @@ QName Objects
    to get proper namespace handling on output.  *text_or_uri* is a string
    containing the QName value, in the form {uri}local, or, if the tag argument
    is given, the URI part of a QName.  If *tag* is given, the first argument is
-   interpreted as an URI, and this argument is interpreted as a local name.
+   interpreted as a URI, and this argument is interpreted as a local name.
    :class:`QName` instances are opaque.
 
 
@@ -966,16 +1054,16 @@ XMLParser Objects
 
    This class is the low-level building block of the module.  It uses
    :mod:`xml.parsers.expat` for efficient, event-based parsing of XML.  It can
-   be fed XML data incrementall with the :meth:`feed` method, and parsing events
-   are translated to a push API - by invoking callbacks on the *target* object.
-   If *target* is omitted, the standard :class:`TreeBuilder` is used.  The
-   *html* argument was historically used for backwards compatibility and is now
-   deprecated.  If *encoding* [1]_ is given, the value overrides the encoding
-   specified in the XML file.
+   be fed XML data incrementally with the :meth:`feed` method, and parsing
+   events are translated to a push API - by invoking callbacks on the *target*
+   object.  If *target* is omitted, the standard :class:`TreeBuilder` is used.
+   The *html* argument was historically used for backwards compatibility and is
+   now deprecated.  If *encoding* [1]_ is given, the value overrides the
+   encoding specified in the XML file.
 
    .. deprecated:: 3.4
       The *html* argument.  The remaining arguments should be passed via
-      keywword to prepare for the removal of the *html* argument.
+      keyword to prepare for the removal of the *html* argument.
 
    .. method:: close()
 
@@ -1109,7 +1197,7 @@ Exceptions
 
 .. rubric:: Footnotes
 
-.. [#] The encoding string included in XML output should conform to the
+.. [1] The encoding string included in XML output should conform to the
    appropriate standards.  For example, "UTF-8" is valid, but "UTF8" is
-   not.  See http://www.w3.org/TR/2006/REC-xml11-20060816/#NT-EncodingDecl
-   and http://www.iana.org/assignments/character-sets.
+   not.  See https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-EncodingDecl
+   and https://www.iana.org/assignments/character-sets/character-sets.xhtml.

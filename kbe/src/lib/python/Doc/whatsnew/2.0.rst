@@ -61,7 +61,7 @@ how Python is developed: in May 2000 the Python developers began using the tools
 made available by SourceForge for storing  source code, tracking bug reports,
 and managing the queue of patch submissions.  To report bugs or submit patches
 for Python 2.0, use the bug tracking and patch manager tools available from
-Python's project page, located at http://sourceforge.net/projects/python/.
+Python's project page, located at https://sourceforge.net/projects/python/.
 
 The most important of the services now hosted at SourceForge is the Python CVS
 tree, the version-controlled repository containing the source code for Python.
@@ -130,7 +130,7 @@ Guidelines":
 Read the rest of PEP 1 for the details of the PEP editorial process, style, and
 format.  PEPs are kept in the Python CVS tree on SourceForge, though they're not
 part of the Python 2.0 distribution, and are also available in HTML form from
-http://www.python.org/peps/.  As of September 2000, there are 25 PEPS, ranging
+https://www.python.org/dev/peps/.  As of September 2000, there are 25 PEPS, ranging
 from PEP 201, "Lockstep Iteration", to PEP 225, "Elementwise/Objectwise
 Operators".
 
@@ -145,8 +145,8 @@ strings.  Unicode uses 16-bit numbers to represent characters instead of the
 8-bit number used by ASCII, meaning that 65,536 distinct characters can be
 supported.
 
-The final interface for Unicode support was arrived at through countless often-
-stormy discussions on the python-dev mailing list, and mostly implemented by
+The final interface for Unicode support was arrived at through countless
+often-stormy discussions on the python-dev mailing list, and mostly implemented by
 Marc-André Lemburg, based on a Unicode string type implementation by Fredrik
 Lundh.  A detailed explanation of the interface was written up as :pep:`100`,
 "Python Unicode Integration". This article will simply cover the most
@@ -166,7 +166,7 @@ encoding.  Encodings are named by strings, such as ``'ascii'``, ``'utf-8'``,
 registering new encodings that are then available throughout a Python program.
 If an encoding isn't specified, the default encoding is usually 7-bit ASCII,
 though it can be changed for your Python installation by calling the
-``sys.setdefaultencoding(encoding)`` function in a customised version of
+``sys.setdefaultencoding(encoding)`` function in a customized version of
 :file:`site.py`.
 
 Combining 8-bit and Unicode strings always coerces to Unicode, using the default
@@ -337,7 +337,7 @@ comprehension below is a syntax error, while the second one is correct::
    [ (x,y) for x in seq1 for y in seq2]
 
 The idea of list comprehensions originally comes from the functional programming
-language Haskell (http://www.haskell.org).  Greg Ewing argued most effectively
+language Haskell (https://www.haskell.org).  Greg Ewing argued most effectively
 for adding them to Python and wrote the initial list comprehension patch, which
 was then discussed for a seemingly endless time on the python-dev mailing list
 and kept up-to-date by Skip Montanaro.
@@ -476,7 +476,7 @@ lost, because benchmarking this is tricky and depends crucially on how often the
 program creates and destroys objects.  The detection of cycles can be disabled
 when Python is compiled, if you can't afford even a tiny speed penalty or
 suspect that the cycle collection is buggy, by specifying the
-:option:`--without-cycle-gc` switch when running the :program:`configure`
+:option:`!--without-cycle-gc` switch when running the :program:`configure`
 script.
 
 Several people tackled this problem and contributed to a solution.  An early
@@ -506,7 +506,7 @@ arguments and/or a dictionary of keyword arguments. In Python 1.5 and earlier,
 you'd use the :func:`apply` built-in function: ``apply(f, args, kw)`` calls the
 function :func:`f` with the argument tuple *args* and the keyword arguments in
 the dictionary *kw*.  :func:`apply`  is the same in 2.0, but thanks to a patch
-from Greg Ewing, ``f(*args, **kw)`` as a shorter and clearer way to achieve the
+from Greg Ewing, ``f(*args, **kw)`` is a shorter and clearer way to achieve the
 same effect.  This syntax is symmetrical with the syntax for defining
 functions::
 
@@ -566,7 +566,7 @@ such as ``cmp(a,b)`` would always produce an answer, even if a user-defined
 simply be silently swallowed.
 
 .. Starting URL:
-.. http://www.python.org/pipermail/python-dev/2000-April/004834.html
+.. https://www.python.org/pipermail/python-dev/2000-April/004834.html
 
 Work has been done on porting Python to 64-bit Windows on the Itanium processor,
 mostly by Trent Mick of ActiveState.  (Confusingly, ``sys.platform`` is still
@@ -885,8 +885,8 @@ interfaces for processing XML have become common: SAX2 (version 2 of the Simple
 API for XML) provides an event-driven interface with some similarities to
 :mod:`xmllib`, and the DOM (Document Object Model) provides a tree-based
 interface, transforming an XML document into a tree of nodes that can be
-traversed and modified.  Python 2.0 includes a SAX2 interface and a stripped-
-down DOM interface as part of the :mod:`xml` package. Here we will give a brief
+traversed and modified.  Python 2.0 includes a SAX2 interface and a stripped-down
+DOM interface as part of the :mod:`xml` package. Here we will give a brief
 overview of these new interfaces; consult the Python documentation or the source
 code for complete details. The Python XML SIG is also working on improved
 documentation.
@@ -1003,7 +1003,7 @@ Relationship to PyXML
 
 The XML Special Interest Group has been working on XML-related Python code for a
 while.  Its code distribution, called PyXML, is available from the SIG's Web
-pages at http://www.python.org/sigs/xml-sig/. The PyXML distribution also used
+pages at https://www.python.org/community/sigs/current/xml-sig. The PyXML distribution also used
 the package name ``xml``.  If you've written programs that used PyXML, you're
 probably wondering about its compatibility with the 2.0 :mod:`xml` package.
 
@@ -1139,7 +1139,7 @@ module.
   Unix, not to be confused with :program:`gzip`\ -format files (which are
   supported by the :mod:`gzip` module) (Contributed by James C. Ahlstrom.)
 
-* :mod:`imputil`: A module that provides a simpler way for writing customised
+* :mod:`imputil`: A module that provides a simpler way for writing customized
   import hooks, in comparison to the existing :mod:`ihooks` module.  (Implemented
   by Greg Stein, with much discussion on python-dev along the way.)
 
@@ -1174,8 +1174,8 @@ partial list:
 
 * In the editor window, there is now a line/column bar at the bottom.
 
-* Three new keystroke commands: Check module (Alt-F5), Import module (F5) and
-  Run script (Ctrl-F5).
+* Three new keystroke commands: Check module (:kbd:`Alt-F5`), Import module (:kbd:`F5`) and
+  Run script (:kbd:`Ctrl-F5`).
 
 .. ======================================================================
 

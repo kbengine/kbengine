@@ -14,7 +14,7 @@
   (1) How to use the demo viewer.
 
   Select a demoscript from the example menu.
-  The (syntax coloured) source code appears in the left
+  The (syntax colored) source code appears in the left
   source code window. IT CANNOT BE EDITED, but ONLY VIEWED!
 
   The demo viewer windows can be resized. The divider between text
@@ -89,13 +89,12 @@ import sys
 import os
 
 from tkinter import *
-from idlelib.Percolator import Percolator
-from idlelib.ColorDelegator import ColorDelegator
-from idlelib.textView import view_text
+from idlelib.colorizer import ColorDelegator, color_config
+from idlelib.percolator import Percolator
+from idlelib.textview import view_text
 from turtledemo import __doc__ as about_turtledemo
 
 import turtle
-import time
 
 demo_dir = os.path.dirname(os.path.abspath(__file__))
 darwin = sys.platform == 'darwin'
@@ -124,6 +123,8 @@ help_entries = (  # (help_label,  help_doc)
     ('About turtle module', turtle.__doc__),
     )
 
+
+
 class DemoWindow(object):
 
     def __init__(self, filename=None):
@@ -135,7 +136,7 @@ class DemoWindow(object):
             import subprocess
             # Make sure we are the currently activated OS X application
             # so that our menu bar appears.
-            p = subprocess.Popen(
+            subprocess.run(
                     [
                         'osascript',
                         '-e', 'tell application "System Events"',
@@ -204,6 +205,7 @@ class DemoWindow(object):
         self.text_frame = text_frame = Frame(root)
         self.text = text = Text(text_frame, name='text', padx=5,
                                 wrap='none', width=45)
+        color_config(text)
 
         self.vbar = vbar = Scrollbar(text_frame, name='vbar')
         vbar['command'] = text.yview
@@ -257,7 +259,7 @@ class DemoWindow(object):
         return 'break'
 
     def update_mousewheel(self, event):
-        # For wheel up, event.delte = 120 on Windows, -1 on darwin.
+        # For wheel up, event.delta = 120 on Windows, -1 on darwin.
         # X-11 sends Control-Button-4 event instead.
         if (event.delta < 0) == (not darwin):
             return self.decrease_size()
@@ -344,6 +346,8 @@ class DemoWindow(object):
             else:
                 self.state = DONE
         except turtle.Terminator:
+            if self.root is None:
+                return
             self.state = DONE
             result = "stopped!"
         if self.state == DONE:
@@ -369,7 +373,9 @@ class DemoWindow(object):
         turtle.TurtleScreen._RUNNING = False
 
     def _destroy(self):
+        turtle.TurtleScreen._RUNNING = False
         self.root.destroy()
+        self.root = None
 
 
 def main():

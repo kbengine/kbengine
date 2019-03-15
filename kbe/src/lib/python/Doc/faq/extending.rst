@@ -42,7 +42,7 @@ on what you're trying to do.
 .. XXX make sure these all work
 
 `Cython <http://cython.org>`_ and its relative `Pyrex
-<http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/>`_ are compilers
+<https://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/>`_ are compilers
 that accept a slightly modified form of Python and generate the corresponding
 C code.  Cython and Pyrex make it possible to write an extension without having
 to learn Python's C API.
@@ -50,11 +50,11 @@ to learn Python's C API.
 If you need to interface to some C or C++ library for which no Python extension
 currently exists, you can try wrapping the library's data types and functions
 with a tool such as `SWIG <http://www.swig.org>`_.  `SIP
-<http://www.riverbankcomputing.co.uk/software/sip/>`__, `CXX
+<https://riverbankcomputing.com/software/sip/intro>`__, `CXX
 <http://cxx.sourceforge.net/>`_ `Boost
 <http://www.boost.org/libs/python/doc/index.html>`_, or `Weave
-<http://www.scipy.org/Weave>`_ are also alternatives for wrapping
-C++ libraries.
+<https://github.com/scipy/weave>`_ are also
+alternatives for wrapping C++ libraries.
 
 
 How can I execute arbitrary Python statements from C?
@@ -62,8 +62,8 @@ How can I execute arbitrary Python statements from C?
 
 The highest-level function to do this is :c:func:`PyRun_SimpleString` which takes
 a single string argument to be executed in the context of the module
-``__main__`` and returns 0 for success and -1 when an exception occurred
-(including ``SyntaxError``).  If you want more control, use
+``__main__`` and returns ``0`` for success and ``-1`` when an exception occurred
+(including :exc:`SyntaxError`).  If you want more control, use
 :c:func:`PyRun_String`; see the source for :c:func:`PyRun_SimpleString` in
 ``Python/pythonrun.c``.
 
@@ -115,8 +115,8 @@ call, a format string like that used with :c:func:`Py_BuildValue`, and the
 argument values::
 
    PyObject *
-   PyObject_CallMethod(PyObject *object, char *method_name,
-                       char *arg_format, ...);
+   PyObject_CallMethod(PyObject *object, const char *method_name,
+                       const char *arg_format, ...);
 
 This works for any object that has methods -- whether built-in or user-defined.
 You are responsible for eventually :c:func:`Py_DECREF`\ 'ing the return value.
@@ -146,7 +146,9 @@ this object to :data:`sys.stdout` and :data:`sys.stderr`.  Call print_error, or
 just allow the standard traceback mechanism to work. Then, the output will go
 wherever your ``write()`` method sends it.
 
-The easiest way to do this is to use the :class:`io.StringIO` class::
+The easiest way to do this is to use the :class:`io.StringIO` class:
+
+.. code-block:: pycon
 
    >>> import io, sys
    >>> sys.stdout = io.StringIO()
@@ -156,7 +158,9 @@ The easiest way to do this is to use the :class:`io.StringIO` class::
    foo
    hello world!
 
-A custom object to do the same would look like this::
+A custom object to do the same would look like this:
+
+.. code-block:: pycon
 
    >>> import io, sys
    >>> class StdoutCatcher(io.TextIOBase):
@@ -222,11 +226,15 @@ How do I debug an extension?
 When using GDB with dynamically loaded extensions, you can't set a breakpoint in
 your extension until your extension is loaded.
 
-In your ``.gdbinit`` file (or interactively), add the command::
+In your ``.gdbinit`` file (or interactively), add the command:
+
+.. code-block:: none
 
    br _PyImport_LoadDynamicModule
 
-Then, when you run GDB::
+Then, when you run GDB:
+
+.. code-block:: shell-session
 
    $ gdb /local/bin/python
    gdb) run myscript.py
@@ -245,20 +253,6 @@ required for compiling Python extensions.
 For Red Hat, install the python-devel RPM to get the necessary files.
 
 For Debian, run ``apt-get install python-dev``.
-
-
-What does "SystemError: _PyImport_FixupExtension: module yourmodule not loaded" mean?
--------------------------------------------------------------------------------------
-
-This means that you have created an extension module named "yourmodule", but
-your module init function does not initialize with that name.
-
-Every module init function will have a line similar to::
-
-   module = Py_InitModule("yourmodule", yourmodule_functions);
-
-If the string passed to this function is not the same name as your extension
-module, the :exc:`SystemError` exception will be raised.
 
 
 How do I tell "incomplete input" from "invalid input"?
@@ -283,7 +277,7 @@ However sometimes you have to run the embedded Python interpreter in the same
 thread as your rest application and you can't allow the
 :c:func:`PyRun_InteractiveLoop` to stop while waiting for user input.  The one
 solution then is to call :c:func:`PyParser_ParseString` and test for ``e.error``
-equal to ``E_EOF``, which means the input is incomplete).  Here's a sample code
+equal to ``E_EOF``, which means the input is incomplete.  Here's a sample code
 fragment, untested, inspired by code from Alex Farber::
 
    #include <Python.h>
@@ -348,7 +342,7 @@ complete example using the GNU readline library (you may want to ignore
      {
        line = readline (prompt);
 
-       if (NULL == line)                          /* CTRL-D pressed */
+       if (NULL == line)                          /* Ctrl-D pressed */
        {
          done = 1;
        }
@@ -443,8 +437,8 @@ extension module using g++ (e.g., ``g++ -shared -o mymodule.so mymodule.o``).
 Can I create an object class with some methods implemented in C and others in Python (e.g. through inheritance)?
 ----------------------------------------------------------------------------------------------------------------
 
-In Python 2.2, you can inherit from built-in classes such as :class:`int`,
-:class:`list`, :class:`dict`, etc.
+Yes, you can inherit from built-in classes such as :class:`int`, :class:`list`,
+:class:`dict`, etc.
 
 The Boost Python Library (BPL, http://www.boost.org/libs/python/doc/index.html)
 provides a way of doing this from C++ (i.e. you can inherit from an extension

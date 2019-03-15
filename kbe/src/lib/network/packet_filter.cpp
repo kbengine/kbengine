@@ -16,9 +16,9 @@ namespace KBEngine {
 namespace Network
 {
 //-------------------------------------------------------------------------------------
-Reason PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
+Reason PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg)
 {
-	return sender.processFilterPacket(pChannel, pPacket);
+	return sender.processFilterPacket(pChannel, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------

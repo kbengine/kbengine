@@ -8,13 +8,13 @@
 
 
 /* struct module */
-PyObject *structmodule = NULL;
-PyObject *Struct = NULL;
-PyObject *calcsize = NULL;
+static PyObject *structmodule = NULL;
+static PyObject *Struct = NULL;
+static PyObject *calcsize = NULL;
 
 /* cache simple format string */
 static const char *simple_fmt = "B";
-PyObject *simple_format = NULL;
+static PyObject *simple_format = NULL;
 #define SIMPLE_FORMAT(fmt) (fmt == NULL || strcmp(fmt, "B") == 0)
 #define FIX_FORMAT(fmt) (fmt == NULL ? "B" : fmt)
 
@@ -190,7 +190,7 @@ ndbuf_delete(NDArrayObject *nd, ndbuf_t *elt)
         elt->prev->next = elt->next;
     else
         nd->head = elt->next;
-    
+
     if (elt->next)
         elt->next->prev = elt->prev;
 
@@ -767,7 +767,7 @@ out:
   +-----------------+-----------+-------------+----------------+
   | base.readonly   |     0     |     OK      |       OK       |
   +-----------------+-----------+-------------+----------------+
-  | base.format     |    NULL   |     OK      |       OK       |  
+  | base.format     |    NULL   |     OK      |       OK       |
   +-----------------+-----------+-------------+----------------+
   | base.ndim       |     1     |      1      |       OK       |
   +-----------------+-----------+-------------+----------------+
@@ -850,7 +850,8 @@ seq_as_ssize_array(PyObject *seq, Py_ssize_t len, int is_shape)
     Py_ssize_t *dest;
     Py_ssize_t x, i;
 
-    dest = PyMem_Malloc(len * (sizeof *dest));
+    /* ndim = len <= ND_MAX_NDIM, so PyMem_New() is actually not needed. */
+    dest = PyMem_New(Py_ssize_t, len);
     if (dest == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -1510,6 +1511,19 @@ ndarray_getbuf(NDArrayObject *self, Py_buffer *view, int flags)
         view->shape = NULL;
     }
 
+    /* Ascertain that the new buffer has the same contiguity as the exporter */
+    if (ND_C_CONTIGUOUS(baseflags) != PyBuffer_IsContiguous(view, 'C') ||
+        /* skip cast to 1-d */
+        (view->format != NULL && view->shape != NULL &&
+         ND_FORTRAN_CONTIGUOUS(baseflags) != PyBuffer_IsContiguous(view, 'F')) ||
+        /* cast to 1-d */
+        (view->format == NULL && view->shape == NULL &&
+         !PyBuffer_IsContiguous(view, 'F'))) {
+        PyErr_SetString(PyExc_BufferError,
+            "ndarray: contiguity mismatch in getbuf()");
+            return -1;
+    }
+
     view->obj = (PyObject *)self;
     Py_INCREF(view->obj);
     self->head->exports++;
@@ -1517,7 +1531,7 @@ ndarray_getbuf(NDArrayObject *self, Py_buffer *view, int flags)
     return 0;
 }
 
-static int
+static void
 ndarray_releasebuf(NDArrayObject *self, Py_buffer *view)
 {
     if (!ND_IS_CONSUMER(self)) {
@@ -1525,8 +1539,6 @@ ndarray_releasebuf(NDArrayObject *self, Py_buffer *view)
         if (--ndbuf->exports == 0 && ndbuf != self->head)
             ndbuf_delete(self, ndbuf);
     }
-
-    return 0;
 }
 
 static PyBufferProcs ndarray_as_buffer = {
@@ -1701,10 +1713,10 @@ init_slice(Py_buffer *base, PyObject *key, int dim)
 {
     Py_ssize_t start, stop, step, slicelength;
 
-    if (PySlice_GetIndicesEx(key, base->shape[dim],
-                             &start, &stop, &step, &slicelength) < 0) {
+    if (PySlice_Unpack(key, &start, &stop, &step) < 0) {
         return -1;
     }
+    slicelength = PySlice_AdjustIndices(base->shape[dim], &start, &stop, step);
 
 
     if (base->suboffsets == NULL || dim == 0) {
@@ -1921,9 +1933,10 @@ slice_indices(PyObject *self, PyObject *args)
             "first argument must be a slice object");
         return NULL;
     }
-    if (PySlice_GetIndicesEx(key, len, &s[0], &s[1], &s[2], &s[3]) < 0) {
+    if (PySlice_Unpack(key, &s[0], &s[1], &s[2]) < 0) {
         return NULL;
     }
+    s[3] = PySlice_AdjustIndices(len, &s[0], &s[1], s[2]);
 
     ret = PyTuple_New(4);
     if (ret == NULL)
@@ -2005,7 +2018,7 @@ ndarray_get_obj(NDArrayObject *self, void *closure)
 {
     Py_buffer *base = &self->head->base;
 
-    if (base->obj == NULL) { 
+    if (base->obj == NULL) {
         Py_RETURN_NONE;
     }
     Py_INCREF(base->obj);
@@ -2205,6 +2218,8 @@ ndarray_add_suboffsets(PyObject *self, PyObject *dummy)
 
     for (i = 0; i < base->ndim; i++)
         base->suboffsets[i] = -1;
+
+    nd->head->flags &= ~(ND_C|ND_FORTRAN);
 
     Py_RETURN_NONE;
 }
@@ -2469,13 +2484,12 @@ arraycmp(const Py_ssize_t *a1, const Py_ssize_t *a2, const Py_ssize_t *shape,
 {
     Py_ssize_t i;
 
-    if (ndim == 1 && shape && shape[0] == 1) {
-        /* This is for comparing strides: For example, the array
-           [175], shape=[1], strides=[-5] is considered contiguous. */
-        return 1;
-    }
 
     for (i = 0; i < ndim; i++) {
+        if (shape && shape[i] <= 1) {
+            /* strides can differ if the dimension is less than 2 */
+            continue;
+        }
         if (a1[i] != a2[i]) {
             return 0;
         }
@@ -2544,7 +2558,7 @@ result:
     PyBuffer_Release(&v1);
     PyBuffer_Release(&v2);
 
-    ret = equal ? Py_True : Py_False; 
+    ret = equal ? Py_True : Py_False;
     Py_INCREF(ret);
     return ret;
 }
@@ -2555,30 +2569,35 @@ is_contiguous(PyObject *self, PyObject *args)
     PyObject *obj;
     PyObject *order;
     PyObject *ret = NULL;
-    Py_buffer view;
+    Py_buffer view, *base;
     char ord;
 
     if (!PyArg_ParseTuple(args, "OO", &obj, &order)) {
         return NULL;
     }
 
-    if (PyObject_GetBuffer(obj, &view, PyBUF_FULL_RO) < 0) {
-        PyErr_SetString(PyExc_TypeError,
-            "is_contiguous: object does not implement the buffer "
-            "protocol");
+    ord = get_ascii_order(order);
+    if (ord == CHAR_MAX) {
         return NULL;
     }
 
-    ord = get_ascii_order(order);
-    if (ord == CHAR_MAX) {
-        goto release;
+    if (NDArray_Check(obj)) {
+        /* Skip the buffer protocol to check simple etc. buffers directly. */
+        base = &((NDArrayObject *)obj)->head->base;
+        ret = PyBuffer_IsContiguous(base, ord) ? Py_True : Py_False;
+    }
+    else {
+        if (PyObject_GetBuffer(obj, &view, PyBUF_FULL_RO) < 0) {
+            PyErr_SetString(PyExc_TypeError,
+                "is_contiguous: object does not implement the buffer "
+                "protocol");
+            return NULL;
+        }
+        ret = PyBuffer_IsContiguous(&view, ord) ? Py_True : Py_False;
+        PyBuffer_Release(&view);
     }
 
-    ret = PyBuffer_IsContiguous(&view, ord) ? Py_True : Py_False;
     Py_INCREF(ret);
-
-release:
-    PyBuffer_Release(&view);
     return ret;
 }
 

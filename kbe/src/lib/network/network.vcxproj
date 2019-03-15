@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,29 +23,30 @@
     <ProjectGuid>{5EF24499-4F74-4AF6-8048-650BE7BD7808}</ProjectGuid>
     <RootNamespace>network</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -95,8 +96,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;../../lib/dependencies/curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURL_STATICLIB;USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -115,8 +116,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;../../lib/dependencies/curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURL_STATICLIB;USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -135,8 +136,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;../../lib/dependencies/curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURL_STATICLIB;USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -155,8 +156,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;../../lib/dependencies/curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURL_STATICLIB;USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -184,8 +185,15 @@
     <ClCompile Include="event_dispatcher.cpp" />
     <ClCompile Include="event_poller.cpp" />
     <ClCompile Include="fixed_messages.cpp" />
+    <ClCompile Include="http_utility.cpp" />
+    <ClCompile Include="ikcp.c" />
     <ClCompile Include="interface_defs.cpp" />
+    <ClCompile Include="kcp_packet_reader.cpp" />
+    <ClCompile Include="kcp_packet_receiver.cpp" />
+    <ClCompile Include="kcp_packet_sender.cpp" />
     <ClCompile Include="listener_receiver.cpp" />
+    <ClCompile Include="listener_tcp_receiver.cpp" />
+    <ClCompile Include="listener_udp_receiver.cpp" />
     <ClCompile Include="network_stats.cpp" />
     <ClCompile Include="message_handler.cpp" />
     <ClCompile Include="network_interface.cpp" />
@@ -200,6 +208,7 @@
     <ClCompile Include="tcp_packet_sender.cpp" />
     <ClCompile Include="udp_packet.cpp" />
     <ClCompile Include="udp_packet_receiver.cpp" />
+    <ClCompile Include="udp_packet_sender.cpp" />
     <ClCompile Include="websocket_packet_filter.cpp" />
     <ClCompile Include="websocket_packet_reader.cpp" />
     <ClCompile Include="websocket_protocol.cpp" />
@@ -218,9 +227,15 @@
     <ClInclude Include="event_poller.h" />
     <ClInclude Include="fixed_messages.h" />
     <ClInclude Include="http_utility.h" />
+    <ClInclude Include="ikcp.h" />
     <ClInclude Include="interface_defs.h" />
     <ClInclude Include="interfaces.h" />
+    <ClInclude Include="kcp_packet_reader.h" />
+    <ClInclude Include="kcp_packet_receiver.h" />
+    <ClInclude Include="kcp_packet_sender.h" />
     <ClInclude Include="listener_receiver.h" />
+    <ClInclude Include="listener_tcp_receiver.h" />
+    <ClInclude Include="listener_udp_receiver.h" />
     <ClInclude Include="network_stats.h" />
     <ClInclude Include="message_handler.h" />
     <ClInclude Include="network_interface.h" />
@@ -237,6 +252,7 @@
     <ClInclude Include="tcp_packet_sender.h" />
     <ClInclude Include="udp_packet.h" />
     <ClInclude Include="udp_packet_receiver.h" />
+    <ClInclude Include="udp_packet_sender.h" />
     <ClInclude Include="websocket_packet_filter.h" />
     <ClInclude Include="websocket_packet_reader.h" />
     <ClInclude Include="websocket_protocol.h" />
@@ -248,7 +264,11 @@
     <None Include="endpoint.inl" />
     <None Include="error_reporter.inl" />
     <None Include="event_dispatcher.inl" />
+    <None Include="kcp_packet_receiver.inl" />
+    <None Include="kcp_packet_sender.inl" />
     <None Include="listener_receiver.inl" />
+    <None Include="listener_tcp_receiver.inl" />
+    <None Include="listener_udp_receiver.inl" />
     <None Include="network_interface.inl" />
     <None Include="packet_filter.inl" />
     <None Include="packet_receiver.inl" />
@@ -259,6 +279,7 @@
     <None Include="tcp_packet_sender.inl" />
     <None Include="udp_packet.inl" />
     <None Include="udp_packet_receiver.inl" />
+    <None Include="udp_packet_sender.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

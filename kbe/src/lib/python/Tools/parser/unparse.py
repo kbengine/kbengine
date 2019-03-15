@@ -104,6 +104,19 @@ class Unparser:
         self.write(" "+self.binop[t.op.__class__.__name__]+"= ")
         self.dispatch(t.value)
 
+    def _AnnAssign(self, t):
+        self.fill()
+        if not t.simple and isinstance(t.target, ast.Name):
+            self.write('(')
+        self.dispatch(t.target)
+        if not t.simple and isinstance(t.target, ast.Name):
+            self.write(')')
+        self.write(": ")
+        self.dispatch(t.annotation)
+        if t.value:
+            self.write(" = ")
+            self.dispatch(t.value)
+
     def _Return(self, t):
         self.fill("return")
         if t.value:
@@ -137,6 +150,14 @@ class Unparser:
     def _Nonlocal(self, t):
         self.fill("nonlocal ")
         interleave(lambda: self.write(", "), self.write, t.names)
+
+    def _Await(self, t):
+        self.write("(")
+        self.write("await")
+        if t.value:
+            self.write(" ")
+            self.dispatch(t.value)
+        self.write(")")
 
     def _Yield(self, t):
         self.write("(")
@@ -211,16 +232,6 @@ class Unparser:
             if comma: self.write(", ")
             else: comma = True
             self.dispatch(e)
-        if t.starargs:
-            if comma: self.write(", ")
-            else: comma = True
-            self.write("*")
-            self.dispatch(t.starargs)
-        if t.kwargs:
-            if comma: self.write(", ")
-            else: comma = True
-            self.write("**")
-            self.dispatch(t.kwargs)
         self.write(")")
 
         self.enter()
@@ -228,11 +239,18 @@ class Unparser:
         self.leave()
 
     def _FunctionDef(self, t):
+        self.__FunctionDef_helper(t, "def")
+
+    def _AsyncFunctionDef(self, t):
+        self.__FunctionDef_helper(t, "async def")
+
+    def __FunctionDef_helper(self, t, fill_suffix):
         self.write("\n")
         for deco in t.decorator_list:
             self.fill("@")
             self.dispatch(deco)
-        self.fill("def "+t.name + "(")
+        def_str = fill_suffix+" "+t.name + "("
+        self.fill(def_str)
         self.dispatch(t.args)
         self.write(")")
         if t.returns:
@@ -243,7 +261,13 @@ class Unparser:
         self.leave()
 
     def _For(self, t):
-        self.fill("for ")
+        self.__For_helper("for ", t)
+
+    def _AsyncFor(self, t):
+        self.__For_helper("async for ", t)
+
+    def __For_helper(self, fill, t):
+        self.fill(fill)
         self.dispatch(t.target)
         self.write(" in ")
         self.dispatch(t.iter)
@@ -297,6 +321,13 @@ class Unparser:
         self.dispatch(t.body)
         self.leave()
 
+    def _AsyncWith(self, t):
+        self.fill("async with ")
+        interleave(lambda: self.write(", "), self.dispatch, t.items)
+        self.enter()
+        self.dispatch(t.body)
+        self.leave()
+
     # expr
     def _Bytes(self, t):
         self.write(repr(t.s))
@@ -304,8 +335,71 @@ class Unparser:
     def _Str(self, tree):
         self.write(repr(tree.s))
 
+    def _JoinedStr(self, t):
+        self.write("f")
+        string = io.StringIO()
+        self._fstring_JoinedStr(t, string.write)
+        self.write(repr(string.getvalue()))
+
+    def _FormattedValue(self, t):
+        self.write("f")
+        string = io.StringIO()
+        self._fstring_FormattedValue(t, string.write)
+        self.write(repr(string.getvalue()))
+
+    def _fstring_JoinedStr(self, t, write):
+        for value in t.values:
+            meth = getattr(self, "_fstring_" + type(value).__name__)
+            meth(value, write)
+
+    def _fstring_Str(self, t, write):
+        value = t.s.replace("{", "{{").replace("}", "}}")
+        write(value)
+
+    def _fstring_Constant(self, t, write):
+        assert isinstance(t.value, str)
+        value = t.value.replace("{", "{{").replace("}", "}}")
+        write(value)
+
+    def _fstring_FormattedValue(self, t, write):
+        write("{")
+        expr = io.StringIO()
+        Unparser(t.value, expr)
+        expr = expr.getvalue().rstrip("\n")
+        if expr.startswith("{"):
+            write(" ")  # Separate pair of opening brackets as "{ {"
+        write(expr)
+        if t.conversion != -1:
+            conversion = chr(t.conversion)
+            assert conversion in "sra"
+            write(f"!{conversion}")
+        if t.format_spec:
+            write(":")
+            meth = getattr(self, "_fstring_" + type(t.format_spec).__name__)
+            meth(t.format_spec, write)
+        write("}")
+
     def _Name(self, t):
         self.write(t.id)
+
+    def _write_constant(self, value):
+        if isinstance(value, (float, complex)):
+            self.write(repr(value).replace("inf", INFSTR))
+        else:
+            self.write(repr(value))
+
+    def _Constant(self, t):
+        value = t.value
+        if isinstance(value, tuple):
+            self.write("(")
+            if len(value) == 1:
+                self._write_constant(value[0])
+                self.write(",")
+            else:
+                interleave(lambda: self.write(", "), self._write_constant, value)
+            self.write(")")
+        else:
+            self._write_constant(t.value)
 
     def _NameConstant(self, t):
         self.write(repr(t.value))
@@ -350,7 +444,10 @@ class Unparser:
         self.write("}")
 
     def _comprehension(self, t):
-        self.write(" for ")
+        if t.is_async:
+            self.write(" async for ")
+        else:
+            self.write(" for ")
         self.dispatch(t.target)
         self.write(" in ")
         self.dispatch(t.iter)
@@ -375,18 +472,27 @@ class Unparser:
 
     def _Dict(self, t):
         self.write("{")
-        def write_pair(pair):
-            (k, v) = pair
+        def write_key_value_pair(k, v):
             self.dispatch(k)
             self.write(": ")
             self.dispatch(v)
-        interleave(lambda: self.write(", "), write_pair, zip(t.keys, t.values))
+
+        def write_item(item):
+            k, v = item
+            if k is None:
+                # for dictionary unpacking operator in dicts {**{'y': 2}}
+                # see PEP 448 for details
+                self.write("**")
+                self.dispatch(v)
+            else:
+                write_key_value_pair(k, v)
+        interleave(lambda: self.write(", "), write_item, zip(t.keys, t.values))
         self.write("}")
 
     def _Tuple(self, t):
         self.write("(")
         if len(t.elts) == 1:
-            (elt,) = t.elts
+            elt = t.elts[0]
             self.dispatch(elt)
             self.write(",")
         else:
@@ -401,7 +507,7 @@ class Unparser:
         self.dispatch(t.operand)
         self.write(")")
 
-    binop = { "Add":"+", "Sub":"-", "Mult":"*", "Div":"/", "Mod":"%",
+    binop = { "Add":"+", "Sub":"-", "Mult":"*", "MatMult":"@", "Div":"/", "Mod":"%",
                     "LShift":"<<", "RShift":">>", "BitOr":"|", "BitXor":"^", "BitAnd":"&",
                     "FloorDiv":"//", "Pow": "**"}
     def _BinOp(self, t):
@@ -433,7 +539,8 @@ class Unparser:
         # Special case: 3.__abs__() is a syntax error, so if t.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        if isinstance(t.value, ast.Num) and isinstance(t.value.n, int):
+        if ((isinstance(t.value, ast.Num) and isinstance(t.value.n, int))
+           or (isinstance(t.value, ast.Constant) and isinstance(t.value.value, int))):
             self.write(" ")
         self.write(".")
         self.write(t.attr)
@@ -450,16 +557,6 @@ class Unparser:
             if comma: self.write(", ")
             else: comma = True
             self.dispatch(e)
-        if t.starargs:
-            if comma: self.write(", ")
-            else: comma = True
-            self.write("*")
-            self.dispatch(t.starargs)
-        if t.kwargs:
-            if comma: self.write(", ")
-            else: comma = True
-            self.write("**")
-            self.dispatch(t.kwargs)
         self.write(")")
 
     def _Subscript(self, t):
@@ -543,8 +640,11 @@ class Unparser:
                 self.dispatch(t.kwarg.annotation)
 
     def _keyword(self, t):
-        self.write(t.arg)
-        self.write("=")
+        if t.arg is None:
+            self.write("**")
+        else:
+            self.write(t.arg)
+            self.write("=")
         self.dispatch(t.value)
 
     def _Lambda(self, t):

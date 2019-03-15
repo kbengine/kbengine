@@ -19,6 +19,12 @@ public:
 	bool shouldRetry() const;
 	bool isLostConnection() const;
 
+	void setError(const std::string& errStr, unsigned int errNum)
+	{
+		errStr_ = errStr;
+		errNum_ = errNum;
+	}
+
 private:
 	std::string errStr_;
 	unsigned int errNum_;

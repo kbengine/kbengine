@@ -118,7 +118,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 
@@ -143,7 +143,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 /**
@@ -274,7 +274,7 @@ protected:
 	bool success_;
 	ENTITY_ID entityID_;
 	COMPONENT_ID entityInAppID_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -489,7 +489,7 @@ protected:
 	std::string accountName_;
 	std::string password_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
@@ -576,7 +576,7 @@ protected:
 	uint32 flags_;
 	uint64 deadline_;
 	bool needCheckPassword_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -603,7 +603,7 @@ protected:
 	COMPONENT_ID componentID_;
 	CALLBACK_ID callbackID_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	ENTITY_ID entityID_;
 
 	// 如果实体已经激活，则这个属性指向实体所在app
@@ -611,7 +611,7 @@ protected:
 	COMPONENT_ID wasActiveCID_;
 	ENTITY_ID wasActiveEntityID_;
 	
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -630,6 +630,27 @@ public:
 	}
 
 protected:
+};
+
+/**
+	擦除某个baseapp记录的entitylog
+*/
+class DBTaskEraseBaseappEntityLog : public DBTask
+{
+public: 
+	DBTaskEraseBaseappEntityLog(COMPONENT_ID componentID);
+	virtual ~DBTaskEraseBaseappEntityLog();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskEraseBaseappEntityLog";
+	}
+
+protected:
+	COMPONENT_ID componentID_;
+	bool success_;
+
 };
 
 }

@@ -236,7 +236,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 			{
 				while(pChannel == NULL)
 				{
-					if(cts[idx].state != COMPONENT_STATE_RUN)
+					if (cts[idx].state != COMPONENT_STATE_RUN || (cts[idx].appFlags & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
 					{
 						if(++idx >= cts.size())
 							idx = 0;

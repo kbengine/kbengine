@@ -50,7 +50,7 @@ bool DelayedChannels::process()
 		{
 			Channel * pChannel = pNetworkInterface_->findChannel((*iter));
 
-			if (pChannel && (!pChannel->isCondemn() && !pChannel->isDestroyed()))
+			if (pChannel && (pChannel->condemn() != Channel::FLAG_CONDEMN_AND_DESTROY && !pChannel->isDestroyed()))
 			{
 				pChannel->send();
 			}

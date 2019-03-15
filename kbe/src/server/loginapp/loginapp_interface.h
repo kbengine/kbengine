@@ -36,6 +36,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_EXPOSED(importServerErrorsDescr)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(importServerErrorsDescr,							NETWORK_FIXED_MESSAGE)
 
+	// 客户端SDK导出。
+	LOGINAPP_MESSAGE_EXPOSED(importClientSDK)
+	LOGINAPP_MESSAGE_DECLARE_STREAM(importClientSDK,								NETWORK_VARIABLE_MESSAGE)
+
 	// 某app主动请求断线。
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(reqClose,										NETWORK_FIXED_MESSAGE)
 
@@ -90,11 +94,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryResultFromDbmgr,				NETWORK_VARIABLE_MESSAGE)
 
 	// baseappmgr返回的登录网关地址
-	LOGINAPP_MESSAGE_DECLARE_ARGS4(onLoginAccountQueryBaseappAddrFromBaseappmgr,	NETWORK_VARIABLE_MESSAGE,
+	LOGINAPP_MESSAGE_DECLARE_ARGS5(onLoginAccountQueryBaseappAddrFromBaseappmgr,	NETWORK_VARIABLE_MESSAGE,
 									std::string,									loginName, 
 									std::string,									accountName,
 									std::string,									addr,
-									uint16,											port)
+									uint16,											tcp_port,
+									uint16,											udp_port)
 
 	// 向dbmgr请求创建账号返回结果
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onReqCreateAccountResult,						NETWORK_VARIABLE_MESSAGE)

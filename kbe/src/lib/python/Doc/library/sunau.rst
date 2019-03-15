@@ -3,6 +3,7 @@
 
 .. module:: sunau
    :synopsis: Provide an interface to the Sun AU sound format.
+
 .. sectionauthor:: Moshe Zadka <moshez@zadka.site.co.il>
 
 **Source code:** :source:`Lib/sunau.py`
@@ -54,13 +55,15 @@ The :mod:`sunau` module defines the following functions:
 
    Note that it does not allow read/write files.
 
-   A *mode* of ``'r'`` returns a :class:`AU_read` object, while a *mode* of ``'w'``
-   or ``'wb'`` returns a :class:`AU_write` object.
+   A *mode* of ``'r'`` returns an :class:`AU_read` object, while a *mode* of ``'w'``
+   or ``'wb'`` returns an :class:`AU_write` object.
 
 
 .. function:: openfp(file, mode)
 
    A synonym for :func:`.open`, maintained for backwards compatibility.
+
+   .. deprecated-removed:: 3.7 3.9
 
 
 The :mod:`sunau` module defines the following exception:
@@ -117,7 +120,7 @@ AU_read objects, as returned by :func:`.open` above, have the following methods:
 
 .. method:: AU_read.getnchannels()
 
-   Returns number of audio channels (1 for mone, 2 for stereo).
+   Returns number of audio channels (1 for mono, 2 for stereo).
 
 
 .. method:: AU_read.getsampwidth()
@@ -157,7 +160,7 @@ AU_read objects, as returned by :func:`.open` above, have the following methods:
 
 .. method:: AU_read.readframes(n)
 
-   Reads and returns at most *n* frames of audio, as a string of bytes.  The data
+   Reads and returns at most *n* frames of audio, as a :class:`bytes` object.  The data
    will be returned in linear format.  If the original data is in u-LAW format, it
    will be converted.
 

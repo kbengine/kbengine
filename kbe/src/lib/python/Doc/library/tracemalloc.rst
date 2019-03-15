@@ -6,6 +6,10 @@
 
 .. versionadded:: 3.4
 
+**Source code:** :source:`Lib/tracemalloc.py`
+
+--------------
+
 The tracemalloc module is a debug tool to trace memory blocks allocated by
 Python. It provides the following information:
 
@@ -27,10 +31,10 @@ frame (1 frame). To store 25 frames at startup: set the
 
 
 Examples
-========
+--------
 
 Display the top 10
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Display the 10 files allocating the most memory::
 
@@ -62,7 +66,7 @@ Example of output of the Python test suite::
     <string>:5: size=49.7 KiB, count=148, average=344 B
     /usr/lib/python3.4/sysconfig.py:411: size=48.0 KiB, count=1, average=48.0 KiB
 
-We can see that Python loaded ``4.8 MiB`` data (bytecode and constants) from
+We can see that Python loaded ``4855 KiB`` data (bytecode and constants) from
 modules and that the :mod:`collections` module allocated ``244 KiB`` to build
 :class:`~collections.namedtuple` types.
 
@@ -70,7 +74,7 @@ See :meth:`Snapshot.statistics` for more options.
 
 
 Compute differences
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Take two snapshots and display the differences::
 
@@ -102,8 +106,8 @@ Example of output before/after running some tests of the Python test suite::
     /usr/lib/python3.4/urllib/parse.py:476: size=71.8 KiB (+71.8 KiB), count=969 (+969), average=76 B
     /usr/lib/python3.4/contextlib.py:38: size=67.2 KiB (+67.2 KiB), count=126 (+126), average=546 B
 
-We can see that Python has loaded ``8.2 MiB`` of module data (bytecode and
-constants), and that this is ``4.4 MiB`` more than had been loaded before the
+We can see that Python has loaded ``8173 KiB`` of module data (bytecode and
+constants), and that this is ``4428 KiB`` more than had been loaded before the
 tests, when the previous snapshot was taken. Similarly, the :mod:`linecache`
 module has cached ``940 KiB`` of Python source code to format tracebacks, all
 of it since the previous snapshot.
@@ -114,7 +118,7 @@ the :meth:`Snapshot.dump` method to analyze the snapshot offline. Then use the
 
 
 Get the traceback of a memory block
------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Code to display the traceback of the biggest memory block::
 
@@ -172,14 +176,14 @@ Example of output of the Python test suite (traceback limited to 25 frames)::
         "__main__", fname, loader, pkg_name)
 
 We can see that the most memory was allocated in the :mod:`importlib` module to
-load data (bytecode and constants) from modules: ``870 KiB``. The traceback is
+load data (bytecode and constants) from modules: ``870.1 KiB``. The traceback is
 where the :mod:`importlib` loaded data most recently: on the ``import pdb``
 line of the :mod:`doctest` module. The traceback may change if a new module is
 loaded.
 
 
 Pretty top
-----------
+^^^^^^^^^^
 
 Code to display the 10 lines allocating the most memory with a pretty output,
 ignoring ``<frozen importlib._bootstrap>`` and ``<unknown>`` files::
@@ -188,12 +192,12 @@ ignoring ``<frozen importlib._bootstrap>`` and ``<unknown>`` files::
     import os
     import tracemalloc
 
-    def display_top(snapshot, group_by='lineno', limit=10):
+    def display_top(snapshot, key_type='lineno', limit=10):
         snapshot = snapshot.filter_traces((
             tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
             tracemalloc.Filter(False, "<unknown>"),
         ))
-        top_stats = snapshot.statistics(group_by)
+        top_stats = snapshot.statistics(key_type)
 
         print("Top %s lines" % limit)
         for index, stat in enumerate(top_stats[:limit], 1):
@@ -249,10 +253,10 @@ See :meth:`Snapshot.statistics` for more options.
 
 
 API
-===
+---
 
 Functions
----------
+^^^^^^^^^
 
 .. function:: clear_traces()
 
@@ -350,20 +354,42 @@ Functions
    the *nframe* parameter of the :func:`start` function to store more frames.
 
    The :mod:`tracemalloc` module must be tracing memory allocations to take a
-   snapshot, see the the :func:`start` function.
+   snapshot, see the :func:`start` function.
 
    See also the :func:`get_object_traceback` function.
 
 
-Filter
-------
+DomainFilter
+^^^^^^^^^^^^
 
-.. class:: Filter(inclusive: bool, filename_pattern: str, lineno: int=None, all_frames: bool=False)
+.. class:: DomainFilter(inclusive: bool, domain: int)
+
+   Filter traces of memory blocks by their address space (domain).
+
+   .. versionadded:: 3.6
+
+   .. attribute:: inclusive
+
+      If *inclusive* is ``True`` (include), match memory blocks allocated
+      in the address space :attr:`domain`.
+
+      If *inclusive* is ``False`` (exclude), match memory blocks not allocated
+      in the address space :attr:`domain`.
+
+   .. attribute:: domain
+
+      Address space of a memory block (``int``). Read-only property.
+
+
+Filter
+^^^^^^
+
+.. class:: Filter(inclusive: bool, filename_pattern: str, lineno: int=None, all_frames: bool=False, domain: int=None)
 
    Filter on traces of memory blocks.
 
    See the :func:`fnmatch.fnmatch` function for the syntax of
-   *filename_pattern*. The ``'.pyc'`` and ``'.pyo'`` file extensions are
+   *filename_pattern*. The ``'.pyc'`` file extension is
    replaced with ``'.py'``.
 
    Examples:
@@ -374,9 +400,24 @@ Filter
      :mod:`tracemalloc` module
    * ``Filter(False, "<unknown>")`` excludes empty tracebacks
 
+
+   .. versionchanged:: 3.5
+      The ``'.pyo'`` file extension is no longer replaced with ``'.py'``.
+
+   .. versionchanged:: 3.6
+      Added the :attr:`domain` attribute.
+
+
+   .. attribute:: domain
+
+      Address space of a memory block (``int`` or ``None``).
+
+      tracemalloc uses the domain ``0`` to trace memory allocations made by
+      Python. C extensions can use other domains to trace other resources.
+
    .. attribute:: inclusive
 
-      If *inclusive* is ``True`` (include), only trace memory blocks allocated
+      If *inclusive* is ``True`` (include), only match memory blocks allocated
       in a file with a name matching :attr:`filename_pattern` at line number
       :attr:`lineno`.
 
@@ -391,7 +432,7 @@ Filter
 
    .. attribute:: filename_pattern
 
-      Filename pattern of the filter (``str``).
+      Filename pattern of the filter (``str``). Read-only property.
 
    .. attribute:: all_frames
 
@@ -404,7 +445,7 @@ Filter
 
 
 Frame
------
+^^^^^
 
 .. class:: Frame
 
@@ -422,7 +463,7 @@ Frame
 
 
 Snapshot
---------
+^^^^^^^^
 
 .. class:: Snapshot
 
@@ -430,12 +471,12 @@ Snapshot
 
    The :func:`take_snapshot` function creates a snapshot instance.
 
-   .. method:: compare_to(old_snapshot: Snapshot, group_by: str, cumulative: bool=False)
+   .. method:: compare_to(old_snapshot: Snapshot, key_type: str, cumulative: bool=False)
 
       Compute the differences with an old snapshot. Get statistics as a sorted
-      list of :class:`StatisticDiff` instances grouped by *group_by*.
+      list of :class:`StatisticDiff` instances grouped by *key_type*.
 
-      See the :meth:`statistics` method for *group_by* and *cumulative*
+      See the :meth:`Snapshot.statistics` method for *key_type* and *cumulative*
       parameters.
 
       The result is sorted from the biggest to the smallest by: absolute value
@@ -454,13 +495,16 @@ Snapshot
    .. method:: filter_traces(filters)
 
       Create a new :class:`Snapshot` instance with a filtered :attr:`traces`
-      sequence, *filters* is a list of :class:`Filter` instances.  If *filters*
-      is an empty list, return a new :class:`Snapshot` instance with a copy of
-      the traces.
+      sequence, *filters* is a list of :class:`DomainFilter` and
+      :class:`Filter` instances.  If *filters* is an empty list, return a new
+      :class:`Snapshot` instance with a copy of the traces.
 
       All inclusive filters are applied at once, a trace is ignored if no
       inclusive filters match it. A trace is ignored if at least one exclusive
-      filter matchs it.
+      filter matches it.
+
+      .. versionchanged:: 3.6
+         :class:`DomainFilter` instances are now also accepted in *filters*.
 
 
    .. classmethod:: load(filename)
@@ -470,13 +514,13 @@ Snapshot
       See also :meth:`dump`.
 
 
-   .. method:: statistics(group_by: str, cumulative: bool=False)
+   .. method:: statistics(key_type: str, cumulative: bool=False)
 
       Get statistics as a sorted list of :class:`Statistic` instances grouped
-      by *group_by*:
+      by *key_type*:
 
       =====================  ========================
-      group_by               description
+      key_type               description
       =====================  ========================
       ``'filename'``         filename
       ``'lineno'``           filename and line number
@@ -485,7 +529,7 @@ Snapshot
 
       If *cumulative* is ``True``, cumulate size and count of memory blocks of
       all frames of the traceback of a trace, not only the most recent frame.
-      The cumulative mode can only be used with *group_by* equals to
+      The cumulative mode can only be used with *key_type* equals to
       ``'filename'`` and ``'lineno'``.
 
       The result is sorted from the biggest to the smallest by:
@@ -508,7 +552,7 @@ Snapshot
 
 
 Statistic
----------
+^^^^^^^^^
 
 .. class:: Statistic
 
@@ -533,7 +577,7 @@ Statistic
 
 
 StatisticDiff
--------------
+^^^^^^^^^^^^^
 
 .. class:: StatisticDiff
 
@@ -572,7 +616,7 @@ StatisticDiff
 
 
 Trace
------
+^^^^^
 
 .. class:: Trace
 
@@ -580,6 +624,16 @@ Trace
 
    The :attr:`Snapshot.traces` attribute is a sequence of :class:`Trace`
    instances.
+
+   .. versionchanged:: 3.6
+      Added the :attr:`domain` attribute.
+
+   .. attribute:: domain
+
+      Address space of a memory block (``int``). Read-only property.
+
+      tracemalloc uses the domain ``0`` to trace memory allocations made by
+      Python. C extensions can use other domains to trace other resources.
 
    .. attribute:: size
 
@@ -592,12 +646,12 @@ Trace
 
 
 Traceback
----------
+^^^^^^^^^
 
 .. class:: Traceback
 
-   Sequence of :class:`Frame` instances sorted from the most recent frame to
-   the oldest frame.
+   Sequence of :class:`Frame` instances sorted from the oldest frame to the
+   most recent frame.
 
    A traceback contains at least ``1`` frame. If the ``tracemalloc`` module
    failed to get a frame, the filename ``"<unknown>"`` at line number ``0`` is
@@ -609,14 +663,20 @@ Traceback
    The :attr:`Trace.traceback` attribute is an instance of :class:`Traceback`
    instance.
 
-   .. method:: format(limit=None)
+   .. versionchanged:: 3.7
+      Frames are now sorted from the oldest to the most recent, instead of most recent to oldest.
 
-      Format the traceback as a list of lines with newlines.  Use the
-      :mod:`linecache` module to retrieve lines from the source code.  If
-      *limit* is set, only format the *limit* most recent frames.
+   .. method:: format(limit=None, most_recent_first=False)
+
+      Format the traceback as a list of lines with newlines. Use the
+      :mod:`linecache` module to retrieve lines from the source code.
+      If *limit* is set, format the *limit* most recent frames if *limit*
+      is positive. Otherwise, format the ``abs(limit)`` oldest frames.
+      If *most_recent_first* is ``True``, the order of the formatted frames
+      is reversed, returning the most recent frame first instead of last.
 
       Similar to the :func:`traceback.format_tb` function, except that
-      :meth:`format` does not include newlines.
+      :meth:`.format` does not include newlines.
 
       Example::
 
@@ -631,4 +691,3 @@ Traceback
               obj = Object()
             File "test.py", line 12
               tb = tracemalloc.get_object_traceback(f())
-

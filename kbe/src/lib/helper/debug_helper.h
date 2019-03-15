@@ -144,6 +144,8 @@ public:
 	void registerLogger(Network::MessageID msgID, Network::Address* pAddr);
 	void unregisterLogger(Network::MessageID msgID, Network::Address* pAddr);
 
+	void onNoLogger();
+
 	void changeLogger(const std::string& name);
 	void closeLogger();  // close logger for fork + execv
 
@@ -189,6 +191,8 @@ private:
 
 	bool canLogFile_;
 
+	uint64 loseLoggerTime_;
+
 	// 记录下主线程ID，用于判断是否是子线程输出日志
 	// 当子线程输出日志时，对相关日志进行缓存到主线程时再同步给logger
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -224,8 +228,8 @@ void myassert(const char* exp, const char * func, const char * file, unsigned in
 #define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FUNCTION__, __FILE__, __LINE__);
 #define KBE_REAL_ASSERT assert(0);
 #else
-#define KBE_ASSERT(exp) NULL;
-#define KBE_REAL_ASSERT
+#define KBE_ASSERT(exp) assert((exp));
+#define KBE_REAL_ASSERT assert(0);
 #endif
 
 #ifdef _DEBUG

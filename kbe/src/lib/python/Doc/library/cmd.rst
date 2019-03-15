@@ -3,6 +3,7 @@
 
 .. module:: cmd
    :synopsis: Build line-oriented command interpreters.
+
 .. sectionauthor:: Eric S. Raymond <esr@snark.thyrsus.com>
 
 **Source code:** :source:`Lib/cmd.py`
@@ -59,6 +60,10 @@ A :class:`Cmd` instance has the following methods:
    cursor to the left non-destructively, etc.).
 
    An end-of-file on input is passed back as the string ``'EOF'``.
+
+   .. index::
+      single: ? (question mark); in a command interpreter
+      single: ! (exclamation); in a command interpreter
 
    An interpreter instance will recognize a command name ``foo`` if and only if it
    has a method :meth:`do_foo`.  As a special case, a line beginning with the
@@ -148,8 +153,8 @@ A :class:`Cmd` instance has the following methods:
    Hook method executed once when :meth:`cmdloop` is about to return. This method
    is a stub in :class:`Cmd`; it exists to be overridden by subclasses.
 
-Instances of :class:`Cmd` subclasses have some public instance variables:
 
+Instances of :class:`Cmd` subclasses have some public instance variables:
 
 .. attribute:: Cmd.prompt
 
@@ -164,6 +169,13 @@ Instances of :class:`Cmd` subclasses have some public instance variables:
 .. attribute:: Cmd.lastcmd
 
    The last nonempty command prefix seen.
+
+
+.. attribute:: Cmd.cmdqueue
+
+   A list of queued input lines.  The cmdqueue list is checked in
+   :meth:`cmdloop` when new input is needed; if it is nonempty, its elements
+   will be processed in order, as if entered at the prompt.
 
 
 .. attribute:: Cmd.intro
@@ -252,16 +264,16 @@ immediate playback::
             'Move turtle to an absolute position with changing orientation.  GOTO 100 200'
             goto(*parse(arg))
         def do_home(self, arg):
-            'Return turtle to the home postion:  HOME'
+            'Return turtle to the home position:  HOME'
             home()
         def do_circle(self, arg):
             'Draw circle with given radius an options extent and steps:  CIRCLE 50'
             circle(*parse(arg))
         def do_position(self, arg):
-            'Print the current turle position:  POSITION'
+            'Print the current turtle position:  POSITION'
             print('Current position is %d %d\n' % position())
         def do_heading(self, arg):
-            'Print the current turle heading in degrees:  HEADING'
+            'Print the current turtle heading in degrees:  HEADING'
             print('Current heading is %d\n' % (heading(),))
         def do_color(self, arg):
             'Set the color:  COLOR BLUE'
@@ -306,7 +318,9 @@ immediate playback::
 
 
 Here is a sample session with the turtle shell showing the help functions, using
-blank lines to repeat commands, and the simple record and playback facility::
+blank lines to repeat commands, and the simple record and playback facility:
+
+.. code-block:: none
 
     Welcome to the turtle shell.   Type help or ? to list commands.
 
@@ -365,4 +379,3 @@ blank lines to repeat commands, and the simple record and playback facility::
 
     (turtle) bye
     Thank you for using Turtle
-

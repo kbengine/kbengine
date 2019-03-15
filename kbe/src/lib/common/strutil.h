@@ -13,19 +13,8 @@ namespace KBEngine{
 /*---------------------------------------------------------------------------------
 	跨平台接口定义
 ---------------------------------------------------------------------------------*/
-#if defined( unix )
+#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 
-#define kbe_isnan isnan
-#define kbe_isinf isinf
-#define kbe_snprintf snprintf
-#define kbe_vsnprintf vsnprintf
-#define kbe_vsnwprintf vsnwprintf
-#define kbe_snwprintf swprintf
-#define kbe_stricmp strcasecmp
-#define kbe_strnicmp strncasecmp
-#define kbe_fileno fileno
-#define kbe_va_copy va_copy
-#else
 #define kbe_isnan _isnan
 #define kbe_isinf(x) (!_finite(x) && !_isnan(x))
 #define kbe_snprintf _snprintf
@@ -43,7 +32,20 @@ namespace KBEngine{
 #define strtoull _strtoui64
 #define atoll    _atoi64
 
-#endif // unix
+#else
+
+#define kbe_isnan isnan
+#define kbe_isinf isinf
+#define kbe_snprintf snprintf
+#define kbe_vsnprintf vsnprintf
+#define kbe_vsnwprintf vsnwprintf
+#define kbe_snwprintf swprintf
+#define kbe_stricmp strcasecmp
+#define kbe_strnicmp strncasecmp
+#define kbe_fileno fileno
+#define kbe_va_copy va_copy
+
+#endif
 
 class MemoryStream;
 
@@ -119,7 +121,7 @@ namespace strutil {
 		}
 	}
 
-    std::vector< std::string > kbe_splits(const std::string& s, const std::string& delim, const bool keep_empty = true);
+	int kbe_splits(const std::string& s, const std::string& delim, std::vector< std::string >& out_result, const bool keep_empty = true);
 
 	int bytes2string(unsigned char *pSrc, int nSrcLen, unsigned char *pDst, int nDstMaxLen);
 	int string2bytes(unsigned char* szSrc, unsigned char* pDst, int nDstMaxLen);

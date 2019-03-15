@@ -1,65 +1,17 @@
 """Tests for window_utils"""
 
-import socket
 import sys
-import test.support
 import unittest
-from test.support import IPV6_ENABLED
-from unittest import mock
+import warnings
 
 if sys.platform != 'win32':
     raise unittest.SkipTest('Windows only')
 
+import _overlapped
 import _winapi
 
 from asyncio import windows_utils
-from asyncio import _overlapped
-
-
-class WinsocketpairTests(unittest.TestCase):
-
-    def check_winsocketpair(self, ssock, csock):
-        csock.send(b'xxx')
-        self.assertEqual(b'xxx', ssock.recv(1024))
-        csock.close()
-        ssock.close()
-
-    def test_winsocketpair(self):
-        ssock, csock = windows_utils.socketpair()
-        self.check_winsocketpair(ssock, csock)
-
-    @unittest.skipUnless(IPV6_ENABLED, 'IPv6 not supported or enabled')
-    def test_winsocketpair_ipv6(self):
-        ssock, csock = windows_utils.socketpair(family=socket.AF_INET6)
-        self.check_winsocketpair(ssock, csock)
-
-    @mock.patch('asyncio.windows_utils.socket')
-    def test_winsocketpair_exc(self, m_socket):
-        m_socket.AF_INET = socket.AF_INET
-        m_socket.SOCK_STREAM = socket.SOCK_STREAM
-        m_socket.socket.return_value.getsockname.return_value = ('', 12345)
-        m_socket.socket.return_value.accept.return_value = object(), object()
-        m_socket.socket.return_value.connect.side_effect = OSError()
-
-        self.assertRaises(OSError, windows_utils.socketpair)
-
-    def test_winsocketpair_invalid_args(self):
-        self.assertRaises(ValueError,
-                          windows_utils.socketpair, family=socket.AF_UNSPEC)
-        self.assertRaises(ValueError,
-                          windows_utils.socketpair, type=socket.SOCK_DGRAM)
-        self.assertRaises(ValueError,
-                          windows_utils.socketpair, proto=1)
-
-    @mock.patch('asyncio.windows_utils.socket')
-    def test_winsocketpair_close(self, m_socket):
-        m_socket.AF_INET = socket.AF_INET
-        m_socket.SOCK_STREAM = socket.SOCK_STREAM
-        sock = mock.Mock()
-        m_socket.socket.return_value = sock
-        sock.bind.side_effect = OSError
-        self.assertRaises(OSError, windows_utils.socketpair)
-        self.assertTrue(sock.close.called)
+from test import support
 
 
 class PipeTests(unittest.TestCase):
@@ -109,8 +61,10 @@ class PipeTests(unittest.TestCase):
         self.assertEqual(p.handle, h)
 
         # check garbage collection of p closes handle
-        del p
-        test.support.gc_collect()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", "",  ResourceWarning)
+            del p
+            support.gc_collect()
         try:
             _winapi.CloseHandle(h)
         except OSError as e:
@@ -164,7 +118,9 @@ class PopenTests(unittest.TestCase):
         self.assertTrue(msg.upper().rstrip().startswith(out))
         self.assertTrue(b"stderr".startswith(err))
 
-        p.wait()
+        # The context manager calls wait() and closes resources
+        with p:
+            pass
 
 
 if __name__ == '__main__':

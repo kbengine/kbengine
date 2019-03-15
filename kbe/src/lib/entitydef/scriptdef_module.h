@@ -91,6 +91,10 @@ public:
 	PropertyDescription* findAliasPropertyDescription(ENTITY_DEF_ALIASID aliasID);
 	MethodDescription* findAliasMethodDescription(ENTITY_DEF_ALIASID aliasID);
 
+	size_t numPropertys() {
+		return getCellPropertyDescriptions().size() + getBasePropertyDescriptions().size();
+	}
+
 	INLINE PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions();
 	INLINE PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(int8 detailLevel);
 	INLINE PROPERTYDESCRIPTION_MAP& getBasePropertyDescriptions();
@@ -106,7 +110,7 @@ public:
 
 	bool addPropertyDescription(const char* attrName, 
 									PropertyDescription* propertyDescription, 
-									COMPONENT_TYPE componentType);
+									COMPONENT_TYPE componentType, bool ignoreConflict = false);
 
 	
 	MethodDescription* findCellMethodDescription(const char* attrName);

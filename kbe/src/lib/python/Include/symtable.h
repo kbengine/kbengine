@@ -43,12 +43,12 @@ typedef struct _symtable_entry {
     PyObject *ste_children;  /* list of child blocks */
     PyObject *ste_directives;/* locations of global and nonlocal statements */
     _Py_block_ty ste_type;   /* module, class, or function */
-    int ste_unoptimized;     /* false if namespace is optimized */
     int ste_nested;      /* true if block is nested */
     unsigned ste_free : 1;        /* true if block has free variables */
     unsigned ste_child_free : 1;  /* true if a child block has free vars,
                                      including free refs to globals */
     unsigned ste_generator : 1;   /* true if namespace is a generator */
+    unsigned ste_coroutine : 1;   /* true if namespace is a coroutine */
     unsigned ste_varargs : 1;     /* true if block has varargs */
     unsigned ste_varkeywords : 1; /* true if block has varkeywords */
     unsigned ste_returns_value : 1;  /* true if namespace uses return with
@@ -60,7 +60,6 @@ typedef struct _symtable_entry {
     int ste_col_offset;      /* offset of first line of block */
     int ste_opt_lineno;      /* lineno of last exec or import * */
     int ste_opt_col_offset;  /* offset of last exec or import * */
-    int ste_tmpname;         /* counter for listcomp temp vars */
     struct symtable *ste_table;
 } PySTEntryObject;
 
@@ -92,6 +91,7 @@ PyAPI_FUNC(void) PySymtable_Free(struct symtable *);
 #define DEF_FREE 2<<4          /* name used but not defined in nested block */
 #define DEF_FREE_CLASS 2<<5    /* free variable from class's method */
 #define DEF_IMPORT 2<<6        /* assignment occurred via import */
+#define DEF_ANNOT 2<<7         /* this name is annotated */
 
 #define DEF_BOUND (DEF_LOCAL | DEF_PARAM | DEF_IMPORT)
 
@@ -107,10 +107,6 @@ PyAPI_FUNC(void) PySymtable_Free(struct symtable *);
 #define GLOBAL_IMPLICIT 3
 #define FREE 4
 #define CELL 5
-
-/* The following two names are used for the ste_unoptimized bit field */
-#define OPT_IMPORT_STAR 1
-#define OPT_TOPLEVEL 2  /* top-level names, including eval and exec */
 
 #define GENERATOR 1
 #define GENERATOR_EXPRESSION 2

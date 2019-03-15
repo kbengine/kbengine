@@ -253,7 +253,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 			(*pRedisReply) = NULL;
 		}
 
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}
 
@@ -286,7 +286,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool printlog, Memory
 		if(pRedisReply)
 			freeReplyObject(pRedisReply); 
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}  
 
@@ -333,7 +333,7 @@ bool DBInterfaceRedis::query(bool printlog, const char* format, ...)
 
 		va_end(ap);
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}
 
@@ -379,7 +379,7 @@ bool DBInterfaceRedis::queryAppend(bool printlog, const char* format, ...)
 
 		va_end(ap);
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}  
 
@@ -540,16 +540,23 @@ bool DBInterfaceRedis::unlock()
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceRedis::throwError()
+void DBInterfaceRedis::throwError(DBException* pDBException)
 {
-	DBException e( this );
-
-	if (e.isLostConnection())
+	if (pDBException)
 	{
-		this->hasLostConnection(true);
+		throw *pDBException;
 	}
+	else
+	{
+		DBException e(this);
 
-	throw e;
+		if (e.isLostConnection())
+		{
+			this->hasLostConnection(true);
+		}
+
+		throw e;
+	}
 }
 
 //-------------------------------------------------------------------------------------

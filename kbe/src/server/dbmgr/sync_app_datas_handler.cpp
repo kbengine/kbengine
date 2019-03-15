@@ -113,7 +113,7 @@ bool SyncAppDatasHandler::process()
 			tcomponentType == CELLAPP_TYPE || 
 			tcomponentType == LOGINAPP_TYPE)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			
 			switch(tcomponentType)
 			{

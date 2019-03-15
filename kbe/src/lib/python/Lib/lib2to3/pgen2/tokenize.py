@@ -48,22 +48,26 @@ except NameError:
 def group(*choices): return '(' + '|'.join(choices) + ')'
 def any(*choices): return group(*choices) + '*'
 def maybe(*choices): return group(*choices) + '?'
+def _combinations(*l):
+    return set(
+        x + y for x in l for y in l + ("",) if x.casefold() != y.casefold()
+    )
 
 Whitespace = r'[ \f\t]*'
 Comment = r'#[^\r\n]*'
 Ignore = Whitespace + any(r'\\\r?\n' + Whitespace) + maybe(Comment)
-Name = r'[a-zA-Z_]\w*'
+Name = r'\w+'
 
-Binnumber = r'0[bB][01]*'
-Hexnumber = r'0[xX][\da-fA-F]*[lL]?'
-Octnumber = r'0[oO]?[0-7]*[lL]?'
-Decnumber = r'[1-9]\d*[lL]?'
+Binnumber = r'0[bB]_?[01]+(?:_[01]+)*'
+Hexnumber = r'0[xX]_?[\da-fA-F]+(?:_[\da-fA-F]+)*[lL]?'
+Octnumber = r'0[oO]?_?[0-7]+(?:_[0-7]+)*[lL]?'
+Decnumber = group(r'[1-9]\d*(?:_\d+)*[lL]?', '0[lL]?')
 Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber)
-Exponent = r'[eE][-+]?\d+'
-Pointfloat = group(r'\d+\.\d*', r'\.\d+') + maybe(Exponent)
-Expfloat = r'\d+' + Exponent
+Exponent = r'[eE][-+]?\d+(?:_\d+)*'
+Pointfloat = group(r'\d+(?:_\d+)*\.(?:\d+(?:_\d+)*)?', r'\.\d+(?:_\d+)*') + maybe(Exponent)
+Expfloat = r'\d+(?:_\d+)*' + Exponent
 Floatnumber = group(Pointfloat, Expfloat)
-Imagnumber = group(r'\d+[jJ]', Floatnumber + r'[jJ]')
+Imagnumber = group(r'\d+(?:_\d+)*[jJ]', Floatnumber + r'[jJ]')
 Number = group(Imagnumber, Floatnumber, Intnumber)
 
 # Tail end of ' string.
@@ -74,10 +78,11 @@ Double = r'[^"\\]*(?:\\.[^"\\]*)*"'
 Single3 = r"[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*'''"
 # Tail end of """ string.
 Double3 = r'[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*"""'
-Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""')
+_litprefix = r"(?:[uUrRbBfF]|[rR][fFbB]|[fFbBuU][rR])?"
+Triple = group(_litprefix + "'''", _litprefix + '"""')
 # Single-line ' or " string.
-String = group(r"[uU]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
-               r'[uU]?[rR]?"[^\n"\\]*(?:\\.[^\n"\\]*)*"')
+String = group(_litprefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
+               _litprefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*"')
 
 # Because of leftmost-then-longest match semantics, be sure to put the
 # longest operators first (e.g., if = came before ==, == would get
@@ -95,55 +100,38 @@ PlainToken = group(Number, Funny, String, Name)
 Token = Ignore + PlainToken
 
 # First (or only) line of ' or " string.
-ContStr = group(r"[uUbB]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
+ContStr = group(_litprefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
                 group("'", r'\\\r?\n'),
-                r'[uUbB]?[rR]?"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
+                _litprefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
                 group('"', r'\\\r?\n'))
 PseudoExtras = group(r'\\\r?\n', Comment, Triple)
 PseudoToken = Whitespace + group(PseudoExtras, Number, Funny, ContStr, Name)
 
-tokenprog, pseudoprog, single3prog, double3prog = list(map(
-    re.compile, (Token, PseudoToken, Single3, Double3)))
+tokenprog, pseudoprog, single3prog, double3prog = map(
+    re.compile, (Token, PseudoToken, Single3, Double3))
+
+_strprefixes = (
+    _combinations('r', 'R', 'f', 'F') |
+    _combinations('r', 'R', 'b', 'B') |
+    {'u', 'U', 'ur', 'uR', 'Ur', 'UR'}
+)
+
 endprogs = {"'": re.compile(Single), '"': re.compile(Double),
             "'''": single3prog, '"""': double3prog,
-            "r'''": single3prog, 'r"""': double3prog,
-            "u'''": single3prog, 'u"""': double3prog,
-            "b'''": single3prog, 'b"""': double3prog,
-            "ur'''": single3prog, 'ur"""': double3prog,
-            "br'''": single3prog, 'br"""': double3prog,
-            "R'''": single3prog, 'R"""': double3prog,
-            "U'''": single3prog, 'U"""': double3prog,
-            "B'''": single3prog, 'B"""': double3prog,
-            "uR'''": single3prog, 'uR"""': double3prog,
-            "Ur'''": single3prog, 'Ur"""': double3prog,
-            "UR'''": single3prog, 'UR"""': double3prog,
-            "bR'''": single3prog, 'bR"""': double3prog,
-            "Br'''": single3prog, 'Br"""': double3prog,
-            "BR'''": single3prog, 'BR"""': double3prog,
-            'r': None, 'R': None,
-            'u': None, 'U': None,
-            'b': None, 'B': None}
+            **{f"{prefix}'''": single3prog for prefix in _strprefixes},
+            **{f'{prefix}"""': double3prog for prefix in _strprefixes},
+            **{prefix: None for prefix in _strprefixes}}
 
-triple_quoted = {}
-for t in ("'''", '"""',
-          "r'''", 'r"""', "R'''", 'R"""',
-          "u'''", 'u"""', "U'''", 'U"""',
-          "b'''", 'b"""', "B'''", 'B"""',
-          "ur'''", 'ur"""', "Ur'''", 'Ur"""',
-          "uR'''", 'uR"""', "UR'''", 'UR"""',
-          "br'''", 'br"""', "Br'''", 'Br"""',
-          "bR'''", 'bR"""', "BR'''", 'BR"""',):
-    triple_quoted[t] = t
-single_quoted = {}
-for t in ("'", '"',
-          "r'", 'r"', "R'", 'R"',
-          "u'", 'u"', "U'", 'U"',
-          "b'", 'b"', "B'", 'B"',
-          "ur'", 'ur"', "Ur'", 'Ur"',
-          "uR'", 'uR"', "UR'", 'UR"',
-          "br'", 'br"', "Br'", 'Br"',
-          "bR'", 'bR"', "BR'", 'BR"', ):
-    single_quoted[t] = t
+triple_quoted = (
+    {"'''", '"""'} |
+    {f"{prefix}'''" for prefix in _strprefixes} |
+    {f'{prefix}"""' for prefix in _strprefixes}
+)
+single_quoted = (
+    {"'", '"'} |
+    {f"{prefix}'" for prefix in _strprefixes} |
+    {f'{prefix}"' for prefix in _strprefixes}
+)
 
 tabsize = 8
 
@@ -220,7 +208,7 @@ class Untokenizer:
         for tok in iterable:
             toknum, tokval = tok[:2]
 
-            if toknum in (NAME, NUMBER):
+            if toknum in (NAME, NUMBER, ASYNC, AWAIT):
                 tokval += ' '
 
             if toknum == INDENT:
@@ -236,7 +224,7 @@ class Untokenizer:
                 startline = False
             toks_append(tokval)
 
-cookie_re = re.compile(r'^[ \t\f]*#.*coding[:=][ \t]*([-\w.]+)', re.ASCII)
+cookie_re = re.compile(r'^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)', re.ASCII)
 blank_re = re.compile(br'^[ \t\f]*(?:[#\r\n]|$)', re.ASCII)
 
 def _get_normal_name(orig_enc):
@@ -361,10 +349,15 @@ def generate_tokens(readline):
     logical line; continuation lines are included.
     """
     lnum = parenlev = continued = 0
-    namechars, numchars = string.ascii_letters + '_', '0123456789'
     contstr, needcont = '', 0
     contline = None
     indents = [0]
+
+    # 'stashed' and 'async_*' are used for async/await parsing
+    stashed = None
+    async_def = False
+    async_def_indent = 0
+    async_def_nl = False
 
     while 1:                                   # loop over lines in stream
         try:
@@ -406,6 +399,10 @@ def generate_tokens(readline):
                 pos = pos + 1
             if pos == max: break
 
+            if stashed:
+                yield stashed
+                stashed = None
+
             if line[pos] in '#\r\n':           # skip comments or blank lines
                 if line[pos] == '#':
                     comment_token = line[pos:].rstrip('\r\n')
@@ -428,7 +425,18 @@ def generate_tokens(readline):
                         "unindent does not match any outer indentation level",
                         ("<tokenize>", lnum, pos, line))
                 indents = indents[:-1]
+
+                if async_def and async_def_indent >= indents[-1]:
+                    async_def = False
+                    async_def_nl = False
+                    async_def_indent = 0
+
                 yield (DEDENT, '', (lnum, pos), (lnum, pos), line)
+
+            if async_def and async_def_nl and async_def_indent >= indents[-1]:
+                async_def = False
+                async_def_nl = False
+                async_def_indent = 0
 
         else:                                  # continued statement
             if not line:
@@ -442,16 +450,25 @@ def generate_tokens(readline):
                 spos, epos, pos = (lnum, start), (lnum, end), end
                 token, initial = line[start:end], line[start]
 
-                if initial in numchars or \
+                if initial in string.digits or \
                    (initial == '.' and token != '.'):      # ordinary number
                     yield (NUMBER, token, spos, epos, line)
                 elif initial in '\r\n':
                     newline = NEWLINE
                     if parenlev > 0:
                         newline = NL
+                    elif async_def:
+                        async_def_nl = True
+                    if stashed:
+                        yield stashed
+                        stashed = None
                     yield (newline, token, spos, epos, line)
+
                 elif initial == '#':
                     assert not token.endswith("\n")
+                    if stashed:
+                        yield stashed
+                        stashed = None
                     yield (COMMENT, token, spos, epos, line)
                 elif token in triple_quoted:
                     endprog = endprogs[token]
@@ -459,6 +476,9 @@ def generate_tokens(readline):
                     if endmatch:                           # all on one line
                         pos = endmatch.end(0)
                         token = line[start:pos]
+                        if stashed:
+                            yield stashed
+                            stashed = None
                         yield (STRING, token, spos, (lnum, pos), line)
                     else:
                         strstart = (lnum, start)           # multiple lines
@@ -476,21 +496,62 @@ def generate_tokens(readline):
                         contline = line
                         break
                     else:                                  # ordinary string
+                        if stashed:
+                            yield stashed
+                            stashed = None
                         yield (STRING, token, spos, epos, line)
-                elif initial in namechars:                 # ordinary name
-                    yield (NAME, token, spos, epos, line)
+                elif initial.isidentifier():               # ordinary name
+                    if token in ('async', 'await'):
+                        if async_def:
+                            yield (ASYNC if token == 'async' else AWAIT,
+                                   token, spos, epos, line)
+                            continue
+
+                    tok = (NAME, token, spos, epos, line)
+                    if token == 'async' and not stashed:
+                        stashed = tok
+                        continue
+
+                    if token == 'def':
+                        if (stashed
+                                and stashed[0] == NAME
+                                and stashed[1] == 'async'):
+
+                            async_def = True
+                            async_def_indent = indents[-1]
+
+                            yield (ASYNC, stashed[1],
+                                   stashed[2], stashed[3],
+                                   stashed[4])
+                            stashed = None
+
+                    if stashed:
+                        yield stashed
+                        stashed = None
+
+                    yield tok
                 elif initial == '\\':                      # continued stmt
                     # This yield is new; needed for better idempotency:
+                    if stashed:
+                        yield stashed
+                        stashed = None
                     yield (NL, token, spos, (lnum, pos), line)
                     continued = 1
                 else:
                     if initial in '([{': parenlev = parenlev + 1
                     elif initial in ')]}': parenlev = parenlev - 1
+                    if stashed:
+                        yield stashed
+                        stashed = None
                     yield (OP, token, spos, epos, line)
             else:
                 yield (ERRORTOKEN, line[pos],
                            (lnum, pos), (lnum, pos+1), line)
                 pos = pos + 1
+
+    if stashed:
+        yield stashed
+        stashed = None
 
     for indent in indents[1:]:                 # pop remaining indent levels
         yield (DEDENT, '', (lnum, 0), (lnum, 0), '')

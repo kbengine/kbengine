@@ -1,14 +1,6 @@
 import unittest
-from test import support
-from weakref import proxy, ref, WeakSet
-import operator
-import copy
+from weakref import WeakSet
 import string
-import os
-from random import randrange, shuffle
-import sys
-import warnings
-import collections
 from collections import UserString as ustr
 import gc
 import contextlib
@@ -443,8 +435,5 @@ class TestWeakSet(unittest.TestCase):
             self.assertLessEqual(n2, n1)
 
 
-def test_main(verbose=None):
-    support.run_unittest(TestWeakSet)
-
 if __name__ == "__main__":
-    test_main(verbose=True)
+    unittest.main()

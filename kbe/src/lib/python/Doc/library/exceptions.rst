@@ -34,7 +34,8 @@ class or one of its subclasses, and not from :exc:`BaseException`.  More
 information on defining exceptions is available in the Python Tutorial under
 :ref:`tut-userexceptions`.
 
-When raising (or re-raising) an exception in an :keyword:`except` clause
+When raising (or re-raising) an exception in an :keyword:`except` or
+:keyword:`finally` clause
 :attr:`__context__` is automatically set to the last exception caught; if the
 new exception is not handled the traceback that is eventually displayed will
 include the originating exception(s) and the final exception.
@@ -51,7 +52,7 @@ will be set as :attr:`__cause__` on the raised exception. Setting
 :attr:`__cause__` also implicitly sets the :attr:`__suppress_context__`
 attribute to ``True``, so that using ``raise new_exc from None``
 effectively replaces the old exception with the new one for display
-purposes (e.g. converting :exc:`KeyError` to :exc:`AttributeError`, while
+purposes (e.g. converting :exc:`KeyError` to :exc:`AttributeError`), while
 leaving the old exception available in :attr:`__context__` for introspection
 when debugging.
 
@@ -153,23 +154,22 @@ The following exceptions are the exceptions that are usually raised.
 
 .. exception:: FloatingPointError
 
-   Raised when a floating point operation fails.  This exception is always defined,
-   but can only be raised when Python is configured with the
-   ``--with-fpectl`` option, or the :const:`WANT_SIGFPE_HANDLER` symbol is
-   defined in the :file:`pyconfig.h` file.
+   Not currently used.
 
 
 .. exception:: GeneratorExit
 
-   Raised when a :term:`generator`\'s :meth:`close` method is called.  It
+   Raised when a :term:`generator` or :term:`coroutine` is closed;
+   see :meth:`generator.close` and :meth:`coroutine.close`.  It
    directly inherits from :exc:`BaseException` instead of :exc:`Exception` since
    it is technically not an error.
 
 
 .. exception:: ImportError
 
-   Raised when an :keyword:`import` statement fails to find the module definition
-   or when a ``from ... import`` fails to find a name that is to be imported.
+   Raised when the :keyword:`import` statement has troubles trying to
+   load a module.  Also raised when the "from list" in ``from ... import``
+   has a name that cannot be found.
 
    The :attr:`name` and :attr:`path` attributes can be set using keyword-only
    arguments to the constructor. When set they represent the name of the module
@@ -178,6 +178,14 @@ The following exceptions are the exceptions that are usually raised.
 
    .. versionchanged:: 3.3
       Added the :attr:`name` and :attr:`path` attributes.
+
+.. exception:: ModuleNotFoundError
+
+   A subclass of :exc:`ImportError` which is raised by :keyword:`import`
+   when a module could not be located.  It is also raised when ``None``
+   is found in :data:`sys.modules`.
+
+   .. versionadded:: 3.6
 
 
 .. exception:: IndexError
@@ -226,48 +234,87 @@ The following exceptions are the exceptions that are usually raised.
 .. exception:: NotImplementedError
 
    This exception is derived from :exc:`RuntimeError`.  In user defined base
-   classes, abstract methods should raise this exception when they require derived
-   classes to override the method.
+   classes, abstract methods should raise this exception when they require
+   derived classes to override the method, or while the class is being
+   developed to indicate that the real implementation still needs to be added.
 
+   .. note::
 
-.. exception:: OSError
+      It should not be used to indicate that an operator or method is not
+      meant to be supported at all -- in that case either leave the operator /
+      method undefined or, if a subclass, set it to :data:`None`.
+
+   .. note::
+
+      ``NotImplementedError`` and ``NotImplemented`` are not interchangeable,
+      even though they have similar names and purposes.  See
+      :data:`NotImplemented` for details on when to use it.
+
+.. exception:: OSError([arg])
+               OSError(errno, strerror[, filename[, winerror[, filename2]]])
 
    .. index:: module: errno
 
    This exception is raised when a system function returns a system-related
    error, including I/O failures such as "file not found" or "disk full"
-   (not for illegal argument types or other incidental errors).  Often a
-   subclass of :exc:`OSError` will actually be raised as described in
-   `OS exceptions`_ below.  The :attr:`errno` attribute is a numeric error
-   code from the C variable :c:data:`errno`.
+   (not for illegal argument types or other incidental errors).
 
-   Under Windows, the :attr:`winerror` attribute gives you the native
-   Windows error code.  The :attr:`errno` attribute is then an approximate
-   translation, in POSIX terms, of that native error code.
+   The second form of the constructor sets the corresponding attributes,
+   described below.  The attributes default to :const:`None` if not
+   specified.  For backwards compatibility, if three arguments are passed,
+   the :attr:`~BaseException.args` attribute contains only a 2-tuple
+   of the first two constructor arguments.
 
-   Under all platforms, the :attr:`strerror` attribute is the corresponding
-   error message as provided by the operating system (as formatted by the C
-   functions :c:func:`perror` under POSIX, and :c:func:`FormatMessage`
-   Windows).
+   The constructor often actually returns a subclass of :exc:`OSError`, as
+   described in `OS exceptions`_ below.  The particular subclass depends on
+   the final :attr:`.errno` value.  This behaviour only occurs when
+   constructing :exc:`OSError` directly or via an alias, and is not
+   inherited when subclassing.
 
-   For exceptions that involve a file system path (such as :func:`open` or
-   :func:`os.unlink`), the exception instance will contain an additional
-   attribute, :attr:`filename`, which is the file name passed to the function.
-   For functions that involve two file system paths (such as
-   :func:`os.rename`), the exception instance will contain a second
-   :attr:`filename2` attribute corresponding to the second file name passed
-   to the function.
+   .. attribute:: errno
+
+      A numeric error code from the C variable :c:data:`errno`.
+
+   .. attribute:: winerror
+
+      Under Windows, this gives you the native
+      Windows error code.  The :attr:`.errno` attribute is then an approximate
+      translation, in POSIX terms, of that native error code.
+
+      Under Windows, if the *winerror* constructor argument is an integer,
+      the :attr:`.errno` attribute is determined from the Windows error code,
+      and the *errno* argument is ignored.  On other platforms, the
+      *winerror* argument is ignored, and the :attr:`winerror` attribute
+      does not exist.
+
+   .. attribute:: strerror
+
+      The corresponding error message, as provided by
+      the operating system.  It is formatted by the C
+      functions :c:func:`perror` under POSIX, and :c:func:`FormatMessage`
+      under Windows.
+
+   .. attribute:: filename
+                  filename2
+
+      For exceptions that involve a file system path (such as :func:`open` or
+      :func:`os.unlink`), :attr:`filename` is the file name passed to the function.
+      For functions that involve two file system paths (such as
+      :func:`os.rename`), :attr:`filename2` corresponds to the second
+      file name passed to the function.
 
 
    .. versionchanged:: 3.3
       :exc:`EnvironmentError`, :exc:`IOError`, :exc:`WindowsError`,
-      :exc:`VMSError`, :exc:`socket.error`, :exc:`select.error` and
-      :exc:`mmap.error` have been merged into :exc:`OSError`.
+      :exc:`socket.error`, :exc:`select.error` and
+      :exc:`mmap.error` have been merged into :exc:`OSError`, and the
+      constructor may return a subclass.
 
    .. versionchanged:: 3.4
       The :attr:`filename` attribute is now the original file name passed to
       the function, instead of the name encoded to or decoded from the
-      filesystem encoding.  Also, the :attr:`filename2` attribute was added.
+      filesystem encoding.  Also, the *filename2* constructor argument and
+      attribute was added.
 
 
 .. exception:: OverflowError
@@ -278,6 +325,16 @@ The following exceptions are the exceptions that are usually raised.
    OverflowError is sometimes raised for integers that are outside a required
    range.   Because of the lack of standardization of floating point exception
    handling in C, most floating point operations are not checked.
+
+
+.. exception:: RecursionError
+
+   This exception is derived from :exc:`RuntimeError`.  It is raised when the
+   interpreter detects that the maximum recursion depth (see
+   :func:`sys.getrecursionlimit`) is exceeded.
+
+   .. versionadded:: 3.5
+      Previously, a plain :exc:`RuntimeError` was raised.
 
 
 .. exception:: ReferenceError
@@ -305,13 +362,33 @@ The following exceptions are the exceptions that are usually raised.
    given as an argument when constructing the exception, and defaults
    to :const:`None`.
 
-   When a generator function returns, a new :exc:`StopIteration` instance is
+   When a :term:`generator` or :term:`coroutine` function
+   returns, a new :exc:`StopIteration` instance is
    raised, and the value returned by the function is used as the
    :attr:`value` parameter to the constructor of the exception.
+
+   If a generator code directly or indirectly raises :exc:`StopIteration`,
+   it is converted into a :exc:`RuntimeError` (retaining the
+   :exc:`StopIteration` as the new exception's cause).
 
    .. versionchanged:: 3.3
       Added ``value`` attribute and the ability for generator functions to
       use it to return a value.
+
+   .. versionchanged:: 3.5
+      Introduced the RuntimeError transformation via
+      ``from __future__ import generator_stop``, see :pep:`479`.
+
+   .. versionchanged:: 3.7
+      Enable :pep:`479` for all code by default: a :exc:`StopIteration`
+      error raised in a generator is transformed into a :exc:`RuntimeError`.
+
+.. exception:: StopAsyncIteration
+
+   Must be raised by :meth:`__anext__` method of an
+   :term:`asynchronous iterator` object to stop the iteration.
+
+   .. versionadded:: 3.5
 
 .. exception:: SyntaxError
 
@@ -352,17 +429,16 @@ The following exceptions are the exceptions that are usually raised.
 
 .. exception:: SystemExit
 
-   This exception is raised by the :func:`sys.exit` function.  When it is not
-   handled, the Python interpreter exits; no stack traceback is printed.  If the
-   associated value is an integer, it specifies the system exit status (passed
-   to C's :c:func:`exit` function); if it is ``None``, the exit status is zero;
-   if it has another type (such as a string), the object's value is printed and
+   This exception is raised by the :func:`sys.exit` function.  It inherits from
+   :exc:`BaseException` instead of :exc:`Exception` so that it is not accidentally
+   caught by code that catches :exc:`Exception`.  This allows the exception to
+   properly propagate up and cause the interpreter to exit.  When it is not
+   handled, the Python interpreter exits; no stack traceback is printed.  The
+   constructor accepts the same optional argument passed to :func:`sys.exit`.
+   If the value is an integer, it specifies the system exit status (passed to
+   C's :c:func:`exit` function); if it is ``None``, the exit status is zero; if
+   it has another type (such as a string), the object's value is printed and
    the exit status is one.
-
-   Instances have an attribute :attr:`!code` which is set to the proposed exit
-   status or error message (defaulting to ``None``). Also, this exception derives
-   directly from :exc:`BaseException` and not :exc:`Exception`, since it is not
-   technically an error.
 
    A call to :func:`sys.exit` is translated into an exception so that clean-up
    handlers (:keyword:`finally` clauses of :keyword:`try` statements) can be
@@ -371,9 +447,10 @@ The following exceptions are the exceptions that are usually raised.
    absolutely positively necessary to exit immediately (for example, in the child
    process after a call to :func:`os.fork`).
 
-   The exception inherits from :exc:`BaseException` instead of :exc:`Exception` so
-   that it is not accidentally caught by code that catches :exc:`Exception`.  This
-   allows the exception to properly propagate up and cause the interpreter to exit.
+   .. attribute:: code
+
+      The exit status or error message that is passed to the constructor.
+      (Defaults to ``None``.)
 
 
 .. exception:: TypeError
@@ -381,6 +458,15 @@ The following exceptions are the exceptions that are usually raised.
    Raised when an operation or function is applied to an object of inappropriate
    type.  The associated value is a string giving details about the type mismatch.
 
+   This exception may be raised by user code to indicate that an attempted
+   operation on an object is not supported, and is not meant to be. If an object
+   is meant to support a given operation but has not yet provided an
+   implementation, :exc:`NotImplementedError` is the proper exception to raise.
+
+   Passing arguments of the wrong type (e.g. passing a :class:`list` when an
+   :class:`int` is expected) should result in a :exc:`TypeError`, but passing
+   arguments with the wrong value (e.g. a number outside expected boundaries)
+   should result in a :exc:`ValueError`.
 
 .. exception:: UnboundLocalError
 
@@ -439,7 +525,7 @@ The following exceptions are the exceptions that are usually raised.
 
 .. exception:: ValueError
 
-   Raised when a built-in operation or function receives an argument that has the
+   Raised when an operation or function receives an argument that has the
    right type but an inappropriate value, and the situation is not described by a
    more precise exception such as :exc:`IndexError`.
 
@@ -535,7 +621,12 @@ depending on the system error code.
 .. exception:: InterruptedError
 
    Raised when a system call is interrupted by an incoming signal.
-   Corresponds to :c:data:`errno` ``EINTR``.
+   Corresponds to :c:data:`errno` :py:data:`~errno.EINTR`.
+
+   .. versionchanged:: 3.5
+      Python now retries system calls when a syscall is interrupted by a
+      signal, except if the signal handler raises an exception (see :pep:`475`
+      for the rationale), instead of raising :exc:`InterruptedError`.
 
 .. exception:: IsADirectoryError
 
@@ -574,11 +665,13 @@ depending on the system error code.
    :pep:`3151` - Reworking the OS and IO exception hierarchy
 
 
+.. _warning-categories-as-exceptions:
+
 Warnings
 --------
 
-The following exceptions are used as warning categories; see the :mod:`warnings`
-module for more information.
+The following exceptions are used as warning categories; see the
+:ref:`warning-categories` documentation for more details.
 
 .. exception:: Warning
 
@@ -592,17 +685,19 @@ module for more information.
 
 .. exception:: DeprecationWarning
 
-   Base class for warnings about deprecated features.
+   Base class for warnings about deprecated features when those warnings are
+   intended for other Python developers.
 
 
 .. exception:: PendingDeprecationWarning
 
-   Base class for warnings about features which will be deprecated in the future.
+   Base class for warnings about features which will be deprecated in the
+   future.
 
 
 .. exception:: SyntaxWarning
 
-   Base class for warnings about dubious syntax
+   Base class for warnings about dubious syntax.
 
 
 .. exception:: RuntimeWarning
@@ -612,8 +707,8 @@ module for more information.
 
 .. exception:: FutureWarning
 
-   Base class for warnings about constructs that will change semantically in the
-   future.
+   Base class for warnings about deprecated features when those warnings are
+   intended for end users of applications that are written in Python.
 
 
 .. exception:: ImportWarning
@@ -633,7 +728,8 @@ module for more information.
 
 .. exception:: ResourceWarning
 
-   Base class for warnings related to resource usage.
+   Base class for warnings related to resource usage. Ignored by the default
+   warning filters.
 
    .. versionadded:: 3.2
 

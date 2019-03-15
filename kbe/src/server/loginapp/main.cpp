@@ -58,6 +58,6 @@ using namespace KBEngine;
 int KBENGINE_MAIN(int argc, char* argv[])
 {
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLoginApp();
-	return kbeMainT<Loginapp>(argc, argv, LOGINAPP_TYPE, info.externalPorts_min, 
-		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
+	return kbeMainT<Loginapp>(argc, argv, LOGINAPP_TYPE, info.externalTcpPorts_min, 
+		info.externalTcpPorts_max, -1, -1, info.externalInterface, 0, info.internalInterface);
 }

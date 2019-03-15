@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+    <title>Format String Syntax &mdash; fmt 5.2.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/breathe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '5.2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX:  ''
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="prev" title="API Reference" href="api.html" />
+<meta name="description" content="Small, safe and fast formatting library">
+<meta name="keywords" content="C++, formatting, printf, string, library">
+<meta name="author" content="Victor Zverovich">
+<link rel="stylesheet" href="_static/fmt.css">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+    a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;
+    a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-20116650-4', 'fmtlib.net');
+  ga('send', 'pageview');
+</script>
+
+  </head>
+  <body role="document">
+<nav class="navbar navbar-inverse">
+  <div class="tb-container">
+    <div class="row">
+      <div class="navbar-content">
+        
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                  data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">{fmt}</a>
+        </div>
+
+        
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                 role="button" aria-expanded="false">5.2.1
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                
+                <li><a href="http://fmtlib.net/5.2.1">5.2.1</a></li>
+                
+                <li><a href="http://fmtlib.net/5.2.0">5.2.0</a></li>
+                
+                <li><a href="http://fmtlib.net/5.1.0">5.1.0</a></li>
+                
+              </ul>
+            </li>
+            
+              
+              <li><a href="contents.html">Contents</a></li>
+              
+            
+              
+              <li><a href="usage.html">Usage</a></li>
+              
+            
+              
+              <li><a href="api.html">API</a></li>
+              
+            
+              
+              <li class="active"><a href="syntax.html">Syntax
+                <span class="sr-only">(current)</span></a></li>
+              
+            
+          </ul>
+          
+            
+<form class="navbar-form navbar-right" role="search" action="search.html"
+      method="get">
+  <div class="form-group">
+    <input type="text" name="q" class="form-control"
+           placeholder="Search" >
+  </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+  
+</form>
+          
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+</nav>
+
+
+
+<div class="tb-container">
+  <div class="row">
+    
+
+    <div class="content">
+      
+  <div class="section" id="format-string-syntax">
+<span id="syntax"></span><h1>Format String Syntax<a class="headerlink" href="#format-string-syntax" title="Permalink to this headline">¶</a></h1>
+<p>Formatting functions such as <a class="reference internal" href="api.html#format"><span class="std std-ref">fmt::format()</span></a> and
+<a class="reference internal" href="api.html#print"><span class="std std-ref">fmt::print()</span></a> use the same format string syntax described in this
+section.</p>
+<p>Format strings contain &#8220;replacement fields&#8221; surrounded by curly braces <code class="docutils literal"><span class="pre">{}</span></code>.
+Anything that is not contained in braces is considered literal text, which is
+copied unchanged to the output.  If you need to include a brace character in the
+literal text, it can be escaped by doubling: <code class="docutils literal"><span class="pre">{{</span></code> and <code class="docutils literal"><span class="pre">}}</span></code>.</p>
+<p>The grammar for a replacement field is as follows:</p>
+<pre>
+<strong id="grammar-token-replacement_field">replacement_field</strong> ::=  &quot;{&quot; [<a class="reference internal" href="#grammar-token-arg_id"><code class="xref docutils literal"><span class="pre">arg_id</span></code></a>] [&quot;:&quot; <a class="reference internal" href="#grammar-token-format_spec"><code class="xref docutils literal"><span class="pre">format_spec</span></code></a>] &quot;}&quot;
+<strong id="grammar-token-arg_id">arg_id           </strong> ::=  <a class="reference internal" href="#grammar-token-integer"><code class="xref docutils literal"><span class="pre">integer</span></code></a> | <a class="reference internal" href="#grammar-token-identifier"><code class="xref docutils literal"><span class="pre">identifier</span></code></a>
+<strong id="grammar-token-integer">integer          </strong> ::=  <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a>+
+<strong id="grammar-token-digit">digit            </strong> ::=  &quot;0&quot;...&quot;9&quot;
+<strong id="grammar-token-identifier">identifier       </strong> ::=  <a class="reference internal" href="#grammar-token-id_start"><code class="xref docutils literal"><span class="pre">id_start</span></code></a> <a class="reference internal" href="#grammar-token-id_continue"><code class="xref docutils literal"><span class="pre">id_continue</span></code></a>*
+<strong id="grammar-token-id_start">id_start         </strong> ::=  &quot;a&quot;...&quot;z&quot; | &quot;A&quot;...&quot;Z&quot; | &quot;_&quot;
+<strong id="grammar-token-id_continue">id_continue      </strong> ::=  <a class="reference internal" href="#grammar-token-id_start"><code class="xref docutils literal"><span class="pre">id_start</span></code></a> | <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a>
+</pre>
+<p>In less formal terms, the replacement field can start with an <em>arg_id</em>
+that specifies the argument whose value is to be formatted and inserted into
+the output instead of the replacement field.
+The <em>arg_id</em> is optionally followed by a <em>format_spec</em>, which is preceded
+by a colon <code class="docutils literal"><span class="pre">':'</span></code>.  These specify a non-default format for the replacement value.</p>
+<p>See also the <a class="reference internal" href="#formatspec"><span class="std std-ref">Format Specification Mini-Language</span></a> section.</p>
+<p>If the numerical arg_ids in a format string are 0, 1, 2, ... in sequence,
+they can all be omitted (not just some) and the numbers 0, 1, 2, ... will be
+automatically inserted in that order.</p>
+<p>Named arguments can be referred to by their names or indices.</p>
+<p>Some simple format string examples:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="s">&quot;First, thou shalt count to {0}&quot;</span> <span class="c1">// References the first argument</span>
+<span class="s">&quot;Bring me a {}&quot;</span>                  <span class="c1">// Implicitly references the first argument</span>
+<span class="s">&quot;From {} to {}&quot;</span>                  <span class="c1">// Same as &quot;From {0} to {1}&quot;</span>
+</pre></div>
+</div>
+<p>The <em>format_spec</em> field contains a specification of how the value should be
+presented, including such details as field width, alignment, padding, decimal
+precision and so on.  Each value type can define its own &#8220;formatting
+mini-language&#8221; or interpretation of the <em>format_spec</em>.</p>
+<p>Most built-in types support a common formatting mini-language, which is
+described in the next section.</p>
+<p>A <em>format_spec</em> field can also include nested replacement fields in certain
+positions within it. These nested replacement fields can contain only an
+argument id; format specifications are not allowed. This allows the formatting
+of a value to be dynamically specified.</p>
+<p>See the <a class="reference internal" href="#formatexamples"><span class="std std-ref">Format examples</span></a> section for some examples.</p>
+<div class="section" id="format-specification-mini-language">
+<span id="formatspec"></span><h2>Format Specification Mini-Language<a class="headerlink" href="#format-specification-mini-language" title="Permalink to this headline">¶</a></h2>
+<p>&#8220;Format specifications&#8221; are used within replacement fields contained within a
+format string to define how individual values are presented (see
+<a class="reference internal" href="#syntax"><span class="std std-ref">Format String Syntax</span></a>).  Each formattable type may define how the format
+specification is to be interpreted.</p>
+<p>Most built-in types implement the following options for format specifications,
+although some of the formatting options are only supported by the numeric types.</p>
+<p>The general form of a <em>standard format specifier</em> is:</p>
+<pre>
+<strong id="grammar-token-format_spec">format_spec</strong> ::=  [[<a class="reference internal" href="#grammar-token-fill"><code class="xref docutils literal"><span class="pre">fill</span></code></a>]<a class="reference internal" href="#grammar-token-align"><code class="xref docutils literal"><span class="pre">align</span></code></a>][<a class="reference internal" href="#grammar-token-sign"><code class="xref docutils literal"><span class="pre">sign</span></code></a>][&quot;#&quot;][&quot;0&quot;][<a class="reference internal" href="#grammar-token-width"><code class="xref docutils literal"><span class="pre">width</span></code></a>][&quot;.&quot; <a class="reference internal" href="#grammar-token-precision"><code class="xref docutils literal"><span class="pre">precision</span></code></a>][<a class="reference internal" href="#grammar-token-type"><code class="xref docutils literal"><span class="pre">type</span></code></a>]
+<strong id="grammar-token-fill">fill       </strong> ::=  &lt;a character other than '{', '}' or '\0'&gt;
+<strong id="grammar-token-align">align      </strong> ::=  &quot;&lt;&quot; | &quot;&gt;&quot; | &quot;=&quot; | &quot;^&quot;
+<strong id="grammar-token-sign">sign       </strong> ::=  &quot;+&quot; | &quot;-&quot; | &quot; &quot;
+<strong id="grammar-token-width">width      </strong> ::=  <a class="reference internal" href="#grammar-token-integer"><code class="xref docutils literal"><span class="pre">integer</span></code></a> | &quot;{&quot; <a class="reference internal" href="#grammar-token-arg_id"><code class="xref docutils literal"><span class="pre">arg_id</span></code></a> &quot;}&quot;
+<strong id="grammar-token-precision">precision  </strong> ::=  <a class="reference internal" href="#grammar-token-integer"><code class="xref docutils literal"><span class="pre">integer</span></code></a> | &quot;{&quot; <a class="reference internal" href="#grammar-token-arg_id"><code class="xref docutils literal"><span class="pre">arg_id</span></code></a> &quot;}&quot;
+<strong id="grammar-token-type">type       </strong> ::=  <a class="reference internal" href="#grammar-token-int_type"><code class="xref docutils literal"><span class="pre">int_type</span></code></a> | &quot;a&quot; | &quot;A&quot; | &quot;c&quot; | &quot;e&quot; | &quot;E&quot; | &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot; | &quot;p&quot; | &quot;s&quot;
+<strong id="grammar-token-int_type">int_type   </strong> ::=  &quot;b&quot; | &quot;B&quot; | &quot;d&quot; | &quot;n&quot; | &quot;o&quot; | &quot;x&quot; | &quot;X&quot;
+</pre>
+<p>The <em>fill</em> character can be any character other than &#8216;{&#8216;, &#8216;}&#8217; or &#8216;\0&#8217;. The
+presence of a fill character is signaled by the character following it, which
+must be one of the alignment options.  If the second character of <em>format_spec</em>
+is not a valid alignment option, then it is assumed that both the fill character
+and the alignment option are absent.</p>
+<p>The meaning of the various alignment options is as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'&lt;'</span></code></td>
+<td>Forces the field to be left-aligned within the available
+space (this is the default for most objects).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'&gt;'</span></code></td>
+<td>Forces the field to be right-aligned within the
+available space (this is the default for numbers).</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'='</span></code></td>
+<td>Forces the padding to be placed after the sign (if any)
+but before the digits.  This is used for printing fields
+in the form &#8216;+000000120&#8217;. This alignment option is only
+valid for numeric types.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'^'</span></code></td>
+<td>Forces the field to be centered within the available
+space.</td>
+</tr>
+</tbody>
+</table>
+<p>Note that unless a minimum field width is defined, the field width will always
+be the same size as the data to fill it, so that the alignment option has no
+meaning in this case.</p>
+<p>The <em>sign</em> option is only valid for number types, and can be one of the
+following:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'+'</span></code></td>
+<td>indicates that a sign should be used for both
+positive as well as negative numbers.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'-'</span></code></td>
+<td>indicates that a sign should be used only for negative
+numbers (this is the default behavior).</td>
+</tr>
+<tr class="row-even"><td>space</td>
+<td>indicates that a leading space should be used on
+positive numbers, and a minus sign on negative numbers.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal"><span class="pre">'#'</span></code> option causes the &#8220;alternate form&#8221; to be used for the
+conversion.  The alternate form is defined differently for different
+types.  This option is only valid for integer and floating-point types.
+For integers, when binary, octal, or hexadecimal output is used, this
+option adds the prefix respective <code class="docutils literal"><span class="pre">&quot;0b&quot;</span></code> (<code class="docutils literal"><span class="pre">&quot;0B&quot;</span></code>), <code class="docutils literal"><span class="pre">&quot;0&quot;</span></code>, or
+<code class="docutils literal"><span class="pre">&quot;0x&quot;</span></code> (<code class="docutils literal"><span class="pre">&quot;0X&quot;</span></code>) to the output value.  Whether the prefix is
+lower-case or upper-case is determined by the case of the type
+specifier, for example, the prefix <code class="docutils literal"><span class="pre">&quot;0x&quot;</span></code> is used for the type <code class="docutils literal"><span class="pre">'x'</span></code>
+and <code class="docutils literal"><span class="pre">&quot;0X&quot;</span></code> is used for <code class="docutils literal"><span class="pre">'X'</span></code>.  For floating-point numbers the
+alternate form causes the result of the conversion to always contain a
+decimal-point character, even if no digits follow it. Normally, a
+decimal-point character appears in the result of these conversions
+only if a digit follows it. In addition, for <code class="docutils literal"><span class="pre">'g'</span></code> and <code class="docutils literal"><span class="pre">'G'</span></code>
+conversions, trailing zeros are not removed from the result.</p>
+<p><em>width</em> is a decimal integer defining the minimum field width.  If not
+specified, then the field width will be determined by the content.</p>
+<p>Preceding the <em>width</em> field by a zero (<code class="docutils literal"><span class="pre">'0'</span></code>) character enables
+sign-aware zero-padding for numeric types.  This is equivalent to a <em>fill</em>
+character of <code class="docutils literal"><span class="pre">'0'</span></code> with an <em>alignment</em> type of <code class="docutils literal"><span class="pre">'='</span></code>.</p>
+<p>The <em>precision</em> is a decimal number indicating how many digits should be
+displayed after the decimal point for a floating-point value formatted with
+<code class="docutils literal"><span class="pre">'f'</span></code> and <code class="docutils literal"><span class="pre">'F'</span></code>, or before and after the decimal point for a floating-point
+value formatted with <code class="docutils literal"><span class="pre">'g'</span></code> or <code class="docutils literal"><span class="pre">'G'</span></code>.  For non-number types the field
+indicates the maximum field size - in other words, how many characters will be
+used from the field content. The <em>precision</em> is not allowed for integer,
+character, Boolean, and pointer values.</p>
+<p>Finally, the <em>type</em> determines how the data should be presented.</p>
+<p>The available string presentation types are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'s'</span></code></td>
+<td>String format. This is the default type for strings and
+may be omitted.</td>
+</tr>
+<tr class="row-odd"><td>none</td>
+<td>The same as <code class="docutils literal"><span class="pre">'s'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The available character presentation types are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'c'</span></code></td>
+<td>Character format. This is the default type for
+characters and may be omitted.</td>
+</tr>
+<tr class="row-odd"><td>none</td>
+<td>The same as <code class="docutils literal"><span class="pre">'c'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The available integer presentation types are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'b'</span></code></td>
+<td>Binary format. Outputs the number in base 2. Using the
+<code class="docutils literal"><span class="pre">'#'</span></code> option with this type adds the prefix <code class="docutils literal"><span class="pre">&quot;0b&quot;</span></code>
+to the output value.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'B'</span></code></td>
+<td>Binary format. Outputs the number in base 2. Using the
+<code class="docutils literal"><span class="pre">'#'</span></code> option with this type adds the prefix <code class="docutils literal"><span class="pre">&quot;0B&quot;</span></code>
+to the output value.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'d'</span></code></td>
+<td>Decimal integer. Outputs the number in base 10.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'o'</span></code></td>
+<td>Octal format. Outputs the number in base 8.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'x'</span></code></td>
+<td>Hex format. Outputs the number in base 16, using
+lower-case letters for the digits above 9. Using the
+<code class="docutils literal"><span class="pre">'#'</span></code> option with this type adds the prefix <code class="docutils literal"><span class="pre">&quot;0x&quot;</span></code>
+to the output value.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'X'</span></code></td>
+<td>Hex format. Outputs the number in base 16, using
+upper-case letters for the digits above 9. Using the
+<code class="docutils literal"><span class="pre">'#'</span></code> option with this type adds the prefix <code class="docutils literal"><span class="pre">&quot;0X&quot;</span></code>
+to the output value.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'n'</span></code></td>
+<td>Number. This is the same as <code class="docutils literal"><span class="pre">'d'</span></code>, except that it uses
+the current locale setting to insert the appropriate
+number separator characters.</td>
+</tr>
+<tr class="row-odd"><td>none</td>
+<td>The same as <code class="docutils literal"><span class="pre">'d'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Integer presentation types can also be used with character and Boolean values.
+Boolean values are formatted using textual representation, either <code class="docutils literal"><span class="pre">true</span></code> or
+<code class="docutils literal"><span class="pre">false</span></code>, if the presentation type is not specified.</p>
+<p>The available presentation types for floating-point values are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'a'</span></code></td>
+<td>Hexadecimal floating point format. Prints the number in
+base 16 with prefix <code class="docutils literal"><span class="pre">&quot;0x&quot;</span></code> and lower-case letters for
+digits above 9. Uses <code class="docutils literal"><span class="pre">'p'</span></code> to indicate the exponent.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'A'</span></code></td>
+<td>Same as <code class="docutils literal"><span class="pre">'a'</span></code> except it uses upper-case letters for
+the prefix, digits above 9 and to indicate the exponent.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'e'</span></code></td>
+<td>Exponent notation. Prints the number in scientific
+notation using the letter &#8216;e&#8217; to indicate the exponent.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'E'</span></code></td>
+<td>Exponent notation. Same as <code class="docutils literal"><span class="pre">'e'</span></code> except it uses an
+upper-case &#8216;E&#8217; as the separator character.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'f'</span></code></td>
+<td>Fixed point. Displays the number as a fixed-point
+number.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'F'</span></code></td>
+<td>Fixed point. Same as <code class="docutils literal"><span class="pre">'f'</span></code>, but converts <code class="docutils literal"><span class="pre">nan</span></code> to
+<code class="docutils literal"><span class="pre">NAN</span></code> and <code class="docutils literal"><span class="pre">inf</span></code> to <code class="docutils literal"><span class="pre">INF</span></code>.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'g'</span></code></td>
+<td><p class="first">General format.  For a given precision <code class="docutils literal"><span class="pre">p</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>,
+this rounds the number to <code class="docutils literal"><span class="pre">p</span></code> significant digits and
+then formats the result in either fixed-point format
+or in scientific notation, depending on its magnitude.</p>
+<p class="last">A precision of <code class="docutils literal"><span class="pre">0</span></code> is treated as equivalent to a
+precision of <code class="docutils literal"><span class="pre">1</span></code>.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'G'</span></code></td>
+<td>General format. Same as <code class="docutils literal"><span class="pre">'g'</span></code> except switches to
+<code class="docutils literal"><span class="pre">'E'</span></code> if the number gets too large. The
+representations of infinity and NaN are uppercased, too.</td>
+</tr>
+<tr class="row-even"><td>none</td>
+<td>The same as <code class="docutils literal"><span class="pre">'g'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Floating-point formatting is locale-dependent.</p>
+<p>The available presentation types for pointers are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'p'</span></code></td>
+<td>Pointer format. This is the default type for
+pointers and may be omitted.</td>
+</tr>
+<tr class="row-odd"><td>none</td>
+<td>The same as <code class="docutils literal"><span class="pre">'p'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="format-examples">
+<span id="formatexamples"></span><h2>Format examples<a class="headerlink" href="#format-examples" title="Permalink to this headline">¶</a></h2>
+<p>This section contains examples of the format syntax and comparison with
+the printf formatting.</p>
+<p>In most of the cases the syntax is similar to the printf formatting, with the
+addition of the <code class="docutils literal"><span class="pre">{}</span></code> and with <code class="docutils literal"><span class="pre">:</span></code> used instead of <code class="docutils literal"><span class="pre">%</span></code>.
+For example, <code class="docutils literal"><span class="pre">&quot;%03.2f&quot;</span></code> can be translated to <code class="docutils literal"><span class="pre">&quot;{:03.2f}&quot;</span></code>.</p>
+<p>The new format syntax also supports new and different options, shown in the
+following examples.</p>
+<p>Accessing arguments by position:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}, {1}, {2}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;a, b, c&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{}, {}, {}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;a, b, c&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{2}, {1}, {0}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;c, b, a&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}{1}{0}&quot;</span><span class="p">,</span> <span class="s">&quot;abra&quot;</span><span class="p">,</span> <span class="s">&quot;cad&quot;</span><span class="p">);</span>  <span class="c1">// arguments&#39; indices can be repeated</span>
+<span class="c1">// Result: &quot;abracadabra&quot;</span>
+</pre></div>
+</div>
+<p>Aligning the text and specifying a width:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;left aligned                  &quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&gt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;right aligned&quot;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;                 right aligned&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>
+<span class="c1">// Result: &quot;           centered           &quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:*^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>  <span class="c1">// use &#39;*&#39; as a fill char</span>
+<span class="c1">// Result: &quot;***********centered***********&quot;</span>
+</pre></div>
+</div>
+<p>Dynamic width:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;{}}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span>
+<span class="c1">// Result: &quot;left aligned                  &quot;</span>
+</pre></div>
+</div>
+<p>Dynamic precision:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:.{}f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="c1">// Result: &quot;3.1&quot;</span>
+</pre></div>
+</div>
+<p>Replacing <code class="docutils literal"><span class="pre">%+f</span></code>, <code class="docutils literal"><span class="pre">%-f</span></code>, and <code class="docutils literal"><span class="pre">%</span> <span class="pre">f</span></code> and specifying a sign:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:+f}; {:+f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show it always</span>
+<span class="c1">// Result: &quot;+3.140000; -3.140000&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{: f}; {: f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show a space for positive numbers</span>
+<span class="c1">// Result: &quot; 3.140000; -3.140000&quot;</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:-f}; {:-f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show only the minus -- same as &#39;{:f}; {:f}&#39;</span>
+<span class="c1">// Result: &quot;3.140000; -3.140000&quot;</span>
+</pre></div>
+</div>
+<p>Replacing <code class="docutils literal"><span class="pre">%x</span></code> and <code class="docutils literal"><span class="pre">%o</span></code> and converting the value to different bases:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+<span class="c1">// Result: &quot;int: 42;  hex: 2a;  oct: 52; bin: 101010&quot;</span>
+<span class="c1">// with 0x or 0 or 0b as prefix:</span>
+<span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:#x};  oct: {0:#o};  bin: {0:#b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+<span class="c1">// Result: &quot;int: 42;  hex: 0x2a;  oct: 052;  bin: 0b101010&quot;</span>
+</pre></div>
+</div>
+<p>Padded hex byte with prefix and always prints both hex characters:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:#04x}&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="c1">// Result: &quot;0x00&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2012-present, Victor Zverovich.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1+.
+    </div>
+
+<script src="_static/bootstrap.min.js"></script>
+
+  </body>
+</html>

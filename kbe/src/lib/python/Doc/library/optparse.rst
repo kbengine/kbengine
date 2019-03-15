@@ -4,14 +4,15 @@
 .. module:: optparse
    :synopsis: Command-line option parsing library.
    :deprecated:
+
 .. moduleauthor:: Greg Ward <gward@python.net>
 .. sectionauthor:: Greg Ward <gward@python.net>
+
+**Source code:** :source:`Lib/optparse.py`
 
 .. deprecated:: 3.2
    The :mod:`optparse` module is deprecated and will not be developed further;
    development will continue with the :mod:`argparse` module.
-
-**Source code:** :source:`Lib/optparse.py`
 
 --------------
 
@@ -25,7 +26,7 @@ GNU/POSIX syntax, and additionally generates usage and help messages for you.
 Here's an example of using :mod:`optparse` in a simple script::
 
    from optparse import OptionParser
-   [...]
+   ...
    parser = OptionParser()
    parser.add_option("-f", "--file", dest="filename",
                      help="write report to FILE", metavar="FILE")
@@ -252,7 +253,7 @@ First, you need to import the OptionParser class; then, early in the main
 program, create an OptionParser instance::
 
    from optparse import OptionParser
-   [...]
+   ...
    parser = OptionParser()
 
 Then you can start defining options.  The basic syntax is::
@@ -378,8 +379,8 @@ types is covered in section :ref:`optparse-extending-optparse`.
 Handling boolean (flag) options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Flag options---set a variable to true or false when a particular option is seen
----are quite common.  :mod:`optparse` supports them with two separate actions,
+Flag options---set a variable to true or false when a particular option is
+seen---are quite common.  :mod:`optparse` supports them with two separate actions,
 ``store_true`` and ``store_false``.  For example, you might have a ``verbose``
 flag that is turned on with ``-v`` and off with ``-q``::
 
@@ -387,8 +388,8 @@ flag that is turned on with ``-v`` and off with ``-q``::
    parser.add_option("-q", action="store_false", dest="verbose")
 
 Here we have two different options with the same destination, which is perfectly
-OK.  (It just means you have to be a bit careful when setting default values---
-see below.)
+OK.  (It just means you have to be a bit careful when setting default
+values---see below.)
 
 When :mod:`optparse` encounters ``-v`` on the command line, it sets
 ``options.verbose`` to ``True``; when it encounters ``-q``,
@@ -524,9 +525,9 @@ help message:
   default: ``"Usage: %prog [options]"``, which is fine if your script doesn't
   take any positional arguments.
 
-* every option defines a help string, and doesn't worry about line-wrapping---
-  :mod:`optparse` takes care of wrapping lines and making the help output look
-  good.
+* every option defines a help string, and doesn't worry about
+  line-wrapping---\ :mod:`optparse` takes care of wrapping lines and making
+  the help output look good.
 
 * options that take a value indicate this fact in their automatically-generated
   help message, e.g. for the "mode" option::
@@ -566,7 +567,7 @@ An option group is obtained using the class :class:`OptionGroup`:
 
    where
 
-   * parser is the :class:`OptionParser` instance the group will be insterted in
+   * parser is the :class:`OptionParser` instance the group will be inserted in
      to
    * title is the group title
    * description, optional, is a long description of the group
@@ -677,7 +678,9 @@ automatically adds a ``--version`` option to your parser. If it encounters
 this option on the command line, it expands your ``version`` string (by
 replacing ``%prog``), prints it to stdout, and exits.
 
-For example, if your script is called ``/usr/bin/foo``::
+For example, if your script is called ``/usr/bin/foo``:
+
+.. code-block:: shell-session
 
    $ /usr/bin/foo --version
    foo 1.0
@@ -718,7 +721,7 @@ you can call :func:`OptionParser.error` to signal an application-defined error
 condition::
 
    (options, args) = parser.parse_args()
-   [...]
+   ...
    if options.a and options.b:
        parser.error("options -a and -b are mutually exclusive")
 
@@ -727,14 +730,18 @@ program's usage message and an error message to standard error and exits with
 error status 2.
 
 Consider the first example above, where the user passes ``4x`` to an option
-that takes an integer::
+that takes an integer:
+
+.. code-block:: shell-session
 
    $ /usr/bin/foo -n 4x
    Usage: foo [options]
 
    foo: error: option -n: invalid integer value: '4x'
 
-Or, where the user fails to pass a value at all::
+Or, where the user fails to pass a value at all:
+
+.. code-block:: shell-session
 
    $ /usr/bin/foo -n
    Usage: foo [options]
@@ -758,7 +765,7 @@ Putting it all together
 Here's what :mod:`optparse`\ -based scripts usually look like::
 
    from optparse import OptionParser
-   [...]
+   ...
    def main():
        usage = "usage: %prog [options] arg"
        parser = OptionParser(usage)
@@ -768,13 +775,13 @@ Here's what :mod:`optparse`\ -based scripts usually look like::
                          action="store_true", dest="verbose")
        parser.add_option("-q", "--quiet",
                          action="store_false", dest="verbose")
-       [...]
+       ...
        (options, args) = parser.parse_args()
        if len(args) != 1:
            parser.error("incorrect number of arguments")
        if options.verbose:
            print("reading %s..." % options.filename)
-       [...]
+       ...
 
    if __name__ == "__main__":
        main()
@@ -1324,7 +1331,7 @@ where the input parameters are
    the list of arguments to process (default: ``sys.argv[1:]``)
 
 ``values``
-   a :class:`optparse.Values` object to store option arguments in (default: a
+   an :class:`optparse.Values` object to store option arguments in (default: a
    new instance of :class:`Values`) -- if you give an existing object, the
    option defaults will not be initialized on it
 
@@ -1409,7 +1416,7 @@ If you're not careful, it's easy to define options with conflicting option
 strings::
 
    parser.add_option("-n", "--dry-run", ...)
-   [...]
+   ...
    parser.add_option("-n", "--noisy", ...)
 
 (This is particularly true if you've defined your own OptionParser subclass with
@@ -1450,7 +1457,7 @@ that option.  If the user asks for help, the help message will reflect that::
 
    Options:
      --dry-run     do no harm
-     [...]
+     ...
      -n, --noisy   be noisy
 
 It's possible to whittle away the option strings for a previously-added option
@@ -1465,7 +1472,7 @@ At this point, the original ``-n``/``--dry-run`` option is no longer
 accessible, so :mod:`optparse` removes it, leaving this help text::
 
    Options:
-     [...]
+     ...
      -n, --noisy   be noisy
      --dry-run     new dry-run option
 
@@ -1670,7 +1677,7 @@ The callback function should raise :exc:`OptionValueError` if there are any
 problems with the option or its argument(s).  :mod:`optparse` catches this and
 terminates the program, printing the error message you supply to stderr.  Your
 message should be clear, concise, accurate, and mention the option at fault.
-Otherwise, the user will have a hard time figuring out what he did wrong.
+Otherwise, the user will have a hard time figuring out what they did wrong.
 
 
 .. _optparse-callback-example-1:
@@ -1701,7 +1708,7 @@ seen, but blow up if it comes after ``-b`` in the command-line.  ::
        if parser.values.b:
            raise OptionValueError("can't use -a after -b")
        parser.values.a = 1
-   [...]
+   ...
    parser.add_option("-a", action="callback", callback=check_order)
    parser.add_option("-b", action="store_true", dest="b")
 
@@ -1719,7 +1726,7 @@ message and the flag that it sets must be generalized.  ::
        if parser.values.b:
            raise OptionValueError("can't use %s after -b" % opt_str)
        setattr(parser.values, option.dest, 1)
-   [...]
+   ...
    parser.add_option("-a", action="callback", callback=check_order, dest='a')
    parser.add_option("-b", action="store_true", dest="b")
    parser.add_option("-c", action="callback", callback=check_order, dest='c')
@@ -1739,7 +1746,7 @@ should not be called when the moon is full, all you have to do is this::
            raise OptionValueError("%s option invalid when moon is full"
                                   % opt_str)
        setattr(parser.values, option.dest, 1)
-   [...]
+   ...
    parser.add_option("--foo",
                      action="callback", callback=check_moon, dest="foo")
 
@@ -1762,7 +1769,7 @@ Here's an example that just emulates the standard ``"store"`` action::
 
    def store_value(option, opt_str, value, parser):
        setattr(parser.values, option.dest, value)
-   [...]
+   ...
    parser.add_option("--foo",
                      action="callback", callback=store_value,
                      type="int", nargs=3, dest="foo")
@@ -1824,9 +1831,9 @@ arguments::
         del parser.rargs[:len(value)]
         setattr(parser.values, option.dest, value)
 
-   [...]
-   parser.add_option("-c", "--callback", dest="vararg_attr",
-                     action="callback", callback=vararg_callback)
+    ...
+    parser.add_option("-c", "--callback", dest="vararg_attr",
+                      action="callback", callback=vararg_callback)
 
 
 .. _optparse-extending-optparse:
@@ -2019,12 +2026,12 @@ Features of note:
 
      values.ensure_value(attr, value)
 
-  If the ``attr`` attribute of ``values`` doesn't exist or is None, then
+  If the ``attr`` attribute of ``values`` doesn't exist or is ``None``, then
   ensure_value() first sets it to ``value``, and then returns 'value. This is
   very handy for actions like ``"extend"``, ``"append"``, and ``"count"``, all
   of which accumulate data in a variable and expect that variable to be of a
   certain type (a list for the first two, an integer for the latter).  Using
   :meth:`ensure_value` means that scripts using your action don't have to worry
   about setting a default value for the option destinations in question; they
-  can just leave the default as None and :meth:`ensure_value` will take care of
+  can just leave the default as ``None`` and :meth:`ensure_value` will take care of
   getting it right when it's needed.

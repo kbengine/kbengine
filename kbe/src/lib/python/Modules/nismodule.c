@@ -76,11 +76,7 @@ nis_mapname (char *map, int *pfix)
 
     *pfix = 0;
     for (i=0; aliases[i].alias != 0L; i++) {
-        if (!strcmp (aliases[i].alias, map)) {
-            *pfix = aliases[i].fix;
-            return aliases[i].map;
-        }
-        if (!strcmp (aliases[i].map, map)) {
+        if (!strcmp (aliases[i].alias, map) || !strcmp (aliases[i].map, map)) {
             *pfix = aliases[i].fix;
             return aliases[i].map;
         }
@@ -173,6 +169,7 @@ nis_match (PyObject *self, PyObject *args, PyObject *kwdict)
         return NULL;
     if ((bkey = PyUnicode_EncodeFSDefault(ukey)) == NULL)
         return NULL;
+    /* check for embedded null bytes */
     if (PyBytes_AsStringAndSize(bkey, &key, &keylen) == -1) {
         Py_DECREF(bkey);
         return NULL;
@@ -415,6 +412,7 @@ nis_maps (PyObject *self, PyObject *args, PyObject *kwdict)
         PyObject *str = PyUnicode_FromString(maps->map);
         if (!str || PyList_Append(list, str) < 0)
         {
+            Py_XDECREF(str);
             Py_DECREF(list);
             list = NULL;
             break;
@@ -456,8 +454,8 @@ static struct PyModuleDef nismodule = {
     NULL
 };
 
-PyObject*
-PyInit_nis (void)
+PyMODINIT_FUNC
+PyInit_nis(void)
 {
     PyObject *m, *d;
     m = PyModule_Create(&nismodule);

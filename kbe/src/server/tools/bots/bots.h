@@ -258,6 +258,9 @@ public:
 	*/
 	virtual void onUpdateData(Network::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+		非优化高精度同步
+	*/
 	virtual void onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s);
@@ -283,6 +286,35 @@ public:
 	virtual void onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		优化的位置同步
+	*/
+	virtual void onUpdateData_ypr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yp_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_pr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_y_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_p_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_r_optimized(Network::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xz_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_ypr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yp_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_pr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_y_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_p_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_r_optimized(Network::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xyz_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_ypr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yp_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_pr_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_y_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_p_optimized(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_r_optimized(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		download stream开始了 

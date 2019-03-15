@@ -31,6 +31,12 @@ class RefCountable;
 class ScriptDefModule;
 class PropertyDescription;
 
+namespace script {
+	namespace entitydef {
+		class DefContext;
+	}
+}
+
 class DataType : public RefCountable
 {
 public:	
@@ -154,7 +160,7 @@ inline PyObject* IntType<uint8>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT8Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT8Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -183,7 +189,7 @@ inline PyObject* IntType<uint16>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT16Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT16Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -212,7 +218,7 @@ inline PyObject* IntType<uint32>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT32Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT32Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -241,7 +247,7 @@ inline PyObject* IntType<int8>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT8Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT8Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -270,7 +276,7 @@ inline PyObject* IntType<int16>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT16Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT16Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -299,7 +305,7 @@ inline PyObject* IntType<int32>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT32Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT32Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -649,6 +655,7 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	bool initialize(XML* xml, TiXmlNode* node, const std::string& parentName);
+	bool initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName);
 
 	const char* getName(void) const{ return "ARRAY";}
 
@@ -682,6 +689,7 @@ public:
 
 	typedef KBEShared_ptr< DictItemDataType > DictItemDataTypePtr;
 	typedef std::vector< std::pair< std::string, DictItemDataTypePtr > > FIXEDDICT_KEYTYPE_MAP;
+
 public:	
 	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
@@ -703,8 +711,10 @@ public:
 	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
+
 	bool initialize(XML* xml, TiXmlNode* node, std::string& parentName);
-	
+	bool initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName);
+
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
@@ -727,6 +737,7 @@ public:
 		加载impl模块
 	*/
 	bool loadImplModule(std::string moduleName);
+	bool setImplModule(PyObject* pyobj);
 
 	/** 
 		impl相关实现
@@ -740,7 +751,9 @@ public:
 	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDDICT; }
 
 	std::string& moduleName(){ return moduleName_; }
-	
+
+	std::string getNotFoundKeys(PyObject* dict);
+
 protected:
 	// 这个固定字典里的各个key的类型
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				
@@ -769,11 +782,14 @@ public:
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStream(MemoryStream* mstream);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	void addCellDataToStream(MemoryStream* mstream, uint32 flags, PyObject* pyValue, 
 		ENTITY_ID ownerID, PropertyDescription* parentPropertyDescription, COMPONENT_TYPE sendtoComponentType, bool checkValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptDefModule, MemoryStream* mstream);
+
 	PyObject* createCellData();
 	PyObject* createCellDataFromPersistentStream(MemoryStream* mstream);
 	PyObject* createCellDataFromStream(MemoryStream* mstream);
@@ -870,7 +886,7 @@ void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream,
 		if(PyErr_Occurred())
 		{
 			PyErr_Clear();
-			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) is error!", 
+			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) error!", 
 				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 			PyErr_PrintEx(0);

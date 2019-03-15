@@ -3,10 +3,14 @@
 
 .. module:: xml.sax
    :synopsis: Package containing SAX2 base classes and convenience functions.
+
 .. moduleauthor:: Lars Marius Garshol <larsga@garshol.priv.no>
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
 
+**Source code:** :source:`Lib/xml/sax/__init__.py`
+
+--------------
 
 The :mod:`xml.sax` package provides a number of modules which implement the
 Simple API for XML (SAX) interface for Python.  The package itself provides the
@@ -20,6 +24,14 @@ the SAX API.
    constructed data.  If you need to parse untrusted or unauthenticated data see
    :ref:`xml-vulnerabilities`.
 
+.. versionchanged:: 3.7.1
+
+   The SAX parser no longer processes general external entities by default
+   to increase security. Before, the parser created network connections
+   to fetch remote files or loaded local files from the file
+   system for DTD and entities. The feature can be enabled again with method
+   :meth:`~xml.sax.xmlreader.XMLReader.setFeature` on the parser object
+   and argument :data:`~xml.sax.handler.feature_external_ges`.
 
 The convenience functions are:
 
@@ -28,7 +40,7 @@ The convenience functions are:
 
    Create and return a SAX :class:`~xml.sax.xmlreader.XMLReader` object.  The
    first parser found will
-   be used.  If *parser_list* is provided, it must be a sequence of strings which
+   be used.  If *parser_list* is provided, it must be a list of strings which
    name modules that have a function named :func:`create_parser`.  Modules listed
    in *parser_list* will be used before modules in the default list of parsers.
 
@@ -47,7 +59,11 @@ The convenience functions are:
 .. function:: parseString(string, handler, error_handler=handler.ErrorHandler())
 
    Similar to :func:`parse`, but parses from a buffer *string* received as a
-   parameter.
+   parameter.  *string* must be a :class:`str` instance or a
+   :term:`bytes-like object`.
+
+   .. versionchanged:: 3.5
+      Added support of :class:`str` instances.
 
 A typical SAX application uses three kinds of objects: readers, handlers and
 input sources.  "Reader" in this context is another term for parser, i.e. some

@@ -273,6 +273,16 @@ class TestAudioop(unittest.TestCase):
         # state must be a tuple or None, not an integer
         self.assertRaises(TypeError, audioop.adpcm2lin, b'\0', 1, 555)
         self.assertRaises(TypeError, audioop.lin2adpcm, b'\0', 1, 555)
+        # Issues #24456, #24457: index out of range
+        self.assertRaises(ValueError, audioop.adpcm2lin, b'\0', 1, (0, -1))
+        self.assertRaises(ValueError, audioop.adpcm2lin, b'\0', 1, (0, 89))
+        self.assertRaises(ValueError, audioop.lin2adpcm, b'\0', 1, (0, -1))
+        self.assertRaises(ValueError, audioop.lin2adpcm, b'\0', 1, (0, 89))
+        # value out of range
+        self.assertRaises(ValueError, audioop.adpcm2lin, b'\0', 1, (-0x8001, 0))
+        self.assertRaises(ValueError, audioop.adpcm2lin, b'\0', 1, (0x8000, 0))
+        self.assertRaises(ValueError, audioop.lin2adpcm, b'\0', 1, (-0x8001, 0))
+        self.assertRaises(ValueError, audioop.lin2adpcm, b'\0', 1, (0x8000, 0))
 
     def test_lin2alaw(self):
         self.assertEqual(audioop.lin2alaw(datas[1], 1),
@@ -363,6 +373,9 @@ class TestAudioop(unittest.TestCase):
                              (b'', (-2, ((0, 0),))))
             self.assertEqual(audioop.ratecv(datas[w], w, 1, 8000, 8000, None)[0],
                              datas[w])
+            self.assertEqual(audioop.ratecv(datas[w], w, 1, 8000, 8000, None, 1, 0)[0],
+                             datas[w])
+
         state = None
         d1, state = audioop.ratecv(b'\x00\x01\x02', 1, 1, 8000, 16000, state)
         d2, state = audioop.ratecv(b'\x00\x01\x02', 1, 1, 8000, 16000, state)
@@ -377,6 +390,24 @@ class TestAudioop(unittest.TestCase):
                 d += d1
             self.assertEqual(d, d0)
             self.assertEqual(state, state0)
+
+        expected = {
+            1: packs[1](0, 0x0d, 0x37, -0x26, 0x55, -0x4b, -0x14),
+            2: packs[2](0, 0x0da7, 0x3777, -0x2630, 0x5673, -0x4a64, -0x129a),
+            3: packs[3](0, 0x0da740, 0x377776, -0x262fca,
+                        0x56740c, -0x4a62fd, -0x1298c0),
+            4: packs[4](0, 0x0da740da, 0x37777776, -0x262fc962,
+                        0x56740da6, -0x4a62fc96, -0x1298bf26),
+        }
+        for w in 1, 2, 3, 4:
+            self.assertEqual(audioop.ratecv(datas[w], w, 1, 8000, 8000, None, 3, 1)[0],
+                             expected[w])
+            self.assertEqual(audioop.ratecv(datas[w], w, 1, 8000, 8000, None, 30, 10)[0],
+                             expected[w])
+
+        self.assertRaises(TypeError, audioop.ratecv, b'', 1, 1, 8000, 8000, 42)
+        self.assertRaises(TypeError, audioop.ratecv,
+                          b'', 1, 1, 8000, 8000, (1, (42,)))
 
     def test_reverse(self):
         for w in 1, 2, 3, 4:

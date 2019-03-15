@@ -22,6 +22,13 @@ class EventDispatcher;
 class PacketSender : public OutputNotificationHandler, public PoolObject
 {
 public:
+	enum PACKET_SENDER_TYPE
+	{
+		TCP_PACKET_SENDER = 0,
+		UDP_PACKET_SENDER = 1
+	};
+
+public:
 	PacketSender();
 	PacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketSender();
@@ -44,16 +51,31 @@ public:
 		return pEndpoint_; 
 	}
 
+	NetworkInterface* pNetworkInterface() const
+	{
+		return pNetworkInterface_;
+	}
+
+	void pNetworkInterface(NetworkInterface* v)
+	{
+		pNetworkInterface_ = v;
+	}
+
+	virtual PACKET_SENDER_TYPE type() const
+	{
+		return TCP_PACKET_SENDER;
+	}
+
 	virtual int handleOutputNotification(int fd);
 
-	virtual Reason processPacket(Channel* pChannel, Packet * pPacket);
-	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket) = 0;
+	virtual Reason processPacket(Channel* pChannel, Packet * pPacket, int userarg);
+	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg) = 0;
 
 	static Reason checkSocketErrors(const EndPoint * pEndpoint);
 
 	virtual Channel* getChannel();
 
-	virtual bool processSend(Channel* pChannel) = 0;
+	virtual bool processSend(Channel* pChannel, int userarg) = 0;
 
 protected:
 	EndPoint* pEndpoint_;

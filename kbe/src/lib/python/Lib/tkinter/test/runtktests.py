@@ -7,8 +7,6 @@ Extensions also should live in packages following the same rule as above.
 """
 
 import os
-import sys
-import unittest
 import importlib
 import test.support
 
@@ -16,7 +14,7 @@ this_dir_path = os.path.abspath(os.path.dirname(__file__))
 
 def is_package(path):
     for name in os.listdir(path):
-        if name in ('__init__.py', '__init__.pyc', '__init.pyo'):
+        if name in ('__init__.py', '__init__.pyc'):
             return True
     return False
 

@@ -7,8 +7,8 @@ one of the other *util.py modules.
 import os
 import re
 import importlib.util
-import sys
 import string
+import sys
 from distutils.errors import DistutilsPlatformError
 from distutils.dep_util import newer
 from distutils.spawn import spawn
@@ -16,41 +16,28 @@ from distutils import log
 from distutils.errors import DistutilsByteCompileError
 
 def get_platform ():
-    """Return a string that identifies the current platform.  This is used
-    mainly to distinguish platform-specific build directories and
-    platform-specific built distributions.  Typically includes the OS name
-    and version and the architecture (as supplied by 'os.uname()'),
-    although the exact information included depends on the OS; eg. for IRIX
-    the architecture isn't particularly important (IRIX only runs on SGI
-    hardware), but for Linux the kernel version isn't particularly
-    important.
+    """Return a string that identifies the current platform.  This is used mainly to
+    distinguish platform-specific build directories and platform-specific built
+    distributions.  Typically includes the OS name and version and the
+    architecture (as supplied by 'os.uname()'), although the exact information
+    included depends on the OS; eg. on Linux, the kernel version isn't
+    particularly important.
 
     Examples of returned values:
        linux-i586
        linux-alpha (?)
        solaris-2.6-sun4u
-       irix-5.3
-       irix64-6.2
 
     Windows will return one of:
        win-amd64 (64bit Windows on AMD64 (aka x86_64, Intel64, EM64T, etc)
-       win-ia64 (64bit Windows on Itanium)
        win32 (all others - specifically, sys.platform is returned)
 
     For other non-POSIX platforms, currently just returns 'sys.platform'.
+
     """
     if os.name == 'nt':
-        # sniff sys.version for architecture.
-        prefix = " bit ("
-        i = sys.version.find(prefix)
-        if i == -1:
-            return sys.platform
-        j = sys.version.find(")", i)
-        look = sys.version[i+len(prefix):j].lower()
-        if look == 'amd64':
+        if 'amd64' in sys.version.lower():
             return 'win-amd64'
-        if look == 'itanium':
-            return 'win-ia64'
         return sys.platform
 
     # Set for cross builds explicitly
@@ -66,8 +53,8 @@ def get_platform ():
 
     (osname, host, release, version, machine) = os.uname()
 
-    # Convert the OS name to lowercase, remove '/' characters
-    # (to accommodate BSD/OS), and translate spaces (for "Power Macintosh")
+    # Convert the OS name to lowercase, remove '/' characters, and translate
+    # spaces (for "Power Macintosh")
     osname = osname.lower().replace('/', '')
     machine = machine.replace(' ', '_')
     machine = machine.replace('/', '-')
@@ -87,8 +74,6 @@ def get_platform ():
             bitness = {2147483647:"32bit", 9223372036854775807:"64bit"}
             machine += ".%s" % bitness[sys.maxsize]
         # fall through to standard osname-release-machine representation
-    elif osname[:4] == "irix":              # could be "irix64"!
-        return "%s-%s" % (osname, release)
     elif osname[:3] == "aix":
         return "%s-%s.%s" % (osname, version, release)
     elif osname[:6] == "cygwin":
@@ -322,11 +307,11 @@ def byte_compile (py_files,
                   prefix=None, base_dir=None,
                   verbose=1, dry_run=0,
                   direct=None):
-    """Byte-compile a collection of Python source files to either .pyc
-    or .pyo files in a __pycache__ subdirectory.  'py_files' is a list
+    """Byte-compile a collection of Python source files to .pyc
+    files in a __pycache__ subdirectory.  'py_files' is a list
     of files to compile; any files that don't end in ".py" are silently
     skipped.  'optimize' must be one of the following:
-      0 - don't optimize (generate .pyc)
+      0 - don't optimize
       1 - normal optimization (like "python -O")
       2 - extra optimization (like "python -OO")
     If 'force' is true, all files are recompiled regardless of
@@ -350,6 +335,11 @@ def byte_compile (py_files,
     generated in indirect mode; unless you know what you're doing, leave
     it set to None.
     """
+
+    # Late import to fix a bootstrap issue: _posixsubprocess is built by
+    # setup.py, but setup.py uses distutils.
+    import subprocess
+
     # nothing is done if sys.dont_write_bytecode is True
     if sys.dont_write_bytecode:
         raise DistutilsByteCompileError('byte-compiling is disabled.')
@@ -412,11 +402,9 @@ byte_compile(files, optimize=%r, force=%r,
 
             script.close()
 
-        cmd = [sys.executable, script_name]
-        if optimize == 1:
-            cmd.insert(1, "-O")
-        elif optimize == 2:
-            cmd.insert(1, "-OO")
+        cmd = [sys.executable]
+        cmd.extend(subprocess._optim_args_from_interpreter_flags())
+        cmd.append(script_name)
         spawn(cmd, dry_run=dry_run)
         execute(os.remove, (script_name,), "removing %s" % script_name,
                 dry_run=dry_run)
@@ -438,8 +426,9 @@ byte_compile(files, optimize=%r, force=%r,
             #   cfile - byte-compiled file
             #   dfile - purported source filename (same as 'file' by default)
             if optimize >= 0:
+                opt = '' if optimize == 0 else optimize
                 cfile = importlib.util.cache_from_source(
-                    file, debug_override=not optimize)
+                    file, optimization=opt)
             else:
                 cfile = importlib.util.cache_from_source(file)
             dfile = file

@@ -12,6 +12,15 @@ extern "C"
 #include "sys_info.inl"
 #endif
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+#include <Iphlpapi.h>
+#pragma comment (lib,"iphlpapi.lib") 
+#else
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#endif
+
 namespace KBEngine
 {
 KBE_SINGLETON_INIT(SystemInfo);
@@ -406,6 +415,100 @@ _TRYGET:
 _END:
 	return total;
 }
+
+//-------------------------------------------------------------------------------------
+std::vector< std::string > SystemInfo::getMacAddresses()
+{
+	std::vector< std::string > mac_addresses;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+	unsigned long size = sizeof(IP_ADAPTER_INFO);
+
+	int ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+
+	if (ERROR_BUFFER_OVERFLOW == ret_info)
+	{
+		delete pIpAdapterInfo;
+		pIpAdapterInfo = (PIP_ADAPTER_INFO)new unsigned char[size];
+		ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+	}
+
+	if (ERROR_SUCCESS == ret_info)
+	{
+		PIP_ADAPTER_INFO _pIpAdapterInfo = pIpAdapterInfo;
+		while (_pIpAdapterInfo)
+		{
+			char MAC_BUF[256];
+			std::string MAC;
+
+			for (UINT i = 0; i < _pIpAdapterInfo->AddressLength; i++)
+			{
+				sprintf(MAC_BUF, "%02x", _pIpAdapterInfo->Address[i]);
+				MAC += MAC_BUF;
+			}
+
+			std::transform(MAC.begin(), MAC.end(), MAC.begin(), tolower);
+			mac_addresses.push_back(MAC);
+			_pIpAdapterInfo = _pIpAdapterInfo->Next;
+		}
+	}
+
+	if (pIpAdapterInfo)
+	{
+		delete pIpAdapterInfo;
+	}
+
+#else
+
+	int fd;
+	int interfaceNum = 0;
+	struct ifreq buf[16];
+	struct ifconf ifc;
+
+	if ((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		::close(fd);
+		return mac_addresses;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = (caddr_t)buf;
+
+	if (!ioctl(fd, SIOCGIFCONF, (char *)&ifc))
+	{
+		interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+		while (interfaceNum-- > 0)
+		{
+			if (!ioctl(fd, SIOCGIFHWADDR, (char *)(&buf[interfaceNum])))
+			{
+				char MAC[19];
+				memset(&MAC[0], 0, sizeof(MAC));
+
+				sprintf(MAC, "%02x:%02x:%02x:%02x:%02x:%02x",
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[0],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[1],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[2],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[3],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[4],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[5]);
+
+				mac_addresses.push_back(MAC);
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	::close(fd);
+
+#endif
+
+	return mac_addresses;
+}
+
 
 //-------------------------------------------------------------------------------------
 } 

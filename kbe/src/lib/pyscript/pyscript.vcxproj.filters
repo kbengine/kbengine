@@ -21,9 +21,6 @@
     <ClCompile Include="copy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="install_py_dlls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,12 +78,18 @@
     <ClCompile Include="scriptstderr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pyurl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="py_platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="py_compression.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="install_py_dlls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="map.h">
@@ -153,6 +156,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="py_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pyurl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_compression.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

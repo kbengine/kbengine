@@ -18,11 +18,12 @@ public:
 	WebSocketPacketFilter(Channel* pChannel);
 	virtual ~WebSocketPacketFilter();
 
-	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
+	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg);
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 
 protected:
 	void reset();
+	Reason onPing(Channel * pChannel, Packet* pPacket);
 
 protected:
 	enum FragmentDataTypes

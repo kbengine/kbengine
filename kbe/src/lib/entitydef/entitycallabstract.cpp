@@ -8,6 +8,7 @@
 #include "network/bundle.h"
 #include "network/network_interface.h"
 #include "server/components.h"
+#include "entitydef/entitydef.h"
 #include "client_lib/client_interface.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
@@ -180,6 +181,12 @@ Network::Channel* EntityCallAbstract::getChannel(void)
 		return NULL;
 
 	return __findChannelFunc(*this);
+}
+
+//-------------------------------------------------------------------------------------
+ScriptDefModule* EntityCallAbstract::pScriptDefModule()
+{
+	return EntityDef::findScriptModule(utype_);
 }
 
 //-------------------------------------------------------------------------------------

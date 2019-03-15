@@ -3,10 +3,15 @@
 
 .. module:: unittest
    :synopsis: Unit testing framework for Python.
+
 .. moduleauthor:: Steve Purcell <stephen_purcell@yahoo.com>
 .. sectionauthor:: Steve Purcell <stephen_purcell@yahoo.com>
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. sectionauthor:: Raymond Hettinger <python@rcn.com>
+
+**Source code:** :source:`Lib/unittest/__init__.py`
+
+--------------
 
 (If you are already familiar with the basic concepts of testing, you might want
 to skip to :ref:`the list of assert methods <assert-methods>`.)
@@ -47,15 +52,15 @@ test runner
    Module :mod:`doctest`
       Another test-support module with a very different flavor.
 
-   `Simple Smalltalk Testing: With Patterns <http://www.XProgramming.com/testfram.htm>`_
+   `Simple Smalltalk Testing: With Patterns <https://web.archive.org/web/20150315073817/http://www.xprogramming.com/testfram.htm>`_
       Kent Beck's original paper on testing frameworks using the pattern shared
       by :mod:`unittest`.
 
-   `Nose <http://code.google.com/p/python-nose/>`_ and `py.test <http://pytest.org>`_
+   `Nose <https://nose.readthedocs.io/>`_ and `pytest <https://docs.pytest.org/>`_
       Third-party unittest frameworks with a lighter-weight syntax for writing
       tests.  For example, ``assert func(10) == 42``.
 
-   `The Python Testing Tools Taxonomy <http://wiki.python.org/moin/PythonTestingToolsTaxonomy>`_
+   `The Python Testing Tools Taxonomy <https://wiki.python.org/moin/PythonTestingToolsTaxonomy>`_
       An extensive list of Python testing tools including functional testing
       frameworks and mock object libraries.
 
@@ -67,7 +72,7 @@ test runner
    a GUI tool for test discovery and execution.  This is intended largely for ease of use
    for those new to unit testing.  For production environments it is
    recommended that tests be driven by a continuous integration system such as
-   `Buildbot <http://buildbot.net/trac>`_, `Jenkins <http://jenkins-ci.org>`_
+   `Buildbot <https://buildbot.net/>`_, `Jenkins <https://jenkins.io/>`_
    or  `Hudson <http://hudson-ci.org/>`_.
 
 
@@ -80,37 +85,29 @@ The :mod:`unittest` module provides a rich set of tools for constructing and
 running tests.  This section demonstrates that a small subset of the tools
 suffice to meet the needs of most users.
 
-Here is a short script to test three functions from the :mod:`random` module::
+Here is a short script to test three string methods::
 
-   import random
-   import unittest
+  import unittest
 
-   class TestSequenceFunctions(unittest.TestCase):
+  class TestStringMethods(unittest.TestCase):
 
-       def setUp(self):
-           self.seq = list(range(10))
+      def test_upper(self):
+          self.assertEqual('foo'.upper(), 'FOO')
 
-       def test_shuffle(self):
-           # make sure the shuffled sequence does not lose any elements
-           random.shuffle(self.seq)
-           self.seq.sort()
-           self.assertEqual(self.seq, list(range(10)))
+      def test_isupper(self):
+          self.assertTrue('FOO'.isupper())
+          self.assertFalse('Foo'.isupper())
 
-           # should raise an exception for an immutable sequence
-           self.assertRaises(TypeError, random.shuffle, (1,2,3))
+      def test_split(self):
+          s = 'hello world'
+          self.assertEqual(s.split(), ['hello', 'world'])
+          # check that s.split fails when the separator is not a string
+          with self.assertRaises(TypeError):
+              s.split(2)
 
-       def test_choice(self):
-           element = random.choice(self.seq)
-           self.assertTrue(element in self.seq)
+  if __name__ == '__main__':
+      unittest.main()
 
-       def test_sample(self):
-           with self.assertRaises(ValueError):
-               random.sample(self.seq, 20)
-           for element in random.sample(self.seq, 5):
-               self.assertTrue(element in self.seq)
-
-   if __name__ == '__main__':
-       unittest.main()
 
 A testcase is created by subclassing :class:`unittest.TestCase`.  The three
 individual tests are defined with methods whose names start with the letters
@@ -118,16 +115,15 @@ individual tests are defined with methods whose names start with the letters
 represent tests.
 
 The crux of each test is a call to :meth:`~TestCase.assertEqual` to check for an
-expected result; :meth:`~TestCase.assertTrue` to verify a condition; or
-:meth:`~TestCase.assertRaises` to verify that an expected exception gets raised.
-These methods are used instead of the :keyword:`assert` statement so the test
-runner can accumulate all test results and produce a report.
+expected result; :meth:`~TestCase.assertTrue` or :meth:`~TestCase.assertFalse`
+to verify a condition; or :meth:`~TestCase.assertRaises` to verify that a
+specific exception gets raised.  These methods are used instead of the
+:keyword:`assert` statement so the test runner can accumulate all test results
+and produce a report.
 
-When a :meth:`~TestCase.setUp` method is defined, the test runner will run that
-method prior to each test.  Likewise, if a :meth:`~TestCase.tearDown` method is
-defined, the test runner will invoke that method after each test.  In the
-example, :meth:`~TestCase.setUp` was used to create a fresh sequence for each
-test.
+The :meth:`~TestCase.setUp` and :meth:`~TestCase.tearDown` methods allow you
+to define instructions that will be executed before and after each test method.
+They are covered in more detail in the section :ref:`organizing-tests`.
 
 The final block shows a simple way to run the tests. :func:`unittest.main`
 provides a command-line interface to the test script.  When run from the command
@@ -142,12 +138,12 @@ line, the above script produces an output that looks like this::
 Passing the ``-v`` option to your test script will instruct :func:`unittest.main`
 to enable a higher level of verbosity, and produce the following output::
 
-   test_choice (__main__.TestSequenceFunctions) ... ok
-   test_sample (__main__.TestSequenceFunctions) ... ok
-   test_shuffle (__main__.TestSequenceFunctions) ... ok
+   test_isupper (__main__.TestStringMethods) ... ok
+   test_split (__main__.TestStringMethods) ... ok
+   test_upper (__main__.TestStringMethods) ... ok
 
    ----------------------------------------------------------------------
-   Ran 3 tests in 0.110s
+   Ran 3 tests in 0.001s
 
    OK
 
@@ -213,8 +209,8 @@ Command-line options
 
 .. cmdoption:: -c, --catch
 
-   Control-C during the test run waits for the current test to end and then
-   reports all the results so far. A second control-C raises the normal
+   :kbd:`Control-C` during the test run waits for the current test to end and then
+   reports all the results so far. A second :kbd:`Control-C` raises the normal
    :exc:`KeyboardInterrupt` exception.
 
    See `Signal Handling`_ for the functions that provide this functionality.
@@ -223,8 +219,34 @@ Command-line options
 
    Stop the test run on the first error or failure.
 
+.. cmdoption:: -k
+
+   Only run test methods and classes that match the pattern or substring.
+   This option may be used multiple times, in which case all test cases that
+   match of the given patterns are included.
+
+   Patterns that contain a wildcard character (``*``) are matched against the
+   test name using :meth:`fnmatch.fnmatchcase`; otherwise simple case-sensitive
+   substring matching is used.
+
+   Patterns are matched against the fully qualified test method name as
+   imported by the test loader.
+
+   For example, ``-k foo`` matches ``foo_tests.SomeTest.test_something``,
+   ``bar_tests.SomeTest.test_foo``, but not ``bar_tests.FooTest.test_something``.
+
+.. cmdoption:: --locals
+
+   Show local variables in tracebacks.
+
 .. versionadded:: 3.2
    The command-line options ``-b``, ``-c`` and ``-f`` were added.
+
+.. versionadded:: 3.5
+   The command-line option ``--locals``.
+
+.. versionadded:: 3.7
+   The command-line option ``-k``.
 
 The command line can also be used for test discovery, for running all of the
 tests in a project or just a subset.
@@ -280,8 +302,8 @@ The :option:`-s`, :option:`-p`, and :option:`-t` options can be passed in
 as positional arguments in that order. The following two command lines
 are equivalent::
 
-   python -m unittest discover -s project_directory -p '*_test.py'
-   python -m unittest discover project_directory '*_test.py'
+   python -m unittest discover -s project_directory -p "*_test.py"
+   python -m unittest discover project_directory "*_test.py"
 
 As well as being a path it is possible to pass a package name, for example
 ``myproject.subpackage.test``, as the start directory. The package name you
@@ -339,8 +361,9 @@ testing code::
 
 Note that in order to test something, we use one of the :meth:`assert\*`
 methods provided by the :class:`TestCase` base class.  If the test fails, an
-exception will be raised, and :mod:`unittest` will identify the test case as a
-:dfn:`failure`.  Any other exceptions will be treated as :dfn:`errors`.
+exception will be raised with an explanatory message, and :mod:`unittest`
+will identify the test case as a :dfn:`failure`.  Any other exceptions will be
+treated as :dfn:`errors`.
 
 Tests can be numerous, and their set-up can be repetitive.  Luckily, we
 can factor out set-up code by implementing a method called
@@ -349,7 +372,7 @@ call for every single test we run::
 
    import unittest
 
-   class SimpleWidgetTestCase(unittest.TestCase):
+   class WidgetTestCase(unittest.TestCase):
        def setUp(self):
            self.widget = Widget('The widget')
 
@@ -376,7 +399,7 @@ after the test method has been run::
 
    import unittest
 
-   class SimpleWidgetTestCase(unittest.TestCase):
+   class WidgetTestCase(unittest.TestCase):
        def setUp(self):
            self.widget = Widget('The widget')
 
@@ -386,22 +409,31 @@ after the test method has been run::
 If :meth:`~TestCase.setUp` succeeded, :meth:`~TestCase.tearDown` will be
 run whether the test method succeeded or not.
 
-Such a working environment for the testing code is called a :dfn:`fixture`.
+Such a working environment for the testing code is called a
+:dfn:`test fixture`.  A new TestCase instance is created as a unique
+test fixture used to execute each individual test method.  Thus
+:meth:`~TestCase.setUp`, :meth:`~TestCase.tearDown`, and :meth:`~TestCase.__init__`
+will be called once per test.
 
-Test case instances are grouped together according to the features they test.
-:mod:`unittest` provides a mechanism for this: the :dfn:`test suite`,
-represented by :mod:`unittest`'s :class:`TestSuite` class.  In most cases,
-calling :func:`unittest.main` will do the right thing and collect all the
-module's test cases for you, and then execute them.
+It is recommended that you use TestCase implementations to group tests together
+according to the features they test.  :mod:`unittest` provides a mechanism for
+this: the :dfn:`test suite`, represented by :mod:`unittest`'s
+:class:`TestSuite` class.  In most cases, calling :func:`unittest.main` will do
+the right thing and collect all the module's test cases for you and execute
+them.
 
 However, should you want to customize the building of your test suite,
 you can do it yourself::
 
    def suite():
        suite = unittest.TestSuite()
-       suite.addTest(WidgetTestCase('test_default_size'))
-       suite.addTest(WidgetTestCase('test_resize'))
+       suite.addTest(WidgetTestCase('test_default_widget_size'))
+       suite.addTest(WidgetTestCase('test_widget_resize'))
        return suite
+
+   if __name__ == '__main__':
+       runner = unittest.TextTestRunner()
+       runner.run(suite())
 
 You can place the definitions of test cases and test suites in the same modules
 as the code they are to test (such as :file:`widget.py`), but there are several
@@ -473,7 +505,7 @@ Skipping tests and expected failures
 .. versionadded:: 3.1
 
 Unittest supports skipping individual test methods and even whole classes of
-tests.  In addition, it supports marking a test as a "expected failure," a test
+tests.  In addition, it supports marking a test as an "expected failure," a test
 that is broken and will fail, but shouldn't be counted as a failure on a
 :class:`TestResult`.
 
@@ -553,8 +585,8 @@ The following decorators implement test skipping and expected failures:
 
 .. decorator:: expectedFailure
 
-   Mark the test as an expected failure.  If the test fails when run, the test
-   is not counted as a failure.
+   Mark the test as an expected failure.  If the test fails it will be
+   considered a success.  If the test passes, it will be considered a failure.
 
 .. exception:: SkipTest(reason)
 
@@ -575,7 +607,7 @@ Distinguishing test iterations using subtests
 
 .. versionadded:: 3.4
 
-When some of your tests differ only by a some very small differences, for
+When there are very small differences among your tests, for
 instance some parameters, unittest allows you to distinguish them inside
 the body of a test method using the :meth:`~TestCase.subTest` context manager.
 
@@ -653,10 +685,8 @@ Test cases
    kinds of failure.
 
    Each instance of :class:`TestCase` will run a single base method: the method
-   named *methodName*.  However, the standard implementation of the default
-   *methodName*, ``runTest()``, will run every method starting with ``test``
-   as an individual test, and count successes and failures accordingly.
-   Therefore, in most uses of :class:`TestCase`, you will neither change
+   named *methodName*.
+   In most uses of :class:`TestCase`, you will neither change
    the *methodName* nor reimplement the default ``runTest()`` method.
 
    .. versionchanged:: 3.2
@@ -684,15 +714,17 @@ Test cases
       Method called immediately after the test method has been called and the
       result recorded.  This is called even if the test method raised an
       exception, so the implementation in subclasses may need to be particularly
-      careful about checking internal state.  Any exception, other than :exc:`AssertionError`
-      or :exc:`SkipTest`, raised by this method will be considered an error rather than a
-      test failure.  This method will only be called if the :meth:`setUp` succeeds,
-      regardless of the outcome of the test method. The default implementation does nothing.
+      careful about checking internal state.  Any exception, other than
+      :exc:`AssertionError` or :exc:`SkipTest`, raised by this method will be
+      considered an additional error rather than a test failure (thus increasing
+      the total number of reported errors). This method will only be called if
+      the :meth:`setUp` succeeds, regardless of the outcome of the test method.
+      The default implementation does nothing.
 
 
    .. method:: setUpClass()
 
-      A class method called before tests in an individual class run.
+      A class method called before tests in an individual class are run.
       ``setUpClass`` is called with the class as the only argument
       and must be decorated as a :func:`classmethod`::
 
@@ -766,8 +798,9 @@ Test cases
 
    .. _assert-methods:
 
-   The :class:`TestCase` class provides a number of methods to check for and
-   report failures, such as:
+   The :class:`TestCase` class provides several assert methods to check for and
+   report failures.  The following table lists the most commonly used methods
+   (see the tables below for more assert methods):
 
    +-----------------------------------------+-----------------------------+---------------+
    | Method                                  | Checks that                 | New in        |
@@ -864,7 +897,7 @@ Test cases
    .. method:: assertIsNone(expr, msg=None)
                assertIsNotNone(expr, msg=None)
 
-      Test that *expr* is (or is not) None.
+      Test that *expr* is (or is not) ``None``.
 
       .. versionadded:: 3.1
 
@@ -888,7 +921,7 @@ Test cases
 
 
 
-   It is also possible to check the production of exceptions, warnings and
+   It is also possible to check the production of exceptions, warnings, and
    log messages using the following methods:
 
    +---------------------------------------------------------+--------------------------------------+------------+
@@ -911,7 +944,7 @@ Test cases
    +---------------------------------------------------------+--------------------------------------+------------+
 
    .. method:: assertRaises(exception, callable, *args, **kwds)
-               assertRaises(exception, msg=None)
+               assertRaises(exception, *, msg=None)
 
       Test that an exception is raised when *callable* is called with any
       positional or keyword arguments that are also passed to
@@ -951,7 +984,7 @@ Test cases
 
 
    .. method:: assertRaisesRegex(exception, regex, callable, *args, **kwds)
-               assertRaisesRegex(exception, regex, msg=None)
+               assertRaisesRegex(exception, regex, *, msg=None)
 
       Like :meth:`assertRaises` but also tests that *regex* matches
       on the string representation of the raised exception.  *regex* may be
@@ -977,7 +1010,7 @@ Test cases
 
 
    .. method:: assertWarns(warning, callable, *args, **kwds)
-               assertWarns(warning, msg=None)
+               assertWarns(warning, *, msg=None)
 
       Test that a warning is triggered when *callable* is called with any
       positional or keyword arguments that are also passed to
@@ -1018,7 +1051,7 @@ Test cases
 
 
    .. method:: assertWarnsRegex(warning, regex, callable, *args, **kwds)
-               assertWarnsRegex(warning, regex, msg=None)
+               assertWarnsRegex(warning, regex, *, msg=None)
 
       Like :meth:`assertWarns` but also tests that *regex* matches on the
       message of the triggered warning.  *regex* may be a regular expression
@@ -1128,7 +1161,7 @@ Test cases
       If *delta* is supplied instead of *places* then the difference
       between *first* and *second* must be less or equal to (or greater than) *delta*.
 
-      Supplying both *delta* and *places* raises a ``TypeError``.
+      Supplying both *delta* and *places* raises a :exc:`TypeError`.
 
       .. versionchanged:: 3.2
          :meth:`assertAlmostEqual` automatically considers almost equal objects
@@ -1166,6 +1199,9 @@ Test cases
          :meth:`.assertRegex`.
       .. versionadded:: 3.2
          :meth:`.assertNotRegex`.
+      .. versionadded:: 3.5
+         The name ``assertNotRegexpMatches`` is a deprecated alias
+         for :meth:`.assertNotRegex`.
 
 
    .. method:: assertCountEqual(first, second, msg=None)
@@ -1312,19 +1348,17 @@ Test cases
 
    .. attribute:: longMessage
 
-      If set to ``True`` then any explicit failure message you pass in to the
-      :ref:`assert methods <assert-methods>` will be appended to the end of the
-      normal failure message.  The normal messages contain useful information
-      about the objects involved, for example the message from assertEqual
-      shows you the repr of the two unequal objects. Setting this attribute
-      to ``True`` allows you to have a custom error message in addition to the
-      normal one.
+      This class attribute determines what happens when a custom failure message
+      is passed as the msg argument to an assertXYY call that fails.
+      ``True`` is the default value. In this case, the custom message is appended
+      to the end of the standard failure message.
+      When set to ``False``, the custom message replaces the standard message.
 
-      This attribute defaults to ``True``. If set to False then a custom message
-      passed to an assert method will silence the normal message.
+      The class setting can be overridden in individual test methods by assigning
+      an instance attribute, self.longMessage, to ``True`` or ``False`` before
+      calling the assert methods.
 
-      The class setting can be overridden in individual tests by assigning an
-      instance attribute to ``True`` or ``False`` before calling the assert methods.
+      The class setting gets reset before each test call.
 
       .. versionadded:: 3.1
 
@@ -1338,7 +1372,7 @@ Test cases
       methods that delegate to it), :meth:`assertDictEqual` and
       :meth:`assertMultiLineEqual`.
 
-      Setting ``maxDiff`` to None means that there is no maximum length of
+      Setting ``maxDiff`` to ``None`` means that there is no maximum length of
       diffs.
 
       .. versionadded:: 3.2
@@ -1389,9 +1423,9 @@ Test cases
 
       Add a function to be called after :meth:`tearDown` to cleanup resources
       used during the test. Functions will be called in reverse order to the
-      order they are added (LIFO). They are called with any arguments and
-      keyword arguments passed into :meth:`addCleanup` when they are
-      added.
+      order they are added (:abbr:`LIFO (last-in, first-out)`).  They
+      are called with any arguments and keyword arguments passed into
+      :meth:`addCleanup` when they are added.
 
       If :meth:`setUp` fails, meaning that :meth:`tearDown` is not called,
       then any cleanup functions added will still be called.
@@ -1433,9 +1467,9 @@ For historical reasons, some of the :class:`TestCase` methods had one or more
 aliases that are now deprecated.  The following table lists the correct names
 along with their deprecated aliases:
 
-   ==============================  ====================== ======================
+   ==============================  ====================== =======================
     Method Name                     Deprecated alias       Deprecated alias
-   ==============================  ====================== ======================
+   ==============================  ====================== =======================
     :meth:`.assertEqual`            failUnlessEqual        assertEquals
     :meth:`.assertNotEqual`         failIfEqual            assertNotEquals
     :meth:`.assertTrue`             failUnless             assert\_
@@ -1444,8 +1478,9 @@ along with their deprecated aliases:
     :meth:`.assertAlmostEqual`      failUnlessAlmostEqual  assertAlmostEquals
     :meth:`.assertNotAlmostEqual`   failIfAlmostEqual      assertNotAlmostEquals
     :meth:`.assertRegex`                                   assertRegexpMatches
+    :meth:`.assertNotRegex`                                assertNotRegexpMatches
     :meth:`.assertRaisesRegex`                             assertRaisesRegexp
-   ==============================  ====================== ======================
+   ==============================  ====================== =======================
 
    .. deprecated:: 3.1
          the fail* aliases listed in the second column.
@@ -1453,8 +1488,9 @@ along with their deprecated aliases:
          the assert* aliases listed in the third column.
    .. deprecated:: 3.2
          ``assertRegexpMatches`` and ``assertRaisesRegexp`` have been renamed to
-         :meth:`.assertRegex` and :meth:`.assertRaisesRegex`
-
+         :meth:`.assertRegex` and :meth:`.assertRaisesRegex`.
+   .. deprecated:: 3.5
+         the ``assertNotRegexpMatches`` name in favor of :meth:`.assertNotRegex`.
 
 .. _testsuite-objects:
 
@@ -1463,7 +1499,7 @@ Grouping tests
 
 .. class:: TestSuite(tests=())
 
-   This class represents an aggregation of individual tests cases and test suites.
+   This class represents an aggregation of individual test cases and test suites.
    The class presents the interface needed by the test runner to allow it to be run
    as any other test case.  Running a :class:`TestSuite` instance is the same as
    iterating over the suite, running each test individually.
@@ -1552,18 +1588,38 @@ Loading and running tests
    :data:`unittest.defaultTestLoader`.  Using a subclass or instance, however,
    allows customization of some configurable properties.
 
+   :class:`TestLoader` objects have the following attributes:
+
+
+   .. attribute:: errors
+
+      A list of the non-fatal errors encountered while loading tests. Not reset
+      by the loader at any point. Fatal errors are signalled by the relevant
+      a method raising an exception to the caller. Non-fatal errors are also
+      indicated by a synthetic test that will raise the original error when
+      run.
+
+      .. versionadded:: 3.5
+
+
    :class:`TestLoader` objects have the following methods:
 
 
    .. method:: loadTestsFromTestCase(testCaseClass)
 
-      Return a suite of all tests cases contained in the :class:`TestCase`\ -derived
+      Return a suite of all test cases contained in the :class:`TestCase`\ -derived
       :class:`testCaseClass`.
 
+      A test case instance is created for each method named by
+      :meth:`getTestCaseNames`. By default these are the method names
+      beginning with ``test``. If :meth:`getTestCaseNames` returns no
+      methods, but the :meth:`runTest` method is implemented, a single test
+      case is created for that method instead.
 
-   .. method:: loadTestsFromModule(module)
 
-      Return a suite of all tests cases contained in the given module. This
+   .. method:: loadTestsFromModule(module, pattern=None)
+
+      Return a suite of all test cases contained in the given module. This
       method searches *module* for classes derived from :class:`TestCase` and
       creates an instance of the class for each test method defined for the
       class.
@@ -1578,15 +1634,22 @@ Loading and running tests
 
       If a module provides a ``load_tests`` function it will be called to
       load the tests. This allows modules to customize test loading.
-      This is the `load_tests protocol`_.
+      This is the `load_tests protocol`_.  The *pattern* argument is passed as
+      the third argument to ``load_tests``.
 
       .. versionchanged:: 3.2
          Support for ``load_tests`` added.
 
+      .. versionchanged:: 3.5
+         The undocumented and unofficial *use_load_tests* default argument is
+         deprecated and ignored, although it is still accepted for backward
+         compatibility.  The method also now accepts a keyword-only argument
+         *pattern* which is passed to ``load_tests`` as the third argument.
+
 
    .. method:: loadTestsFromName(name, module=None)
 
-      Return a suite of all tests cases given a string specifier.
+      Return a suite of all test cases given a string specifier.
 
       The specifier *name* is a "dotted name" that may resolve either to a
       module, a test case class, a test method within a test case class, a
@@ -1607,6 +1670,12 @@ Loading and running tests
       be imported as a side-effect.
 
       The method optionally resolves *name* relative to the given *module*.
+
+      .. versionchanged:: 3.5
+         If an :exc:`ImportError` or :exc:`AttributeError` occurs while traversing
+         *name* then a synthetic test that raises that error when run will be
+         returned. These errors are included in the errors accumulated by
+         self.errors.
 
 
    .. method:: loadTestsFromNames(names, module=None)
@@ -1634,18 +1703,22 @@ Loading and running tests
       the start directory is not the top level directory then the top level
       directory must be specified separately.
 
-      If importing a module fails, for example due to a syntax error, then this
-      will be recorded as a single error and discovery will continue.  If the
-      import failure is due to :exc:`SkipTest` being raised, it will be recorded
-      as a skip instead of an error.
+      If importing a module fails, for example due to a syntax error, then
+      this will be recorded as a single error and discovery will continue.  If
+      the import failure is due to :exc:`SkipTest` being raised, it will be
+      recorded as a skip instead of an error.
 
-      If a test package name (directory with :file:`__init__.py`) matches the
-      pattern then the package will be checked for a ``load_tests``
-      function. If this exists then it will be called with *loader*, *tests*,
-      *pattern*.
+      If a package (a directory containing a file named :file:`__init__.py`) is
+      found, the package will be checked for a ``load_tests`` function. If this
+      exists then it will be called
+      ``package.load_tests(loader, tests, pattern)``. Test discovery takes care
+      to ensure that a package is only checked for tests once during an
+      invocation, even if the load_tests function itself calls
+      ``loader.discover``.
 
-      If load_tests exists then discovery does *not* recurse into the package,
-      ``load_tests`` is responsible for loading all tests in the package.
+      If ``load_tests`` exists then discovery does *not* recurse into the
+      package, ``load_tests`` is responsible for loading all tests in the
+      package.
 
       The pattern is deliberately not stored as a loader attribute so that
       packages can continue discovery themselves. *top_level_dir* is stored so
@@ -1663,6 +1736,11 @@ Loading and running tests
          Paths are sorted before being imported so that execution order is
            the same even if the underlying file system's ordering is not
            dependent on file name.
+
+      .. versionchanged:: 3.5
+         Found packages are now checked for ``load_tests`` regardless of
+         whether their path matches *pattern*, because it is impossible for
+         a package name to match the default pattern.
 
 
    The following attributes of a :class:`TestLoader` can be configured either by
@@ -1691,6 +1769,21 @@ Loading and running tests
       :class:`TestSuite` class.
 
       This affects all the :meth:`loadTestsFrom\*` methods.
+
+   .. attribute:: testNamePatterns
+
+      List of Unix shell-style wildcard test name patterns that test methods
+      have to match to be included in test suites (see ``-v`` option).
+
+      If this attribute is not ``None`` (the default), all test methods to be
+      included in test suites must match one of the patterns in this list.
+      Note that matches are always performed using :meth:`fnmatch.fnmatchcase`,
+      so unlike patterns passed to the ``-v`` option, simple substring patterns
+      will have to be converted using ``*`` wildcards.
+
+      This affects all the :meth:`loadTestsFrom\*` methods.
+
+      .. versionadded:: 3.7
 
 
 .. class:: TestResult
@@ -1746,11 +1839,9 @@ Loading and running tests
 
       Set to ``True`` when the execution of tests should stop by :meth:`stop`.
 
-
    .. attribute:: testsRun
 
       The total number of tests run so far.
-
 
    .. attribute:: buffer
 
@@ -1761,7 +1852,6 @@ Loading and running tests
 
       .. versionadded:: 3.2
 
-
    .. attribute:: failfast
 
       If set to true :meth:`stop` will be called on the first failure or error,
@@ -1769,6 +1859,11 @@ Loading and running tests
 
       .. versionadded:: 3.2
 
+   .. attribute:: tb_locals
+
+      If set to true then local variables will be shown in tracebacks.
+
+      .. versionadded:: 3.5
 
    .. method:: wasSuccessful()
 
@@ -1778,7 +1873,6 @@ Loading and running tests
       .. versionchanged:: 3.4
          Returns ``False`` if there were any :attr:`unexpectedSuccesses`
          from tests marked with the :func:`expectedFailure` decorator.
-
 
    .. method:: stop()
 
@@ -1911,12 +2005,14 @@ Loading and running tests
 
 
 .. class:: TextTestRunner(stream=None, descriptions=True, verbosity=1, failfast=False, \
-                          buffer=False, resultclass=None, warnings=None)
+                          buffer=False, resultclass=None, warnings=None, *, tb_locals=False)
 
    A basic test runner implementation that outputs results to a stream. If *stream*
    is ``None``, the default, :data:`sys.stderr` is used as the output stream. This class
    has a few configurable parameters, but is essentially very simple.  Graphical
-   applications which run test suites should provide alternate implementations.
+   applications which run test suites should provide alternate implementations. Such
+   implementations should accept ``**kwargs`` as the interface to construct runners
+   changes when features are added to unittest.
 
    By default this runner shows :exc:`DeprecationWarning`,
    :exc:`PendingDeprecationWarning`, :exc:`ResourceWarning` and
@@ -1925,7 +2021,8 @@ Loading and running tests
    methods <deprecated-aliases>` are also special-cased and, when the warning
    filters are ``'default'`` or ``'always'``, they will appear only once
    per-module, in order to avoid too many warning messages.  This behavior can
-   be overridden using the :option:`-Wd` or :option:`-Wa` options and leaving
+   be overridden using Python's :option:`!-Wd` or :option:`!-Wa` options
+   (see :ref:`Warning control <using-on-warnings>`) and leaving
    *warnings* to ``None``.
 
    .. versionchanged:: 3.2
@@ -1934,6 +2031,9 @@ Loading and running tests
    .. versionchanged:: 3.2
       The default stream is set to :data:`sys.stderr` at instantiation time rather
       than import time.
+
+   .. versionchanged:: 3.5
+      Added the tb_locals parameter.
 
    .. method:: _makeResult()
 
@@ -2001,9 +2101,10 @@ Loading and running tests
    The *failfast*, *catchbreak* and *buffer* parameters have the same
    effect as the same-name `command-line options`_.
 
-   The *warning* argument specifies the :ref:`warning filter <warning-filter>`
+   The *warnings* argument specifies the :ref:`warning filter <warning-filter>`
    that should be used while running the tests.  If it's not specified, it will
-   remain ``None`` if a :option:`-W` option is passed to :program:`python`,
+   remain ``None`` if a :option:`!-W` option is passed to :program:`python`
+   (see :ref:`Warning control <using-on-warnings>`),
    otherwise it will be set to ``'default'``.
 
    Calling ``main`` actually returns an instance of the ``TestProgram`` class.
@@ -2032,7 +2133,10 @@ test runs or test discovery by implementing a function called ``load_tests``.
 If a test module defines ``load_tests`` it will be called by
 :meth:`TestLoader.loadTestsFromModule` with the following arguments::
 
-    load_tests(loader, standard_tests, None)
+    load_tests(loader, standard_tests, pattern)
+
+where *pattern* is passed straight through from ``loadTestsFromModule``.  It
+defaults to ``None``.
 
 It should return a :class:`TestSuite`.
 
@@ -2054,21 +2158,12 @@ A typical ``load_tests`` function that loads tests from a specific set of
             suite.addTests(tests)
         return suite
 
-If discovery is started, either from the command line or by calling
-:meth:`TestLoader.discover`, with a pattern that matches a package
-name then the package :file:`__init__.py` will be checked for ``load_tests``.
-
-.. note::
-
-   The default pattern is ``'test*.py'``. This matches all Python files
-   that start with ``'test'`` but *won't* match any test directories.
-
-   A pattern like ``'test*'`` will match test packages as well as
-   modules.
-
-If the package :file:`__init__.py` defines ``load_tests`` then it will be
-called and discovery not continued into the package. ``load_tests``
-is called with the following arguments::
+If discovery is started in a directory containing a package, either from the
+command line or by calling :meth:`TestLoader.discover`, then the package
+:file:`__init__.py` will be checked for ``load_tests``.  If that function does
+not exist, discovery will recurse into the package as though it were just
+another directory.  Otherwise, discovery of the package's tests will be left up
+to ``load_tests`` which is called with the following arguments::
 
     load_tests(loader, standard_tests, pattern)
 
@@ -2086,6 +2181,11 @@ continue (and potentially modify) test discovery. A 'do nothing'
         package_tests = loader.discover(start_dir=this_dir, pattern=pattern)
         standard_tests.addTests(package_tests)
         return standard_tests
+
+.. versionchanged:: 3.5
+   Discovery no longer checks package names for matching *pattern* due to the
+   impossibility of package names matching the default pattern.
+
 
 
 Class and Module Fixtures
@@ -2222,7 +2322,7 @@ handling functionality within test frameworks.
 
    When called without arguments this function removes the control-c handler
    if it has been installed. This function can also be used as a test decorator
-   to temporarily remove the handler whilst the test is being executed::
+   to temporarily remove the handler while the test is being executed::
 
       @unittest.removeHandler
       def test_signal_handling(self):

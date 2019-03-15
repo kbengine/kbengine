@@ -64,6 +64,8 @@ public:
 	virtual void onNodePassY(CoordinateNode* pNode, bool isfront);
 	virtual void onNodePassZ(CoordinateNode* pNode, bool isfront);
 
+	INLINE bool isPositive() const;
+
 protected:
 	float range_xz_, range_y_, old_range_xz_, old_range_y_;
 	RangeTrigger* pRangeTrigger_;

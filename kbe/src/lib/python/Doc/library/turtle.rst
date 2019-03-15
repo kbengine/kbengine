@@ -4,12 +4,17 @@
 
 .. module:: turtle
    :synopsis: An educational framework for simple graphics applications
+
 .. sectionauthor:: Gregor Lingl <gregor.lingl@aon.at>
+
+**Source code:** :source:`Lib/turtle.py`
 
 .. testsetup:: default
 
    from turtle import *
    turtle = Turtle()
+
+--------------
 
 Introduction
 ============
@@ -544,7 +549,7 @@ Turtle motion
 
    :param n: an integer (or ``None``)
 
-   Delete all or first/last *n* of turtle's stamps.  If *n* is None, delete
+   Delete all or first/last *n* of turtle's stamps.  If *n* is ``None``, delete
    all stamps, if *n* > 0 delete first *n* stamps, else if *n* < 0 delete
    last *n* stamps.
 
@@ -931,10 +936,9 @@ Color control
        >>> turtle.fillcolor("violet")
        >>> turtle.fillcolor()
        'violet'
-       >>> col = turtle.pencolor()
-       >>> col
+       >>> turtle.pencolor()
        (50.0, 193.0, 143.0)
-       >>> turtle.fillcolor(col)
+       >>> turtle.fillcolor((50, 193, 143))  # Integers, not floats
        >>> turtle.fillcolor()
        (50.0, 193.0, 143.0)
        >>> turtle.fillcolor('#ffffff')
@@ -1305,7 +1309,7 @@ Using events
 
    :param fun: a function with two arguments which will be called with the
                coordinates of the clicked point on the canvas
-   :param num: number of the mouse-button, defaults to 1 (left mouse button)
+   :param btn: number of the mouse-button, defaults to 1 (left mouse button)
    :param add: ``True`` or ``False`` -- if ``True``, a new binding will be
                added, otherwise it will replace a former binding
 
@@ -1326,7 +1330,7 @@ Using events
 
    :param fun: a function with two arguments which will be called with the
                coordinates of the clicked point on the canvas
-   :param num: number of the mouse-button, defaults to 1 (left mouse button)
+   :param btn: number of the mouse-button, defaults to 1 (left mouse button)
    :param add: ``True`` or ``False`` -- if ``True``, a new binding will be
                added, otherwise it will replace a former binding
 
@@ -1350,7 +1354,7 @@ Using events
 
    :param fun: a function with two arguments which will be called with the
                coordinates of the clicked point on the canvas
-   :param num: number of the mouse-button, defaults to 1 (left mouse button)
+   :param btn: number of the mouse-button, defaults to 1 (left mouse button)
    :param add: ``True`` or ``False`` -- if ``True``, a new binding will be
                added, otherwise it will replace a former binding
 
@@ -1731,7 +1735,7 @@ Using screen events
 
    :param fun: a function with two arguments which will be called with the
                coordinates of the clicked point on the canvas
-   :param num: number of the mouse-button, defaults to 1 (left mouse button)
+   :param btn: number of the mouse-button, defaults to 1 (left mouse button)
    :param add: ``True`` or ``False`` -- if ``True``, a new binding will be
                added, otherwise it will replace a former binding
 
@@ -1792,9 +1796,9 @@ Input methods
    :param prompt: string
 
    Pop up a dialog window for input of a string. Parameter title is
-   the title of the dialog window, propmt is a text mostly describing
+   the title of the dialog window, prompt is a text mostly describing
    what information to input.
-   Return the string input. If the dialog is canceled, return None. ::
+   Return the string input. If the dialog is canceled, return ``None``. ::
 
       >>> screen.textinput("NIM", "Name of first player:")
 
@@ -1809,12 +1813,12 @@ Input methods
 
    Pop up a dialog window for input of a number. title is the title of the
    dialog window, prompt is a text mostly describing what numerical information
-   to input. default: default value, minval: minimum value for imput,
+   to input. default: default value, minval: minimum value for input,
    maxval: maximum value for input
    The number input must be in the range minval .. maxval if these are
    given. If not, a hint is issued and the dialog remains open for
    correction.
-   Return the number input. If the dialog is canceled,  return None. ::
+   Return the number input. If the dialog is canceled,  return ``None``. ::
 
       >>> screen.numinput("Poker", "Your stakes:", 1000, minval=10, maxval=10000)
 
@@ -1879,7 +1883,7 @@ Settings and special methods
 
       >>> cv = screen.getcanvas()
       >>> cv
-      <turtle.ScrolledCanvas object at ...>
+      <turtle.ScrolledCanvas object ...>
 
 
 .. function:: getshapes()
@@ -1979,10 +1983,10 @@ Methods specific to Screen, not inherited from TurtleScreen
    :param height: if an integer, the height in pixels, if a float, a fraction of
                   the screen; default is 75% of screen
    :param startx: if positive, starting position in pixels from the left
-                  edge of the screen, if negative from the right edge, if None,
+                  edge of the screen, if negative from the right edge, if ``None``,
                   center window horizontally
    :param starty: if positive, starting position in pixels from the top
-                  edge of the screen, if negative from the bottom edge, if None,
+                  edge of the screen, if negative from the bottom edge, if ``None``,
                   center window vertically
 
    .. doctest::
@@ -2274,10 +2278,13 @@ study it as an example and see its effects when running the demos (preferably
 not from within the demo-viewer).
 
 
-Demo scripts
-============
+:mod:`turtledemo` --- Demo scripts
+==================================
 
-There is a set of demo scripts in the :mod:`turtledemo` package.  These
+.. module:: turtledemo
+   :synopsis: A viewer for example turtle scripts
+
+The :mod:`turtledemo` package includes a set of demo scripts.  These
 scripts can be run and viewed using the supplied demo viewer as follows::
 
    python -m turtledemo
@@ -2288,16 +2295,13 @@ Alternatively, you can run the demo scripts individually.  For example, ::
 
 The :mod:`turtledemo` package directory contains:
 
-- a set of 15 demo scripts demonstrating different features of the new module
-  :mod:`turtle`;
-- a demo viewer :file:`__main__.py` which can be used to view the sourcecode
-  of the scripts and run them at the same time. 14 of the examples can be
-  accessed via the Examples menu; all of them can also be run standalone.
-- The example :mod:`turtledemo.two_canvases` demonstrates the simultaneous
-  use of two canvases with the turtle module.  Therefore it only can be run
-  standalone.
-- There is a :file:`turtle.cfg` file in this directory, which serves as an
-  example for how to write and use such files.
+- A demo viewer :file:`__main__.py` which can be used to view the sourcecode
+  of the scripts and run them at the same time.
+- Multiple scripts demonstrating different features of the :mod:`turtle`
+  module.  Examples can be accessed via the Examples menu.  They can also
+  be run standalone.
+- A :file:`turtle.cfg` file which serves as an example of how to write
+  and use such files.
 
 The demo scripts are:
 
@@ -2319,6 +2323,8 @@ The demo scripts are:
 |                | of your computer             | hands, ontimer        |
 +----------------+------------------------------+-----------------------+
 | colormixer     | experiment with r, g, b      | :func:`ondrag`        |
++----------------+------------------------------+-----------------------+
+| forest         | 3 breadth-first trees        | randomization         |
 +----------------+------------------------------+-----------------------+
 | fractalcurves  | Hilbert & Koch curves        | recursion             |
 +----------------+------------------------------+-----------------------+
@@ -2349,13 +2355,19 @@ The demo scripts are:
 |                | pairwise in opposite         | shapesize, tilt,      |
 |                | direction                    | get_shapepoly, update |
 +----------------+------------------------------+-----------------------+
+| sorting_animate| visual demonstration of      | simple alignment,     |
+|                | different sorting methods    | randomization         |
++----------------+------------------------------+-----------------------+
 | tree           | a (graphical) breadth        | :func:`clone`         |
 |                | first tree (using generators)|                       |
++----------------+------------------------------+-----------------------+
+| two_canvases   | simple design                | turtles on two        |
+|                |                              | canvases              |
 +----------------+------------------------------+-----------------------+
 | wikipedia      | a pattern from the wikipedia | :func:`clone`,        |
 |                | article on turtle graphics   | :func:`undo`          |
 +----------------+------------------------------+-----------------------+
-| yingyang       | another elementary example   | :func:`circle`        |
+| yinyang        | another elementary example   | :func:`circle`        |
 +----------------+------------------------------+-----------------------+
 
 Have fun!
@@ -2397,7 +2409,7 @@ Changes since Python 3.0
   Accordingly the latter has got an alias: :meth:`Screen.onkeyrelease`.
 
 - The method  :meth:`Screen.mainloop` has been added. So when working only
-  with Screen and Turtle objects one must not additonally import
+  with Screen and Turtle objects one must not additionally import
   :func:`mainloop` anymore.
 
 - Two input methods has been added :meth:`Screen.textinput` and

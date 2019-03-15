@@ -87,6 +87,17 @@ void SignalHandlers::attachApp(ServerApp* app)
 }
 
 //-------------------------------------------------------------------------------------	
+bool SignalHandlers::ignoreSignal(int sigNum)
+{
+#if KBE_PLATFORM != PLATFORM_WIN32
+	if (signal(sigNum, SIG_IGN) == SIG_ERR)
+		return false;
+#endif
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
 SignalHandler* SignalHandlers::addSignal(int sigNum, 
 	SignalHandler* pSignalHandler, int flags)
 {

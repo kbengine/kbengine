@@ -86,8 +86,8 @@ The union and intersection of sets can be computed with the :meth:`union` and
 It's also possible to take the symmetric difference of two sets.  This is the
 set of all elements in the union that aren't in the intersection.  Another way
 of putting it is that the symmetric difference contains all elements that are in
-exactly one set.  Again, there's an alternative notation (``^``), and an in-
-place version with the ungainly name :meth:`symmetric_difference_update`. ::
+exactly one set.  Again, there's an alternative notation (``^``), and an
+in-place version with the ungainly name :meth:`symmetric_difference_update`. ::
 
    >>> S1 = sets.Set([1,2,3,4])
    >>> S2 = sets.Set([3,4,5,6])
@@ -162,9 +162,9 @@ similar to a :keyword:`return` statement.  The big difference between
 variables are preserved.  On the next call to the generator's ``.next()``
 method, the function will resume executing immediately after the
 :keyword:`yield` statement.  (For complicated reasons, the :keyword:`yield`
-statement isn't allowed inside the :keyword:`try` block of a :keyword:`try`...\
-:keyword:`finally` statement; read :pep:`255` for a full explanation of the
-interaction between :keyword:`yield` and exceptions.)
+statement isn't allowed inside the :keyword:`try` block of a
+:keyword:`try`...\ :keyword:`finally` statement; read :pep:`255` for a full
+explanation of the interaction between :keyword:`yield` and exceptions.)
 
 Here's a sample usage of the :func:`generate_ints` generator::
 
@@ -218,10 +218,10 @@ queen threatens another) and the Knight's Tour (a route that takes a knight to
 every square of an $NxN$ chessboard without visiting any square twice).
 
 The idea of generators comes from other programming languages, especially Icon
-(http://www.cs.arizona.edu/icon/), where the idea of generators is central.  In
+(https://www.cs.arizona.edu/icon/), where the idea of generators is central.  In
 Icon, every expression and function call behaves like a generator.  One example
 from "An Overview of the Icon Programming Language" at
-http://www.cs.arizona.edu/icon/docs/ipd266.htm gives an idea of what this looks
+https://www.cs.arizona.edu/icon/docs/ipd266.htm gives an idea of what this looks
 like::
 
    sentence := "Store it in the neighboring harbor"
@@ -288,10 +288,12 @@ use characters outside of the usual alphanumerics.
 PEP 273: Importing Modules from ZIP Archives
 ============================================
 
-The new :mod:`zipimport` module adds support for importing modules from a ZIP-
-format archive.  You don't need to import the module explicitly; it will be
+The new :mod:`zipimport` module adds support for importing modules from a
+ZIP-format archive.  You don't need to import the module explicitly; it will be
 automatically imported if a ZIP archive's filename is added to ``sys.path``.
-For example::
+For example:
+
+.. code-block:: shell-session
 
    amk@nyman:~/src/python$ unzip -l /tmp/example.zip
    Archive:  /tmp/example.zip
@@ -373,8 +375,8 @@ PEP 278: Universal Newline Support
 ==================================
 
 The three major operating systems used today are Microsoft Windows, Apple's
-Macintosh OS, and the various Unix derivatives.  A minor irritation of cross-
-platform work  is that these three platforms all use different characters to
+Macintosh OS, and the various Unix derivatives.  A minor irritation of
+cross-platform work  is that these three platforms all use different characters to
 mark the ends of lines in text files.  Unix uses the linefeed (ASCII character
 10), MacOS uses the carriage return (ASCII character 13), and Windows uses a
 two-character sequence of a carriage return plus a newline.
@@ -392,7 +394,7 @@ be shared between all three operating systems without needing to convert the
 line-endings.
 
 This feature can be disabled when compiling Python by specifying the
-:option:`--without-universal-newlines` switch when running Python's
+:option:`!--without-universal-newlines` switch when running Python's
 :program:`configure` script.
 
 
@@ -411,7 +413,7 @@ PEP 279: enumerate()
 
 A new built-in function, :func:`enumerate`, will make certain loops a bit
 clearer.  ``enumerate(thing)``, where *thing* is either an iterator or a
-sequence, returns a iterator that will return ``(0, thing[0])``, ``(1,
+sequence, returns an iterator that will return ``(0, thing[0])``, ``(1,
 thing[1])``, ``(2, thing[2])``, and so forth.
 
 A common idiom to change every element of a list looks like this::
@@ -657,7 +659,7 @@ The heart of the catalog is the new Distutils :command:`register` command.
 Running ``python setup.py register`` will collect the metadata describing a
 package, such as its name, version, maintainer, description, &c., and send it to
 a central catalog server.  The resulting catalog is available from
-http://www.python.org/pypi.
+https://pypi.org.
 
 To make the catalog a bit more useful, a new optional *classifiers* keyword
 argument has been added to the Distutils :func:`setup` function.  A list of
@@ -1057,7 +1059,7 @@ Here are all of the changes that Python 2.3 makes to the core Python language.
 * A new warning, :exc:`PendingDeprecationWarning` was added to indicate features
   which are in the process of being deprecated.  The warning will *not* be printed
   by default.  To check for use of features that will be deprecated in the future,
-  supply :option:`-Walways::PendingDeprecationWarning::` on the command line or
+  supply :option:`-Walways::PendingDeprecationWarning:: <-W>` on the command line or
   use :func:`warnings.filterwarnings`.
 
 * The process of deprecating string-based exceptions, as in ``raise "Error
@@ -1080,11 +1082,11 @@ Here are all of the changes that Python 2.3 makes to the core Python language.
   hierarchy.  Classic classes are unaffected by this change.  Python 2.2
   originally used a topological sort of a class's ancestors, but 2.3 now uses the
   C3 algorithm as described in the paper `"A Monotonic Superclass Linearization
-  for Dylan" <http://www.webcom.com/haahr/dylan/linearization-oopsla96.html>`_. To
+  for Dylan" <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.19.3910>`_. To
   understand the motivation for this change,  read Michele Simionato's article
-  `"Python 2.3 Method Resolution Order" <http://www.python.org/2.3/mro.html>`_, or
+  `"Python 2.3 Method Resolution Order" <http://www.phyast.pitt.edu/~micheles/mro.html>`_, or
   read the thread on python-dev starting with the message at
-  http://mail.python.org/pipermail/python-dev/2002-October/029035.html. Samuele
+  https://mail.python.org/pipermail/python-dev/2002-October/029035.html. Samuele
   Pedroni first pointed out the problem and also implemented the fix by coding the
   C3 algorithm.
 
@@ -1111,10 +1113,10 @@ Here are all of the changes that Python 2.3 makes to the core Python language.
      <type '_socket.socket'>
 
 * One of the noted incompatibilities between old- and new-style classes has been
-  removed: you can now assign to the :attr:`__name__` and :attr:`__bases__`
+  removed: you can now assign to the :attr:`~definition.__name__` and :attr:`~class.__bases__`
   attributes of new-style classes.  There are some restrictions on what can be
-  assigned to :attr:`__bases__` along the lines of those relating to assigning to
-  an instance's :attr:`__class__` attribute.
+  assigned to :attr:`~class.__bases__` along the lines of those relating to assigning to
+  an instance's :attr:`~instance.__class__` attribute.
 
 .. ======================================================================
 
@@ -1245,8 +1247,8 @@ complete list of changes, or look through the CVS logs for all the details.
   will have to change your ``import`` statements to import it as :mod:`bsddb`.
 
 * The new :mod:`bz2` module is an interface to the bz2 data compression library.
-  bz2-compressed data is usually smaller than  corresponding :mod:`zlib`\
-  -compressed data. (Contributed by Gustavo Niemeyer.)
+  bz2-compressed data is usually smaller than  corresponding
+  :mod:`zlib`\ -compressed data. (Contributed by Gustavo Niemeyer.)
 
 * A set of standard date/time types has been added in the new :mod:`datetime`
   module.  See the following section for more details.
@@ -1306,7 +1308,7 @@ complete list of changes, or look through the CVS logs for all the details.
   partially sorted order such that, for every index *k*, ``heap[k] <=
   heap[2*k+1]`` and ``heap[k] <= heap[2*k+2]``.  This makes it quick to remove the
   smallest item, and inserting a new item while maintaining the heap property is
-  O(lg n).  (See http://www.nist.gov/dads/HTML/priorityque.html for more
+  O(lg n).  (See https://xlinux.nist.gov/dads//HTML/priorityque.html for more
   information about the priority queue data structure.)
 
   The :mod:`heapq` module provides :func:`heappush` and :func:`heappop` functions
@@ -1330,7 +1332,7 @@ complete list of changes, or look through the CVS logs for all the details.
   (Contributed by Kevin O'Connor.)
 
 * The IDLE integrated development environment has been updated using the code
-  from the IDLEfork project (http://idlefork.sf.net).  The most notable feature is
+  from the IDLEfork project (http://idlefork.sourceforge.net).  The most notable feature is
   that the code being developed is now executed in a subprocess, meaning that
   there's no longer any need for manual ``reload()`` operations. IDLE's core code
   has been incorporated into the standard library as the :mod:`idlelib` package.
@@ -1564,7 +1566,7 @@ complete list of changes, or look through the CVS logs for all the details.
   to the correct thread, and waiting for the results.  Other interfaces can't be
   handled automatically but :mod:`Tkinter` will now raise an exception on such an
   access so that you can at least find out about the problem.  See
-  http://mail.python.org/pipermail/python-dev/2002-December/031107.html for a more
+  https://mail.python.org/pipermail/python-dev/2002-December/031107.html for a more
   detailed explanation of this change.  (Implemented by Martin von Löwis.)
 
 * Calling Tcl methods through :mod:`_tkinter` no longer  returns only strings.
@@ -1681,13 +1683,13 @@ Date and time types suitable for expressing timestamps were added as the
 fancy features, and just stick to the basics of representing time.
 
 The three primary types are: :class:`date`, representing a day, month, and year;
-:class:`time`, consisting of hour, minute, and second; and :class:`datetime`,
-which contains all the attributes of both :class:`date` and :class:`time`.
+:class:`~datetime.time`, consisting of hour, minute, and second; and :class:`~datetime.datetime`,
+which contains all the attributes of both :class:`date` and :class:`~datetime.time`.
 There's also a :class:`timedelta` class representing differences between two
 points in time, and time zone logic is implemented by classes inheriting from
 the abstract :class:`tzinfo` class.
 
-You can create instances of :class:`date` and :class:`time` by either supplying
+You can create instances of :class:`date` and :class:`~datetime.time` by either supplying
 keyword arguments to the appropriate constructor, e.g.
 ``datetime.date(year=1972, month=10, day=15)``, or by using one of a number of
 class methods.  For example, the :meth:`date.today` class method returns the
@@ -1706,7 +1708,7 @@ number of methods for producing formatted strings from objects::
    '2002 30 Dec'
 
 The :meth:`replace` method allows modifying one or more fields  of a
-:class:`date` or :class:`datetime` instance, returning a new instance::
+:class:`date` or :class:`~datetime.datetime` instance, returning a new instance::
 
    >>> d = datetime.datetime.now()
    >>> d
@@ -1716,11 +1718,11 @@ The :meth:`replace` method allows modifying one or more fields  of a
    >>>
 
 Instances can be compared, hashed, and converted to strings (the result is the
-same as that of :meth:`isoformat`).  :class:`date` and :class:`datetime`
+same as that of :meth:`isoformat`).  :class:`date` and :class:`~datetime.datetime`
 instances can be subtracted from each other, and added to :class:`timedelta`
 instances.  The largest missing feature is that there's no standard library
 support for parsing strings and getting back a :class:`date` or
-:class:`datetime`.
+:class:`~datetime.datetime`.
 
 For more information, refer to the module's reference documentation.
 (Contributed by Tim Peters.)
@@ -1734,7 +1736,7 @@ The optparse Module
 The :mod:`getopt` module provides simple parsing of command-line arguments.  The
 new :mod:`optparse` module (originally named Optik) provides more elaborate
 command-line parsing that follows the Unix conventions, automatically creates
-the output for :option:`--help`, and can perform different actions for different
+the output for :option:`!--help`, and can perform different actions for different
 options.
 
 You start by creating an instance of :class:`OptionParser` and telling it what
@@ -1761,7 +1763,9 @@ This returns an object containing all of the option values, and a list of
 strings containing the remaining arguments.
 
 Invoking the script with the various arguments now works as you'd expect it to.
-Note that the length argument is automatically converted to an integer. ::
+Note that the length argument is automatically converted to an integer.
+
+.. code-block:: shell-session
 
    $ ./python opt.py -i data arg1
    <Values at 0x400cad4c: {'input': 'data', 'length': None}>
@@ -1771,7 +1775,9 @@ Note that the length argument is automatically converted to an integer. ::
    []
    $
 
-The help message is automatically generated for you::
+The help message is automatically generated for you:
+
+.. code-block:: shell-session
 
    $ ./python opt.py --help
    usage: opt.py [options]
@@ -1806,9 +1812,9 @@ pools of memory and then fulfills smaller memory requests from these pools.
 
 In 2.1 and 2.2, pymalloc was an experimental feature and wasn't enabled by
 default; you had to explicitly enable it when compiling Python by providing the
-:option:`--with-pymalloc` option to the :program:`configure` script.  In 2.3,
+:option:`!--with-pymalloc` option to the :program:`configure` script.  In 2.3,
 pymalloc has had further enhancements and is now enabled by default; you'll have
-to supply :option:`--without-pymalloc` to disable it.
+to supply :option:`!--without-pymalloc` to disable it.
 
 This change is transparent to code written in Python; however, pymalloc may
 expose bugs in C extensions.  Authors of C extension modules should test their
@@ -1847,7 +1853,7 @@ Thanks to lots of work by Tim Peters, pymalloc in 2.3 also provides debugging
 features to catch memory overwrites and doubled frees in both extension modules
 and in the interpreter itself.  To enable this support, compile a debugging
 version of the Python interpreter by running :program:`configure` with
-:option:`--with-pydebug`.
+:option:`!--with-pydebug`.
 
 To aid extension writers, a header file :file:`Misc/pymemcompat.h` is
 distributed with the source to Python 2.3 that allows Python extensions to use
@@ -1858,7 +1864,7 @@ and bundle it with the source of your extension.
 
 .. seealso::
 
-   http://svn.python.org/view/python/trunk/Objects/obmalloc.c
+   https://hg.python.org/cpython/file/default/Objects/obmalloc.c
       For the full details of the pymalloc implementation, see the comments at
       the top of the file :file:`Objects/obmalloc.c` in the Python source code.
       The above link points to the file within the python.org SVN browser.
@@ -1873,11 +1879,11 @@ Changes to Python's build process and to the C API include:
 
 * The cycle detection implementation used by the garbage collection has proven
   to be stable, so it's now been made mandatory.  You can no longer compile Python
-  without it, and the :option:`--with-cycle-gc` switch to :program:`configure` has
+  without it, and the :option:`!--with-cycle-gc` switch to :program:`configure` has
   been removed.
 
 * Python can now optionally be built as a shared library
-  (:file:`libpython2.3.so`) by supplying :option:`--enable-shared` when running
+  (:file:`libpython2.3.so`) by supplying :option:`!--enable-shared` when running
   Python's :program:`configure` script.  (Contributed by Ondrej Palkovsky.)
 
 * The :c:macro:`DL_EXPORT` and :c:macro:`DL_IMPORT` macros are now deprecated.
@@ -1886,7 +1892,7 @@ Changes to Python's build process and to the C API include:
   generally use the :c:macro:`PyAPI_FUNC` and :c:macro:`PyAPI_DATA` macros.
 
 * The interpreter can be compiled without any docstrings for the built-in
-  functions and modules by supplying :option:`--without-doc-strings` to the
+  functions and modules by supplying :option:`!--without-doc-strings` to the
   :program:`configure` script. This makes the Python executable about 10% smaller,
   but will also mean that you can't get help for Python's built-ins.  (Contributed
   by Gustavo Niemeyer.)
@@ -1920,7 +1926,7 @@ Changes to Python's build process and to the C API include:
 
 * If you dynamically allocate type objects in your extension, you should be
   aware of a change in the rules relating to the :attr:`__module__` and
-  :attr:`__name__` attributes.  In summary, you will want to ensure the type's
+  :attr:`~definition.__name__` attributes.  In summary, you will want to ensure the type's
   dictionary contains a ``'__module__'`` key; making the module name the part of
   the type name leading up to the final period will no longer have the desired
   effect.  For more detail, read the API reference documentation or the  source.
@@ -1973,7 +1979,7 @@ Some of the more notable changes are:
   the Python program as part of its execution.
 
 * The :file:`regrtest.py` script now provides a way to allow "all resources
-  except *foo*."  A resource name passed to the :option:`-u` option can now be
+  except *foo*."  A resource name passed to the :option:`!-u` option can now be
   prefixed with a hyphen (``'-'``) to mean "remove this resource."  For example,
   the option '``-uall,-bsddb``' could be used to enable the use of all resources
   except ``bsddb``.
@@ -2078,4 +2084,3 @@ Michael Hudson, Chris Lambert, Detlef Lannert, Martin von Löwis, Andrew
 MacIntyre, Lalo Martins, Chad Netzer, Gustavo Niemeyer, Neal Norwitz, Hans
 Nowak, Chris Reedy, Francesco Ricciardi, Vinay Sajip, Neil Schemenauer, Roman
 Suzi, Jason Tishler, Just van Rossum.
-

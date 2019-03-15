@@ -58,7 +58,7 @@ class TelnetConsole(object):
 			while True:
 				rl, wl, xl = select.select(rlist, [], [], 0.1)
 				if tlfd in rl:
-					data = self.consoleInst.read_some()
+					data = self.consoleInst.read_very_eager()
 					if not data:
 						break # socket closed
 					if not self.onReceivedConsoleData( data ):
@@ -122,7 +122,7 @@ class ProfileConsole(TelnetConsole):
 	"""
 	用于性能分析的控制台类
 	"""
-	def __init__( self, wsInst, host, port, command, sec ):
+	def __init__( self, wsInst, host, port, command, sec, password):
 		"""
 		"""
 		self.wsInst = wsInst
@@ -131,13 +131,14 @@ class ProfileConsole(TelnetConsole):
 		self.consoleInst = None
 		self.cmd = command.encode('utf-8')
 		self.sec = sec.encode('utf-8')
+		self.password = password.encode('utf-8')
 
 	def onConnectedToConsole( self ):
 		"""
 		template method.
 		当成功连接上telnet控制台时回调pytickprofile
 		"""
-		self.consoleInst.write( b"kbe\r\n" )
+		self.consoleInst.write( b"" + self.password + b"\r\n")
 		self.consoleInst.write( b":"+self.cmd+b" "+self.sec+b"\r\n")
 
 	def onReceivedConsoleData( self, data ):

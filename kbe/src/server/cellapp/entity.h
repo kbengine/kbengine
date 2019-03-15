@@ -197,14 +197,6 @@ public:
 	*/
 	void setPosition_XYZ_float(Network::Channel* pChannel, float x, float y, float z);
 
-	/** 网络接口
-		entity传送
-		@cellAppID: 要传送到的目的cellappID
-		@targetEntityID：要传送到这个entity的space中
-		@sourceBaseAppID: 有可能是由某个baseapp上的base请求teleport的， 如果为0则为cellEntity发起
-	*/
-	void teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
-
 	/**
 		cell上的传送方法
 	*/
@@ -312,9 +304,9 @@ public:
 		entity移动到某个entity 
 	*/
 	uint32 moveToEntity(ENTITY_ID targetID, float velocity, float distance,
-			PyObject* userData, bool faceMovement, bool moveVertically);
+			PyObject* userData, bool faceMovement, bool moveVertically, const Position3D& offsetPos);
 	
-	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
+	static PyObject* __py_pyMoveToEntity(PyObject* self, PyObject* args);
 
 	/**
 	entity移动加速
@@ -344,7 +336,8 @@ public:
 	/** 
 		脚本请求获得View范围内的entities 
 	*/
-	DECLARE_PY_MOTHOD_ARG0(pyEntitiesInView);
+	static PyObject* __py_pyEntitiesInView(PyObject* self, PyObject* args);
+	PyObject* entitiesInView(bool pending);
 
 	/**
 		设置获取是否自动备份
@@ -573,7 +566,7 @@ public:
 	/** 
 		设置实体持久化数据是否已脏，脏了会自动存档 
 	*/
-	INLINE void setDirty(bool dirty = true);
+	INLINE void setDirty(uint32* digest = NULL);
 	INLINE bool isDirty() const;
 	
 	/**
@@ -681,8 +674,8 @@ protected:
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
 	
-	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
-	bool													isDirty_;
+	// 需要持久化的数据是否变脏（内存sha1），如果没有变脏不需要持久化
+	uint32													persistentDigest_[5];
 
 	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
 	VolatileInfo*											pCustomVolatileinfo_;

@@ -95,8 +95,12 @@ class Machines:
 			uid = Define.getDefaultUID()
 		
 		if username is None:
-			username = Define.pwd.getpwuid( uid ).pw_name
-			
+			try:
+				username = Define.pwd.getpwuid( uid ).pw_name
+			except:
+				import getpass
+				username = getpass.getuser()
+
 		self.uid = uid
 		self.username = username
 		if type(self.username) is str:
@@ -238,7 +242,7 @@ class Machines:
 		msg.writeInt32(self.uid)
 		msg.writeInt32(componentType)
 		msg.writeUint64(cid)
-		msg.writeInt16(gus)
+		msg.writeUint16(gus)
 		msg.writeUint16(socket.htons(self.replyPort)) # reply port
 		msg.writeString(kbe_root)
 		msg.writeString(kbe_res_path)

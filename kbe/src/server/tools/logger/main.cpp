@@ -63,7 +63,7 @@ int KBENGINE_MAIN(int argc, char* argv[])
 #endif
 	
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLogger();
-	int ret = kbeMainT<Logger>(argc, argv, LOGGER_TYPE, info.externalPorts_min, 
-		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
+	int ret = kbeMainT<Logger>(argc, argv, LOGGER_TYPE, info.externalTcpPorts_min, 
+		info.externalTcpPorts_max, -1, -1, info.externalInterface, 0, info.internalInterface);
 	return ret; 
 }

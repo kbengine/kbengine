@@ -5,9 +5,13 @@ XML Processing Modules
 
 .. module:: xml
    :synopsis: Package containing XML processing modules
+
 .. sectionauthor:: Christian Heimes <christian@python.org>
 .. sectionauthor:: Georg Brandl <georg@python.org>
 
+**Source code:** :source:`Lib/xml/`
+
+--------------
 
 Python's interfaces for processing XML are grouped in the ``xml`` package.
 
@@ -56,21 +60,23 @@ circumvent firewalls.
 The following table gives an overview of the known attacks and whether
 the various modules are vulnerable to them.
 
-=========================  ========  =========  =========  ========  =========
-kind                       sax       etree      minidom    pulldom   xmlrpc
-=========================  ========  =========  =========  ========  =========
-billion laughs             **Yes**   **Yes**    **Yes**    **Yes**   **Yes**
-quadratic blowup           **Yes**   **Yes**    **Yes**    **Yes**   **Yes**
-external entity expansion  **Yes**   No    (1)  No    (2)  **Yes**   No    (3)
-DTD retrieval              **Yes**   No         No         **Yes**   No
-decompression bomb         No        No         No         No        **Yes**
-=========================  ========  =========  =========  ========  =========
+=========================  ==============   ===============   ==============   ==============   ==============
+kind                       sax              etree             minidom          pulldom          xmlrpc
+=========================  ==============   ===============   ==============   ==============   ==============
+billion laughs             **Vulnerable**   **Vulnerable**    **Vulnerable**   **Vulnerable**   **Vulnerable**
+quadratic blowup           **Vulnerable**   **Vulnerable**    **Vulnerable**   **Vulnerable**   **Vulnerable**
+external entity expansion  Safe (4)         Safe    (1)       Safe    (2)      Safe (4)         Safe    (3)
+`DTD`_ retrieval           Safe (4)         Safe              Safe             Safe (4)         Safe
+decompression bomb         Safe             Safe              Safe             Safe             **Vulnerable**
+=========================  ==============   ===============   ==============   ==============   ==============
 
 1. :mod:`xml.etree.ElementTree` doesn't expand external entities and raises a
    :exc:`ParserError` when an entity occurs.
 2. :mod:`xml.dom.minidom` doesn't expand external entities and simply returns
    the unexpanded entity verbatim.
 3. :mod:`xmlrpclib` doesn't expand external entities and omits them.
+4. Since Python 3.7.1, external general entities are no longer processed by
+   default.
 
 
 billion laughs / exponential entity expansion
@@ -92,7 +98,7 @@ external entity expansion
   also point to external resources or local files. The XML
   parser accesses the resource and embeds the content into the XML document.
 
-DTD retrieval
+`DTD`_ retrieval
   Some XML libraries like Python's :mod:`xml.dom.pulldom` retrieve document type
   definitions from remote or local locations. The feature has similar
   implications as the external entity expansion issue.
@@ -126,8 +132,8 @@ but will not be included in any bugfix releases of
 Python because they break backward compatibility.
 
 
-.. _defusedxml: https://pypi.python.org/pypi/defusedxml/
-.. _defusedexpat: https://pypi.python.org/pypi/defusedexpat/
-.. _Billion Laughs: http://en.wikipedia.org/wiki/Billion_laughs
-.. _ZIP bomb: http://en.wikipedia.org/wiki/Zip_bomb
-.. _DTD: http://en.wikipedia.org/wiki/Document_Type_Definition
+.. _defusedxml: https://pypi.org/project/defusedxml/
+.. _defusedexpat: https://pypi.org/project/defusedexpat/
+.. _Billion Laughs: https://en.wikipedia.org/wiki/Billion_laughs
+.. _ZIP bomb: https://en.wikipedia.org/wiki/Zip_bomb
+.. _DTD: https://en.wikipedia.org/wiki/Document_type_definition

@@ -77,6 +77,11 @@
 		<arg>UINT8_ARRAY</arg> <!-- 二进制流， 具体由开发者来解析 -->
 	</Loginapp::reqCreateMailAccount>
 	
+	<Loginapp::importClientSDK>
+		<id>7</id>
+		<descr>客户端SDK导出。</descr>
+	</Loginapp::importClientSDK>
+	
 	<Baseapp::hello>
 		<id>200</id>
 		<descr>hello。</descr>
@@ -125,7 +130,7 @@
 		<id>208</id>
 		<descr>客户端entitydef导出。</descr>
 	</Baseapp::importClientEntityDef>
-	
+
 	<Base::onRemoteMethodCall>
 		<id>301</id>
 		<descr>调用一个base远程方法。</descr>
@@ -459,6 +464,74 @@
 		<descr>查询cellapp中cell列表</descr>
 	</Cellapp::setSpaceViewer>
 
+	<Baseapp::onExecScriptCommand>
+		<id>55001</id>
+		<descr>console远程执行python语句。</descr>
+	</Baseapp::onExecScriptCommand>
 
+	<Cellapp::onExecScriptCommand>
+		<id>55002</id>
+		<descr>console远程执行python语句。</descr>
+	</Cellapp::onExecScriptCommand>
 
+	<Bots::onExecScriptCommand>
+		<id>55003</id>
+		<descr>console远程执行python语句。</descr>
+	</Bots::onExecScriptCommand>
+
+	<Baseapp::onAppActiveTick>
+		<id>55100</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Baseapp::onAppActiveTick>
+
+	<Cellapp::onAppActiveTick>
+		<id>55101</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Cellapp::onAppActiveTick>
+
+	<Cellappmgr::onAppActiveTick>
+		<id>55102</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Cellappmgr::onAppActiveTick>
+
+	<Baseappmgr::onAppActiveTick>
+		<id>55103</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Baseappmgr::onAppActiveTick>
+
+	<Interfaces::onAppActiveTick>
+		<id>55104</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Interfaces::onAppActiveTick>
+
+	<Dbmgr::onAppActiveTick>
+		<id>55105</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Dbmgr::onAppActiveTick>
+
+	<Loginapp::onAppActiveTick>
+		<id>55106</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Loginapp::onAppActiveTick>
+
+	<Bots::onAppActiveTick>
+		<id>55107</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Bots::onAppActiveTick>
 </root>

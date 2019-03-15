@@ -39,8 +39,20 @@ networkInterface_(networkInterface)
 		for(; iter != propertyDescrs.end(); ++iter)
 		{
 			PropertyDescription* propertyDescription = iter->second;
+
+			// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+			if (!pScriptModule->hasCell())
+			{
+				if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !propertyDescription->hasBase())
+					continue;
+			}
+
 			accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
-			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
+			
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+				((EntityComponentDescription*)propertyDescription)->addPersistentToStreamTemplates(pScriptModule, &accountDefMemoryStream);
+			else
+				propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 		}
 	}
 }
@@ -93,11 +105,23 @@ bool SyncEntityStreamTemplateHandler::process()
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
+
+		// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+		if (!pScriptModule->hasCell())
+		{
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !propertyDescription->hasBase())
+				continue;
+		}
+
 		accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
-		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
+
+		if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+			((EntityComponentDescription*)propertyDescription)->addPersistentToStreamTemplates(pScriptModule, &accountDefMemoryStream);
+		else
+			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::syncEntityStreamTemplate);
 	(*pBundle).append(accountDefMemoryStream);

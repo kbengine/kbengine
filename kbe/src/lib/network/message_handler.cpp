@@ -333,9 +333,6 @@ std::string MessageHandlers::getDigestStr()
 				int32 argsize = pMessageHandler->pArgs->strArgsTypes.size();
 				md5.append((void*)&argsize, sizeof(int32));
 
-				int32 argsdataSize = pMessageHandler->pArgs->dataSize();
-				md5.append((void*)&argsdataSize, sizeof(int32));
-
 				int32 argstype = (int32)pMessageHandler->pArgs->type();
 				md5.append((void*)&argstype, sizeof(int32));
 

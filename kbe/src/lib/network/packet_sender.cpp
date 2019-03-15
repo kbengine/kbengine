@@ -13,6 +13,7 @@
 #include "network/event_dispatcher.h"
 #include "network/network_interface.h"
 #include "network/event_poller.h"
+#include <openssl/err.h>
 
 namespace KBEngine { 
 namespace Network
@@ -57,22 +58,22 @@ Channel* PacketSender::getChannel()
 //-------------------------------------------------------------------------------------
 int PacketSender::handleOutputNotification(int fd)
 {
-	processSend(NULL);
+	processSend(NULL, 0);
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketSender::processPacket(Channel* pChannel, Packet * pPacket)
+Reason PacketSender::processPacket(Channel* pChannel, Packet * pPacket, int userarg)
 {
 	if (pChannel != NULL)
 	{
 		if (pChannel->pFilter())
 		{
-			return pChannel->pFilter()->send(pChannel, *this, pPacket);
+			return pChannel->pFilter()->send(pChannel, *this, pPacket, userarg);
 		}
 	}
 
-	return this->processFilterPacket(pChannel, pPacket);
+	return this->processFilterPacket(pChannel, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -87,7 +88,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 	int err;
 	Reason reason;
 
-	#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 		err = errno;
 
 		switch (err)
@@ -99,7 +100,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
 			default:			reason = REASON_GENERAL_NETWORK; break;
 		}
-	#else
+#else
 		err = WSAGetLastError();
 
 		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
@@ -116,7 +117,16 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 				default:reason = REASON_GENERAL_NETWORK;break;
 			}
 		}
-	#endif
+#endif
+
+	if (err == 0 && pEndpoint->isSSL())
+	{
+		long sslerr = ERR_get_error();
+		if (sslerr > 0)
+		{
+			return REASON_WEBSOCKET_ERROR;
+		}
+	}
 
 	return reason;
 }

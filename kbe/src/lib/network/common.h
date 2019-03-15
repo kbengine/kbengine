@@ -40,6 +40,26 @@ extern int8 g_channelExternalEncryptType;
 // listen监听队列最大值
 extern uint32 g_SOMAXCONN;
 
+// udp握手包
+extern const char* UDP_HELLO;
+extern const char* UDP_HELLO_ACK;
+
+// UDP参数
+extern uint32 g_rudp_intWritePacketsQueueSize;
+extern uint32 g_rudp_intReadPacketsQueueSize;
+extern uint32 g_rudp_extWritePacketsQueueSize;
+extern uint32 g_rudp_extReadPacketsQueueSize;
+extern uint32 g_rudp_tickInterval;
+extern uint32 g_rudp_minRTO;
+extern uint32 g_rudp_mtu;
+extern uint32 g_rudp_missAcksResend;
+extern bool g_rudp_congestionControl;
+extern bool g_rudp_nodelay;
+
+// Certificate file required for HTTPS/WSS/SSL communication
+extern std::string g_sslCertificate;
+extern std::string g_sslPrivateKey;
+
 // 不做通道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
 {																					\
@@ -106,6 +126,13 @@ enum ProtocolType
 {
 	PROTOCOL_TCP = 0,
 	PROTOCOL_UDP = 1,
+};
+
+enum ProtocolSubType
+{
+	SUB_PROTOCOL_DEFAULT = 0,
+	SUB_PROTOCOL_UDP = 1,
+	SUB_PROTOCOL_KCP = 2,
 };
 
 enum Reason
@@ -284,9 +311,9 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::createPoolObject();														\
+		outputPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 	else																									\
-		outputPacket = UDPPacket::createPoolObject();														\
+		outputPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 }																											\
 
 
@@ -368,6 +395,8 @@ const char * reasonToString(Reason reason)
 	}																										\
 
 
+bool kbe_poll(int fd);
+
 void destroyObjPool();
 
 // network stats
@@ -392,6 +421,7 @@ extern uint32						g_intSentWindowBytesOverflow;
 extern uint32						g_extSentWindowBytesOverflow;
 
 bool initializeWatcher();
+bool initialize();
 void finalise(void);
 
 }

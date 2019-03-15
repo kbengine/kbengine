@@ -8,6 +8,20 @@ import traceback
 import unittest
 
 
+class MockTraceback(object):
+    class TracebackException:
+        def __init__(self, *args, **kwargs):
+            self.capture_locals = kwargs.get('capture_locals', False)
+        def format(self):
+            result = ['A traceback']
+            if self.capture_locals:
+                result.append('locals')
+            return result
+
+def restore_traceback():
+    unittest.result.traceback = traceback
+
+
 class Test_TestResult(unittest.TestCase):
     # Note: there are not separate tests for TestResult.wasSuccessful(),
     # TestResult.errors, TestResult.failures, TestResult.testsRun or
@@ -227,6 +241,25 @@ class Test_TestResult(unittest.TestCase):
         self.assertIs(test_case, test)
         self.assertIsInstance(formatted_exc, str)
 
+    def test_addError_locals(self):
+        class Foo(unittest.TestCase):
+            def test_1(self):
+                1/0
+
+        test = Foo('test_1')
+        result = unittest.TestResult()
+        result.tb_locals = True
+
+        unittest.result.traceback = MockTraceback
+        self.addCleanup(restore_traceback)
+        result.startTestRun()
+        test.run(result)
+        result.stopTestRun()
+
+        self.assertEqual(len(result.errors), 1)
+        test_case, formatted_exc = result.errors[0]
+        self.assertEqual('A tracebacklocals', formatted_exc)
+
     def test_addSubTest(self):
         class Foo(unittest.TestCase):
             def test_1(self):
@@ -274,7 +307,7 @@ class Test_TestResult(unittest.TestCase):
             self.assertEqual(
                     result.getDescription(self._subtest),
                     'testGetSubTestDescriptionWithoutDocstring (' + __name__ +
-                    '.Test_TestResult) (bar=2, foo=1)')
+                    '.Test_TestResult) (foo=1, bar=2)')
         with self.subTest('some message'):
             result = unittest.TextTestResult(None, True, 1)
             self.assertEqual(
@@ -290,14 +323,33 @@ class Test_TestResult(unittest.TestCase):
                     'testGetSubTestDescriptionWithoutDocstringAndParams '
                     '(' + __name__ + '.Test_TestResult) (<subtest>)')
 
+    def testGetSubTestDescriptionForFalsyValues(self):
+        expected = 'testGetSubTestDescriptionForFalsyValues (%s.Test_TestResult) [%s]'
+        result = unittest.TextTestResult(None, True, 1)
+        for arg in [0, None, []]:
+            with self.subTest(arg):
+                self.assertEqual(
+                    result.getDescription(self._subtest),
+                    expected % (__name__, arg)
+                )
+
     def testGetNestedSubTestDescriptionWithoutDocstring(self):
         with self.subTest(foo=1):
-            with self.subTest(bar=2):
+            with self.subTest(baz=2, bar=3):
                 result = unittest.TextTestResult(None, True, 1)
                 self.assertEqual(
                         result.getDescription(self._subtest),
                         'testGetNestedSubTestDescriptionWithoutDocstring '
-                        '(' + __name__ + '.Test_TestResult) (bar=2, foo=1)')
+                        '(' + __name__ + '.Test_TestResult) (baz=2, bar=3, foo=1)')
+
+    def testGetDuplicatedNestedSubTestDescriptionWithoutDocstring(self):
+        with self.subTest(foo=1, bar=2):
+            with self.subTest(baz=3, bar=4):
+                result = unittest.TextTestResult(None, True, 1)
+                self.assertEqual(
+                        result.getDescription(self._subtest),
+                        'testGetDuplicatedNestedSubTestDescriptionWithoutDocstring '
+                        '(' + __name__ + '.Test_TestResult) (baz=3, bar=4, foo=1)')
 
     @unittest.skipIf(sys.flags.optimize >= 2,
                      "Docstrings are omitted with -O2 and above")
@@ -319,7 +371,7 @@ class Test_TestResult(unittest.TestCase):
             self.assertEqual(
                 result.getDescription(self._subtest),
                ('testGetSubTestDescriptionWithOneLineDocstring '
-                '(' + __name__ + '.Test_TestResult) (bar=2, foo=1)\n'
+                '(' + __name__ + '.Test_TestResult) (foo=1, bar=2)\n'
                 'Tests getDescription() for a method with a docstring.'))
 
     @unittest.skipIf(sys.flags.optimize >= 2,
@@ -347,7 +399,7 @@ class Test_TestResult(unittest.TestCase):
             self.assertEqual(
                 result.getDescription(self._subtest),
                ('testGetSubTestDescriptionWithMultiLineDocstring '
-                '(' + __name__ + '.Test_TestResult) (bar=2, foo=1)\n'
+                '(' + __name__ + '.Test_TestResult) (foo=1, bar=2)\n'
                 'Tests getDescription() for a method with a longer '
                 'docstring.'))
 
@@ -398,6 +450,7 @@ def __init__(self, stream=None, descriptions=None, verbosity=None):
     self.testsRun = 0
     self.shouldStop = False
     self.buffer = False
+    self.tb_locals = False
 
 classDict['__init__'] = __init__
 OldResult = type('OldResult', (object,), classDict)
@@ -452,15 +505,6 @@ class Test_OldTestResult(unittest.TestCase):
         # This will raise an exception if TextTestRunner can't handle old
         # test result objects
         runner.run(Test('testFoo'))
-
-
-class MockTraceback(object):
-    @staticmethod
-    def format_exception(*_):
-        return ['A traceback']
-
-def restore_traceback():
-    unittest.result.traceback = traceback
 
 
 class TestOutputBuffering(unittest.TestCase):

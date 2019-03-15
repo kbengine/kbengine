@@ -1,3 +1,7 @@
+.. testsetup::
+
+    import math
+
 .. _tut-fp-issues:
 
 **************************************************
@@ -155,7 +159,7 @@ which implements arithmetic based on rational numbers (so the numbers like
 
 If you are a heavy user of floating point operations you should take a look
 at the Numerical Python package and many other packages for mathematical and
-statistical operations supplied by the SciPy project. See <http://scipy.org>.
+statistical operations supplied by the SciPy project. See <https://scipy.org>.
 
 Python provides tools that may help on those rare occasions when you really
 *do* want to know the exact value of a float.  The

@@ -25,6 +25,11 @@ INLINE PacketReceiver* Channel::pPacketReceiver() const
 	return pPacketReceiver_;
 }
 
+INLINE void Channel::pPacketReceiver(PacketReceiver* pPacketReceiver)
+{
+	pPacketReceiver_ = pPacketReceiver;
+}
+
 INLINE PacketSender* Channel::pPacketSender() const
 {
 	return pPacketSender_;

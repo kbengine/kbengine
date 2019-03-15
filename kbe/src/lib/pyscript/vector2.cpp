@@ -346,13 +346,13 @@ PyObject* ScriptVector2::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != VECTOR_SIZE)
 	{
-		ERROR_MSG("ScriptVector2::__unpickle__: args is error! size != 2");
+		ERROR_MSG("ScriptVector2::__unpickle__: args error! size != 2");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "ff", &x, &y))
 	{
-		ERROR_MSG("ScriptVector2::__unpickle__: args is error!");
+		ERROR_MSG("ScriptVector2::__unpickle__: args error!");
 		S_Return;
 	}
 
@@ -581,7 +581,7 @@ PyObject* ScriptVector2::__py_pyDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -607,7 +607,7 @@ PyObject* ScriptVector2::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}

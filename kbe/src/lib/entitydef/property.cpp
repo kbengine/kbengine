@@ -496,9 +496,23 @@ void EntityComponentDescription::addPersistentToStream(MemoryStream* mstream, Py
 }
 
 //-------------------------------------------------------------------------------------
+void EntityComponentDescription::addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	((EntityComponentType*)dataType_)->addPersistentToStreamTemplates(pScriptModule, mstream);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityComponentDescription::createFromPersistentStream(MemoryStream* mstream)
 {
-	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(mstream));
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(NULL, mstream));
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(pScriptModule, mstream));
 	pEntityComponent->pPropertyDescription(this);
 	return pEntityComponent;
 }
@@ -507,6 +521,14 @@ PyObject* EntityComponentDescription::createFromPersistentStream(MemoryStream* m
 PyObject* EntityComponentDescription::createFromStream(MemoryStream* mstream)
 {
 	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PropertyDescription::createFromStream(mstream));
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::parseDefaultStr(const std::string& defaultStr)
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PropertyDescription::parseDefaultStr(defaultStr));
 	pEntityComponent->pPropertyDescription(this);
 	return pEntityComponent;
 }

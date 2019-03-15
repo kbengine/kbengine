@@ -34,14 +34,14 @@ bool PyGC::initialize(void)
 		collectMethod_ = PyObject_GetAttrString(gcModule, "collect");
 		if (!collectMethod_)
 		{
-			ERROR_MSG("PyGC::initialize: get collect is error!\n");
+			ERROR_MSG("PyGC::initialize: get collect error!\n");
 			PyErr_PrintEx(0);
 		}
 
 		set_debugMethod_ = PyObject_GetAttrString(gcModule, "set_debug");
 		if(!set_debugMethod_)
 		{
-			ERROR_MSG("PyGC::init: get set_debug is error!\n");
+			ERROR_MSG("PyGC::init: get set_debug error!\n");
 			PyErr_PrintEx(0);
 		}
 
@@ -50,7 +50,7 @@ bool PyGC::initialize(void)
 		flag = PyObject_GetAttrString(gcModule, "DEBUG_STATS");
 		if(!flag)
 		{
-			ERROR_MSG("PyGC::init: get DEBUG_STATS is error!\n");
+			ERROR_MSG("PyGC::init: get DEBUG_STATS error!\n");
 			PyErr_PrintEx(0);
 		}
 		else
@@ -63,7 +63,7 @@ bool PyGC::initialize(void)
 		flag = PyObject_GetAttrString(gcModule, "DEBUG_COLLECTABLE");
 		if(!flag)
 		{
-			ERROR_MSG("PyGC::init: get DEBUG_COLLECTABLE is error!\n");
+			ERROR_MSG("PyGC::init: get DEBUG_COLLECTABLE error!\n");
 			PyErr_PrintEx(0);
 		}
 		else
@@ -76,7 +76,7 @@ bool PyGC::initialize(void)
 		flag = PyObject_GetAttrString(gcModule, "DEBUG_UNCOLLECTABLE");
 		if(!flag)
 		{
-			ERROR_MSG("PyGC::init: get DEBUG_UNCOLLECTABLE is error!\n");
+			ERROR_MSG("PyGC::init: get DEBUG_UNCOLLECTABLE error!\n");
 			PyErr_PrintEx(0);
 		}
 		else
@@ -89,7 +89,7 @@ bool PyGC::initialize(void)
 		flag = PyObject_GetAttrString(gcModule, "DEBUG_SAVEALL");
 		if(!flag)
 		{
-			ERROR_MSG("PyGC::init: get DEBUG_SAVEALL is error!\n");
+			ERROR_MSG("PyGC::init: get DEBUG_SAVEALL error!\n");
 			PyErr_PrintEx(0);
 		}
 		else
@@ -102,7 +102,7 @@ bool PyGC::initialize(void)
 		flag = PyObject_GetAttrString(gcModule, "DEBUG_LEAK");
 		if(!flag)
 		{
-			ERROR_MSG("PyGC::init: get DEBUG_LEAK is error!\n");
+			ERROR_MSG("PyGC::init: get DEBUG_LEAK error!\n");
 			PyErr_PrintEx(0);
 		}
 		else

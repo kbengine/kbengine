@@ -144,8 +144,9 @@ typedef struct EngineComponentInfo
 	float defaultViewRadius;								// 配置在cellapp节点中的player的view半径大小
 	float defaultViewHysteresisArea;						// 配置在cellapp节点中的player的view的滞后范围
 	uint16 witness_timeout;									// 观察者默认超时时间(秒)
-	const Network::Address* externalAddr;					// 外部地址
-	const Network::Address* internalAddr;					// 内部地址
+	const Network::Address* externalTcpAddr;				// 外部地址
+	const Network::Address* externalUdpAddr;				// 外部地址
+	const Network::Address* internalTcpAddr;				// 内部地址
 	COMPONENT_ID componentID;
 
 	float ghostDistance;									// ghost区域距离
@@ -155,6 +156,8 @@ typedef struct EngineComponentInfo
 	bool use_coordinate_system;								// 是否使用坐标系统 如果为false, view, trap, move等功能将不再维护
 	bool coordinateSystem_hasY;								// 范围管理器是管理Y轴， 注：有y轴则view、trap等功能有了高度， 但y轴的管理会带来一定的消耗
 	uint16 entity_posdir_additional_updates;				// 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。
+	uint16 entity_posdir_updates_type;						// 实体位置更新方式，0：非优化高精度同步, 1:优化同步, 2:智能选择模式
+	uint16 entity_posdir_updates_smart_threshold;			// 实体位置更新智能模式下的同屏人数阈值
 
 	bool aliasEntityID;										// 优化EntityID，view范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	bool entitydefAliasID;									// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
@@ -162,8 +165,12 @@ typedef struct EngineComponentInfo
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
 	char externalAddress[MAX_NAME];							// 外部IP地址
-	int32 externalPorts_min;								// 对外socket端口使用指定范围
-	int32 externalPorts_max;
+
+	int32 externalTcpPorts_min;								// 对外socket TCP端口使用指定范围
+	int32 externalTcpPorts_max;
+
+	int32 externalUdpPorts_min;								// 对外socket UDP端口使用指定范围
+	int32 externalUdpPorts_max;
 
 	std::vector<DBInterfaceInfo> dbInterfaceInfos;			// 数据库接口
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
@@ -178,6 +185,8 @@ typedef struct EngineComponentInfo
 
 	float loadSmoothingBias;								// baseapp负载滤平衡调整值， 
 	uint32 login_port;										// 服务器登录端口 目前bots在用
+	uint32 login_port_min;									// 服务器登录端口使用指定范围 目前bots在用
+	uint32 login_port_max;
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 
 	ENTITY_ID ids_criticallyLowSize;						// id剩余这么多个时向dbmgr申请新的id资源
@@ -248,12 +257,14 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getConfig();
 
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
- 				const Network::Address& internalAddr, const Network::Address& externalAddr);
+ 				const Network::Address& internalTcpAddr, const Network::Address& externalTcpAddr, const Network::Address& externalUdpAddr);
  	
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void) const;
-	INLINE Network::Address interfacesAddr(void) const;
+
+	Network::Address interfacesAddr(void) const;
+	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -265,7 +276,8 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
-	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE float channelExternalTimeout(void) const;
+	INLINE bool isPureDBInterfaceName(const std::string& dbInterfaceName);
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
 	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
@@ -296,6 +308,7 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
+	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

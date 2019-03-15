@@ -115,7 +115,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
@@ -123,7 +123,7 @@ void CStartServerWindow::OnBnClickedButton2()
 
 		if(addr.ip == 0)
 		{
-			::AfxMessageBox(L"address is error!");
+			::AfxMessageBox(L"address error!");
 			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
@@ -140,7 +140,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		if(endpoint->connect(addr.port, addr.ip) == -1)
 		{
 			CString err;
-			err.Format(L"connect server is error! %d", ::WSAGetLastError());
+			err.Format(L"connect server error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
 			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
@@ -250,7 +250,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
@@ -258,7 +258,7 @@ void CStartServerWindow::OnBnClickedButton3()
 
 		if(addr.ip == 0)
 		{
-			::AfxMessageBox(L"address is error!");
+			::AfxMessageBox(L"address error!");
 			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
@@ -275,7 +275,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		if(endpoint->connect(addr.port, addr.ip) == -1)
 		{
 			CString err;
-			err.Format(L"connect server is error! %d", ::WSAGetLastError());
+			err.Format(L"connect server error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
 			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;

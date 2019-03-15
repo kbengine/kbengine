@@ -28,6 +28,23 @@ newgrammar(int start)
     return g;
 }
 
+void
+freegrammar(grammar *g)
+{
+    int i;
+    for (i = 0; i < g->g_ndfas; i++) {
+        free(g->g_dfa[i].d_name);
+        for (int j = 0; j < g->g_dfa[i].d_nstates; j++)
+            PyObject_FREE(g->g_dfa[i].d_state[j].s_arc);
+        PyObject_FREE(g->g_dfa[i].d_state);
+    }
+    PyObject_FREE(g->g_dfa);
+    for (i = 0; i < g->g_ll.ll_nlabels; i++)
+        free(g->g_ll.ll_label[i].lb_str);
+    PyObject_FREE(g->g_ll.ll_label);
+    PyObject_FREE(g);
+}
+
 dfa *
 adddfa(grammar *g, int type, const char *name)
 {
@@ -63,7 +80,7 @@ addstate(dfa *d)
     s->s_upper = 0;
     s->s_accel = NULL;
     s->s_accept = 0;
-    return Py_SAFE_DOWNCAST(s - d->d_state, Py_intptr_t, int);
+    return Py_SAFE_DOWNCAST(s - d->d_state, intptr_t, int);
 }
 
 void
@@ -105,7 +122,7 @@ addlabel(labellist *ll, int type, const char *str)
     if (Py_DebugFlag)
         printf("Label @ %8p, %d: %s\n", ll, ll->ll_nlabels,
                PyGrammar_LabelRepr(lb));
-    return Py_SAFE_DOWNCAST(lb - ll->ll_label, Py_intptr_t, int);
+    return Py_SAFE_DOWNCAST(lb - ll->ll_label, intptr_t, int);
 }
 
 /* Same, but rather dies than adds */
@@ -122,7 +139,13 @@ findlabel(labellist *ll, int type, const char *str)
     }
     fprintf(stderr, "Label %d/'%s' not found\n", type, str);
     Py_FatalError("grammar.c:findlabel()");
+
+    /* Py_FatalError() is declared with __attribute__((__noreturn__)).
+       GCC emits a warning without "return 0;" (compiler bug!), but Clang is
+       smarter and emits a warning on the return... */
+#ifndef __clang__
     return 0; /* Make gcc -Wall happy */
+#endif
 }
 
 /* Forward */

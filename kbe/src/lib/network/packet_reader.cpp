@@ -82,7 +82,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 
 				currMsgID_ = 0;
 				currMsgLen_ = 0;
-				pChannel_->condemn();
+				pChannel_->condemn("PacketReader::processMessages: not found msgID");
 				break;
 			}
 
@@ -160,7 +160,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->length(), pChannel_->c_str(), NETWORK_MESSAGE_MAX_SIZE));
 
 				currMsgLen_ = 0;
-				pChannel_->condemn();
+				pChannel_->condemn("PacketReader::processMessages: msglen exceeds the limit!");
 				break;
 			}
 
@@ -264,7 +264,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
-			pFragmentStream_ = MemoryStream::createPoolObject();
+			pFragmentStream_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 			pFragmentStream_->append(pFragmentDatas_, currMsgLen_);
 			break;
 

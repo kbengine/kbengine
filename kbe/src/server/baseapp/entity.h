@@ -208,23 +208,12 @@ public:
 	void sendToCellapp(Network::Bundle* pBundle);
 	void sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle);
 
-	/** 
-		传送
-	*/
-	DECLARE_PY_MOTHOD_ARG1(pyTeleport, PyObject_ptr);
-
 	/**
 		传送回调
 	*/
 	void onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
 	void onTeleportFailure();  
 	void onTeleportSuccess(SPACE_ID spaceID);
-
-	/** 网络接口
-		某个entity请求teleport到这个entity的space上。
-	*/
-	void reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
-		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
 
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
@@ -263,7 +252,7 @@ public:
 	/** 
 		设置实体持久化数据是否已脏，脏了会自动存档 
 	*/
-	INLINE void setDirty(bool dirty = true);
+	INLINE void setDirty(uint32* digest = NULL);
 	INLINE bool isDirty() const;
 	
 protected:
@@ -317,8 +306,8 @@ protected:
 	// 等cell1的包到达后执行完毕再执行cell2的包
 	BaseMessagesForwardClientHandler*		pBufferedSendToClientMessages_;
 	
-	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
-	bool									isDirty_;
+	// 需要持久化的数据是否变脏（内存sha1），如果没有变脏不需要持久化
+	uint32									persistentDigest_[5];
 
 	// 如果这个实体已经写到数据库，那么这个属性就是对应的数据库接口的索引
 	uint16									dbInterfaceIndex_;

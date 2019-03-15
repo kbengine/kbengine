@@ -9,8 +9,8 @@ Copyright (C) 1994 Steen Lumholt.
 
 /* TCL/TK VERSION INFO:
 
-    Only Tcl/Tk 8.3.1 and later are supported.  Older versions are not
-    supported. Use Python 2.6 or older if you cannot upgrade your
+    Only Tcl/Tk 8.4 and later are supported.  Older versions are not
+    supported. Use Python 3.4 or older if you cannot upgrade your
     Tcl/Tk libraries.
 */
 
@@ -21,27 +21,19 @@ Copyright (C) 1994 Steen Lumholt.
 
 */
 
+#define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
 #include <ctype.h>
 
-#ifdef WITH_THREAD
 #include "pythread.h"
-#endif
 
 #ifdef MS_WINDOWS
 #include <windows.h>
 #endif
 
 #define CHECK_SIZE(size, elemsize) \
-    ((size_t)(size) <= Py_MAX((size_t)INT_MAX, UINT_MAX / (size_t)(elemsize)))
-
-/* Starting with Tcl 8.4, many APIs offer const-correctness.  Unfortunately,
-   making _tkinter correct for this API means to break earlier
-   versions. USE_COMPAT_CONST allows to make _tkinter work with both 8.4 and
-   earlier versions. Once Tcl releases before 8.4 don't need to be supported
-   anymore, this should go. */
-#define USE_COMPAT_CONST
+    ((size_t)(size) <= Py_MIN((size_t)INT_MAX, UINT_MAX / (size_t)(elemsize)))
 
 /* If Tcl is compiled for threads, we must also define TCL_THREAD. We define
    it always; if Tcl is not threaded, the thread functions in
@@ -58,15 +50,14 @@ Copyright (C) 1994 Steen Lumholt.
 
 #include "tkinter.h"
 
-/* For Tcl 8.2 and 8.3, CONST* is not defined (except on Cygwin). */
-#ifndef CONST84_RETURN
-#define CONST84_RETURN
-#undef CONST
-#define CONST
+#if TK_HEX_VERSION < 0x08040200
+#error "Tk older than 8.4 not supported"
 #endif
 
-#if TK_VERSION_HEX < 0x08030102
-#error "Tk older than 8.3.1 not supported"
+#if TK_HEX_VERSION >= 0x08050208 && TK_HEX_VERSION < 0x08060000 || \
+    TK_HEX_VERSION >= 0x08060200
+#define HAVE_LIBTOMMAMTH
+#include <tclTomMath.h>
 #endif
 
 #if !(defined(MS_WINDOWS) || defined(__CYGWIN__))
@@ -108,9 +99,65 @@ Copyright (C) 1994 Steen Lumholt.
 #ifdef MS_WINDOWS
 #include <conio.h>
 #define WAIT_FOR_STDIN
-#endif
 
-#ifdef WITH_THREAD
+static PyObject *
+_get_tcl_lib_path()
+{
+    static PyObject *tcl_library_path = NULL;
+    static int already_checked = 0;
+
+    if (already_checked == 0) {
+        PyObject *prefix;
+        struct stat stat_buf;
+        int stat_return_value;
+
+        prefix = PyUnicode_FromWideChar(Py_GetPrefix(), -1);
+        if (prefix == NULL) {
+            return NULL;
+        }
+
+        /* Check expected location for an installed Python first */
+        tcl_library_path = PyUnicode_FromString("\\tcl\\tcl" TCL_VERSION);
+        if (tcl_library_path == NULL) {
+            return NULL;
+        }
+        tcl_library_path = PyUnicode_Concat(prefix, tcl_library_path);
+        if (tcl_library_path == NULL) {
+            return NULL;
+        }
+        stat_return_value = _Py_stat(tcl_library_path, &stat_buf);
+        if (stat_return_value == -2) {
+            return NULL;
+        }
+        if (stat_return_value == -1) {
+            /* install location doesn't exist, reset errno and see if
+               we're a repository build */
+            errno = 0;
+#ifdef Py_TCLTK_DIR
+            tcl_library_path = PyUnicode_FromString(
+                                    Py_TCLTK_DIR "\\lib\\tcl" TCL_VERSION);
+            if (tcl_library_path == NULL) {
+                return NULL;
+            }
+            stat_return_value = _Py_stat(tcl_library_path, &stat_buf);
+            if (stat_return_value == -2) {
+                return NULL;
+            }
+            if (stat_return_value == -1) {
+                /* tcltkDir for a repository build doesn't exist either,
+                   reset errno and leave Tcl to its own devices */
+                errno = 0;
+                tcl_library_path = NULL;
+            }
+#else
+            tcl_library_path = NULL;
+#endif
+        }
+        already_checked = 1;
+    }
+    return tcl_library_path;
+}
+#endif /* MS_WINDOWS */
 
 /* The threading situation is complicated.  Tcl is not thread-safe, except
    when configured with --enable-threads.
@@ -209,21 +256,9 @@ static PyThreadState *tcl_tstate = NULL;
     if (((TkappObject *)self)->threaded && \
         ((TkappObject *)self)->thread_id != Tcl_GetCurrentThread()) { \
         PyErr_SetString(PyExc_RuntimeError, \
-                        "Calling Tcl from different appartment"); \
+                        "Calling Tcl from different apartment"); \
         return 0; \
     }
-
-#else
-
-#define ENTER_TCL
-#define LEAVE_TCL
-#define ENTER_OVERLAP
-#define LEAVE_OVERLAP_TCL
-#define ENTER_PYTHON
-#define LEAVE_PYTHON
-#define CHECK_TCL_APPARTMENT
-
-#endif
 
 #ifndef FREECAST
 #define FREECAST (char *)
@@ -242,13 +277,16 @@ typedef struct {
     int dispatching;
     /* We cannot include tclInt.h, as this is internal.
        So we cache interesting types here. */
-    Tcl_ObjType *BooleanType;
-    Tcl_ObjType *ByteArrayType;
-    Tcl_ObjType *DoubleType;
-    Tcl_ObjType *IntType;
-    Tcl_ObjType *ListType;
-    Tcl_ObjType *ProcBodyType;
-    Tcl_ObjType *StringType;
+    const Tcl_ObjType *OldBooleanType;
+    const Tcl_ObjType *BooleanType;
+    const Tcl_ObjType *ByteArrayType;
+    const Tcl_ObjType *DoubleType;
+    const Tcl_ObjType *IntType;
+    const Tcl_ObjType *WideIntType;
+    const Tcl_ObjType *BignumType;
+    const Tcl_ObjType *ListType;
+    const Tcl_ObjType *ProcBodyType;
+    const Tcl_ObjType *StringType;
 } TkappObject;
 
 #define Tkapp_Interp(v) (((TkappObject *) (v))->interp)
@@ -286,7 +324,6 @@ Tkinter_Error(PyObject *v)
 
 static int Tkinter_busywaitinterval = 20;
 
-#ifdef WITH_THREAD
 #ifndef MS_WINDOWS
 
 /* Millisecond sleep() for Unix platforms. */
@@ -320,7 +357,6 @@ WaitForMainloop(TkappObject* self)
     PyErr_SetString(PyExc_RuntimeError, "main thread is not in main loop");
     return 0;
 }
-#endif /* WITH_THREAD */
 
 
 
@@ -376,10 +412,10 @@ unicodeFromTclObj(Tcl_Obj *value)
 
 
 static PyObject *
-Split(char *list)
+Split(const char *list)
 {
     int argc;
-    char **argv;
+    const char **argv;
     PyObject *v;
 
     if (list == NULL) {
@@ -408,7 +444,7 @@ Split(char *list)
                 v = NULL;
                 break;
             }
-            PyTuple_SetItem(v, i, w);
+            PyTuple_SET_ITEM(v, i, w);
         }
     }
     Tcl_Free(FREECAST argv);
@@ -423,23 +459,23 @@ static PyObject *
 SplitObj(PyObject *arg)
 {
     if (PyTuple_Check(arg)) {
-        int i, size;
+        Py_ssize_t i, size;
         PyObject *elem, *newelem, *result;
 
-        size = PyTuple_Size(arg);
+        size = PyTuple_GET_SIZE(arg);
         result = NULL;
         /* Recursively invoke SplitObj for all tuple items.
            If this does not return a new object, no action is
            needed. */
         for(i = 0; i < size; i++) {
-            elem = PyTuple_GetItem(arg, i);
+            elem = PyTuple_GET_ITEM(arg, i);
             newelem = SplitObj(elem);
             if (!newelem) {
                 Py_XDECREF(result);
                 return NULL;
             }
             if (!result) {
-                int k;
+                Py_ssize_t k;
                 if (newelem == elem) {
                     Py_DECREF(newelem);
                     continue;
@@ -448,21 +484,41 @@ SplitObj(PyObject *arg)
                 if (!result)
                     return NULL;
                 for(k = 0; k < i; k++) {
-                    elem = PyTuple_GetItem(arg, k);
+                    elem = PyTuple_GET_ITEM(arg, k);
                     Py_INCREF(elem);
-                    PyTuple_SetItem(result, k, elem);
+                    PyTuple_SET_ITEM(result, k, elem);
                 }
             }
-            PyTuple_SetItem(result, i, newelem);
+            PyTuple_SET_ITEM(result, i, newelem);
         }
         if (result)
             return result;
         /* Fall through, returning arg. */
     }
+    else if (PyList_Check(arg)) {
+        Py_ssize_t i, size;
+        PyObject *elem, *newelem, *result;
+
+        size = PyList_GET_SIZE(arg);
+        result = PyTuple_New(size);
+        if (!result)
+            return NULL;
+        /* Recursively invoke SplitObj for all list items. */
+        for(i = 0; i < size; i++) {
+            elem = PyList_GET_ITEM(arg, i);
+            newelem = SplitObj(elem);
+            if (!newelem) {
+                Py_XDECREF(result);
+                return NULL;
+            }
+            PyTuple_SET_ITEM(result, i, newelem);
+        }
+        return result;
+    }
     else if (PyUnicode_Check(arg)) {
         int argc;
-        char **argv;
-        char *list = PyUnicode_AsUTF8(arg);
+        const char **argv;
+        const char *list = PyUnicode_AsUTF8(arg);
 
         if (list == NULL ||
             Tcl_SplitList((Tcl_Interp *)NULL, list, &argc, &argv) != TCL_OK) {
@@ -476,8 +532,8 @@ SplitObj(PyObject *arg)
     }
     else if (PyBytes_Check(arg)) {
         int argc;
-        char **argv;
-        char *list = PyBytes_AsString(arg);
+        const char **argv;
+        char *list = PyBytes_AS_STRING(arg);
 
         if (Tcl_SplitList((Tcl_Interp *)NULL, list, &argc, &argv) != TCL_OK) {
             Py_INCREF(arg);
@@ -485,13 +541,21 @@ SplitObj(PyObject *arg)
         }
         Tcl_Free(FREECAST argv);
         if (argc > 1)
-            return Split(PyBytes_AsString(arg));
+            return Split(PyBytes_AS_STRING(arg));
         /* Fall through, returning arg. */
     }
     Py_INCREF(arg);
     return arg;
 }
 
+
+/*[clinic input]
+module _tkinter
+class _tkinter.tkapp "TkappObject *" "&Tkapp_Type_spec"
+class _tkinter.Tcl_Obj "PyTclObject *" "&PyTclObject_Type_spec"
+class _tkinter.tktimertoken "TkttObject *" "&Tktt_Type_spec"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=b1ebf15c162ee229]*/
 
 /**** Tkapp Object ****/
 
@@ -543,8 +607,9 @@ static void EnableEventHook(void); /* Forward */
 static void DisableEventHook(void); /* Forward */
 
 static TkappObject *
-Tkapp_New(char *screenName, char *className,
-          int interactive, int wantobjects, int wantTk, int sync, char *use)
+Tkapp_New(const char *screenName, const char *className,
+          int interactive, int wantobjects, int wantTk, int sync,
+          const char *use)
 {
     TkappObject *v;
     char *argv0;
@@ -569,18 +634,19 @@ Tkapp_New(char *screenName, char *className,
         return 0;
     }
 #endif
-#ifdef WITH_THREAD
     if (v->threaded && tcl_lock) {
         /* If Tcl is threaded, we don't need the lock. */
         PyThread_free_lock(tcl_lock);
         tcl_lock = NULL;
     }
-#endif
 
-    v->BooleanType = Tcl_GetObjType("boolean");
+    v->OldBooleanType = Tcl_GetObjType("boolean");
+    v->BooleanType = Tcl_GetObjType("booleanString");
     v->ByteArrayType = Tcl_GetObjType("bytearray");
     v->DoubleType = Tcl_GetObjType("double");
     v->IntType = Tcl_GetObjType("int");
+    v->WideIntType = Tcl_GetObjType("wideInt");
+    v->BignumType = Tcl_GetObjType("bignum");
     v->ListType = Tcl_GetObjType("list");
     v->ProcBodyType = Tcl_GetObjType("procbody");
     v->StringType = Tcl_GetObjType("string");
@@ -598,7 +664,7 @@ Tkapp_New(char *screenName, char *className,
         Tcl_SetVar(v->interp, "tcl_interactive", "0", TCL_GLOBAL_ONLY);
 
     /* This is used to get the application class for Tk 4.1 and up */
-    argv0 = (char*)attemptckalloc(strlen(className) + 1);
+    argv0 = (char*)PyMem_Malloc(strlen(className) + 1);
     if (!argv0) {
         PyErr_NoMemory();
         Py_DECREF(v);
@@ -609,7 +675,7 @@ Tkapp_New(char *screenName, char *className,
     if (Py_ISUPPER(Py_CHARMASK(argv0[0])))
         argv0[0] = Py_TOLOWER(Py_CHARMASK(argv0[0]));
     Tcl_SetVar(v->interp, "argv0", argv0, TCL_GLOBAL_ONLY);
-    ckfree(argv0);
+    PyMem_Free(argv0);
 
     if (! wantTk) {
         Tcl_SetVar(v->interp,
@@ -625,14 +691,14 @@ Tkapp_New(char *screenName, char *className,
     /* some initial arguments need to be in argv */
     if (sync || use) {
         char *args;
-        int len = 0;
+        Py_ssize_t len = 0;
 
         if (sync)
             len += sizeof "-sync";
         if (use)
-            len += strlen(use) + sizeof "-use ";
+            len += strlen(use) + sizeof "-use ";  /* never overflows */
 
-        args = (char*)attemptckalloc(len);
+        args = (char*)PyMem_Malloc(len);
         if (!args) {
             PyErr_NoMemory();
             Py_DECREF(v);
@@ -650,8 +716,35 @@ Tkapp_New(char *screenName, char *className,
         }
 
         Tcl_SetVar(v->interp, "argv", args, TCL_GLOBAL_ONLY);
-        ckfree(args);
+        PyMem_Free(args);
     }
+
+#ifdef MS_WINDOWS
+    {
+        PyObject *str_path;
+        PyObject *utf8_path;
+        DWORD ret;
+
+        ret = GetEnvironmentVariableW(L"TCL_LIBRARY", NULL, 0);
+        if (!ret && GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+            str_path = _get_tcl_lib_path();
+            if (str_path == NULL && PyErr_Occurred()) {
+                return NULL;
+            }
+            if (str_path != NULL) {
+                utf8_path = PyUnicode_AsUTF8String(str_path);
+                if (utf8_path == NULL) {
+                    return NULL;
+                }
+                Tcl_SetVar(v->interp,
+                           "tcl_library",
+                           PyBytes_AS_STRING(utf8_path),
+                           TCL_GLOBAL_ONLY);
+                Py_DECREF(utf8_path);
+            }
+        }
+    }
+#endif
 
     if (Tcl_AppInit(v->interp) != TCL_OK) {
         PyObject *result = Tkinter_Error((PyObject *)v);
@@ -677,7 +770,6 @@ Tkapp_New(char *screenName, char *className,
 }
 
 
-#ifdef WITH_THREAD
 static void
 Tkapp_ThreadSend(TkappObject *self, Tcl_Event *ev,
                  Tcl_Condition *cond, Tcl_Mutex *mutex)
@@ -690,7 +782,6 @@ Tkapp_ThreadSend(TkappObject *self, Tcl_Event *ev,
     Tcl_MutexUnlock(mutex);
     Py_END_ALLOW_THREADS
 }
-#endif
 
 
 /** Tcl Eval **/
@@ -728,7 +819,7 @@ PyTclObject_dealloc(PyTclObject *self)
     Py_DECREF(tp);
 }
 
-static char*
+static const char *
 PyTclObject_TclString(PyObject *self)
 {
     return Tcl_GetString(((PyTclObject*)self)->value);
@@ -751,7 +842,7 @@ PyTclObject_string(PyTclObject *self, void *ignored)
 }
 
 static PyObject *
-PyTclObject_str(PyTclObject *self, void *ignored)
+PyTclObject_str(PyTclObject *self)
 {
     if (self->string) {
         Py_INCREF(self->string);
@@ -764,7 +855,7 @@ PyTclObject_str(PyTclObject *self, void *ignored)
 static PyObject *
 PyTclObject_repr(PyTclObject *self)
 {
-    PyObject *repr, *str = PyTclObject_str(self, NULL);
+    PyObject *repr, *str = PyTclObject_str(self);
     if (str == NULL)
         return NULL;
     repr = PyUnicode_FromFormat("<%s object: %R>",
@@ -773,13 +864,10 @@ PyTclObject_repr(PyTclObject *self)
     return repr;
 }
 
-#define TEST_COND(cond) ((cond) ? Py_True : Py_False)
-
 static PyObject *
 PyTclObject_richcompare(PyObject *self, PyObject *other, int op)
 {
     int result;
-    PyObject *v;
 
     /* neither argument should be NULL, unless something's gone wrong */
     if (self == NULL || other == NULL) {
@@ -789,8 +877,7 @@ PyTclObject_richcompare(PyObject *self, PyObject *other, int op)
 
     /* both arguments should be instances of PyTclObject */
     if (!PyTclObject_Check(self) || !PyTclObject_Check(other)) {
-        v = Py_NotImplemented;
-        goto finished;
+        Py_RETURN_NOTIMPLEMENTED;
     }
 
     if (self == other)
@@ -799,33 +886,7 @@ PyTclObject_richcompare(PyObject *self, PyObject *other, int op)
     else
         result = strcmp(Tcl_GetString(((PyTclObject *)self)->value),
                         Tcl_GetString(((PyTclObject *)other)->value));
-    /* Convert return value to a Boolean */
-    switch (op) {
-    case Py_EQ:
-        v = TEST_COND(result == 0);
-        break;
-    case Py_NE:
-        v = TEST_COND(result != 0);
-        break;
-    case Py_LE:
-        v = TEST_COND(result <= 0);
-        break;
-    case Py_GE:
-        v = TEST_COND(result >= 0);
-        break;
-    case Py_LT:
-        v = TEST_COND(result < 0);
-        break;
-    case Py_GT:
-        v = TEST_COND(result > 0);
-        break;
-    default:
-        PyErr_BadArgument();
-        return NULL;
-    }
-  finished:
-    Py_INCREF(v);
-    return v;
+    Py_RETURN_RICHCOMPARE(result, 0, op);
 }
 
 PyDoc_STRVAR(get_typename__doc__, "name of the Tcl type");
@@ -863,7 +924,7 @@ static PyType_Spec PyTclObject_Type_spec = {
 };
 
 
-#if PY_SIZE_MAX > INT_MAX
+#if SIZE_MAX > INT_MAX
 #define CHECK_STRING_LENGTH(s) do {                                     \
         if (s != NULL && strlen(s) >= INT_MAX) {                        \
             PyErr_SetString(PyExc_OverflowError, "string is too long"); \
@@ -873,48 +934,122 @@ static PyType_Spec PyTclObject_Type_spec = {
 #define CHECK_STRING_LENGTH(s)
 #endif
 
+#ifdef HAVE_LIBTOMMAMTH
+static Tcl_Obj*
+asBignumObj(PyObject *value)
+{
+    Tcl_Obj *result;
+    int neg;
+    PyObject *hexstr;
+    const char *hexchars;
+    mp_int bigValue;
+
+    neg = Py_SIZE(value) < 0;
+    hexstr = _PyLong_Format(value, 16);
+    if (hexstr == NULL)
+        return NULL;
+    hexchars = PyUnicode_AsUTF8(hexstr);
+    if (hexchars == NULL) {
+        Py_DECREF(hexstr);
+        return NULL;
+    }
+    hexchars += neg + 2; /* skip sign and "0x" */
+    mp_init(&bigValue);
+    if (mp_read_radix(&bigValue, hexchars, 16) != MP_OKAY) {
+        mp_clear(&bigValue);
+        Py_DECREF(hexstr);
+        PyErr_NoMemory();
+        return NULL;
+    }
+    Py_DECREF(hexstr);
+    bigValue.sign = neg ? MP_NEG : MP_ZPOS;
+    result = Tcl_NewBignumObj(&bigValue);
+    mp_clear(&bigValue);
+    if (result == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    return result;
+}
+#endif
+
 static Tcl_Obj*
 AsObj(PyObject *value)
 {
     Tcl_Obj *result;
-    long longVal;
-    int overflow;
 
-    if (PyBytes_Check(value))
+    if (PyBytes_Check(value)) {
+        if (PyBytes_GET_SIZE(value) >= INT_MAX) {
+            PyErr_SetString(PyExc_OverflowError, "bytes object is too long");
+            return NULL;
+        }
         return Tcl_NewByteArrayObj((unsigned char *)PyBytes_AS_STRING(value),
-                                   PyBytes_GET_SIZE(value));
-    else if (PyBool_Check(value))
-        return Tcl_NewBooleanObj(PyObject_IsTrue(value));
-    else if (PyLong_CheckExact(value) &&
-             ((longVal = PyLong_AsLongAndOverflow(value, &overflow)),
-              !overflow)) {
-        /* If there is an overflow in the long conversion,
-           fall through to default object handling. */
-        return Tcl_NewLongObj(longVal);
+                                   (int)PyBytes_GET_SIZE(value));
     }
-    else if (PyFloat_Check(value))
+
+    if (PyBool_Check(value))
+        return Tcl_NewBooleanObj(PyObject_IsTrue(value));
+
+    if (PyLong_CheckExact(value)) {
+        int overflow;
+        long longValue;
+#ifdef TCL_WIDE_INT_TYPE
+        Tcl_WideInt wideValue;
+#endif
+        longValue = PyLong_AsLongAndOverflow(value, &overflow);
+        if (!overflow) {
+            return Tcl_NewLongObj(longValue);
+        }
+        /* If there is an overflow in the long conversion,
+           fall through to wideInt handling. */
+#ifdef TCL_WIDE_INT_TYPE
+        if (_PyLong_AsByteArray((PyLongObject *)value,
+                                (unsigned char *)(void *)&wideValue,
+                                sizeof(wideValue),
+                                PY_LITTLE_ENDIAN,
+                                /* signed */ 1) == 0) {
+            return Tcl_NewWideIntObj(wideValue);
+        }
+        PyErr_Clear();
+#endif
+        /* If there is an overflow in the wideInt conversion,
+           fall through to bignum handling. */
+#ifdef HAVE_LIBTOMMAMTH
+        return asBignumObj(value);
+#endif
+        /* If there is no wideInt or bignum support,
+           fall through to default object handling. */
+    }
+
+    if (PyFloat_Check(value))
         return Tcl_NewDoubleObj(PyFloat_AS_DOUBLE(value));
-    else if (PyTuple_Check(value)) {
+
+    if (PyTuple_Check(value) || PyList_Check(value)) {
         Tcl_Obj **argv;
         Py_ssize_t size, i;
 
-        size = PyTuple_Size(value);
+        size = PySequence_Fast_GET_SIZE(value);
         if (size == 0)
             return Tcl_NewListObj(0, NULL);
         if (!CHECK_SIZE(size, sizeof(Tcl_Obj *))) {
-            PyErr_SetString(PyExc_OverflowError, "tuple is too long");
+            PyErr_SetString(PyExc_OverflowError,
+                            PyTuple_Check(value) ? "tuple is too long" :
+                                                   "list is too long");
             return NULL;
         }
-        argv = (Tcl_Obj **) attemptckalloc(((size_t)size) * sizeof(Tcl_Obj *));
-        if(!argv)
-          return 0;
+        argv = (Tcl_Obj **) PyMem_Malloc(((size_t)size) * sizeof(Tcl_Obj *));
+        if (!argv) {
+          PyErr_NoMemory();
+          return NULL;
+        }
         for (i = 0; i < size; i++)
-          argv[i] = AsObj(PyTuple_GetItem(value,i));
-        result = Tcl_NewListObj(PyTuple_Size(value), argv);
-        ckfree(FREECAST argv);
+          argv[i] = AsObj(PySequence_Fast_GET_ITEM(value,i));
+        result = Tcl_NewListObj((int)size, argv);
+        PyMem_Free(argv);
         return result;
     }
-    else if (PyUnicode_Check(value)) {
+
+    if (PyUnicode_Check(value)) {
         void *inbuf;
         Py_ssize_t size;
         int kind;
@@ -935,9 +1070,9 @@ AsObj(PyObject *value)
         }
         kind = PyUnicode_KIND(value);
         if (kind == sizeof(Tcl_UniChar))
-            return Tcl_NewUnicodeObj(inbuf, size);
+            return Tcl_NewUnicodeObj(inbuf, (int)size);
         allocsize = ((size_t)size) * sizeof(Tcl_UniChar);
-        outbuf = (Tcl_UniChar*)attemptckalloc(allocsize);
+        outbuf = (Tcl_UniChar*)PyMem_Malloc(allocsize);
         /* Else overflow occurred, and we take the next exit */
         if (!outbuf) {
             PyErr_NoMemory();
@@ -954,22 +1089,22 @@ AsObj(PyObject *value)
                              "character U+%x is above the range "
                              "(U+0000-U+FFFF) allowed by Tcl",
                              ch);
-                ckfree(FREECAST outbuf);
+                PyMem_Free(outbuf);
                 return NULL;
             }
 #endif
             outbuf[i] = ch;
         }
-        result = Tcl_NewUnicodeObj(outbuf, size);
-        ckfree(FREECAST outbuf);
+        result = Tcl_NewUnicodeObj(outbuf, (int)size);
+        PyMem_Free(outbuf);
         return result;
     }
-    else if(PyTclObject_Check(value)) {
-        Tcl_Obj *v = ((PyTclObject*)value)->value;
-        Tcl_IncrRefCount(v);
-        return v;
+
+    if (PyTclObject_Check(value)) {
+        return ((PyTclObject*)value)->value;
     }
-    else {
+
+    {
         PyObject *v = PyObject_Str(value);
         if (!v)
             return 0;
@@ -979,20 +1114,81 @@ AsObj(PyObject *value)
     }
 }
 
+static PyObject *
+fromBoolean(PyObject* tkapp, Tcl_Obj *value)
+{
+    int boolValue;
+    if (Tcl_GetBooleanFromObj(Tkapp_Interp(tkapp), value, &boolValue) == TCL_ERROR)
+        return Tkinter_Error(tkapp);
+    return PyBool_FromLong(boolValue);
+}
+
+static PyObject*
+fromWideIntObj(PyObject* tkapp, Tcl_Obj *value)
+{
+        Tcl_WideInt wideValue;
+        if (Tcl_GetWideIntFromObj(Tkapp_Interp(tkapp), value, &wideValue) == TCL_OK) {
+            if (sizeof(wideValue) <= SIZEOF_LONG_LONG)
+                return PyLong_FromLongLong(wideValue);
+            return _PyLong_FromByteArray((unsigned char *)(void *)&wideValue,
+                                         sizeof(wideValue),
+                                         PY_LITTLE_ENDIAN,
+                                         /* signed */ 1);
+        }
+        return NULL;
+}
+
+#ifdef HAVE_LIBTOMMAMTH
+static PyObject*
+fromBignumObj(PyObject* tkapp, Tcl_Obj *value)
+{
+    mp_int bigValue;
+    unsigned long numBytes;
+    unsigned char *bytes;
+    PyObject *res;
+
+    if (Tcl_GetBignumFromObj(Tkapp_Interp(tkapp), value, &bigValue) != TCL_OK)
+        return Tkinter_Error(tkapp);
+    numBytes = mp_unsigned_bin_size(&bigValue);
+    bytes = PyMem_Malloc(numBytes);
+    if (bytes == NULL) {
+        mp_clear(&bigValue);
+        return PyErr_NoMemory();
+    }
+    if (mp_to_unsigned_bin_n(&bigValue, bytes,
+                                &numBytes) != MP_OKAY) {
+        mp_clear(&bigValue);
+        PyMem_Free(bytes);
+        return PyErr_NoMemory();
+    }
+    res = _PyLong_FromByteArray(bytes, numBytes,
+                                /* big-endian */ 0,
+                                /* unsigned */ 0);
+    PyMem_Free(bytes);
+    if (res != NULL && bigValue.sign == MP_NEG) {
+        PyObject *res2 = PyNumber_Negative(res);
+        Py_DECREF(res);
+        res = res2;
+    }
+    mp_clear(&bigValue);
+    return res;
+}
+#endif
+
 static PyObject*
 FromObj(PyObject* tkapp, Tcl_Obj *value)
 {
     PyObject *result = NULL;
     TkappObject *app = (TkappObject*)tkapp;
+    Tcl_Interp *interp = Tkapp_Interp(tkapp);
 
     if (value->typePtr == NULL) {
         return unicodeFromTclStringAndSize(value->bytes, value->length);
     }
 
-    if (value->typePtr == app->BooleanType) {
-        result = value->internalRep.longValue ? Py_True : Py_False;
-        Py_INCREF(result);
-        return result;
+    if (value->typePtr == app->BooleanType ||
+        value->typePtr == app->OldBooleanType) {
+        return fromBoolean(tkapp, value);
     }
 
     if (value->typePtr == app->ByteArrayType) {
@@ -1006,8 +1202,30 @@ FromObj(PyObject* tkapp, Tcl_Obj *value)
     }
 
     if (value->typePtr == app->IntType) {
-        return PyLong_FromLong(value->internalRep.longValue);
+        long longValue;
+        if (Tcl_GetLongFromObj(interp, value, &longValue) == TCL_OK)
+            return PyLong_FromLong(longValue);
+        /* If there is an error in the long conversion,
+           fall through to wideInt handling. */
     }
+
+    if (value->typePtr == app->IntType ||
+        value->typePtr == app->WideIntType) {
+        result = fromWideIntObj(tkapp, value);
+        if (result != NULL || PyErr_Occurred())
+            return result;
+        Tcl_ResetResult(interp);
+        /* If there is an error in the wideInt conversion,
+           fall through to bignum handling. */
+    }
+
+#ifdef HAVE_LIBTOMMAMTH
+    if (value->typePtr == app->IntType ||
+        value->typePtr == app->WideIntType ||
+        value->typePtr == app->BignumType) {
+        return fromBignumObj(tkapp, value);
+    }
+#endif
 
     if (value->typePtr == app->ListType) {
         int size;
@@ -1015,15 +1233,14 @@ FromObj(PyObject* tkapp, Tcl_Obj *value)
         PyObject *elem;
         Tcl_Obj *tcl_elem;
 
-        status = Tcl_ListObjLength(Tkapp_Interp(tkapp), value, &size);
+        status = Tcl_ListObjLength(interp, value, &size);
         if (status == TCL_ERROR)
             return Tkinter_Error(tkapp);
         result = PyTuple_New(size);
         if (!result)
             return NULL;
         for (i = 0; i < size; i++) {
-            status = Tcl_ListObjIndex(Tkapp_Interp(tkapp),
-                                      value, i, &tcl_elem);
+            status = Tcl_ListObjIndex(interp, value, i, &tcl_elem);
             if (status == TCL_ERROR) {
                 Py_DECREF(result);
                 return Tkinter_Error(tkapp);
@@ -1033,7 +1250,7 @@ FromObj(PyObject* tkapp, Tcl_Obj *value)
                 Py_DECREF(result);
                 return NULL;
             }
-            PyTuple_SetItem(result, i, elem);
+            PyTuple_SET_ITEM(result, i, elem);
         }
         return result;
     }
@@ -1048,10 +1265,27 @@ FromObj(PyObject* tkapp, Tcl_Obj *value)
             Tcl_GetCharLength(value));
     }
 
+#if TK_HEX_VERSION >= 0x08050000
+    if (app->BooleanType == NULL &&
+        strcmp(value->typePtr->name, "booleanString") == 0) {
+        /* booleanString type is not registered in Tcl */
+        app->BooleanType = value->typePtr;
+        return fromBoolean(tkapp, value);
+    }
+#endif
+
+#ifdef HAVE_LIBTOMMAMTH
+    if (app->BignumType == NULL &&
+        strcmp(value->typePtr->name, "bignum") == 0) {
+        /* bignum type is not registered in Tcl */
+        app->BignumType = value->typePtr;
+        return fromBignumObj(tkapp, value);
+    }
+#endif
+
     return newPyTclObject(value);
 }
 
-#ifdef WITH_THREAD
 /* This mutex synchronizes inter-thread command calls. */
 TCL_DECLARE_MUTEX(call_mutex)
 
@@ -1064,7 +1298,6 @@ typedef struct Tkapp_CallEvent {
     PyObject **exc_type, **exc_value, **exc_tb;
     Tcl_Condition *done;
 } Tkapp_CallEvent;
-#endif
 
 void
 Tkapp_CallDeallocArgs(Tcl_Obj** objv, Tcl_Obj** objStore, int objc)
@@ -1073,7 +1306,7 @@ Tkapp_CallDeallocArgs(Tcl_Obj** objv, Tcl_Obj** objStore, int objc)
     for (i = 0; i < objc; i++)
         Tcl_DecrRefCount(objv[i]);
     if (objv != objStore)
-        ckfree(FREECAST objv);
+        PyMem_Free(objv);
 }
 
 /* Convert Python objects to Tcl objects. This must happen in the
@@ -1087,22 +1320,24 @@ Tkapp_CallArgs(PyObject *args, Tcl_Obj** objStore, int *pobjc)
     if (args == NULL)
         /* do nothing */;
 
-    else if (!PyTuple_Check(args)) {
+    else if (!(PyTuple_Check(args) || PyList_Check(args))) {
         objv[0] = AsObj(args);
-        if (objv[0] == 0)
+        if (objv[0] == NULL)
             goto finally;
         objc = 1;
         Tcl_IncrRefCount(objv[0]);
     }
     else {
-        objc = PyTuple_Size(args);
+        objc = PySequence_Fast_GET_SIZE(args);
 
         if (objc > ARGSZ) {
             if (!CHECK_SIZE(objc, sizeof(Tcl_Obj *))) {
-                PyErr_SetString(PyExc_OverflowError, "tuple is too long");
+                PyErr_SetString(PyExc_OverflowError,
+                                PyTuple_Check(args) ? "tuple is too long" :
+                                                      "list is too long");
                 return NULL;
             }
-            objv = (Tcl_Obj **)attemptckalloc(((size_t)objc) * sizeof(Tcl_Obj *));
+            objv = (Tcl_Obj **)PyMem_Malloc(((size_t)objc) * sizeof(Tcl_Obj *));
             if (objv == NULL) {
                 PyErr_NoMemory();
                 objc = 0;
@@ -1111,7 +1346,7 @@ Tkapp_CallArgs(PyObject *args, Tcl_Obj** objStore, int *pobjc)
         }
 
         for (i = 0; i < objc; i++) {
-            PyObject *v = PyTuple_GetItem(args, i);
+            PyObject *v = PySequence_Fast_GET_ITEM(args, i);
             if (v == Py_None) {
                 objc = i;
                 break;
@@ -1126,10 +1361,10 @@ Tkapp_CallArgs(PyObject *args, Tcl_Obj** objStore, int *pobjc)
             Tcl_IncrRefCount(objv[i]);
         }
     }
-    *pobjc = objc;
+    *pobjc = (int)objc;
     return objv;
 finally:
-    Tkapp_CallDeallocArgs(objv, objStore, objc);
+    Tkapp_CallDeallocArgs(objv, objStore, (int)objc);
     return NULL;
 }
 
@@ -1153,7 +1388,6 @@ Tkapp_CallResult(TkappObject *self)
     return res;
 }
 
-#ifdef WITH_THREAD
 
 /* Tkapp_CallProc is the event procedure that is executed in the context of
    the Tcl interpreter thread. Initially, it holds the Tcl lock, and doesn't
@@ -1199,7 +1433,6 @@ done:
     return 1;
 }
 
-#endif
 
 /* This is the main entry point for calling a Tcl command.
    It supports three cases, with regard to threading:
@@ -1224,12 +1457,11 @@ Tkapp_Call(PyObject *selfptr, PyObject *args)
     int flags = TCL_EVAL_DIRECT | TCL_EVAL_GLOBAL;
 
     /* If args is a single tuple, replace with contents of tuple */
-    if (1 == PyTuple_Size(args)){
-        PyObject* item = PyTuple_GetItem(args, 0);
+    if (PyTuple_GET_SIZE(args) == 1) {
+        PyObject *item = PyTuple_GET_ITEM(args, 0);
         if (PyTuple_Check(item))
             args = item;
     }
-#ifdef WITH_THREAD
     if (self->threaded && self->thread_id != Tcl_GetCurrentThread()) {
         /* We cannot call the command directly. Instead, we must
            marshal the parameters to the interpreter thread. */
@@ -1263,7 +1495,6 @@ Tkapp_Call(PyObject *selfptr, PyObject *args)
         Tcl_ConditionFinalize(&cond);
     }
     else
-#endif
     {
 
         objv = Tkapp_CallArgs(args, objStore, &objc);
@@ -1289,15 +1520,20 @@ Tkapp_Call(PyObject *selfptr, PyObject *args)
 }
 
 
+/*[clinic input]
+_tkinter.tkapp.eval
+
+    script: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_Eval(PyObject *self, PyObject *args)
+_tkinter_tkapp_eval_impl(TkappObject *self, const char *script)
+/*[clinic end generated code: output=24b79831f700dea0 input=481484123a455f22]*/
 {
-    char *script;
     PyObject *res = NULL;
     int err;
-
-    if (!PyArg_ParseTuple(args, "s:eval", &script))
-        return NULL;
 
     CHECK_STRING_LENGTH(script);
     CHECK_TCL_APPARTMENT;
@@ -1306,22 +1542,27 @@ Tkapp_Eval(PyObject *self, PyObject *args)
     err = Tcl_Eval(Tkapp_Interp(self), script);
     ENTER_OVERLAP
     if (err == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
         res = unicodeFromTclString(Tkapp_Result(self));
     LEAVE_OVERLAP_TCL
     return res;
 }
 
+/*[clinic input]
+_tkinter.tkapp.evalfile
+
+    fileName: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_EvalFile(PyObject *self, PyObject *args)
+_tkinter_tkapp_evalfile_impl(TkappObject *self, const char *fileName)
+/*[clinic end generated code: output=63be88dcee4f11d3 input=873ab707e5e947e1]*/
 {
-    char *fileName;
     PyObject *res = NULL;
     int err;
-
-    if (!PyArg_ParseTuple(args, "s:evalfile", &fileName))
-        return NULL;
 
     CHECK_STRING_LENGTH(fileName);
     CHECK_TCL_APPARTMENT;
@@ -1330,22 +1571,27 @@ Tkapp_EvalFile(PyObject *self, PyObject *args)
     err = Tcl_EvalFile(Tkapp_Interp(self), fileName);
     ENTER_OVERLAP
     if (err == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
         res = unicodeFromTclString(Tkapp_Result(self));
     LEAVE_OVERLAP_TCL
     return res;
 }
 
+/*[clinic input]
+_tkinter.tkapp.record
+
+    script: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_Record(PyObject *self, PyObject *args)
+_tkinter_tkapp_record_impl(TkappObject *self, const char *script)
+/*[clinic end generated code: output=0ffe08a0061730df input=c0b0db5a21412cac]*/
 {
-    char *script;
     PyObject *res = NULL;
     int err;
-
-    if (!PyArg_ParseTuple(args, "s:record", &script))
-        return NULL;
 
     CHECK_STRING_LENGTH(script);
     CHECK_TCL_APPARTMENT;
@@ -1354,20 +1600,25 @@ Tkapp_Record(PyObject *self, PyObject *args)
     err = Tcl_RecordAndEval(Tkapp_Interp(self), script, TCL_NO_EVAL);
     ENTER_OVERLAP
     if (err == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
         res = unicodeFromTclString(Tkapp_Result(self));
     LEAVE_OVERLAP_TCL
     return res;
 }
 
-static PyObject *
-Tkapp_AddErrorInfo(PyObject *self, PyObject *args)
-{
-    char *msg;
+/*[clinic input]
+_tkinter.tkapp.adderrorinfo
 
-    if (!PyArg_ParseTuple(args, "s:adderrorinfo", &msg))
-        return NULL;
+    msg: str
+    /
+
+[clinic start generated code]*/
+
+static PyObject *
+_tkinter_tkapp_adderrorinfo_impl(TkappObject *self, const char *msg)
+/*[clinic end generated code: output=52162eaca2ee53cb input=f4b37aec7c7e8c77]*/
+{
     CHECK_STRING_LENGTH(msg);
     CHECK_TCL_APPARTMENT;
 
@@ -1384,7 +1635,6 @@ Tkapp_AddErrorInfo(PyObject *self, PyObject *args)
 
 typedef PyObject* (*EventFunc)(PyObject*, PyObject *args, int flags);
 
-#ifdef WITH_THREAD
 TCL_DECLARE_MUTEX(var_mutex)
 
 typedef struct VarEvent {
@@ -1398,21 +1648,29 @@ typedef struct VarEvent {
     PyObject **exc_val;
     Tcl_Condition *cond;
 } VarEvent;
-#endif
+
+/*[python]
+
+class varname_converter(CConverter):
+    type = 'const char *'
+    converter = 'varname_converter'
+
+[python]*/
+/*[python checksum: da39a3ee5e6b4b0d3255bfef95601890afd80709]*/
 
 static int
 varname_converter(PyObject *in, void *_out)
 {
-    char *s;
-    char **out = (char**)_out;
+    const char *s;
+    const char **out = (const char**)_out;
     if (PyBytes_Check(in)) {
-        if (PyBytes_Size(in) > INT_MAX) {
+        if (PyBytes_GET_SIZE(in) > INT_MAX) {
             PyErr_SetString(PyExc_OverflowError, "bytes object is too long");
             return 0;
         }
-        s = PyBytes_AsString(in);
-        if (strlen(s) != PyBytes_Size(in)) {
-            PyErr_SetString(PyExc_ValueError, "null byte in bytes object");
+        s = PyBytes_AS_STRING(in);
+        if (strlen(s) != (size_t)PyBytes_GET_SIZE(in)) {
+            PyErr_SetString(PyExc_ValueError, "embedded null byte");
             return 0;
         }
         *out = s;
@@ -1428,8 +1686,8 @@ varname_converter(PyObject *in, void *_out)
             PyErr_SetString(PyExc_OverflowError, "string is too long");
             return 0;
         }
-        if (strlen(s) != size) {
-            PyErr_SetString(PyExc_ValueError, "null character in string");
+        if (strlen(s) != (size_t)size) {
+            PyErr_SetString(PyExc_ValueError, "embedded null character");
             return 0;
         }
         *out = s;
@@ -1445,7 +1703,6 @@ varname_converter(PyObject *in, void *_out)
     return 0;
 }
 
-#ifdef WITH_THREAD
 
 static void
 var_perform(VarEvent *ev)
@@ -1457,7 +1714,7 @@ var_perform(VarEvent *ev)
         PyErr_NormalizeException(&exc, &val, &tb);
         *(ev->exc_type) = exc;
         *(ev->exc_val) = val;
-        Py_DECREF(tb);
+        Py_XDECREF(tb);
     }
 
 }
@@ -1474,15 +1731,12 @@ var_proc(VarEvent* ev, int flags)
     return 1;
 }
 
-#endif
 
 static PyObject*
 var_invoke(EventFunc func, PyObject *selfptr, PyObject *args, int flags)
 {
-#ifdef WITH_THREAD
     TkappObject *self = (TkappObject*)selfptr;
     if (self->threaded && self->thread_id != Tcl_GetCurrentThread()) {
-        TkappObject *self = (TkappObject*)selfptr;
         VarEvent *ev;
         PyObject *res, *exc_type, *exc_val;
         Tcl_Condition cond = NULL;
@@ -1517,7 +1771,6 @@ var_invoke(EventFunc func, PyObject *selfptr, PyObject *args, int flags)
         }
         return res;
     }
-#endif
     /* Tcl is not threaded, or this is the interpreter thread. */
     return func(selfptr, args, flags);
 }
@@ -1525,7 +1778,7 @@ var_invoke(EventFunc func, PyObject *selfptr, PyObject *args, int flags)
 static PyObject *
 SetVar(PyObject *self, PyObject *args, int flags)
 {
-    char *name1, *name2;
+    const char *name1, *name2;
     PyObject *newValue;
     PyObject *res = NULL;
     Tcl_Obj *newval, *ok;
@@ -1594,7 +1847,7 @@ Tkapp_GlobalSetVar(PyObject *self, PyObject *args)
 static PyObject *
 GetVar(PyObject *self, PyObject *args, int flags)
 {
-    char *name1, *name2=NULL;
+    const char *name1, *name2=NULL;
     PyObject *res = NULL;
     Tcl_Obj *tres;
 
@@ -1677,78 +1930,145 @@ Tkapp_GlobalUnsetVar(PyObject *self, PyObject *args)
 
 /** Tcl to Python **/
 
+/*[clinic input]
+_tkinter.tkapp.getint
+
+    arg: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_GetInt(PyObject *self, PyObject *args)
+_tkinter_tkapp_getint(TkappObject *self, PyObject *arg)
+/*[clinic end generated code: output=88cf293fae307cfe input=034026997c5b91f8]*/
 {
     char *s;
-    int v;
+    Tcl_Obj *value;
+    PyObject *result;
 
-    if (PyTuple_Size(args) == 1) {
-        PyObject* o = PyTuple_GetItem(args, 0);
-        if (PyLong_Check(o)) {
-            Py_INCREF(o);
-            return o;
-        }
+    if (PyLong_Check(arg)) {
+        Py_INCREF(arg);
+        return arg;
     }
-    if (!PyArg_ParseTuple(args, "s:getint", &s))
-        return NULL;
-    CHECK_STRING_LENGTH(s);
-    if (Tcl_GetInt(Tkapp_Interp(self), s, &v) == TCL_ERROR)
-        return Tkinter_Error(self);
-    return Py_BuildValue("i", v);
+
+    if (PyTclObject_Check(arg)) {
+        value = ((PyTclObject*)arg)->value;
+        Tcl_IncrRefCount(value);
+    }
+    else {
+        if (!PyArg_Parse(arg, "s:getint", &s))
+            return NULL;
+        CHECK_STRING_LENGTH(s);
+        value = Tcl_NewStringObj(s, -1);
+        if (value == NULL)
+            return Tkinter_Error((PyObject *)self);
+    }
+    /* Don't use Tcl_GetInt() because it returns ambiguous result for value
+       in ranges -2**32..-2**31-1 and 2**31..2**32-1 (on 32-bit platform).
+
+       Prefer bignum because Tcl_GetWideIntFromObj returns ambiguous result for
+       value in ranges -2**64..-2**63-1 and 2**63..2**64-1 (on 32-bit platform).
+     */
+#ifdef HAVE_LIBTOMMAMTH
+    result = fromBignumObj((PyObject *)self, value);
+#else
+    result = fromWideIntObj((PyObject *)self, value);
+#endif
+    Tcl_DecrRefCount(value);
+    if (result != NULL || PyErr_Occurred())
+        return result;
+    return Tkinter_Error((PyObject *)self);
 }
 
+/*[clinic input]
+_tkinter.tkapp.getdouble
+
+    arg: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_GetDouble(PyObject *self, PyObject *args)
+_tkinter_tkapp_getdouble(TkappObject *self, PyObject *arg)
+/*[clinic end generated code: output=c52b138bd8b956b9 input=22015729ce9ef7f8]*/
 {
     char *s;
     double v;
 
-    if (PyTuple_Size(args) == 1) {
-        PyObject *o = PyTuple_GetItem(args, 0);
-        if (PyFloat_Check(o)) {
-            Py_INCREF(o);
-            return o;
-        }
+    if (PyFloat_Check(arg)) {
+        Py_INCREF(arg);
+        return arg;
     }
-    if (!PyArg_ParseTuple(args, "s:getdouble", &s))
+
+    if (PyNumber_Check(arg)) {
+        return PyNumber_Float(arg);
+    }
+
+    if (PyTclObject_Check(arg)) {
+        if (Tcl_GetDoubleFromObj(Tkapp_Interp(self),
+                                 ((PyTclObject*)arg)->value,
+                                 &v) == TCL_ERROR)
+            return Tkinter_Error((PyObject *)self);
+        return PyFloat_FromDouble(v);
+    }
+
+    if (!PyArg_Parse(arg, "s:getdouble", &s))
         return NULL;
     CHECK_STRING_LENGTH(s);
     if (Tcl_GetDouble(Tkapp_Interp(self), s, &v) == TCL_ERROR)
-        return Tkinter_Error(self);
-    return Py_BuildValue("d", v);
+        return Tkinter_Error((PyObject *)self);
+    return PyFloat_FromDouble(v);
 }
 
+/*[clinic input]
+_tkinter.tkapp.getboolean
+
+    arg: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_GetBoolean(PyObject *self, PyObject *args)
+_tkinter_tkapp_getboolean(TkappObject *self, PyObject *arg)
+/*[clinic end generated code: output=726a9ae445821d91 input=7f11248ef8f8776e]*/
 {
     char *s;
     int v;
 
-    if (PyTuple_Size(args) == 1) {
-        PyObject *o = PyTuple_GetItem(args, 0);
-        if (PyLong_Check(o)) {
-            Py_INCREF(o);
-            return o;
-        }
+    if (PyLong_Check(arg)) { /* int or bool */
+        return PyBool_FromLong(Py_SIZE(arg) != 0);
     }
-    if (!PyArg_ParseTuple(args, "s:getboolean", &s))
+
+    if (PyTclObject_Check(arg)) {
+        if (Tcl_GetBooleanFromObj(Tkapp_Interp(self),
+                                  ((PyTclObject*)arg)->value,
+                                  &v) == TCL_ERROR)
+            return Tkinter_Error((PyObject *)self);
+        return PyBool_FromLong(v);
+    }
+
+    if (!PyArg_Parse(arg, "s:getboolean", &s))
         return NULL;
     CHECK_STRING_LENGTH(s);
     if (Tcl_GetBoolean(Tkapp_Interp(self), s, &v) == TCL_ERROR)
-        return Tkinter_Error(self);
+        return Tkinter_Error((PyObject *)self);
     return PyBool_FromLong(v);
 }
 
+/*[clinic input]
+_tkinter.tkapp.exprstring
+
+    s: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_ExprString(PyObject *self, PyObject *args)
+_tkinter_tkapp_exprstring_impl(TkappObject *self, const char *s)
+/*[clinic end generated code: output=beda323d3ed0abb1 input=fa78f751afb2f21b]*/
 {
-    char *s;
     PyObject *res = NULL;
     int retval;
-
-    if (!PyArg_ParseTuple(args, "s:exprstring", &s))
-        return NULL;
 
     CHECK_STRING_LENGTH(s);
     CHECK_TCL_APPARTMENT;
@@ -1757,23 +2077,28 @@ Tkapp_ExprString(PyObject *self, PyObject *args)
     retval = Tcl_ExprString(Tkapp_Interp(self), s);
     ENTER_OVERLAP
     if (retval == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
         res = unicodeFromTclString(Tkapp_Result(self));
     LEAVE_OVERLAP_TCL
     return res;
 }
 
+/*[clinic input]
+_tkinter.tkapp.exprlong
+
+    s: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_ExprLong(PyObject *self, PyObject *args)
+_tkinter_tkapp_exprlong_impl(TkappObject *self, const char *s)
+/*[clinic end generated code: output=5d6a46b63c6ebcf9 input=11bd7eee0c57b4dc]*/
 {
-    char *s;
     PyObject *res = NULL;
     int retval;
     long v;
-
-    if (!PyArg_ParseTuple(args, "s:exprlong", &s))
-        return NULL;
 
     CHECK_STRING_LENGTH(s);
     CHECK_TCL_APPARTMENT;
@@ -1782,23 +2107,29 @@ Tkapp_ExprLong(PyObject *self, PyObject *args)
     retval = Tcl_ExprLong(Tkapp_Interp(self), s, &v);
     ENTER_OVERLAP
     if (retval == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
-        res = Py_BuildValue("l", v);
+        res = PyLong_FromLong(v);
     LEAVE_OVERLAP_TCL
     return res;
 }
 
+/*[clinic input]
+_tkinter.tkapp.exprdouble
+
+    s: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_ExprDouble(PyObject *self, PyObject *args)
+_tkinter_tkapp_exprdouble_impl(TkappObject *self, const char *s)
+/*[clinic end generated code: output=ff78df1081ea4158 input=ff02bc11798832d5]*/
 {
-    char *s;
     PyObject *res = NULL;
     double v;
     int retval;
 
-    if (!PyArg_ParseTuple(args, "s:exprdouble", &s))
-        return NULL;
     CHECK_STRING_LENGTH(s);
     CHECK_TCL_APPARTMENT;
     PyFPE_START_PROTECT("Tkapp_ExprDouble", return 0)
@@ -1807,65 +2138,79 @@ Tkapp_ExprDouble(PyObject *self, PyObject *args)
     ENTER_OVERLAP
     PyFPE_END_PROTECT(retval)
     if (retval == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
-        res = Py_BuildValue("d", v);
+        res = PyFloat_FromDouble(v);
     LEAVE_OVERLAP_TCL
     return res;
 }
 
+/*[clinic input]
+_tkinter.tkapp.exprboolean
+
+    s: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_ExprBoolean(PyObject *self, PyObject *args)
+_tkinter_tkapp_exprboolean_impl(TkappObject *self, const char *s)
+/*[clinic end generated code: output=8b28038c22887311 input=c8c66022bdb8d5d3]*/
 {
-    char *s;
     PyObject *res = NULL;
     int retval;
     int v;
 
-    if (!PyArg_ParseTuple(args, "s:exprboolean", &s))
-        return NULL;
     CHECK_STRING_LENGTH(s);
     CHECK_TCL_APPARTMENT;
     ENTER_TCL
     retval = Tcl_ExprBoolean(Tkapp_Interp(self), s, &v);
     ENTER_OVERLAP
     if (retval == TCL_ERROR)
-        res = Tkinter_Error(self);
+        res = Tkinter_Error((PyObject *)self);
     else
-        res = Py_BuildValue("i", v);
+        res = PyLong_FromLong(v);
     LEAVE_OVERLAP_TCL
     return res;
 }
 
 
 
+/*[clinic input]
+_tkinter.tkapp.splitlist
+
+    arg: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_SplitList(PyObject *self, PyObject *args)
+_tkinter_tkapp_splitlist(TkappObject *self, PyObject *arg)
+/*[clinic end generated code: output=13b51d34386d36fb input=2b2e13351e3c0b53]*/
 {
     char *list;
     int argc;
-    char **argv;
-    PyObject *arg, *v;
+    const char **argv;
+    PyObject *v;
     int i;
 
-    if (!PyArg_ParseTuple(args, "O:splitlist", &arg))
-        return NULL;
     if (PyTclObject_Check(arg)) {
         int objc;
         Tcl_Obj **objv;
         if (Tcl_ListObjGetElements(Tkapp_Interp(self),
                                    ((PyTclObject*)arg)->value,
                                    &objc, &objv) == TCL_ERROR) {
-            return Tkinter_Error(self);
+            return Tkinter_Error((PyObject *)self);
         }
         if (!(v = PyTuple_New(objc)))
             return NULL;
         for (i = 0; i < objc; i++) {
-            PyObject *s = FromObj(self, objv[i]);
-            if (!s || PyTuple_SetItem(v, i, s)) {
+            PyObject *s = FromObj((PyObject*)self, objv[i]);
+            if (!s) {
                 Py_DECREF(v);
                 return NULL;
             }
+            PyTuple_SET_ITEM(v, i, s);
         }
         return v;
     }
@@ -1873,15 +2218,22 @@ Tkapp_SplitList(PyObject *self, PyObject *args)
         Py_INCREF(arg);
         return arg;
     }
+    if (PyList_Check(arg)) {
+        return PySequence_Tuple(arg);
+    }
 
-    if (!PyArg_ParseTuple(args, "et:splitlist", "utf-8", &list))
+    if (!PyArg_Parse(arg, "et:splitlist", "utf-8", &list))
         return NULL;
 
-    CHECK_STRING_LENGTH(list);
+    if (strlen(list) >= INT_MAX) {
+        PyErr_SetString(PyExc_OverflowError, "string is too long");
+        PyMem_Free(list);
+        return NULL;
+    }
     if (Tcl_SplitList(Tkapp_Interp(self), list,
                       &argc, &argv) == TCL_ERROR)  {
         PyMem_Free(list);
-        return Tkinter_Error(self);
+        return Tkinter_Error((PyObject *)self);
     }
 
     if (!(v = PyTuple_New(argc)))
@@ -1889,11 +2241,12 @@ Tkapp_SplitList(PyObject *self, PyObject *args)
 
     for (i = 0; i < argc; i++) {
         PyObject *s = unicodeFromTclString(argv[i]);
-        if (!s || PyTuple_SetItem(v, i, s)) {
+        if (!s) {
             Py_DECREF(v);
             v = NULL;
             goto finally;
         }
+        PyTuple_SET_ITEM(v, i, s);
     }
 
   finally:
@@ -1902,14 +2255,21 @@ Tkapp_SplitList(PyObject *self, PyObject *args)
     return v;
 }
 
+/*[clinic input]
+_tkinter.tkapp.split
+
+    arg: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_Split(PyObject *self, PyObject *args)
+_tkinter_tkapp_split(TkappObject *self, PyObject *arg)
+/*[clinic end generated code: output=e08ad832363facfd input=a1c78349eacaa140]*/
 {
-    PyObject *arg, *v;
+    PyObject *v;
     char *list;
 
-    if (!PyArg_ParseTuple(args, "O:split", &arg))
-        return NULL;
     if (PyTclObject_Check(arg)) {
         Tcl_Obj *value = ((PyTclObject*)arg)->value;
         int objc;
@@ -1917,29 +2277,34 @@ Tkapp_Split(PyObject *self, PyObject *args)
         int i;
         if (Tcl_ListObjGetElements(Tkapp_Interp(self), value,
                                    &objc, &objv) == TCL_ERROR) {
-            return FromObj(self, value);
+            return FromObj((PyObject*)self, value);
         }
         if (objc == 0)
             return PyUnicode_FromString("");
         if (objc == 1)
-            return FromObj(self, objv[0]);
+            return FromObj((PyObject*)self, objv[0]);
         if (!(v = PyTuple_New(objc)))
             return NULL;
         for (i = 0; i < objc; i++) {
-            PyObject *s = FromObj(self, objv[i]);
-            if (!s || PyTuple_SetItem(v, i, s)) {
+            PyObject *s = FromObj((PyObject*)self, objv[i]);
+            if (!s) {
                 Py_DECREF(v);
                 return NULL;
             }
+            PyTuple_SET_ITEM(v, i, s);
         }
         return v;
     }
-    if (PyTuple_Check(arg))
+    if (PyTuple_Check(arg) || PyList_Check(arg))
         return SplitObj(arg);
 
-    if (!PyArg_ParseTuple(args, "et:split", "utf-8", &list))
+    if (!PyArg_Parse(arg, "et:split", "utf-8", &list))
         return NULL;
-    CHECK_STRING_LENGTH(list);
+    if (strlen(list) >= INT_MAX) {
+        PyErr_SetString(PyExc_OverflowError, "string is too long");
+        PyMem_Free(list);
+        return NULL;
+    }
     v = Split(list);
     PyMem_Free(list);
     return v;
@@ -1968,7 +2333,7 @@ PythonCmd_Error(Tcl_Interp *interp)
  * function or method.
  */
 static int
-PythonCmd(ClientData clientData, Tcl_Interp *interp, int argc, char *argv[])
+PythonCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char *argv[])
 {
     PythonCmd_ClientData *data = (PythonCmd_ClientData *)clientData;
     PyObject *func, *arg, *res;
@@ -1988,12 +2353,13 @@ PythonCmd(ClientData clientData, Tcl_Interp *interp, int argc, char *argv[])
 
     for (i = 0; i < (argc - 1); i++) {
         PyObject *s = unicodeFromTclString(argv[i + 1]);
-        if (!s || PyTuple_SetItem(arg, i, s)) {
+        if (!s) {
             Py_DECREF(arg);
             return PythonCmd_Error(interp);
         }
+        PyTuple_SET_ITEM(arg, i, s);
     }
-    res = PyEval_CallObject(func, arg);
+    res = PyObject_Call(func, arg, NULL);
     Py_DECREF(arg);
 
     if (res == NULL)
@@ -2031,13 +2397,12 @@ PythonCmdDelete(ClientData clientData)
 
 
 
-#ifdef WITH_THREAD
 TCL_DECLARE_MUTEX(command_mutex)
 
 typedef struct CommandEvent{
     Tcl_Event ev;
     Tcl_Interp* interp;
-    char *name;
+    const char *name;
     int create;
     int *status;
     ClientData *data;
@@ -2058,39 +2423,41 @@ Tkapp_CommandProc(CommandEvent *ev, int flags)
     Tcl_MutexUnlock(&command_mutex);
     return 1;
 }
-#endif
+
+/*[clinic input]
+_tkinter.tkapp.createcommand
+
+    name: str
+    func: object
+    /
+
+[clinic start generated code]*/
 
 static PyObject *
-Tkapp_CreateCommand(PyObject *selfptr, PyObject *args)
+_tkinter_tkapp_createcommand_impl(TkappObject *self, const char *name,
+                                  PyObject *func)
+/*[clinic end generated code: output=2a1c79a4ee2af410 input=255785cb70edc6a0]*/
 {
-    TkappObject *self = (TkappObject*)selfptr;
     PythonCmd_ClientData *data;
-    char *cmdName;
-    PyObject *func;
     int err;
 
-    if (!PyArg_ParseTuple(args, "sO:createcommand", &cmdName, &func))
-        return NULL;
-    CHECK_STRING_LENGTH(cmdName);
+    CHECK_STRING_LENGTH(name);
     if (!PyCallable_Check(func)) {
         PyErr_SetString(PyExc_TypeError, "command not callable");
         return NULL;
     }
 
-#ifdef WITH_THREAD
     if (self->threaded && self->thread_id != Tcl_GetCurrentThread() &&
         !WaitForMainloop(self))
         return NULL;
-#endif
 
     data = PyMem_NEW(PythonCmd_ClientData, 1);
     if (!data)
         return PyErr_NoMemory();
     Py_INCREF(self);
     Py_INCREF(func);
-    data->self = selfptr;
+    data->self = (PyObject *) self;
     data->func = func;
-#ifdef WITH_THREAD
     if (self->threaded && self->thread_id != Tcl_GetCurrentThread()) {
         Tcl_Condition cond = NULL;
         CommandEvent *ev = (CommandEvent*)attemptckalloc(sizeof(CommandEvent));
@@ -2102,7 +2469,7 @@ Tkapp_CreateCommand(PyObject *selfptr, PyObject *args)
         ev->ev.proc = (Tcl_EventProc*)Tkapp_CommandProc;
         ev->interp = self->interp;
         ev->create = 1;
-        ev->name = cmdName;
+        ev->name = name;
         ev->data = (ClientData)data;
         ev->status = &err;
         ev->done = &cond;
@@ -2110,11 +2477,10 @@ Tkapp_CreateCommand(PyObject *selfptr, PyObject *args)
         Tcl_ConditionFinalize(&cond);
     }
     else
-#endif
     {
         ENTER_TCL
         err = Tcl_CreateCommand(
-            Tkapp_Interp(self), cmdName, PythonCmd,
+            Tkapp_Interp(self), name, PythonCmd,
             (ClientData)data, PythonCmdDelete) == NULL;
         LEAVE_TCL
     }
@@ -2129,18 +2495,22 @@ Tkapp_CreateCommand(PyObject *selfptr, PyObject *args)
 
 
 
+/*[clinic input]
+_tkinter.tkapp.deletecommand
+
+    name: str
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_DeleteCommand(PyObject *selfptr, PyObject *args)
+_tkinter_tkapp_deletecommand_impl(TkappObject *self, const char *name)
+/*[clinic end generated code: output=a67e8cb5845e0d2d input=53e9952eae1f85f5]*/
 {
-    TkappObject *self = (TkappObject*)selfptr;
-    char *cmdName;
     int err;
 
-    if (!PyArg_ParseTuple(args, "s:deletecommand", &cmdName))
-        return NULL;
-    CHECK_STRING_LENGTH(cmdName);
+    CHECK_STRING_LENGTH(name);
 
-#ifdef WITH_THREAD
     if (self->threaded && self->thread_id != Tcl_GetCurrentThread()) {
         Tcl_Condition cond = NULL;
         CommandEvent *ev;
@@ -2152,7 +2522,7 @@ Tkapp_DeleteCommand(PyObject *selfptr, PyObject *args)
         ev->ev.proc = (Tcl_EventProc*)Tkapp_CommandProc;
         ev->interp = self->interp;
         ev->create = 0;
-        ev->name = cmdName;
+        ev->name = name;
         ev->status = &err;
         ev->done = &cond;
         Tkapp_ThreadSend(self, (Tcl_Event*)ev, &cond,
@@ -2160,10 +2530,9 @@ Tkapp_DeleteCommand(PyObject *selfptr, PyObject *args)
         Tcl_ConditionFinalize(&cond);
     }
     else
-#endif
     {
         ENTER_TCL
-        err = Tcl_DeleteCommand(self->interp, cmdName);
+        err = Tcl_DeleteCommand(self->interp, name);
         LEAVE_TCL
     }
     if (err == -1) {
@@ -2226,16 +2595,13 @@ static void
 FileHandler(ClientData clientData, int mask)
 {
     FileHandler_ClientData *data = (FileHandler_ClientData *)clientData;
-    PyObject *func, *file, *arg, *res;
+    PyObject *func, *file, *res;
 
     ENTER_PYTHON
     func = data->func;
     file = data->file;
 
-    arg = Py_BuildValue("(Oi)", file, (long) mask);
-    res = PyEval_CallObject(func, arg);
-    Py_DECREF(arg);
-
+    res = PyObject_CallFunction(func, "Oi", file, mask);
     if (res == NULL) {
         errorInCmd = 1;
         PyErr_Fetch(&excInCmd, &valInCmd, &trbInCmd);
@@ -2244,17 +2610,23 @@ FileHandler(ClientData clientData, int mask)
     LEAVE_PYTHON
 }
 
+/*[clinic input]
+_tkinter.tkapp.createfilehandler
+
+    file: object
+    mask: int
+    func: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_CreateFileHandler(PyObject *self, PyObject *args)
-     /* args is (file, mask, func) */
+_tkinter_tkapp_createfilehandler_impl(TkappObject *self, PyObject *file,
+                                      int mask, PyObject *func)
+/*[clinic end generated code: output=f73ce82de801c353 input=84943a5286e47947]*/
 {
     FileHandler_ClientData *data;
-    PyObject *file, *func;
-    int mask, tfile;
-
-    if (!PyArg_ParseTuple(args, "OiO:createfilehandler",
-                          &file, &mask, &func))
-        return NULL;
+    int tfile;
 
     CHECK_TCL_APPARTMENT;
 
@@ -2277,14 +2649,19 @@ Tkapp_CreateFileHandler(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *
-Tkapp_DeleteFileHandler(PyObject *self, PyObject *args)
-{
-    PyObject *file;
-    int tfile;
+/*[clinic input]
+_tkinter.tkapp.deletefilehandler
 
-    if (!PyArg_ParseTuple(args, "O:deletefilehandler", &file))
-        return NULL;
+    file: object
+    /
+
+[clinic start generated code]*/
+
+static PyObject *
+_tkinter_tkapp_deletefilehandler(TkappObject *self, PyObject *file)
+/*[clinic end generated code: output=b53cc96ebf9476fd input=abbec19d66312e2a]*/
+{
+    int tfile;
 
     CHECK_TCL_APPARTMENT;
 
@@ -2313,14 +2690,18 @@ typedef struct {
     PyObject *func;
 } TkttObject;
 
+/*[clinic input]
+_tkinter.tktimertoken.deletetimerhandler
+
+[clinic start generated code]*/
+
 static PyObject *
-Tktt_DeleteTimerHandler(PyObject *self, PyObject *args)
+_tkinter_tktimertoken_deletetimerhandler_impl(TkttObject *self)
+/*[clinic end generated code: output=bd7fe17f328cfa55 input=40bd070ff85f5cf3]*/
 {
-    TkttObject *v = (TkttObject *)self;
+    TkttObject *v = self;
     PyObject *func = v->func;
 
-    if (!PyArg_ParseTuple(args, ":deletetimerhandler"))
-        return NULL;
     if (v->token != NULL) {
         Tcl_DeleteTimerHandler(v->token);
         v->token = NULL;
@@ -2332,12 +2713,6 @@ Tktt_DeleteTimerHandler(PyObject *self, PyObject *args)
     }
     Py_RETURN_NONE;
 }
-
-static PyMethodDef Tktt_methods[] =
-{
-    {"deletetimerhandler", Tktt_DeleteTimerHandler, METH_VARARGS},
-    {NULL, NULL}
-};
 
 static TkttObject *
 Tktt_New(PyObject *func)
@@ -2380,22 +2755,6 @@ Tktt_Repr(PyObject *self)
                                 v->func == NULL ? ", handler deleted" : "");
 }
 
-static PyType_Slot Tktt_Type_slots[] = {
-    {Py_tp_dealloc, Tktt_Dealloc},
-    {Py_tp_repr, Tktt_Repr},
-    {Py_tp_methods, Tktt_methods},
-    {0, 0}
-};
-
-static PyType_Spec Tktt_Type_spec = {
-    "tktimertoken",
-    sizeof(TkttObject),
-    0,
-    Py_TPFLAGS_DEFAULT,
-    Tktt_Type_slots,
-};
-
-
 /** Timer Handler **/
 
 static void
@@ -2412,7 +2771,7 @@ TimerHandler(ClientData clientData)
 
     ENTER_PYTHON
 
-    res  = PyEval_CallObject(func, NULL);
+    res = _PyObject_CallNoArg(func);
     Py_DECREF(func);
     Py_DECREF(v); /* See Tktt_New() */
 
@@ -2426,16 +2785,22 @@ TimerHandler(ClientData clientData)
     LEAVE_PYTHON
 }
 
+/*[clinic input]
+_tkinter.tkapp.createtimerhandler
+
+    milliseconds: int
+    func: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_CreateTimerHandler(PyObject *self, PyObject *args)
+_tkinter_tkapp_createtimerhandler_impl(TkappObject *self, int milliseconds,
+                                       PyObject *func)
+/*[clinic end generated code: output=2da5959b9d031911 input=ba6729f32f0277a5]*/
 {
-    int milliseconds;
-    PyObject *func;
     TkttObject *v;
 
-    if (!PyArg_ParseTuple(args, "iO:createtimerhandler",
-                          &milliseconds, &func))
-        return NULL;
     if (!PyCallable_Check(func)) {
         PyErr_SetString(PyExc_TypeError, "bad argument list");
         return NULL;
@@ -2455,17 +2820,19 @@ Tkapp_CreateTimerHandler(PyObject *self, PyObject *args)
 
 /** Event Loop **/
 
-static PyObject *
-Tkapp_MainLoop(PyObject *selfptr, PyObject *args)
-{
-    int threshold = 0;
-    TkappObject *self = (TkappObject*)selfptr;
-#ifdef WITH_THREAD
-    PyThreadState *tstate = PyThreadState_Get();
-#endif
+/*[clinic input]
+_tkinter.tkapp.mainloop
 
-    if (!PyArg_ParseTuple(args, "|i:mainloop", &threshold))
-        return NULL;
+    threshold: int = 0
+    /
+
+[clinic start generated code]*/
+
+static PyObject *
+_tkinter_tkapp_mainloop_impl(TkappObject *self, int threshold)
+/*[clinic end generated code: output=0ba8eabbe57841b0 input=036bcdcf03d5eca0]*/
+{
+    PyThreadState *tstate = PyThreadState_Get();
 
     CHECK_TCL_APPARTMENT;
     self->dispatching = 1;
@@ -2477,7 +2844,6 @@ Tkapp_MainLoop(PyObject *selfptr, PyObject *args)
     {
         int result;
 
-#ifdef WITH_THREAD
         if (self->threaded) {
             /* Allow other Python threads to run. */
             ENTER_TCL
@@ -2495,9 +2861,6 @@ Tkapp_MainLoop(PyObject *selfptr, PyObject *args)
                 Sleep(Tkinter_busywaitinterval);
             Py_END_ALLOW_THREADS
         }
-#else
-        result = Tcl_DoOneEvent(0);
-#endif
 
         if (PyErr_CheckSignals() != 0) {
             self->dispatching = 0;
@@ -2518,44 +2881,56 @@ Tkapp_MainLoop(PyObject *selfptr, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *
-Tkapp_DoOneEvent(PyObject *self, PyObject *args)
-{
-    int flags = 0;
-    int rv;
+/*[clinic input]
+_tkinter.tkapp.dooneevent
 
-    if (!PyArg_ParseTuple(args, "|i:dooneevent", &flags))
-        return NULL;
+    flags: int = 0
+    /
+
+[clinic start generated code]*/
+
+static PyObject *
+_tkinter_tkapp_dooneevent_impl(TkappObject *self, int flags)
+/*[clinic end generated code: output=27c6b2aa464cac29 input=6542b928e364b793]*/
+{
+    int rv;
 
     ENTER_TCL
     rv = Tcl_DoOneEvent(flags);
     LEAVE_TCL
-    return Py_BuildValue("i", rv);
+    return PyLong_FromLong(rv);
 }
 
+/*[clinic input]
+_tkinter.tkapp.quit
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_Quit(PyObject *self, PyObject *args)
+_tkinter_tkapp_quit_impl(TkappObject *self)
+/*[clinic end generated code: output=7f21eeff481f754f input=e03020dc38aff23c]*/
 {
-
-    if (!PyArg_ParseTuple(args, ":quit"))
-        return NULL;
-
     quitMainLoop = 1;
     Py_RETURN_NONE;
 }
 
+/*[clinic input]
+_tkinter.tkapp.interpaddr
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_InterpAddr(PyObject *self, PyObject *args)
+_tkinter_tkapp_interpaddr_impl(TkappObject *self)
+/*[clinic end generated code: output=6caaae3273b3c95a input=2dd32cbddb55a111]*/
 {
-
-    if (!PyArg_ParseTuple(args, ":interpaddr"))
-        return NULL;
-
     return PyLong_FromVoidPtr(Tkapp_Interp(self));
 }
 
+/*[clinic input]
+_tkinter.tkapp.loadtk
+[clinic start generated code]*/
+
 static PyObject *
-Tkapp_TkInit(PyObject *self, PyObject *args)
+_tkinter_tkapp_loadtk_impl(TkappObject *self)
+/*[clinic end generated code: output=e9e10a954ce46d2a input=b5e82afedd6354f0]*/
 {
     Tcl_Interp *interp = Tkapp_Interp(self);
     const char * _tk_exists = NULL;
@@ -2581,7 +2956,7 @@ Tkapp_TkInit(PyObject *self, PyObject *args)
     if (err == TCL_ERROR) {
         /* This sets an exception, but we cannot return right
            away because we need to exit the overlap first. */
-        Tkinter_Error(self);
+        Tkinter_Error((PyObject *)self);
     } else {
         _tk_exists = Tkapp_Result(self);
     }
@@ -2616,57 +2991,19 @@ Tkapp_WantObjects(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *
-Tkapp_WillDispatch(PyObject *self, PyObject *args)
-{
+/*[clinic input]
+_tkinter.tkapp.willdispatch
 
-    ((TkappObject*)self)->dispatching = 1;
+[clinic start generated code]*/
+
+static PyObject *
+_tkinter_tkapp_willdispatch_impl(TkappObject *self)
+/*[clinic end generated code: output=0e3f46d244642155 input=d88f5970843d6dab]*/
+{
+    self->dispatching = 1;
 
     Py_RETURN_NONE;
 }
-
-
-/**** Tkapp Method List ****/
-
-static PyMethodDef Tkapp_methods[] =
-{
-    {"willdispatch",       Tkapp_WillDispatch, METH_NOARGS},
-    {"wantobjects",            Tkapp_WantObjects, METH_VARARGS},
-    {"call",                   Tkapp_Call, METH_VARARGS},
-    {"eval",                   Tkapp_Eval, METH_VARARGS},
-    {"evalfile",               Tkapp_EvalFile, METH_VARARGS},
-    {"record",                 Tkapp_Record, METH_VARARGS},
-    {"adderrorinfo",       Tkapp_AddErrorInfo, METH_VARARGS},
-    {"setvar",                 Tkapp_SetVar, METH_VARARGS},
-    {"globalsetvar",       Tkapp_GlobalSetVar, METH_VARARGS},
-    {"getvar",                 Tkapp_GetVar, METH_VARARGS},
-    {"globalgetvar",       Tkapp_GlobalGetVar, METH_VARARGS},
-    {"unsetvar",               Tkapp_UnsetVar, METH_VARARGS},
-    {"globalunsetvar",     Tkapp_GlobalUnsetVar, METH_VARARGS},
-    {"getint",                 Tkapp_GetInt, METH_VARARGS},
-    {"getdouble",              Tkapp_GetDouble, METH_VARARGS},
-    {"getboolean",             Tkapp_GetBoolean, METH_VARARGS},
-    {"exprstring",             Tkapp_ExprString, METH_VARARGS},
-    {"exprlong",               Tkapp_ExprLong, METH_VARARGS},
-    {"exprdouble",             Tkapp_ExprDouble, METH_VARARGS},
-    {"exprboolean",        Tkapp_ExprBoolean, METH_VARARGS},
-    {"splitlist",              Tkapp_SplitList, METH_VARARGS},
-    {"split",                  Tkapp_Split, METH_VARARGS},
-    {"createcommand",      Tkapp_CreateCommand, METH_VARARGS},
-    {"deletecommand",      Tkapp_DeleteCommand, METH_VARARGS},
-#ifdef HAVE_CREATEFILEHANDLER
-    {"createfilehandler",  Tkapp_CreateFileHandler, METH_VARARGS},
-    {"deletefilehandler",  Tkapp_DeleteFileHandler, METH_VARARGS},
-#endif
-    {"createtimerhandler", Tkapp_CreateTimerHandler, METH_VARARGS},
-    {"mainloop",               Tkapp_MainLoop, METH_VARARGS},
-    {"dooneevent",             Tkapp_DoOneEvent, METH_VARARGS},
-    {"quit",                   Tkapp_Quit, METH_VARARGS},
-    {"interpaddr",         Tkapp_InterpAddr, METH_VARARGS},
-    {"loadtk",                 Tkapp_TkInit, METH_NOARGS},
-    {NULL,                     NULL}
-};
-
 
 
 /**** Tkapp Type Methods ****/
@@ -2684,41 +3021,26 @@ Tkapp_Dealloc(PyObject *self)
     DisableEventHook();
 }
 
-static PyType_Slot Tkapp_Type_slots[] = {
-    {Py_tp_dealloc, Tkapp_Dealloc},
-    {Py_tp_methods, Tkapp_methods},
-    {0, 0}
-};
-
-
-static PyType_Spec Tkapp_Type_spec = {
-    "tkapp",
-    sizeof(TkappObject),
-    0,
-    Py_TPFLAGS_DEFAULT,
-    Tkapp_Type_slots,
-};
-
 
 
 /**** Tkinter Module ****/
 
 typedef struct {
     PyObject* tuple;
-    int size; /* current size */
-    int maxsize; /* allocated size */
+    Py_ssize_t size; /* current size */
+    Py_ssize_t maxsize; /* allocated size */
 } FlattenContext;
 
 static int
-_bump(FlattenContext* context, int size)
+_bump(FlattenContext* context, Py_ssize_t size)
 {
     /* expand tuple to hold (at least) size new items.
        return true if successful, false if an exception was raised */
 
-    int maxsize = context->maxsize * 2;
+    Py_ssize_t maxsize = context->maxsize * 2;  /* never overflows */
 
     if (maxsize < context->size + size)
-        maxsize = context->size + size;
+        maxsize = context->size + size;  /* never overflows */
 
     context->maxsize = maxsize;
 
@@ -2730,41 +3052,21 @@ _flatten1(FlattenContext* context, PyObject* item, int depth)
 {
     /* add tuple or list to argument tuple (recursively) */
 
-    int i, size;
+    Py_ssize_t i, size;
 
     if (depth > 1000) {
         PyErr_SetString(PyExc_ValueError,
                         "nesting too deep in _flatten");
         return 0;
-    } else if (PyList_Check(item)) {
-        size = PyList_GET_SIZE(item);
+    } else if (PyTuple_Check(item) || PyList_Check(item)) {
+        size = PySequence_Fast_GET_SIZE(item);
         /* preallocate (assume no nesting) */
         if (context->size + size > context->maxsize &&
             !_bump(context, size))
             return 0;
         /* copy items to output tuple */
         for (i = 0; i < size; i++) {
-            PyObject *o = PyList_GET_ITEM(item, i);
-            if (PyList_Check(o) || PyTuple_Check(o)) {
-                if (!_flatten1(context, o, depth + 1))
-                    return 0;
-            } else if (o != Py_None) {
-                if (context->size + 1 > context->maxsize &&
-                    !_bump(context, 1))
-                    return 0;
-                Py_INCREF(o);
-                PyTuple_SET_ITEM(context->tuple,
-                                 context->size++, o);
-            }
-        }
-    } else if (PyTuple_Check(item)) {
-        /* same, for tuples */
-        size = PyTuple_GET_SIZE(item);
-        if (context->size + size > context->maxsize &&
-            !_bump(context, size))
-            return 0;
-        for (i = 0; i < size; i++) {
-            PyObject *o = PyTuple_GET_ITEM(item, i);
+            PyObject *o = PySequence_Fast_GET_ITEM(item, i);
             if (PyList_Check(o) || PyTuple_Check(o)) {
                 if (!_flatten1(context, o, depth + 1))
                     return 0;
@@ -2784,14 +3086,19 @@ _flatten1(FlattenContext* context, PyObject* item, int depth)
     return 1;
 }
 
+/*[clinic input]
+_tkinter._flatten
+
+    item: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkinter_Flatten(PyObject* self, PyObject* args)
+_tkinter__flatten(PyObject *module, PyObject *item)
+/*[clinic end generated code: output=cad02a3f97f29862 input=6b9c12260aa1157f]*/
 {
     FlattenContext context;
-    PyObject* item;
-
-    if (!PyArg_ParseTuple(args, "O:_flatten", &item))
-        return NULL;
 
     context.maxsize = PySequence_Size(item);
     if (context.maxsize < 0)
@@ -2814,26 +3121,33 @@ Tkinter_Flatten(PyObject* self, PyObject* args)
     return context.tuple;
 }
 
+/*[clinic input]
+_tkinter.create
+
+    screenName: str(accept={str, NoneType}) = NULL
+    baseName: str = NULL
+    className: str = "Tk"
+    interactive: bool(accept={int}) = False
+    wantobjects: bool(accept={int}) = False
+    wantTk: bool(accept={int}) = True
+        if false, then Tk_Init() doesn't get called
+    sync: bool(accept={int}) = False
+        if true, then pass -sync to wish
+    use: str(accept={str, NoneType}) = NULL
+        if not None, then pass -use to wish
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-Tkinter_Create(PyObject *self, PyObject *args)
+_tkinter_create_impl(PyObject *module, const char *screenName,
+                     const char *baseName, const char *className,
+                     int interactive, int wantobjects, int wantTk, int sync,
+                     const char *use)
+/*[clinic end generated code: output=e3315607648e6bb4 input=431907c134c80085]*/
 {
-    char *screenName = NULL;
-    char *baseName = NULL; /* XXX this is not used anymore;
-                              try getting rid of it. */
-    char *className = NULL;
-    int interactive = 0;
-    int wantobjects = 0;
-    int wantTk = 1;     /* If false, then Tk_Init() doesn't get called */
-    int sync = 0; /* pass -sync to wish */
-    char *use = NULL; /* pass -use to wish */
-
-    className = "Tk";
-
-    if (!PyArg_ParseTuple(args, "|zssiiiiz:create",
-                          &screenName, &baseName, &className,
-                          &interactive, &wantobjects, &wantTk,
-                          &sync, &use))
-        return NULL;
+    /* XXX baseName is not used anymore;
+     * try getting rid of it. */
     CHECK_STRING_LENGTH(screenName);
     CHECK_STRING_LENGTH(baseName);
     CHECK_STRING_LENGTH(className);
@@ -2844,12 +3158,21 @@ Tkinter_Create(PyObject *self, PyObject *args)
                                   sync, use);
 }
 
+/*[clinic input]
+_tkinter.setbusywaitinterval
+
+    new_val: int
+    /
+
+Set the busy-wait interval in milliseconds between successive calls to Tcl_DoOneEvent in a threaded Python interpreter.
+
+It should be set to a divisor of the maximum time between frames in an animation.
+[clinic start generated code]*/
+
 static PyObject *
-Tkinter_setbusywaitinterval(PyObject *self, PyObject *args)
+_tkinter_setbusywaitinterval_impl(PyObject *module, int new_val)
+/*[clinic end generated code: output=42bf7757dc2d0ab6 input=deca1d6f9e6dae47]*/
 {
-    int new_val;
-    if (!PyArg_ParseTuple(args, "i:setbusywaitinterval", &new_val))
-        return NULL;
     if (new_val < 0) {
         PyErr_SetString(PyExc_ValueError,
                         "busywaitinterval must be >= 0");
@@ -2859,34 +3182,103 @@ Tkinter_setbusywaitinterval(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static char setbusywaitinterval_doc[] =
-"setbusywaitinterval(n) -> None\n\
-\n\
-Set the busy-wait interval in milliseconds between successive\n\
-calls to Tcl_DoOneEvent in a threaded Python interpreter.\n\
-It should be set to a divisor of the maximum time between\n\
-frames in an animation.";
+/*[clinic input]
+_tkinter.getbusywaitinterval -> int
 
-static PyObject *
-Tkinter_getbusywaitinterval(PyObject *self, PyObject *args)
+Return the current busy-wait interval between successive calls to Tcl_DoOneEvent in a threaded Python interpreter.
+[clinic start generated code]*/
+
+static int
+_tkinter_getbusywaitinterval_impl(PyObject *module)
+/*[clinic end generated code: output=23b72d552001f5c7 input=a695878d2d576a84]*/
 {
-    return PyLong_FromLong(Tkinter_busywaitinterval);
+    return Tkinter_busywaitinterval;
 }
 
-static char getbusywaitinterval_doc[] =
-"getbusywaitinterval() -> int\n\
-\n\
-Return the current busy-wait interval between successive\n\
-calls to Tcl_DoOneEvent in a threaded Python interpreter.";
+#include "clinic/_tkinter.c.h"
+
+static PyMethodDef Tktt_methods[] =
+{
+    _TKINTER_TKTIMERTOKEN_DELETETIMERHANDLER_METHODDEF
+    {NULL, NULL}
+};
+
+static PyType_Slot Tktt_Type_slots[] = {
+    {Py_tp_dealloc, Tktt_Dealloc},
+    {Py_tp_repr, Tktt_Repr},
+    {Py_tp_methods, Tktt_methods},
+    {0, 0}
+};
+
+static PyType_Spec Tktt_Type_spec = {
+    "_tkinter.tktimertoken",
+    sizeof(TkttObject),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    Tktt_Type_slots,
+};
+
+
+/**** Tkapp Method List ****/
+
+static PyMethodDef Tkapp_methods[] =
+{
+    _TKINTER_TKAPP_WILLDISPATCH_METHODDEF
+    {"wantobjects",            Tkapp_WantObjects, METH_VARARGS},
+    {"call",                   Tkapp_Call, METH_VARARGS},
+    _TKINTER_TKAPP_EVAL_METHODDEF
+    _TKINTER_TKAPP_EVALFILE_METHODDEF
+    _TKINTER_TKAPP_RECORD_METHODDEF
+    _TKINTER_TKAPP_ADDERRORINFO_METHODDEF
+    {"setvar",                 Tkapp_SetVar, METH_VARARGS},
+    {"globalsetvar",       Tkapp_GlobalSetVar, METH_VARARGS},
+    {"getvar",       Tkapp_GetVar, METH_VARARGS},
+    {"globalgetvar",       Tkapp_GlobalGetVar, METH_VARARGS},
+    {"unsetvar",     Tkapp_UnsetVar, METH_VARARGS},
+    {"globalunsetvar",     Tkapp_GlobalUnsetVar, METH_VARARGS},
+    _TKINTER_TKAPP_GETINT_METHODDEF
+    _TKINTER_TKAPP_GETDOUBLE_METHODDEF
+    _TKINTER_TKAPP_GETBOOLEAN_METHODDEF
+    _TKINTER_TKAPP_EXPRSTRING_METHODDEF
+    _TKINTER_TKAPP_EXPRLONG_METHODDEF
+    _TKINTER_TKAPP_EXPRDOUBLE_METHODDEF
+    _TKINTER_TKAPP_EXPRBOOLEAN_METHODDEF
+    _TKINTER_TKAPP_SPLITLIST_METHODDEF
+    _TKINTER_TKAPP_SPLIT_METHODDEF
+    _TKINTER_TKAPP_CREATECOMMAND_METHODDEF
+    _TKINTER_TKAPP_DELETECOMMAND_METHODDEF
+    _TKINTER_TKAPP_CREATEFILEHANDLER_METHODDEF
+    _TKINTER_TKAPP_DELETEFILEHANDLER_METHODDEF
+    _TKINTER_TKAPP_CREATETIMERHANDLER_METHODDEF
+    _TKINTER_TKAPP_MAINLOOP_METHODDEF
+    _TKINTER_TKAPP_DOONEEVENT_METHODDEF
+    _TKINTER_TKAPP_QUIT_METHODDEF
+    _TKINTER_TKAPP_INTERPADDR_METHODDEF
+    _TKINTER_TKAPP_LOADTK_METHODDEF
+    {NULL,                     NULL}
+};
+
+static PyType_Slot Tkapp_Type_slots[] = {
+    {Py_tp_dealloc, Tkapp_Dealloc},
+    {Py_tp_methods, Tkapp_methods},
+    {0, 0}
+};
+
+
+static PyType_Spec Tkapp_Type_spec = {
+    "_tkinter.tkapp",
+    sizeof(TkappObject),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    Tkapp_Type_slots,
+};
 
 static PyMethodDef moduleMethods[] =
 {
-    {"_flatten",           Tkinter_Flatten, METH_VARARGS},
-    {"create",             Tkinter_Create, METH_VARARGS},
-    {"setbusywaitinterval",Tkinter_setbusywaitinterval, METH_VARARGS,
-                           setbusywaitinterval_doc},
-    {"getbusywaitinterval",(PyCFunction)Tkinter_getbusywaitinterval,
-                           METH_NOARGS, getbusywaitinterval_doc},
+    _TKINTER__FLATTEN_METHODDEF
+    _TKINTER_CREATE_METHODDEF
+    _TKINTER_SETBUSYWAITINTERVAL_METHODDEF
+    _TKINTER_GETBUSYWAITINTERVAL_METHODDEF
     {NULL,                 NULL}
 };
 
@@ -2902,9 +3294,7 @@ MyFileProc(void *clientData, int mask)
 }
 #endif
 
-#ifdef WITH_THREAD
 static PyThreadState *event_tstate = NULL;
-#endif
 
 static int
 EventHook(void)
@@ -2912,9 +3302,7 @@ EventHook(void)
 #ifndef MS_WINDOWS
     int tfile;
 #endif
-#ifdef WITH_THREAD
     PyEval_RestoreThread(event_tstate);
-#endif
     stdin_ready = 0;
     errorInCmd = 0;
 #ifndef MS_WINDOWS
@@ -2929,7 +3317,6 @@ EventHook(void)
             break;
         }
 #endif
-#if defined(WITH_THREAD) || defined(MS_WINDOWS)
         Py_BEGIN_ALLOW_THREADS
         if(tcl_lock)PyThread_acquire_lock(tcl_lock, 1);
         tcl_tstate = event_tstate;
@@ -2941,9 +3328,6 @@ EventHook(void)
         if (result == 0)
             Sleep(Tkinter_busywaitinterval);
         Py_END_ALLOW_THREADS
-#else
-        result = Tcl_DoOneEvent(0);
-#endif
 
         if (result < 0)
             break;
@@ -2957,9 +3341,7 @@ EventHook(void)
         excInCmd = valInCmd = trbInCmd = NULL;
         PyErr_Print();
     }
-#ifdef WITH_THREAD
     PyEval_SaveThread();
-#endif
     return 0;
 }
 
@@ -2970,9 +3352,7 @@ EnableEventHook(void)
 {
 #ifdef WAIT_FOR_STDIN
     if (PyOS_InputHook == NULL) {
-#ifdef WITH_THREAD
         event_tstate = PyThreadState_Get();
-#endif
         PyOS_InputHook = EventHook;
     }
 #endif
@@ -3006,11 +3386,9 @@ PyInit__tkinter(void)
 {
   PyObject *m, *uexe, *cexe, *o;
 
-#ifdef WITH_THREAD
     tcl_lock = PyThread_allocate_lock();
     if (tcl_lock == NULL)
         return NULL;
-#endif
 
     m = PyModule_Create(&_tkintermodule);
     if (m == NULL)
@@ -3079,6 +3457,7 @@ PyInit__tkinter(void)
         Py_DECREF(m);
         return NULL;
     }
+    ((PyTypeObject *)o)->tp_new = NULL;
     if (PyModule_AddObject(m, "TkappType", o)) {
         Py_DECREF(o);
         Py_DECREF(m);
@@ -3091,6 +3470,7 @@ PyInit__tkinter(void)
         Py_DECREF(m);
         return NULL;
     }
+    ((PyTypeObject *)o)->tp_new = NULL;
     if (PyModule_AddObject(m, "TkttType", o)) {
         Py_DECREF(o);
         Py_DECREF(m);
@@ -3103,6 +3483,7 @@ PyInit__tkinter(void)
         Py_DECREF(m);
         return NULL;
     }
+    ((PyTypeObject *)o)->tp_new = NULL;
     if (PyModule_AddObject(m, "Tcl_Obj", o)) {
         Py_DECREF(o);
         Py_DECREF(m);
@@ -3130,8 +3511,40 @@ PyInit__tkinter(void)
     uexe = PyUnicode_FromWideChar(Py_GetProgramName(), -1);
     if (uexe) {
         cexe = PyUnicode_EncodeFSDefault(uexe);
-        if (cexe)
-            Tcl_FindExecutable(PyBytes_AsString(cexe));
+        if (cexe) {
+#ifdef MS_WINDOWS
+            int set_var = 0;
+            PyObject *str_path;
+            wchar_t *wcs_path;
+            DWORD ret;
+
+            ret = GetEnvironmentVariableW(L"TCL_LIBRARY", NULL, 0);
+
+            if (!ret && GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+                str_path = _get_tcl_lib_path();
+                if (str_path == NULL && PyErr_Occurred()) {
+                    return NULL;
+                }
+                if (str_path != NULL) {
+                    wcs_path = PyUnicode_AsWideCharString(str_path, NULL);
+                    if (wcs_path == NULL) {
+                        return NULL;
+                    }
+                    SetEnvironmentVariableW(L"TCL_LIBRARY", wcs_path);
+                    set_var = 1;
+                }
+            }
+
+            Tcl_FindExecutable(PyBytes_AS_STRING(cexe));
+
+            if (set_var) {
+                SetEnvironmentVariableW(L"TCL_LIBRARY", NULL);
+                PyMem_Free(wcs_path);
+            }
+#else
+            Tcl_FindExecutable(PyBytes_AS_STRING(cexe));
+#endif /* MS_WINDOWS */
+        }
         Py_XDECREF(cexe);
         Py_DECREF(uexe);
     }
