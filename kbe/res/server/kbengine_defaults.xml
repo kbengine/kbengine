@@ -793,7 +793,8 @@
 			（loginapp address)
 		-->
 		<host> localhost </host>										<!-- Type: String -->
-		<port> 20013 </port>											<!-- Type: Integer -->
+		<port_min> 20013 </port_min>									<!-- Type: Integer -->
+		<port_max> 0 </port_max>									<!-- Type: Integer -->
 		
 		<!-- 在Entity初始化时是否触发属性的set_*事件 -->
 		<isOnInitCallPropertysSetMethods> true </isOnInitCallPropertysSetMethods>
