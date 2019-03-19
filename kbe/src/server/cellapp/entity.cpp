@@ -677,7 +677,7 @@ void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyD
 	// 首先创建一个需要广播的模板流
 	MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
-	EntityDef::context().currComponentType = g_componentType;
+	EntityDef::context().currComponentType = CLIENT_TYPE;
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
 	// 判断是否需要广播给其他的cellapp, 这还需一个前提是entity必须拥有ghost实体
@@ -693,7 +693,19 @@ void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyD
 			(*pForwardBundle) << componentPropertyUID;
 			(*pForwardBundle) << propertyDescription->getUType();
 
-			pForwardBundle->append(*mstream);
+			// 如果是组件属性，则需要将组件内部的服务器相关可广播属性打包
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+			{
+				MemoryStream* server_mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+				EntityDef::context().currComponentType = g_componentType;
+				propertyDescription->getDataType()->addToStream(server_mstream, pyData);
+				pForwardBundle->append(*server_mstream);
+				MemoryStream::reclaimPoolObject(server_mstream);
+			}
+			else
+			{
+				pForwardBundle->append(*mstream);
+			}
 
 			// 记录这个事件产生的数据量大小
 			g_publicCellEventHistoryStats.trackEvent(scriptName(), 

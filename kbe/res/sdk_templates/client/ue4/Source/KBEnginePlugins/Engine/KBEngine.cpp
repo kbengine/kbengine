@@ -56,9 +56,11 @@ KBEngineApp::KBEngineApp() :
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
 	component_(TEXT("client")),
-	pFilter_(NULL)
+	pFilter_(NULL),
+	pUKBETicker_(nullptr)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
+	installUKBETicker();
 }
 
 KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
@@ -97,10 +99,12 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
 	component_(TEXT("client")),
-	pFilter_(NULL)
+	pFilter_(NULL),
+	pUKBETicker_(nullptr)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 	initialize(pArgs);
+	installUKBETicker();
 }
 
 KBEngineApp::~KBEngineApp()
@@ -109,14 +113,24 @@ KBEngineApp::~KBEngineApp()
 	INFO_MSG("KBEngineApp::~KBEngineApp(): destructed!");
 }
 
+KBEngineApp* pKBEngineApp = nullptr;
+
 KBEngineApp& KBEngineApp::getSingleton() 
 {
-	static KBEngineApp* pKBEngineApp = NULL;
-
-	if (!pKBEngineApp)
+	if(!pKBEngineApp)
 		pKBEngineApp = new KBEngineApp();
 
 	return *pKBEngineApp;
+}
+
+void KBEngineApp::destroyKBEngineApp() 
+{
+	if(pKBEngineApp)
+	{
+		delete pKBEngineApp;
+		pKBEngineApp = nullptr;
+		KBEvent::clear();
+	}
 }
 
 bool KBEngineApp::initialize(KBEngineArgs* pArgs)
@@ -192,6 +206,7 @@ void KBEngineApp::destroy()
 	KBE_SAFE_RELEASE(pArgs_);
 	KBE_SAFE_RELEASE(pNetworkInterface_);
 	KBE_SAFE_RELEASE(pFilter_);
+	uninstallUKBETicker();
 }
 
 void KBEngineApp::resetMessages()
@@ -241,6 +256,24 @@ void KBEngineApp::reset()
 	baseappUdpPort_ = 0;
 
 	initNetwork();
+}
+
+void KBEngineApp::installUKBETicker()
+{
+	if (pUKBETicker_ == nullptr)
+	{
+		pUKBETicker_ = NewObject<UKBETicker>();
+		pUKBETicker_->AddToRoot();
+	}
+}
+
+void KBEngineApp::uninstallUKBETicker()
+{
+	if (pUKBETicker_)
+	{
+		pUKBETicker_->RemoveFromRoot();
+		pUKBETicker_ = nullptr;
+	}
 }
 
 bool KBEngineApp::initNetwork()
@@ -456,7 +489,7 @@ void KBEngineApp::hello()
 
 	KBE_SAFE_RELEASE(pFilter_);
 
-	if (pArgs_->networkEncryptType ==  NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	if (pArgs_->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
 	{
 		pFilter_ = new BlowfishFilter();
 		encryptedKey_ = ((BlowfishFilter*)pFilter_)->key();
