@@ -5,6 +5,7 @@
 #include "KBECommon.h"
 #include "ServerErrorDescrs.h"
 #include "Interfaces.h"
+#include "KBETicker.h"
 
 class KBEngineArgs;
 class Entity;
@@ -29,7 +30,7 @@ public:
 	
 public:
 	static KBEngineApp& getSingleton();
-
+	static void destroyKBEngineApp();
 public:
 	bool isInitialized() const {
 		return pArgs_ != NULL;
@@ -38,6 +39,9 @@ public:
 	bool initialize(KBEngineArgs* pArgs);
 	void destroy();
 	void reset();
+	
+	void installUKBETicker();
+	void uninstallUKBETicker();
 
 	NetworkInterface* pNetworkInterface() const {
 		return pNetworkInterface_;
@@ -99,7 +103,7 @@ public:
 	}
 
 	void Client_onImportClientSDK(MemoryStream& stream);
-	
+
 	/**
 		插件的主循环处理函数
 	*/
@@ -120,7 +124,7 @@ public:
 		登录出baseapp
 	*/
 	bool logout();
-	
+
 	/*
 		账号创建返回结果
 	*/
@@ -509,6 +513,7 @@ protected:
 	FString component_;
 
 	EncryptionFilter *pFilter_;
+	UKBETicker *pUKBETicker_;
 
 };
 
