@@ -1627,6 +1627,12 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* __py_getAppPublish(PyObject* self, PyObject* args)
+{
+	return PyLong_FromLong(g_appPublish);
+}
+
+//-------------------------------------------------------------------------------------
 static bool execPython(COMPONENT_TYPE componentType)
 {
 	std::pair<std::wstring, std::wstring> pyPaths = getComponentPythonPaths(componentType);
@@ -1712,6 +1718,8 @@ static bool execPython(COMPONENT_TYPE componentType)
 
 		return false;
 	}
+
+	APPEND_SCRIPT_MODULE_METHOD(kbeModule, publish, __py_getAppPublish, METH_VARARGS, 0);
 
 	// 将模块对象加入main
 	PyObject_SetAttrString(m, "KBEngine", kbeModule);
