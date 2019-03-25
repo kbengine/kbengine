@@ -489,7 +489,7 @@ void KBEngineApp::hello()
 
 	KBE_SAFE_RELEASE(pFilter_);
 
-	if (pArgs_->networkEncryptType ==  NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	if (pArgs_->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
 	{
 		pFilter_ = new BlowfishFilter();
 		encryptedKey_ = ((BlowfishFilter*)pFilter_)->key();

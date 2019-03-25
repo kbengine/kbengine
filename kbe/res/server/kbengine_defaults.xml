@@ -99,7 +99,7 @@
 	</publish>
 	
 	<channelCommon> 
-		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
+		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道（秒）
 			(If long (configurable value) no communication, channel will be kicked out of the server.)
 		-->
 		<timeout> 
