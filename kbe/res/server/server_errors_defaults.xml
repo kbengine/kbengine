@@ -38,7 +38,7 @@
 	
 	<SERVER_ERR_ACCOUNT_CREATE_FAILED>
 		<id>7</id>
-		<descr>	创建账号失败（已经存在一个相同的账号）。</descr>
+		<descr>	创建账号失败。</descr>
 	</SERVER_ERR_ACCOUNT_CREATE_FAILED>
 	
 	<SERVER_ERR_BUSY>
