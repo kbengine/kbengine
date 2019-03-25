@@ -1,5 +1,6 @@
-/* NOTE: this API is -ONLY- for use with single byte character strings. */
-/* Do not use it with Unicode. */
+#if STRINGLIB_IS_UNICODE
+# error "ctype.h only compatible with byte-wise strings"
+#endif
 
 #include "bytes_methods.h"
 
@@ -19,6 +20,12 @@ static PyObject*
 stringlib_isalnum(PyObject *self)
 {
     return _Py_bytes_isalnum(STRINGLIB_STR(self), STRINGLIB_LEN(self));
+}
+
+static PyObject*
+stringlib_isascii(PyObject *self)
+{
+    return _Py_bytes_isascii(STRINGLIB_STR(self), STRINGLIB_LEN(self));
 }
 
 static PyObject*

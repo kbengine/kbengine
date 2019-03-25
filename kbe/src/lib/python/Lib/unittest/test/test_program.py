@@ -2,6 +2,7 @@ import io
 
 import os
 import sys
+import subprocess
 from test import support
 import unittest
 import unittest.test
@@ -134,6 +135,7 @@ class InitialisableProgram(unittest.TestProgram):
     result = None
     verbosity = 1
     defaultTest = None
+    tb_locals = False
     testRunner = None
     testLoader = unittest.defaultTestLoader
     module = '__main__'
@@ -147,17 +149,18 @@ RESULT = object()
 class FakeRunner(object):
     initArgs = None
     test = None
-    raiseError = False
+    raiseError = 0
 
     def __init__(self, **kwargs):
         FakeRunner.initArgs = kwargs
         if FakeRunner.raiseError:
-            FakeRunner.raiseError = False
+            FakeRunner.raiseError -= 1
             raise TypeError
 
     def run(self, test):
         FakeRunner.test = test
         return RESULT
+
 
 class TestCommandLineArgs(unittest.TestCase):
 
@@ -166,7 +169,7 @@ class TestCommandLineArgs(unittest.TestCase):
         self.program.createTests = lambda: None
         FakeRunner.initArgs = None
         FakeRunner.test = None
-        FakeRunner.raiseError = False
+        FakeRunner.raiseError = 0
 
     def testVerbosity(self):
         program = self.program
@@ -256,6 +259,7 @@ class TestCommandLineArgs(unittest.TestCase):
         self.assertEqual(FakeRunner.initArgs, {'verbosity': 'verbosity',
                                                 'failfast': 'failfast',
                                                 'buffer': 'buffer',
+                                                'tb_locals': False,
                                                 'warnings': 'warnings'})
         self.assertEqual(FakeRunner.test, 'test')
         self.assertIs(program.result, RESULT)
@@ -274,10 +278,25 @@ class TestCommandLineArgs(unittest.TestCase):
         self.assertEqual(FakeRunner.test, 'test')
         self.assertIs(program.result, RESULT)
 
+    def test_locals(self):
+        program = self.program
+
+        program.testRunner = FakeRunner
+        program.parseArgs([None, '--locals'])
+        self.assertEqual(True, program.tb_locals)
+        program.runTests()
+        self.assertEqual(FakeRunner.initArgs, {'buffer': False,
+                                               'failfast': False,
+                                               'tb_locals': True,
+                                               'verbosity': 1,
+                                               'warnings': None})
+
     def testRunTestsOldRunnerClass(self):
         program = self.program
 
-        FakeRunner.raiseError = True
+        # Two TypeErrors are needed to fall all the way back to old-style
+        # runners - one to fail tb_locals, one to fail buffer etc.
+        FakeRunner.raiseError = 2
         program.testRunner = FakeRunner
         program.verbosity = 'verbosity'
         program.failfast = 'failfast'
@@ -390,6 +409,33 @@ class TestCommandLineArgs(unittest.TestCase):
         # identifier (we have a regex for this in loader.py)
         # for invalid filenames should we raise a useful error rather than
         # leaving the current error message (import of filename fails) in place?
+
+    def testParseArgsSelectedTestNames(self):
+        program = self.program
+        argv = ['progname', '-k', 'foo', '-k', 'bar', '-k', '*pat*']
+
+        program.createTests = lambda: None
+        program.parseArgs(argv)
+
+        self.assertEqual(program.testNamePatterns, ['*foo*', '*bar*', '*pat*'])
+
+    def testSelectedTestNamesFunctionalTest(self):
+        def run_unittest(args):
+            p = subprocess.Popen([sys.executable, '-m', 'unittest'] + args,
+                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, cwd=os.path.dirname(__file__))
+            with p:
+                _, stderr = p.communicate()
+            return stderr.decode()
+
+        t = '_test_warnings'
+        self.assertIn('Ran 7 tests', run_unittest([t]))
+        self.assertIn('Ran 7 tests', run_unittest(['-k', 'TestWarnings', t]))
+        self.assertIn('Ran 7 tests', run_unittest(['discover', '-p', '*_test*', '-k', 'TestWarnings']))
+        self.assertIn('Ran 2 tests', run_unittest(['-k', 'f', t]))
+        self.assertIn('Ran 7 tests', run_unittest(['-k', 't', t]))
+        self.assertIn('Ran 3 tests', run_unittest(['-k', '*t', t]))
+        self.assertIn('Ran 7 tests', run_unittest(['-k', '*test_warnings.*Warning*', t]))
+        self.assertIn('Ran 1 test', run_unittest(['-k', '*test_warnings.*warning*', t]))
 
 
 if __name__ == '__main__':

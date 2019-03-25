@@ -1,6 +1,8 @@
 /* Class object implementation (dead now except for methods) */
 
 #include "Python.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
 #include "structmember.h"
 
 #define TP_DESCR_GET(t) ((t)->tp_descr_get)
@@ -15,6 +17,7 @@ static int numfree = 0;
 #endif
 
 _Py_IDENTIFIER(__name__);
+_Py_IDENTIFIER(__qualname__);
 
 PyObject *
 PyMethod_Function(PyObject *im)
@@ -74,8 +77,6 @@ method_reduce(PyMethodObject *im)
 {
     PyObject *self = PyMethod_GET_SELF(im);
     PyObject *func = PyMethod_GET_FUNCTION(im);
-    PyObject *builtins;
-    PyObject *getattr;
     PyObject *funcname;
     _Py_IDENTIFIER(getattr);
 
@@ -83,9 +84,8 @@ method_reduce(PyMethodObject *im)
     if (funcname == NULL) {
         return NULL;
     }
-    builtins = PyEval_GetBuiltins();
-    getattr = _PyDict_GetItemId(builtins, &PyId_getattr);
-    return Py_BuildValue("O(ON)", getattr, self, funcname);
+    return Py_BuildValue("N(ON)", _PyEval_GetBuiltinId(&PyId_getattr),
+                         self, funcname);
 }
 
 static PyMethodDef method_methods[] = {
@@ -243,51 +243,26 @@ method_repr(PyMethodObject *a)
 {
     PyObject *self = a->im_self;
     PyObject *func = a->im_func;
-    PyObject *klass;
-    PyObject *funcname = NULL ,*klassname = NULL, *result = NULL;
-    char *defname = "?";
+    PyObject *funcname, *result;
+    const char *defname = "?";
 
-    if (self == NULL) {
-        PyErr_BadInternalCall();
+    if (_PyObject_LookupAttrId(func, &PyId___qualname__, &funcname) < 0 ||
+        (funcname == NULL &&
+         _PyObject_LookupAttrId(func, &PyId___name__, &funcname) < 0))
+    {
         return NULL;
     }
-    klass = (PyObject*)Py_TYPE(self);
 
-    funcname = _PyObject_GetAttrId(func, &PyId___name__);
-    if (funcname == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            return NULL;
-        PyErr_Clear();
-    }
-    else if (!PyUnicode_Check(funcname)) {
+    if (funcname != NULL && !PyUnicode_Check(funcname)) {
         Py_DECREF(funcname);
         funcname = NULL;
     }
 
-    if (klass == NULL)
-        klassname = NULL;
-    else {
-        klassname = _PyObject_GetAttrId(klass, &PyId___name__);
-        if (klassname == NULL) {
-            if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-                Py_XDECREF(funcname);
-                return NULL;
-            }
-            PyErr_Clear();
-        }
-        else if (!PyUnicode_Check(klassname)) {
-            Py_DECREF(klassname);
-            klassname = NULL;
-        }
-    }
-
     /* XXX Shouldn't use repr()/%R here! */
-    result = PyUnicode_FromFormat("<bound method %V.%V of %R>",
-                                  klassname, defname,
+    result = PyUnicode_FromFormat("<bound method %V of %R>",
                                   funcname, defname, self);
 
     Py_XDECREF(funcname);
-    Py_XDECREF(klassname);
     return result;
 }
 
@@ -319,34 +294,19 @@ method_traverse(PyMethodObject *im, visitproc visit, void *arg)
 }
 
 static PyObject *
-method_call(PyObject *func, PyObject *arg, PyObject *kw)
+method_call(PyObject *method, PyObject *args, PyObject *kwargs)
 {
-    PyObject *self = PyMethod_GET_SELF(func);
-    PyObject *result;
+    PyObject *self, *func;
 
-    func = PyMethod_GET_FUNCTION(func);
+    self = PyMethod_GET_SELF(method);
     if (self == NULL) {
         PyErr_BadInternalCall();
         return NULL;
     }
-    else {
-        Py_ssize_t argcount = PyTuple_Size(arg);
-        PyObject *newarg = PyTuple_New(argcount + 1);
-        int i;
-        if (newarg == NULL)
-            return NULL;
-        Py_INCREF(self);
-        PyTuple_SET_ITEM(newarg, 0, self);
-        for (i = 0; i < argcount; i++) {
-            PyObject *v = PyTuple_GET_ITEM(arg, i);
-            Py_XINCREF(v);
-            PyTuple_SET_ITEM(newarg, i+1, v);
-        }
-        arg = newarg;
-    }
-    result = PyObject_Call((PyObject *)func, arg, kw);
-    Py_DECREF(arg);
-    return result;
+
+    func = PyMethod_GET_FUNCTION(method);
+
+    return _PyObject_Call_Prepend(func, self, args, kwargs);
 }
 
 static PyObject *
@@ -572,21 +532,18 @@ static PyObject *
 instancemethod_repr(PyObject *self)
 {
     PyObject *func = PyInstanceMethod_Function(self);
-    PyObject *funcname = NULL , *result = NULL;
-    char *defname = "?";
+    PyObject *funcname, *result;
+    const char *defname = "?";
 
     if (func == NULL) {
         PyErr_BadInternalCall();
         return NULL;
     }
 
-    funcname = _PyObject_GetAttrId(func, &PyId___name__);
-    if (funcname == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            return NULL;
-        PyErr_Clear();
+    if (_PyObject_LookupAttrId(func, &PyId___name__, &funcname) < 0) {
+        return NULL;
     }
-    else if (!PyUnicode_Check(funcname)) {
+    if (funcname != NULL && !PyUnicode_Check(funcname)) {
         Py_DECREF(funcname);
         funcname = NULL;
     }

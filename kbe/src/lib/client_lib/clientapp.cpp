@@ -508,30 +508,22 @@ PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyname, NULL);
-	char* name = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
 	EventData_Script eventdata;
-	eventdata.name = name;
-	free(name);
+	eventdata.name = PyUnicode_AsUTF8AndSize(pyname, NULL);
 
 	if(PyTuple_Size(args) - 1 > 0)
 	{
 		PyObject* pyitem = PyTuple_GetItem(args, 1);
 
-		PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyitem, NULL);
-		if(PyUnicode_AsWideCharStringRet0 == NULL)
+		const char* datas = PyUnicode_AsUTF8AndSize(pyitem, NULL);
+		if (datas == NULL)
 		{
 			PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent(%s): arg2 not is str!\n", eventdata.name.c_str());
 			PyErr_PrintEx(0);
 			return NULL;
 		}
 
-		char* datas = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
 		eventdata.datas = datas;
-		free(datas);
 	}
 
 	ClientApp::getSingleton().fireEvent(&eventdata);

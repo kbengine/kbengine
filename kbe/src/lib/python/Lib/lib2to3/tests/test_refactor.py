@@ -2,22 +2,17 @@
 Unit tests for refactor.py.
 """
 
-from __future__ import with_statement
-
 import sys
 import os
 import codecs
-import operator
 import io
+import re
 import tempfile
 import shutil
 import unittest
-import warnings
 
 from lib2to3 import refactor, pygram, fixer_base
 from lib2to3.pgen2 import token
-
-from . import support
 
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -185,31 +180,41 @@ from __future__ import print_function"""
     def check_file_refactoring(self, test_file, fixers=_2TO3_FIXERS,
                                options=None, mock_log_debug=None,
                                actually_write=True):
-        tmpdir = tempfile.mkdtemp(prefix="2to3-test_refactor")
-        self.addCleanup(shutil.rmtree, tmpdir)
-        # make a copy of the tested file that we can write to
-        shutil.copy(test_file, tmpdir)
-        test_file = os.path.join(tmpdir, os.path.basename(test_file))
-        os.chmod(test_file, 0o644)
-
-        def read_file():
-            with open(test_file, "rb") as fp:
-                return fp.read()
-
-        old_contents = read_file()
+        test_file = self.init_test_file(test_file)
+        old_contents = self.read_file(test_file)
         rt = self.rt(fixers=fixers, options=options)
         if mock_log_debug:
             rt.log_debug = mock_log_debug
 
         rt.refactor_file(test_file)
-        self.assertEqual(old_contents, read_file())
+        self.assertEqual(old_contents, self.read_file(test_file))
 
         if not actually_write:
             return
         rt.refactor_file(test_file, True)
-        new_contents = read_file()
+        new_contents = self.read_file(test_file)
         self.assertNotEqual(old_contents, new_contents)
         return new_contents
+
+    def init_test_file(self, test_file):
+        tmpdir = tempfile.mkdtemp(prefix="2to3-test_refactor")
+        self.addCleanup(shutil.rmtree, tmpdir)
+        shutil.copy(test_file, tmpdir)
+        test_file = os.path.join(tmpdir, os.path.basename(test_file))
+        os.chmod(test_file, 0o644)
+        return test_file
+
+    def read_file(self, test_file):
+        with open(test_file, "rb") as fp:
+            return fp.read()
+
+    def refactor_file(self, test_file, fixers=_2TO3_FIXERS):
+        test_file = self.init_test_file(test_file)
+        old_contents = self.read_file(test_file)
+        rt = self.rt(fixers=fixers)
+        rt.refactor_file(test_file, True)
+        new_contents = self.read_file(test_file)
+        return old_contents, new_contents
 
     def test_refactor_file(self):
         test_file = os.path.join(FIXER_DIR, "parrot_example.py")
@@ -226,8 +231,8 @@ from __future__ import print_function"""
                                     actually_write=False)
         # Testing that it logged this message when write=False was passed is
         # sufficient to see that it did not bail early after "No changes".
-        message_regex = r"Not writing changes to .*%s%s" % (
-                os.sep, os.path.basename(test_file))
+        message_regex = r"Not writing changes to .*%s" % \
+                re.escape(os.sep + os.path.basename(test_file))
         for message in debug_messages:
             if "Not writing changes" in message:
                 self.assertRegex(message, message_regex)
@@ -289,6 +294,13 @@ from __future__ import print_function"""
             self.check_file_refactoring(fn, fixes)
         finally:
             os.linesep = old_sep
+
+    def test_crlf_unchanged(self):
+        fn = os.path.join(TEST_DATA_DIR, "crlf.py")
+        old, new = self.refactor_file(fn)
+        self.assertIn(b"\r\n", old)
+        self.assertIn(b"\r\n", new)
+        self.assertNotIn(b"\r\r\n", new)
 
     def test_refactor_docstring(self):
         rt = self.rt()

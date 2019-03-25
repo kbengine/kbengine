@@ -248,6 +248,13 @@ public:
 	MemoryStream &operator<<(const FString &value)
 	{
 		const TCHAR *serializedChar = value.GetCharArray().GetData();
+		
+		if(!serializedChar)
+		{
+			append((uint8)0);
+			return *this;
+		}
+
 		uint32 size = FCString::Strlen(serializedChar);
 
 		append(((uint8*)TCHAR_TO_ANSI(serializedChar)), size);

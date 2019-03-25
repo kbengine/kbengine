@@ -4,6 +4,7 @@
 .. module:: select
    :synopsis: Wait for I/O completion on multiple streams.
 
+--------------
 
 This module provides access to the :c:func:`select` and :c:func:`poll` functions
 available in most operating systems, :c:func:`devpoll` available on
@@ -56,9 +57,16 @@ The module defines the following:
 
    (Only supported on Linux 2.5.44 and newer.) Return an edge polling object,
    which can be used as Edge or Level Triggered interface for I/O
-   events. *sizehint* is deprecated and completely ignored. *flags* can be set
-   to :const:`EPOLL_CLOEXEC`, which causes the epoll descriptor to be closed
-   automatically when :func:`os.execve` is called.
+   events.
+
+   *sizehint* informs epoll about the expected number of events to be
+   registered.  It must be positive, or `-1` to use the default. It is only
+   used on older systems where :c:func:`epoll_create1` is not available;
+   otherwise it has no effect (though its value is still checked).
+
+   *flags* is deprecated and completely ignored.  However, when supplied, its
+   value must be ``0`` or ``select.EPOLL_CLOEXEC``, otherwise ``OSError`` is
+   raised.
 
    See the :ref:`epoll-objects` section below for the methods supported by
    epolling objects.
@@ -75,6 +83,10 @@ The module defines the following:
    .. versionchanged:: 3.4
       Support for the :keyword:`with` statement was added.
       The new file descriptor is now non-inheritable.
+
+   .. deprecated:: 3.4
+      The *flags* parameter.  ``select.EPOLL_CLOEXEC`` is used by default now.
+      Use :func:`os.set_inheritable` to make the file descriptor inheritable.
 
 
 .. function:: poll()
@@ -145,6 +157,13 @@ The module defines the following:
       library, and does not handle file descriptors that don't originate from
       WinSock.
 
+   .. versionchanged:: 3.5
+      The function is now retried with a recomputed timeout when interrupted by
+      a signal, except if the signal handler raises an exception (see
+      :pep:`475` for the rationale), instead of raising
+      :exc:`InterruptedError`.
+
+
 .. attribute:: PIPE_BUF
 
    The minimum number of bytes which can be written without blocking to a pipe
@@ -152,7 +171,9 @@ The module defines the following:
    :func:`poll` or another interface in this module.  This doesn't apply
    to other kind of file-like objects such as sockets.
 
-   This value is guaranteed by POSIX to be at least 512.  Availability: Unix.
+   This value is guaranteed by POSIX to be at least 512.
+
+   .. availability:: Unix
 
    .. versionadded:: 3.2
 
@@ -160,10 +181,7 @@ The module defines the following:
 .. _devpoll-objects:
 
 ``/dev/poll`` Polling Objects
-----------------------------------------------
-
-   http://developers.sun.com/solaris/articles/using_devpoll.html
-   http://developers.sun.com/solaris/articles/polling_efficient.html
+-----------------------------
 
 Solaris and derivatives have ``/dev/poll``. While :c:func:`select` is
 O(highest file descriptor) and :c:func:`poll` is O(number of file
@@ -210,7 +228,7 @@ object.
    .. warning::
 
       Registering a file descriptor that's already registered is not an
-      error, but the result is undefined. The appropiate action is to
+      error, but the result is undefined. The appropriate action is to
       unregister or modify it first. This is an important difference
       compared with :c:func:`poll`.
 
@@ -245,45 +263,59 @@ object.
    returning. If *timeout* is omitted, -1, or :const:`None`, the call will
    block until there is an event for this poll object.
 
+   .. versionchanged:: 3.5
+      The function is now retried with a recomputed timeout when interrupted by
+      a signal, except if the signal handler raises an exception (see
+      :pep:`475` for the rationale), instead of raising
+      :exc:`InterruptedError`.
+
 
 .. _epoll-objects:
 
 Edge and Level Trigger Polling (epoll) Objects
 ----------------------------------------------
 
-   http://linux.die.net/man/4/epoll
+   https://linux.die.net/man/4/epoll
 
    *eventmask*
 
-   +-----------------------+-----------------------------------------------+
-   | Constant              | Meaning                                       |
-   +=======================+===============================================+
-   | :const:`EPOLLIN`      | Available for read                            |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLOUT`     | Available for write                           |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLPRI`     | Urgent data for read                          |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLERR`     | Error condition happened on the assoc. fd     |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLHUP`     | Hang up happened on the assoc. fd             |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLET`      | Set Edge Trigger behavior, the default is     |
-   |                       | Level Trigger behavior                        |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLONESHOT` | Set one-shot behavior. After one event is     |
-   |                       | pulled out, the fd is internally disabled     |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLRDNORM`  | Equivalent to :const:`EPOLLIN`                |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLRDBAND`  | Priority data band can be read.               |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLWRNORM`  | Equivalent to :const:`EPOLLOUT`               |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLWRBAND`  | Priority data may be written.                 |
-   +-----------------------+-----------------------------------------------+
-   | :const:`EPOLLMSG`     | Ignored.                                      |
-   +-----------------------+-----------------------------------------------+
+   +-------------------------+-----------------------------------------------+
+   | Constant                | Meaning                                       |
+   +=========================+===============================================+
+   | :const:`EPOLLIN`        | Available for read                            |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLOUT`       | Available for write                           |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLPRI`       | Urgent data for read                          |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLERR`       | Error condition happened on the assoc. fd     |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLHUP`       | Hang up happened on the assoc. fd             |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLET`        | Set Edge Trigger behavior, the default is     |
+   |                         | Level Trigger behavior                        |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLONESHOT`   | Set one-shot behavior. After one event is     |
+   |                         | pulled out, the fd is internally disabled     |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLEXCLUSIVE` | Wake only one epoll object when the           |
+   |                         | associated fd has an event. The default (if   |
+   |                         | this flag is not set) is to wake all epoll    |
+   |                         | objects polling on a fd.                      |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLRDHUP`     | Stream socket peer closed connection or shut  |
+   |                         | down writing half of connection.              |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLRDNORM`    | Equivalent to :const:`EPOLLIN`                |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLRDBAND`    | Priority data band can be read.               |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLWRNORM`    | Equivalent to :const:`EPOLLOUT`               |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLWRBAND`    | Priority data may be written.                 |
+   +-------------------------+-----------------------------------------------+
+   | :const:`EPOLLMSG`       | Ignored.                                      |
+   +-------------------------+-----------------------------------------------+
 
 
 .. method:: epoll.close()
@@ -324,6 +356,12 @@ Edge and Level Trigger Polling (epoll) Objects
 .. method:: epoll.poll(timeout=-1, maxevents=-1)
 
    Wait for events. timeout in seconds (float)
+
+   .. versionchanged:: 3.5
+      The function is now retried with a recomputed timeout when interrupted by
+      a signal, except if the signal handler raises an exception (see
+      :pep:`475` for the rationale), instead of raising
+      :exc:`InterruptedError`.
 
 
 .. _poll-objects:
@@ -366,6 +404,9 @@ linearly scanned again. :c:func:`select` is O(highest file descriptor), while
    +-------------------+------------------------------------------+
    | :const:`POLLHUP`  | Hung up                                  |
    +-------------------+------------------------------------------+
+   | :const:`POLLRDHUP`| Stream socket peer closed connection, or |
+   |                   | shut down writing half of connection     |
+   +-------------------+------------------------------------------+
    | :const:`POLLNVAL` | Invalid request: descriptor not open     |
    +-------------------+------------------------------------------+
 
@@ -404,6 +445,12 @@ linearly scanned again. :c:func:`select` is O(highest file descriptor), while
    returning. If *timeout* is omitted, negative, or :const:`None`, the call will
    block until there is an event for this poll object.
 
+   .. versionchanged:: 3.5
+      The function is now retried with a recomputed timeout when interrupted by
+      a signal, except if the signal handler raises an exception (see
+      :pep:`475` for the rationale), instead of raising
+      :exc:`InterruptedError`.
+
 
 .. _kqueue-objects:
 
@@ -434,9 +481,15 @@ Kqueue Objects
 
    Low level interface to kevent
 
-   - changelist must be an iterable of kevent object or None
+   - changelist must be an iterable of kevent object or ``None``
    - max_events must be 0 or a positive integer
    - timeout in seconds (floats possible)
+
+   .. versionchanged:: 3.5
+      The function is now retried with a recomputed timeout when interrupted by
+      a signal, except if the signal handler raises an exception (see
+      :pep:`475` for the rationale), instead of raising
+      :exc:`InterruptedError`.
 
 
 .. _kevent-objects:
@@ -444,7 +497,7 @@ Kqueue Objects
 Kevent Objects
 --------------
 
-http://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
+https://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
 
 .. attribute:: kevent.ident
 

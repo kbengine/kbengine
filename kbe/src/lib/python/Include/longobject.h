@@ -65,7 +65,8 @@ PyAPI_FUNC(PyObject *) PyLong_GetInfo(void);
 #  error "void* different in size from int, long and long long"
 #endif /* SIZEOF_VOID_P */
 
-/* Used by Python/mystrtoul.c. */
+/* Used by Python/mystrtoul.c, _PyBytes_FromHex(),
+   _PyBytes_DecodeEscapeRecode(), etc. */
 #ifndef Py_LIMITED_API
 PyAPI_DATA(unsigned char) _PyLong_DigitValue[256];
 #endif
@@ -84,18 +85,16 @@ PyAPI_FUNC(double) PyLong_AsDouble(PyObject *);
 PyAPI_FUNC(PyObject *) PyLong_FromVoidPtr(void *);
 PyAPI_FUNC(void *) PyLong_AsVoidPtr(PyObject *);
 
-#ifdef HAVE_LONG_LONG
-PyAPI_FUNC(PyObject *) PyLong_FromLongLong(PY_LONG_LONG);
-PyAPI_FUNC(PyObject *) PyLong_FromUnsignedLongLong(unsigned PY_LONG_LONG);
-PyAPI_FUNC(PY_LONG_LONG) PyLong_AsLongLong(PyObject *);
-PyAPI_FUNC(unsigned PY_LONG_LONG) PyLong_AsUnsignedLongLong(PyObject *);
-PyAPI_FUNC(unsigned PY_LONG_LONG) PyLong_AsUnsignedLongLongMask(PyObject *);
-PyAPI_FUNC(PY_LONG_LONG) PyLong_AsLongLongAndOverflow(PyObject *, int *);
-#endif /* HAVE_LONG_LONG */
+PyAPI_FUNC(PyObject *) PyLong_FromLongLong(long long);
+PyAPI_FUNC(PyObject *) PyLong_FromUnsignedLongLong(unsigned long long);
+PyAPI_FUNC(long long) PyLong_AsLongLong(PyObject *);
+PyAPI_FUNC(unsigned long long) PyLong_AsUnsignedLongLong(PyObject *);
+PyAPI_FUNC(unsigned long long) PyLong_AsUnsignedLongLongMask(PyObject *);
+PyAPI_FUNC(long long) PyLong_AsLongLongAndOverflow(PyObject *, int *);
 
 PyAPI_FUNC(PyObject *) PyLong_FromString(const char *, char **, int);
 #ifndef Py_LIMITED_API
-PyAPI_FUNC(PyObject *) PyLong_FromUnicode(Py_UNICODE*, Py_ssize_t, int);
+PyAPI_FUNC(PyObject *) PyLong_FromUnicode(Py_UNICODE*, Py_ssize_t, int) Py_DEPRECATED(3.3);
 PyAPI_FUNC(PyObject *) PyLong_FromUnicodeObject(PyObject *u, int base);
 PyAPI_FUNC(PyObject *) _PyLong_FromBytes(const char *, Py_ssize_t, int);
 #endif
@@ -159,7 +158,7 @@ PyAPI_FUNC(PyObject *) _PyLong_FromByteArray(
      example, if is_signed is 0 and there are more digits in the v than
      fit in n; or if is_signed is 1, v < 0, and n is just 1 bit shy of
      being large enough to hold a sign bit.  OverflowError is set in this
-     case, but bytes holds the least-signficant n bytes of the true value.
+     case, but bytes holds the least-significant n bytes of the true value.
 */
 PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
     unsigned char* bytes, size_t n,
@@ -182,6 +181,13 @@ PyAPI_FUNC(int) _PyLong_FormatWriter(
     int base,
     int alternate);
 
+PyAPI_FUNC(char*) _PyLong_FormatBytesWriter(
+    _PyBytesWriter *writer,
+    char *str,
+    PyObject *obj,
+    int base,
+    int alternate);
+
 /* Format the object based on the format_spec, as defined in PEP 3101
    (Advanced String Formatting). */
 PyAPI_FUNC(int) _PyLong_FormatAdvancedWriter(
@@ -197,6 +203,16 @@ PyAPI_FUNC(int) _PyLong_FormatAdvancedWriter(
  */
 PyAPI_FUNC(unsigned long) PyOS_strtoul(const char *, char **, int);
 PyAPI_FUNC(long) PyOS_strtol(const char *, char **, int);
+
+#ifndef Py_LIMITED_API
+/* For use by the gcd function in mathmodule.c */
+PyAPI_FUNC(PyObject *) _PyLong_GCD(PyObject *, PyObject *);
+#endif /* !Py_LIMITED_API */
+
+#ifndef Py_LIMITED_API
+PyAPI_DATA(PyObject *) _PyLong_Zero;
+PyAPI_DATA(PyObject *) _PyLong_One;
+#endif
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,8 @@ DataTypes::DATATYPE_MAP DataTypes::dataTypesLowerName_;
 DataTypes::UID_DATATYPE_MAP DataTypes::uid_dataTypes_;
 DataTypes::DATATYPE_ORDERS DataTypes::dataTypesOrders_;
 
+static uint8 _g_baseTypeEndIndex = 0;
+
 //-------------------------------------------------------------------------------------
 DataTypes::DataTypes()
 {
@@ -32,6 +34,19 @@ void DataTypes::finalise(void)
 	uid_dataTypes_.clear();
 	dataTypesLowerName_.clear();
 	dataTypes_.clear();
+	dataTypesOrders_.clear();
+
+	_g_baseTypeEndIndex = 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool DataTypes::validTypeName(const std::string& typeName)
+{
+	// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
+	if (typeName.size() > 0 && typeName[0] == '_')
+		return false;
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,19 +77,37 @@ bool DataTypes::initialize(std::string file)
 	addDataType("VECTOR2",		new Vector2Type);
 	addDataType("VECTOR3",		new Vector3Type);
 	addDataType("VECTOR4",		new Vector4Type);
+
+	_g_baseTypeEndIndex = dataTypesOrders_.size();
 	return loadTypes(file);
+}
+
+//-------------------------------------------------------------------------------------
+std::vector< std::string > DataTypes::getBaseTypeNames()
+{
+	std::vector< std::string > ret;
+	ret.assign(dataTypesOrders_.begin(), dataTypesOrders_.begin() + _g_baseTypeEndIndex);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
 bool DataTypes::loadTypes(std::string& file)
 {
-	TiXmlNode* node = NULL;
-	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
+	// 允许纯脚本定义，则可能没有这个文件
+	if (access(file.c_str(), 0) != 0)
+		return true;
 
-	if(xml == NULL || !xml->isGood())
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
+	return loadTypes(xml);
+}
+
+//-------------------------------------------------------------------------------------
+bool DataTypes::loadTypes(SmartPointer<XML>& xml)
+{
+	if (xml == NULL || !xml->isGood())
 		return false;
 
-	node = xml->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 
 	if(node == NULL)
 	{
@@ -88,8 +121,7 @@ bool DataTypes::loadTypes(std::string& file)
 		std::string aliasName = xml->getKey(node);
 		TiXmlNode* childNode = node->FirstChild();
 
-		// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
-		if (aliasName[0] == '_')
+		if (!DataTypes::validTypeName(aliasName))
 		{
 			ERROR_MSG(fmt::format("DataTypes::loadTypes: Not allowed to use the prefix \"_\"! aliasName={}\n",
 				aliasName.c_str()));

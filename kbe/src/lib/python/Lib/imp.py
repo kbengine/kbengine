@@ -8,15 +8,16 @@ functionality over this module.
 # (Probably) need to stay in _imp
 from _imp import (lock_held, acquire_lock, release_lock,
                   get_frozen_object, is_frozen_package,
-                  init_builtin, init_frozen, is_builtin, is_frozen,
+                  init_frozen, is_builtin, is_frozen,
                   _fix_co_filename)
 try:
-    from _imp import load_dynamic
+    from _imp import create_dynamic
 except ImportError:
     # Platform doesn't support dynamic loading.
-    load_dynamic = None
+    create_dynamic = None
 
-from importlib._bootstrap import SourcelessFileLoader, _ERR_MSG, _SpecMethods
+from importlib._bootstrap import _ERR_MSG, _exec, _load, _builtin_from_name
+from importlib._bootstrap_external import SourcelessFileLoader
 
 from importlib import machinery
 from importlib import util
@@ -29,7 +30,7 @@ import warnings
 
 warnings.warn("the imp module is deprecated in favour of importlib; "
               "see the module's documentation for alternative uses",
-              PendingDeprecationWarning)
+              DeprecationWarning, stacklevel=2)
 
 # DEPRECATED
 SEARCH_ERROR = 0
@@ -58,24 +59,23 @@ def new_module(name):
 def get_magic():
     """**DEPRECATED**
 
-    Return the magic number for .pyc or .pyo files.
+    Return the magic number for .pyc files.
     """
     return util.MAGIC_NUMBER
 
 
 def get_tag():
-    """Return the magic tag for .pyc or .pyo files."""
+    """Return the magic tag for .pyc files."""
     return sys.implementation.cache_tag
 
 
 def cache_from_source(path, debug_override=None):
     """**DEPRECATED**
 
-    Given the path to a .py file, return the path to its .pyc/.pyo file.
+    Given the path to a .py file, return the path to its .pyc file.
 
     The .py file does not need to exist; this simply returns the path to the
-    .pyc/.pyo file calculated as if the .py file were imported.  The extension
-    will be .pyc unless sys.flags.optimize is non-zero, then it will be .pyo.
+    .pyc file calculated as if the .py file were imported.
 
     If debug_override is not None, then it must be a boolean and is used in
     place of sys.flags.optimize.
@@ -83,16 +83,18 @@ def cache_from_source(path, debug_override=None):
     If sys.implementation.cache_tag is None then NotImplementedError is raised.
 
     """
-    return util.cache_from_source(path, debug_override)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        return util.cache_from_source(path, debug_override)
 
 
 def source_from_cache(path):
     """**DEPRECATED**
 
-    Given the path to a .pyc./.pyo file, return the path to its .py file.
+    Given the path to a .pyc. file, return the path to its .py file.
 
-    The .pyc/.pyo file does not need to exist; this simply returns the path to
-    the .py file calculated to correspond to the .pyc/.pyo file.  If path does
+    The .pyc file does not need to exist; this simply returns the path to
+    the .py file calculated to correspond to the .pyc file.  If path does
     not conform to PEP 3147 format, ValueError will be raised. If
     sys.implementation.cache_tag is None then NotImplementedError is raised.
 
@@ -130,7 +132,7 @@ class NullImporter:
 
 class _HackedGetData:
 
-    """Compatibiilty support for 'file' arguments of various load_*()
+    """Compatibility support for 'file' arguments of various load_*()
     functions."""
 
     def __init__(self, fullname, path, file=None):
@@ -140,17 +142,16 @@ class _HackedGetData:
     def get_data(self, path):
         """Gross hack to contort loader to deal w/ load_*()'s bad API."""
         if self.file and path == self.path:
+            # The contract of get_data() requires us to return bytes. Reopen the
+            # file in binary mode if needed.
             if not self.file.closed:
                 file = self.file
-            else:
-                self.file = file = open(self.path, 'r')
+                if 'b' not in file.mode:
+                    file.close()
+            if self.file.closed:
+                self.file = file = open(self.path, 'rb')
 
             with file:
-                # Technically should be returning bytes, but
-                # SourceLoader.get_code() just passed what is returned to
-                # compile() which can handle str. And converting to bytes would
-                # require figuring out the encoding to decode to and
-                # tokenize.detect_encoding() only accepts bytes.
                 return file.read()
         else:
             return super().get_data(path)
@@ -164,11 +165,10 @@ class _LoadSourceCompatibility(_HackedGetData, machinery.SourceFileLoader):
 def load_source(name, pathname, file=None):
     loader = _LoadSourceCompatibility(name, pathname, file)
     spec = util.spec_from_file_location(name, pathname, loader=loader)
-    methods = _SpecMethods(spec)
     if name in sys.modules:
-        module = methods.exec(sys.modules[name])
+        module = _exec(spec, sys.modules[name])
     else:
-        module = methods.load()
+        module = _load(spec)
     # To allow reloading to potentially work, use a non-hacked loader which
     # won't rely on a now-closed file object.
     module.__loader__ = machinery.SourceFileLoader(name, pathname)
@@ -185,11 +185,10 @@ def load_compiled(name, pathname, file=None):
     """**DEPRECATED**"""
     loader = _LoadCompiledCompatibility(name, pathname, file)
     spec = util.spec_from_file_location(name, pathname, loader=loader)
-    methods = _SpecMethods(spec)
     if name in sys.modules:
-        module = methods.exec(sys.modules[name])
+        module = _exec(spec, sys.modules[name])
     else:
-        module = methods.load()
+        module = _load(spec)
     # To allow reloading to potentially work, use a non-hacked loader which
     # won't rely on a now-closed file object.
     module.__loader__ = SourcelessFileLoader(name, pathname)
@@ -203,18 +202,18 @@ def load_package(name, path):
         extensions = (machinery.SOURCE_SUFFIXES[:] +
                       machinery.BYTECODE_SUFFIXES[:])
         for extension in extensions:
-            path = os.path.join(path, '__init__'+extension)
-            if os.path.exists(path):
+            init_path = os.path.join(path, '__init__' + extension)
+            if os.path.exists(init_path):
+                path = init_path
                 break
         else:
             raise ValueError('{!r} is not a package'.format(path))
     spec = util.spec_from_file_location(name, path,
                                         submodule_search_locations=[])
-    methods = _SpecMethods(spec)
     if name in sys.modules:
-        return methods.exec(sys.modules[name])
+        return _exec(spec, sys.modules[name])
     else:
-        return methods.load()
+        return _load(spec)
 
 
 def load_module(name, file, filename, details):
@@ -267,8 +266,8 @@ def find_module(name, path=None):
         raise TypeError("'name' must be a str, not {}".format(type(name)))
     elif not isinstance(path, (type(None), list)):
         # Backwards-compatibility
-        raise RuntimeError("'list' must be None or a list, "
-                           "not {}".format(type(name)))
+        raise RuntimeError("'path' must be None or a list, "
+                           "not {}".format(type(path)))
 
     if path is None:
         if is_builtin(name):
@@ -313,3 +312,34 @@ def reload(module):
 
     """
     return importlib.reload(module)
+
+
+def init_builtin(name):
+    """**DEPRECATED**
+
+    Load and return a built-in module by name, or None is such module doesn't
+    exist
+    """
+    try:
+        return _builtin_from_name(name)
+    except ImportError:
+        return None
+
+
+if create_dynamic:
+    def load_dynamic(name, path, file=None):
+        """**DEPRECATED**
+
+        Load an extension module.
+        """
+        import importlib.machinery
+        loader = importlib.machinery.ExtensionFileLoader(name, path)
+
+        # Issue #24748: Skip the sys.modules check in _load_module_shim;
+        # always load new extension
+        spec = importlib.machinery.ModuleSpec(
+            name=name, loader=loader, origin=path)
+        return _load(spec)
+
+else:
+    load_dynamic = None

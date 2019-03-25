@@ -9,7 +9,7 @@ configure-like tasks: "try to compile this C code", or "figure out where
 this header file lives".
 """
 
-import sys, os, re
+import os, re
 
 from distutils.core import Command
 from distutils.errors import DistutilsExecError
@@ -337,7 +337,7 @@ def dump_file(filename, head=None):
     If head is not None, will be dumped before the file content.
     """
     if head is None:
-        log.info('%s' % filename)
+        log.info('%s', filename)
     else:
         log.info(head)
     file = open(filename)

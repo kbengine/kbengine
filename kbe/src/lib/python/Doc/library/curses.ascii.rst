@@ -3,9 +3,11 @@
 
 .. module:: curses.ascii
    :synopsis: Constants and set-membership functions for ASCII characters.
+
 .. moduleauthor:: Eric S. Raymond <esr@thyrsus.com>
 .. sectionauthor:: Eric S. Raymond <esr@thyrsus.com>
 
+--------------
 
 The :mod:`curses.ascii` module supplies name constants for ASCII characters and
 functions to test membership in various ASCII character classes.  The constants
@@ -113,12 +115,12 @@ C library:
 
 .. function:: isblank(c)
 
-   Checks for an ASCII whitespace character.
+   Checks for an ASCII whitespace character; space or horizontal tab.
 
 
 .. function:: iscntrl(c)
 
-   Checks for an ASCII control character (in the range 0x00 to 0x1f).
+   Checks for an ASCII control character (in the range 0x00 to 0x1f or 0x7f).
 
 
 .. function:: isdigit(c)
@@ -174,14 +176,12 @@ C library:
 
    Checks for a non-ASCII character (ordinal values 0x80 and above).
 
-These functions accept either integers or strings; when the argument is a
+These functions accept either integers or single-character strings; when the argument is a
 string, it is first converted using the built-in function :func:`ord`.
 
-Note that all these functions check ordinal bit values derived from the  first
+Note that all these functions check ordinal bit values derived from the
 character of the string you pass in; they do not actually know anything about
-the host machine's character encoding.  For functions  that know about the
-character encoding (and handle internationalization properly) see the
-:mod:`string` module.
+the host machine's character encoding.
 
 The following two functions take either a single-character string or integer
 byte value; they return a value of the same type.
@@ -207,11 +207,15 @@ The following function takes either a single-character string or integer value;
 it returns a string.
 
 
+.. index::
+   single: ^ (caret); in curses module
+   single: ! (exclamation); in curses module
+
 .. function:: unctrl(c)
 
    Return a string representation of the ASCII character *c*.  If *c* is printable,
    this string is the character itself.  If the character is a control character
-   (0x00-0x1f) the string consists of a caret (``'^'``) followed by the
+   (0x00--0x1f) the string consists of a caret (``'^'``) followed by the
    corresponding uppercase letter. If the character is an ASCII delete (0x7f) the
    string is ``'^?'``.  If the character has its meta bit (0x80) set, the meta bit
    is stripped, the preceding rules applied, and ``'!'`` prepended to the result.

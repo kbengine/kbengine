@@ -1,8 +1,9 @@
 BIN  = loginapp
 SRCS =						\
-	http_cb_handler				\
+	clientsdk_downloader	\
+	http_cb_handler			\
 	loginapp				\
-	loginapp_interface			\
+	loginapp_interface		\
 	main					\
 	profile
 

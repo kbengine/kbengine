@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -38,417 +38,83 @@
     <ProjectGuid>{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}</ProjectGuid>
     <RootNamespace>pythoncore</RootNamespace>
   </PropertyGroup>
+  <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'" Label="PropertySheets">
+  <PropertyGroup>
+    <KillPython>true</KillPython>
+    <RequirePGCFiles>true</RequirePGCFiles>
+    <IncludeExternals Condition="$(IncludeExternals) == '' and Exists('$(zlibDir)\zlib.h')">true</IncludeExternals>
+    <IncludeExternals Condition="$(IncludeExternals) == ''">false</IncludeExternals>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
     <Import Project="pyproject.props" />
-    <Import Project="pgupdate.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
-    <Import Project="pyproject.props" />
-    <Import Project="pginstrument.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="debug.props" />
-    <Import Project="pyproject.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
-    <Import Project="pyproject.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
-    <Import Project="pyproject.props" />
-    <Import Project="x64.props" />
-    <Import Project="pgupdate.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
-    <Import Project="pyproject.props" />
-    <Import Project="x64.props" />
-    <Import Project="pginstrument.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="debug.props" />
-    <Import Project="pyproject.props" />
-    <Import Project="x64.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
-    <Import Project="pyproject.props" />
-    <Import Project="x64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python34_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'">$(PyDllName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'">$(PyDllName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python34</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python34_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'">$(PyDllName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'">$(PyDllName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python34</TargetName>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../libs\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../_objs\$(ProjectName)_d\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../libs\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../_objs\$(ProjectName)\</IntDir>
+    <TargetName>$(PyDllName)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CustomBuildBeforeTargets>Link</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>../../../libs\</OutDir>
+    <OutDir>../../../../bin/server\</OutDir>
     <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>../../../libs\</OutDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>../../../../bin/server\</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)_d\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>../../../../bin/server\</OutDir>
     <IntDir>../../../_objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>../../../../bin/server\</OutDir>
+    <IntDir>../../../_objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_NO_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>../../dependencies/zlib;$(PySourcePath)Python;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="$(IncludeExternals)">$(zlibDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;ZLIB_WINAPI;_Py_HAVE_ZLIB;_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;MS_DLL_ID="$(SysWinVer)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="$(IncludeExternals)">_Py_HAVE_ZLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>
-      </Command>
-    </PreLinkEvent>
     <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(PyDllName).dll</OutputFile>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">zlib_d.lib;version.lib;shlwapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">zlib_d.lib;version.lib;shlwapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">zlib.lib;version.lib;shlwapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">zlib.lib;version.lib;shlwapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../../libs/$(TargetName).lib</ImportLibrary>
+      <ImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../libs/$(TargetName).lib</ImportLibrary>
+      <ImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../libs/$(TargetName).lib</ImportLibrary>
+      <ImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../../libs/$(TargetName).lib</ImportLibrary>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../libs;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../../libs;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../libs;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../../libs;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_NO_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>
-      </Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-    </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_NO_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>
-      </Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-    </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_NO_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>
-      </Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-    </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'">
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>"$(SolutionDir)make_buildinfo.exe" Release "$(IntDir)\"</Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(PyDllName).dll</OutputFile>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-    </Link>
-    <PreBuildEvent>
-      <Command>$(KillPythonExe)
-IF %ERRORLEVEL% NEQ 0 (
-    echo kill_python: war^ning: could not kill running Pythons, exit code %ERRORLEVEL%
-    exit /b 0
-)</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'">
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>"$(SolutionDir)make_buildinfo.exe" Release "$(IntDir)\"</Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-      <TargetMachine>MachineX64</TargetMachine>
-    </Link>
-    <PreBuildEvent>
-      <Command>$(KillPythonExe)
-IF %ERRORLEVEL% NEQ 0 (
-    echo kill_python: war^ning: could not kill running Pythons, exit code %ERRORLEVEL%
-    exit /b 0
-)</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'">
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>"$(SolutionDir)make_buildinfo.exe" Release "$(IntDir)\"</Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(PyDllName).dll</OutputFile>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-    </Link>
-    <PreBuildEvent>
-      <Command>$(KillPythonExe)
-IF %ERRORLEVEL% NEQ 0 (
-    echo kill_python: war^ning: could not kill running Pythons, exit code %ERRORLEVEL%
-    exit /b 0
-)</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'">
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\Python;..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <PreLinkEvent>
-      <Message>Generate build information...</Message>
-      <Command>"$(SolutionDir)make_buildinfo.exe" Release "$(IntDir)\"</Command>
-    </PreLinkEvent>
-    <Link>
-      <AdditionalDependencies>$(IntDir)getbuildinfo.o;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <BaseAddress>0x1e000000</BaseAddress>
-      <TargetMachine>MachineX64</TargetMachine>
-    </Link>
-    <PreBuildEvent>
-      <Command>$(KillPythonExe)
-IF %ERRORLEVEL% NEQ 0 (
-    echo kill_python: war^ning: could not kill running Pythons, exit code %ERRORLEVEL%
-    exit /b 0
-)</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>Killing any running $(PythonExe) instances...</Message>
-    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy ..\Lib ..\..\..\..\res\scripts\common\Lib /Y /i /e</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy ..\Lib ..\..\..\..\res\scripts\common\Lib /Y /i /e</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">xcopy ..\Lib ..\..\..\..\res\scripts\common\Lib /Y /i /e</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">xcopy ..\Lib ..\..\..\..\res\scripts\common\Lib /Y /i /e</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\abstract.h" />
@@ -467,6 +133,7 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Include\codecs.h" />
     <ClInclude Include="..\Include\compile.h" />
     <ClInclude Include="..\Include\complexobject.h" />
+    <ClInclude Include="..\Include\context.h" />
     <ClInclude Include="..\Include\datetime.h" />
     <ClInclude Include="..\Include\descrobject.h" />
     <ClInclude Include="..\Include\dictobject.h" />
@@ -483,6 +150,14 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Include\graminit.h" />
     <ClInclude Include="..\Include\grammar.h" />
     <ClInclude Include="..\Include\import.h" />
+    <ClInclude Include="..\Include\internal\ceval.h" />
+    <ClInclude Include="..\Include\internal\condvar.h" />
+    <ClInclude Include="..\Include\internal\context.h" />
+    <ClInclude Include="..\Include\internal\gil.h" />
+    <ClInclude Include="..\Include\internal\hamt.h" />
+    <ClInclude Include="..\Include\internal\mem.h" />
+    <ClInclude Include="..\Include\internal\pystate.h" />
+    <ClInclude Include="..\Include\internal\warnings.h" />
     <ClInclude Include="..\Include\intrcheck.h" />
     <ClInclude Include="..\Include\iterobject.h" />
     <ClInclude Include="..\Include\listobject.h" />
@@ -498,8 +173,10 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Include\node.h" />
     <ClInclude Include="..\Include\object.h" />
     <ClInclude Include="..\Include\objimpl.h" />
+    <ClInclude Include="..\Include\odictobject.h" />
     <ClInclude Include="..\Include\opcode.h" />
     <ClInclude Include="..\Include\osdefs.h" />
+    <ClInclude Include="..\Include\osmodule.h" />
     <ClInclude Include="..\Include\parsetok.h" />
     <ClInclude Include="..\Include\patchlevel.h" />
     <ClInclude Include="..\Include\pgen.h" />
@@ -513,7 +190,8 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Include\pyerrors.h" />
     <ClInclude Include="..\Include\pyexpat.h" />
     <ClInclude Include="..\Include\pyfpe.h" />
-    <ClInclude Include="..\Include\pygetopt.h" />
+    <ClInclude Include="..\Include\internal\pygetopt.h" />
+    <ClInclude Include="..\Include\pylifecycle.h" />
     <ClInclude Include="..\Include\pymath.h" />
     <ClInclude Include="..\Include\pytime.h" />
     <ClInclude Include="..\Include\pymacro.h" />
@@ -522,6 +200,7 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Include\pystate.h" />
     <ClInclude Include="..\Include\pystrcmp.h" />
     <ClInclude Include="..\Include\pystrtod.h" />
+    <ClInclude Include="..\Include\pystrhex.h" />
     <ClInclude Include="..\Include\dtoa.h" />
     <ClInclude Include="..\Include\Python-ast.h" />
     <ClInclude Include="..\Include\Python.h" />
@@ -547,17 +226,6 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Modules\sre_constants.h" />
     <ClInclude Include="..\Modules\sre_lib.h" />
     <ClInclude Include="..\Modules\_io\_iomodule.h" />
-    <ClInclude Include="..\Modules\zlib\crc32.h" />
-    <ClInclude Include="..\Modules\zlib\deflate.h" />
-    <ClInclude Include="..\Modules\zlib\inffast.h" />
-    <ClInclude Include="..\Modules\zlib\inffixed.h" />
-    <ClInclude Include="..\Modules\zlib\inflate.h" />
-    <ClInclude Include="..\Modules\zlib\inftrees.h" />
-    <ClInclude Include="..\Modules\zlib\trees.h" />
-    <ClInclude Include="..\Modules\zlib\zconf.h" />
-    <ClInclude Include="..\Modules\zlib\zconf.in.h" />
-    <ClInclude Include="..\Modules\zlib\zlib.h" />
-    <ClInclude Include="..\Modules\zlib\zutil.h" />
     <ClInclude Include="..\Modules\cjkcodecs\alg_jisx0201.h" />
     <ClInclude Include="..\Modules\cjkcodecs\cjkcodecs.h" />
     <ClInclude Include="..\Modules\cjkcodecs\emu_jisx0213_2000.h" />
@@ -583,11 +251,32 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClInclude Include="..\Python\condvar.h" />
     <ClInclude Include="..\Python\importdl.h" />
     <ClInclude Include="..\Python\thread_nt.h" />
+    <ClInclude Include="..\Python\wordcode_helpers.h" />
+  </ItemGroup>
+  <ItemGroup Condition="$(IncludeExternals)">
+    <ClInclude Include="$(zlibDir)\crc32.h" />
+    <ClInclude Include="$(zlibDir)\deflate.h" />
+    <ClInclude Include="$(zlibDir)\inffast.h" />
+    <ClInclude Include="$(zlibDir)\inffixed.h" />
+    <ClInclude Include="$(zlibDir)\inflate.h" />
+    <ClInclude Include="$(zlibDir)\inftrees.h" />
+    <ClInclude Include="$(zlibDir)\trees.h" />
+    <ClInclude Include="$(zlibDir)\zconf.h" />
+    <ClInclude Include="$(zlibDir)\zconf.in.h" />
+    <ClInclude Include="$(zlibDir)\zlib.h" />
+    <ClInclude Include="$(zlibDir)\zutil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Modules\zlibmodule.c" />
+    <ClCompile Include="..\Modules\_abc.c" />
+    <ClCompile Include="..\Modules\_asynciomodule.c" />
     <ClCompile Include="..\Modules\_bisectmodule.c" />
+    <ClCompile Include="..\Modules\_blake2\blake2module.c" />
+    <ClCompile Include="..\Modules\_blake2\blake2b_impl.c" />
+    <ClCompile Include="..\Modules\_blake2\blake2s_impl.c" />
     <ClCompile Include="..\Modules\_codecsmodule.c" />
     <ClCompile Include="..\Modules\_collectionsmodule.c" />
+    <ClCompile Include="..\Modules\_contextvarsmodule.c" />
     <ClCompile Include="..\Modules\_csv.c" />
     <ClCompile Include="..\Modules\_functoolsmodule.c" />
     <ClCompile Include="..\Modules\_heapqmodule.c" />
@@ -597,6 +286,7 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Modules\_math.c" />
     <ClCompile Include="..\Modules\_pickle.c" />
     <ClCompile Include="..\Modules\_randommodule.c" />
+    <ClCompile Include="..\Modules\_sha3\sha3module.c" />
     <ClCompile Include="..\Modules\_sre.c" />
     <ClCompile Include="..\Modules\_stat.c" />
     <ClCompile Include="..\Modules\_struct.c" />
@@ -631,25 +321,14 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Modules\timemodule.c" />
     <ClCompile Include="..\Modules\xxsubtype.c" />
     <ClCompile Include="..\Modules\zipimport.c" />
-    <ClCompile Include="..\Modules\zlibmodule.c" />
     <ClCompile Include="..\Modules\_io\fileio.c" />
     <ClCompile Include="..\Modules\_io\bytesio.c" />
     <ClCompile Include="..\Modules\_io\stringio.c" />
     <ClCompile Include="..\Modules\_io\bufferedio.c" />
     <ClCompile Include="..\Modules\_io\iobase.c" />
     <ClCompile Include="..\Modules\_io\textio.c" />
+    <ClCompile Include="..\Modules\_io\winconsoleio.c" />
     <ClCompile Include="..\Modules\_io\_iomodule.c" />
-    <ClCompile Include="..\Modules\zlib\adler32.c" />
-    <ClCompile Include="..\Modules\zlib\compress.c" />
-    <ClCompile Include="..\Modules\zlib\crc32.c" />
-    <ClCompile Include="..\Modules\zlib\deflate.c" />
-    <ClCompile Include="..\Modules\zlib\infback.c" />
-    <ClCompile Include="..\Modules\zlib\inffast.c" />
-    <ClCompile Include="..\Modules\zlib\inflate.c" />
-    <ClCompile Include="..\Modules\zlib\inftrees.c" />
-    <ClCompile Include="..\Modules\zlib\trees.c" />
-    <ClCompile Include="..\Modules\zlib\uncompr.c" />
-    <ClCompile Include="..\Modules\zlib\zutil.c" />
     <ClCompile Include="..\Modules\cjkcodecs\_codecs_cn.c" />
     <ClCompile Include="..\Modules\cjkcodecs\_codecs_hk.c" />
     <ClCompile Include="..\Modules\cjkcodecs\_codecs_iso2022.c" />
@@ -661,9 +340,10 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Objects\abstract.c" />
     <ClCompile Include="..\Objects\accu.c" />
     <ClCompile Include="..\Objects\boolobject.c" />
-    <ClCompile Include="..\Objects\bytes_methods.c" />
     <ClCompile Include="..\Objects\bytearrayobject.c" />
+    <ClCompile Include="..\Objects\bytes_methods.c" />
     <ClCompile Include="..\Objects\bytesobject.c" />
+    <ClCompile Include="..\Objects\call.c" />
     <ClCompile Include="..\Objects\capsule.c" />
     <ClCompile Include="..\Objects\cellobject.c" />
     <ClCompile Include="..\Objects\classobject.c" />
@@ -687,6 +367,7 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Objects\namespaceobject.c" />
     <ClCompile Include="..\Objects\object.c" />
     <ClCompile Include="..\Objects\obmalloc.c" />
+    <ClCompile Include="..\Objects\odictobject.c" />
     <ClCompile Include="..\Objects\rangeobject.c" />
     <ClCompile Include="..\Objects\setobject.c" />
     <ClCompile Include="..\Objects\sliceobject.c" />
@@ -708,20 +389,23 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Parser\parser.c" />
     <ClCompile Include="..\Parser\parsetok.c" />
     <ClCompile Include="..\Parser\tokenizer.c" />
+    <ClCompile Include="..\PC\invalid_parameter_handler.c" />
     <ClCompile Include="..\PC\winreg.c" />
     <ClCompile Include="..\PC\config.c" />
-    <ClCompile Include="..\PC\dl_nt.c" />
     <ClCompile Include="..\PC\getpathp.c" />
     <ClCompile Include="..\PC\msvcrtmodule.c" />
     <ClCompile Include="..\Python\pyhash.c" />
-    <ClCompile Include="..\Python\random.c" />
     <ClCompile Include="..\Python\_warnings.c" />
     <ClCompile Include="..\Python\asdl.c" />
     <ClCompile Include="..\Python\ast.c" />
+    <ClCompile Include="..\Python\ast_opt.c" />
+    <ClCompile Include="..\Python\ast_unparse.c" />
     <ClCompile Include="..\Python\bltinmodule.c" />
+    <ClCompile Include="..\Python\bootstrap_hash.c" />
     <ClCompile Include="..\Python\ceval.c" />
     <ClCompile Include="..\Python\codecs.c" />
     <ClCompile Include="..\Python\compile.c" />
+    <ClCompile Include="..\Python\context.c" />
     <ClCompile Include="..\Python\dynamic_annotations.c" />
     <ClCompile Include="..\Python\dynload_win.c" />
     <ClCompile Include="..\Python\errors.c" />
@@ -736,20 +420,24 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Python\getplatform.c" />
     <ClCompile Include="..\Python\getversion.c" />
     <ClCompile Include="..\Python\graminit.c" />
+    <ClCompile Include="..\Python\hamt.c" />
     <ClCompile Include="..\Python\import.c" />
     <ClCompile Include="..\Python\importdl.c" />
     <ClCompile Include="..\Python\marshal.c" />
     <ClCompile Include="..\Python\modsupport.c" />
     <ClCompile Include="..\Python\mysnprintf.c" />
     <ClCompile Include="..\Python\mystrtoul.c" />
+    <ClCompile Include="..\Python\pathconfig.c" />
     <ClCompile Include="..\Python\peephole.c" />
     <ClCompile Include="..\Python\pyarena.c" />
     <ClCompile Include="..\Python\pyctype.c" />
     <ClCompile Include="..\Python\pyfpe.c" />
+    <ClCompile Include="..\Python\pylifecycle.c" />
     <ClCompile Include="..\Python\pymath.c" />
     <ClCompile Include="..\Python\pytime.c" />
     <ClCompile Include="..\Python\pystate.c" />
     <ClCompile Include="..\Python\pystrcmp.c" />
+    <ClCompile Include="..\Python\pystrhex.c" />
     <ClCompile Include="..\Python\pystrtod.c" />
     <ClCompile Include="..\Python\dtoa.c" />
     <ClCompile Include="..\Python\Python-ast.c" />
@@ -760,7 +448,70 @@ IF %ERRORLEVEL% NEQ 0 (
     <ClCompile Include="..\Python\thread.c" />
     <ClCompile Include="..\Python\traceback.c" />
   </ItemGroup>
+  <ItemGroup Condition="$(IncludeExternals)">
+    <ClCompile Include="..\Modules\zlibmodule.c" />
+    <ClCompile Include="$(zlibDir)\adler32.c" />
+    <ClCompile Include="$(zlibDir)\compress.c" />
+    <ClCompile Include="$(zlibDir)\crc32.c" />
+    <ClCompile Include="$(zlibDir)\deflate.c" />
+    <ClCompile Include="$(zlibDir)\infback.c" />
+    <ClCompile Include="$(zlibDir)\inffast.c" />
+    <ClCompile Include="$(zlibDir)\inflate.c" />
+    <ClCompile Include="$(zlibDir)\inftrees.c" />
+    <ClCompile Include="$(zlibDir)\trees.c" />
+    <ClCompile Include="$(zlibDir)\uncompr.c" />
+    <ClCompile Include="$(zlibDir)\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\PC\dl_nt.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\PC\python_nt.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="_GetBuildInfo" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <GIT Condition="$(GIT) == ''">git</GIT>
+      <_GIT>$(GIT)</_GIT>
+      <_GIT Condition="$(GIT.Contains(` `))">"$(GIT)"</_GIT>
+    </PropertyGroup>
+    <Message Text="Getting build info from $(_GIT)" Importance="high" />
+    <MakeDir Directories="$(IntDir)" Condition="!Exists($(IntDir))" />
+    <Exec Command="$(_GIT) name-rev --name-only HEAD &gt; &quot;$(IntDir)gitbranch.txt&quot;" ContinueOnError="true" />
+    <Exec Command="$(_GIT) rev-parse --short HEAD &gt; &quot;$(IntDir)gitversion.txt&quot;" ContinueOnError="true" />
+    <Exec Command="$(_GIT) describe --all --always --dirty &gt; &quot;$(IntDir)gittag.txt&quot;" ContinueOnError="true" />
+    <PropertyGroup>
+      <GitBranch Condition="Exists('$(IntDir)gitbranch.txt')">$([System.IO.File]::ReadAllText('$(IntDir)gitbranch.txt').Trim())</GitBranch>
+      <GitVersion Condition="Exists('$(IntDir)gitversion.txt')">$([System.IO.File]::ReadAllText('$(IntDir)gitversion.txt').Trim())</GitVersion>
+      <GitTag Condition="Exists('$(IntDir)gittag.txt')">$([System.IO.File]::ReadAllText('$(IntDir)gittag.txt').Trim())</GitTag>
+    </PropertyGroup>
+    <Message Text="Building $(GitTag):$(GitVersion) $(GitBranch)" Importance="high" />
+    <ItemGroup>
+      <ClCompile Include="..\Modules\getbuildinfo.c">
+        <PreprocessorDefinitions>GITVERSION="$(GitVersion)";GITTAG="$(GitTag)";GITBRANCH="$(GitBranch)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+  <Target Name="_WarnAboutToolset" BeforeTargets="PrepareForBuild" Condition="$(PlatformToolset) != 'v140' and $(PlatformToolset) != 'v141'">
+    <Warning Text="Toolset $(PlatformToolset) is not used for official builds. Your build may have errors or incompatibilities." />
+  </Target>
+  <Target Name="_WarnAboutZlib" BeforeTargets="PrepareForBuild" Condition="!$(IncludeExternals)">
+    <Warning Text="Not including zlib is not a supported configuration." />
+  </Target>
+  <PropertyGroup>
+    <VCRedistDir>$(VCInstallDir)\Redist\MSVC\$(VCToolsRedistVersion)\</VCRedistDir>
+    <VCRedistDir Condition="$(Platform) == 'Win32'">$(VCRedistDir)x86\</VCRedistDir>
+    <VCRedistDir Condition="$(Platform) != 'Win32'">$(VCRedistDir)$(Platform)\</VCRedistDir>
+  </PropertyGroup>
+  <ItemGroup Condition="$(VCInstallDir) != ''">
+    <VCRuntimeDLL Include="$(VCRedistDir)\**\vcruntime*.dll" />
+  </ItemGroup>
+  <Target Name="_CopyVCRuntime" AfterTargets="Build" Inputs="@(VCRuntimeDLL)" Outputs="$(OutDir)%(Filename)%(Extension)">
+    <Copy SourceFiles="%(VCRuntimeDLL.FullPath)" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Target Name="_CleanVCRuntime" AfterTargets="Clean">
+    <Delete Files="@(VCRuntimeDLL->'$(OutDir)%(Filename)%(Extension)')" />
+  </Target>
 </Project>

@@ -17,17 +17,27 @@ common use.  The second reason is to use Python as a component in a larger
 application; this technique is generally referred to as :dfn:`embedding` Python
 in an application.
 
-Writing an extension module is a relatively well-understood process,  where a
-"cookbook" approach works well.  There are several tools  that automate the
-process to some extent.  While people have embedded  Python in other
-applications since its early existence, the process of  embedding Python is less
-straightforward than writing an extension.
+Writing an extension module is a relatively well-understood process, where a
+"cookbook" approach works well.  There are several tools that automate the
+process to some extent.  While people have embedded Python in other
+applications since its early existence, the process of embedding Python is
+less straightforward than writing an extension.
 
 Many API functions are useful independent of whether you're embedding  or
 extending Python; moreover, most applications that embed Python  will need to
 provide a custom extension as well, so it's probably a  good idea to become
 familiar with writing an extension before  attempting to embed Python in a real
 application.
+
+
+Coding standards
+================
+
+If you're writing C code for inclusion in CPython, you **must** follow the
+guidelines and standards defined in :PEP:`7`.  These guidelines apply
+regardless of the version of Python you are contributing to.  Following these
+conventions is not necessary for your own third party extension modules,
+unless you eventually expect to contribute them to Python.
 
 
 .. _api-includes:
@@ -64,9 +74,10 @@ The header files are typically installed with Python.  On Unix, these  are
 located in the directories :file:`{prefix}/include/pythonversion/` and
 :file:`{exec_prefix}/include/pythonversion/`, where :envvar:`prefix` and
 :envvar:`exec_prefix` are defined by the corresponding parameters to Python's
-:program:`configure` script and *version* is ``sys.version[:3]``.  On Windows,
-the headers are installed in :file:`{prefix}/include`, where :envvar:`prefix` is
-the installation directory specified to the installer.
+:program:`configure` script and *version* is
+``'%d.%d' % sys.version_info[:2]``.  On Windows, the headers are installed
+in :file:`{prefix}/include`, where :envvar:`prefix` is the installation
+directory specified to the installer.
 
 To include the headers, place both directories (if different) on your compiler's
 search path for includes.  Do *not* place the parent directories on the search
@@ -78,6 +89,72 @@ multi-platform builds since the platform independent headers under
 C++ users should note that though the API is defined entirely using C, the
 header files do properly declare the entry points to be ``extern "C"``, so there
 is no need to do anything special to use the API from C++.
+
+
+Useful macros
+=============
+
+Several useful macros are defined in the Python header files.  Many are
+defined closer to where they are useful (e.g. :c:macro:`Py_RETURN_NONE`).
+Others of a more general utility are defined here.  This is not necessarily a
+complete listing.
+
+.. c:macro:: Py_UNREACHABLE()
+
+   Use this when you have a code path that you do not expect to be reached.
+   For example, in the ``default:`` clause in a ``switch`` statement for which
+   all possible values are covered in ``case`` statements.  Use this in places
+   where you might be tempted to put an ``assert(0)`` or ``abort()`` call.
+
+   .. versionadded:: 3.7
+
+.. c:macro:: Py_ABS(x)
+
+   Return the absolute value of ``x``.
+
+   .. versionadded:: 3.3
+
+.. c:macro:: Py_MIN(x, y)
+
+   Return the minimum value between ``x`` and ``y``.
+
+   .. versionadded:: 3.3
+
+.. c:macro:: Py_MAX(x, y)
+
+   Return the maximum value between ``x`` and ``y``.
+
+   .. versionadded:: 3.3
+
+.. c:macro:: Py_STRINGIFY(x)
+
+   Convert ``x`` to a C string.  E.g. ``Py_STRINGIFY(123)`` returns
+   ``"123"``.
+
+   .. versionadded:: 3.4
+
+.. c:macro:: Py_MEMBER_SIZE(type, member)
+
+   Return the size of a structure (``type``) ``member`` in bytes.
+
+   .. versionadded:: 3.6
+
+.. c:macro:: Py_CHARMASK(c)
+
+   Argument must be a character or an integer in the range [-128, 127] or [0,
+   255].  This macro returns ``c`` cast to an ``unsigned char``.
+
+.. c:macro:: Py_GETENV(s)
+
+   Like ``getenv(s)``, but returns *NULL* if :option:`-E` was passed on the
+   command line (i.e. if ``Py_IgnoreEnvironmentFlag`` is set).
+
+.. c:macro:: Py_UNUSED(arg)
+
+   Use this for unused arguments in a function definition to silence compiler
+   warnings, e.g. ``PyObject* func(PyObject *Py_UNUSED(ignored))``.
+
+   .. versionadded:: 3.4
 
 
 .. _api-objects:
@@ -578,9 +655,9 @@ Sometimes, it is desirable to "uninitialize" Python.  For instance,  the
 application may want to start over (make another call to
 :c:func:`Py_Initialize`) or the application is simply done with its  use of
 Python and wants to free memory allocated by Python.  This can be accomplished
-by calling :c:func:`Py_Finalize`.  The function :c:func:`Py_IsInitialized` returns
+by calling :c:func:`Py_FinalizeEx`.  The function :c:func:`Py_IsInitialized` returns
 true if Python is currently in the initialized state.  More information about
-these functions is given in a later chapter. Notice that :c:func:`Py_Finalize`
+these functions is given in a later chapter. Notice that :c:func:`Py_FinalizeEx`
 does *not* free all memory allocated by the Python interpreter, e.g. memory
 allocated by extension modules currently cannot be released.
 

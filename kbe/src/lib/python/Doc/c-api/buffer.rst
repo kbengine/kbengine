@@ -40,7 +40,7 @@ protocol <bufferobjects>`.  This protocol has two sides:
 
 Simple objects such as :class:`bytes` and :class:`bytearray` expose their
 underlying buffer in byte-oriented form.  Other forms are possible; for example,
-the elements exposed by a :class:`array.array` can be multi-byte values.
+the elements exposed by an :class:`array.array` can be multi-byte values.
 
 An example consumer of the buffer interface is the :meth:`~io.BufferedIOBase.write`
 method of file objects: any object that can export a series of bytes through
@@ -96,8 +96,8 @@ a buffer, see :c:func:`PyObject_GetBuffer`.
       block of the exporter. For example, with negative :c:member:`~Py_buffer.strides`
       the value may point to the end of the memory block.
 
-      For contiguous arrays, the value points to the beginning of the memory
-      block.
+      For :term:`contiguous` arrays, the value points to the beginning of
+      the memory block.
 
    .. c:member:: void \*obj
 
@@ -133,15 +133,15 @@ a buffer, see :c:func:`PyObject_GetBuffer`.
       called on non-NULL :c:member:`~Py_buffer.format` values.
 
       Important exception: If a consumer requests a buffer without the
-      :c:macro:`PyBUF_FORMAT` flag, :c:member:`~Py_Buffer.format` will
+      :c:macro:`PyBUF_FORMAT` flag, :c:member:`~Py_buffer.format` will
       be set to  *NULL*,  but :c:member:`~Py_buffer.itemsize` still has
       the value for the original format.
 
-      If :c:member:`~Py_Buffer.shape` is present, the equality
+      If :c:member:`~Py_buffer.shape` is present, the equality
       ``product(shape) * itemsize == len`` still holds and the consumer
       can use :c:member:`~Py_buffer.itemsize` to navigate the buffer.
 
-      If :c:member:`~Py_Buffer.shape` is *NULL* as a result of a :c:macro:`PyBUF_SIMPLE`
+      If :c:member:`~Py_buffer.shape` is *NULL* as a result of a :c:macro:`PyBUF_SIMPLE`
       or a :c:macro:`PyBUF_WRITABLE` request, the consumer must disregard
       :c:member:`~Py_buffer.itemsize` and assume ``itemsize == 1``.
 
@@ -156,7 +156,7 @@ a buffer, see :c:func:`PyObject_GetBuffer`.
    .. c:member:: int ndim
 
       The number of dimensions the memory represents as an n-dimensional array.
-      If it is 0, :c:member:`~Py_Buffer.buf` points to a single item representing
+      If it is ``0``, :c:member:`~Py_buffer.buf` points to a single item representing
       a scalar. In this case, :c:member:`~Py_buffer.shape`, :c:member:`~Py_buffer.strides`
       and :c:member:`~Py_buffer.suboffsets` MUST be *NULL*.
 
@@ -197,6 +197,9 @@ a buffer, see :c:func:`PyObject_GetBuffer`.
       pointer after de-referencing. A suboffset value that is negative
       indicates that no de-referencing should occur (striding in a contiguous
       memory block).
+
+      If all suboffsets are negative (i.e. no de-referencing is needed), then
+      this field must be NULL (the default value).
 
       This type of array representation is used by the Python Imaging Library
       (PIL). See `complex arrays`_ for further information how to access elements
@@ -278,11 +281,14 @@ of the flags below it.
 +-----------------------------+-------+---------+------------+
 
 
+.. index:: contiguous, C-contiguous, Fortran contiguous
+
 contiguity requests
 ~~~~~~~~~~~~~~~~~~~
 
-C or Fortran contiguity can be explicitly requested, with and without stride
-information. Without stride information, the buffer must be C-contiguous.
+C or Fortran :term:`contiguity <contiguous>` can be explicitly requested,
+with and without stride information. Without stride information, the buffer
+must be C-contiguous.
 
 .. tabularcolumns:: |p{0.35\linewidth}|l|l|l|l|
 
@@ -421,7 +427,7 @@ Buffer-related functions
 
 .. c:function:: int PyObject_CheckBuffer(PyObject *obj)
 
-   Return 1 if *obj* supports the buffer interface otherwise 0.  When 1 is
+   Return ``1`` if *obj* supports the buffer interface otherwise ``0``.  When ``1`` is
    returned, it doesn't guarantee that :c:func:`PyObject_GetBuffer` will
    succeed.
 
@@ -431,7 +437,7 @@ Buffer-related functions
    Send a request to *exporter* to fill in *view* as specified by  *flags*.
    If the exporter cannot provide a buffer of the exact type, it MUST raise
    :c:data:`PyExc_BufferError`, set :c:member:`view->obj` to *NULL* and
-   return -1.
+   return ``-1``.
 
    On success, fill in *view*, set :c:member:`view->obj` to a new reference
    to *exporter* and return 0. In the case of chained buffer providers
@@ -462,14 +468,23 @@ Buffer-related functions
 
 .. c:function:: int PyBuffer_IsContiguous(Py_buffer *view, char order)
 
-   Return 1 if the memory defined by the *view* is C-style (*order* is
-   ``'C'``) or Fortran-style (*order* is ``'F'``) contiguous or either one
-   (*order* is ``'A'``).  Return 0 otherwise.
+   Return ``1`` if the memory defined by the *view* is C-style (*order* is
+   ``'C'``) or Fortran-style (*order* is ``'F'``) :term:`contiguous` or either one
+   (*order* is ``'A'``).  Return ``0`` otherwise.
 
 
-.. c:function:: void PyBuffer_FillContiguousStrides(int ndim, Py_ssize_t *shape, Py_ssize_t *strides, Py_ssize_t itemsize, char order)
+.. c:function:: int PyBuffer_ToContiguous(void *buf, Py_buffer *src, Py_ssize_t len, char order)
 
-   Fill the *strides* array with byte-strides of a contiguous (C-style if
+   Copy *len* bytes from *src* to its contiguous representation in *buf*.
+   *order* can be ``'C'`` or ``'F'`` (for C-style or Fortran-style ordering).
+   ``0`` is returned on success, ``-1`` on error.
+
+   This function fails if *len* != *src->len*.
+
+
+.. c:function:: void PyBuffer_FillContiguousStrides(int ndims, Py_ssize_t *shape, Py_ssize_t *strides, int itemsize, char order)
+
+   Fill the *strides* array with byte-strides of a :term:`contiguous` (C-style if
    *order* is ``'C'`` or Fortran-style if *order* is ``'F'``) array of the
    given shape with the given number of bytes per element.
 
@@ -486,11 +501,8 @@ Buffer-related functions
 
    On success, set :c:member:`view->obj` to a new reference to *exporter* and
    return 0. Otherwise, raise :c:data:`PyExc_BufferError`, set
-   :c:member:`view->obj` to *NULL* and return -1;
+   :c:member:`view->obj` to *NULL* and return ``-1``;
 
    If this function is used as part of a :ref:`getbufferproc <buffer-structs>`,
    *exporter* MUST be set to the exporting object and *flags* must be passed
    unmodified. Otherwise, *exporter* MUST be NULL.
-
-
-

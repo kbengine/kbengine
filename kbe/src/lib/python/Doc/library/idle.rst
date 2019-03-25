@@ -3,162 +3,185 @@
 IDLE
 ====
 
-.. moduleauthor:: Guido van Rossum <guido@Python.org>
+.. moduleauthor:: Guido van Rossum <guido@python.org>
+
+**Source code:** :source:`Lib/idlelib/`
 
 .. index::
    single: IDLE
    single: Python Editor
    single: Integrated Development Environment
 
-IDLE is the Python IDE built with the :mod:`tkinter` GUI toolkit.
+--------------
+
+IDLE is Python's Integrated Development and Learning Environment.
 
 IDLE has the following features:
 
 * coded in 100% pure Python, using the :mod:`tkinter` GUI toolkit
 
-* cross-platform: works on Windows, Unix, and Mac OS X
+* cross-platform: works mostly the same on Windows, Unix, and macOS
+
+* Python shell window (interactive interpreter) with colorizing
+  of code input, output, and error messages
 
 * multi-window text editor with multiple undo, Python colorizing,
-  smart indent, call tips, and many other features
+  smart indent, call tips, auto completion, and other features
 
-* Python shell window (a.k.a. interactive interpreter)
+* search within any window, replace within editor windows, and search
+  through multiple files (grep)
 
-* debugger (not complete, but you can set breakpoints, view and step)
+* debugger with persistent breakpoints, stepping, and viewing
+  of global and local namespaces
 
+* configuration, browsers, and other dialogs
 
 Menus
 -----
 
-IDLE has two window types, the Shell window and the Editor window. It is
-possible to have multiple editor windows simultaneously. IDLE's
-menus dynamically change based on which window is currently selected. Each menu
-documented below indicates which window type it is associated with. Click on
-the dotted line at the top of a menu to "tear it off": a separate window
-containing the menu is created (for Unix and Windows only).
+IDLE has two main window types, the Shell window and the Editor window.  It is
+possible to have multiple editor windows simultaneously.  On Windows and
+Linux, each has its own top menu.  Each menu documented below indicates
+which window type it is associated with.
+
+Output windows, such as used for Edit => Find in Files, are a subtype of editor
+window.  They currently have the same top menu but a different
+default title and context menu.
+
+On macOS, there is one application menu.  It dynamically changes according
+to the window currently selected.  It has an IDLE menu, and some entries
+described below are moved around to conform to Apple guidlines.
 
 File menu (Shell and Editor)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-New file
-   Create a new file editing window
+New File
+   Create a new file editing window.
 
 Open...
-   Open an existing file
-
-Open module...
-   Open an existing module (searches sys.path)
+   Open an existing file with an Open dialog.
 
 Recent Files
-   Open a list of recent files
+   Open a list of recent files.  Click one to open it.
 
-Class browser
-   Show classes and methods in current file
-
-Path browser
-   Show sys.path directories, modules, classes and methods
+Open Module...
+   Open an existing module (searches sys.path).
 
 .. index::
    single: Class browser
    single: Path browser
 
+Class Browser
+   Show functions, classes, and methods in the current Editor file in a
+   tree structure.  In the shell, open a module first.
+
+Path Browser
+   Show sys.path directories, modules, functions, classes and methods in a
+   tree structure.
+
 Save
-   Save current window to the associated file (unsaved windows have a
-   \* before and after the window title)
+   Save the current window to the associated file, if there is one.  Windows
+   that have been changed since being opened or last saved have a \* before
+   and after the window title.  If there is no associated file,
+   do Save As instead.
 
 Save As...
-   Save current window to new file, which becomes the associated file
+   Save the current window with a Save As dialog.  The file saved becomes the
+   new associated file for the window.
 
 Save Copy As...
-   Save current window to different file without changing the associated file
+   Save the current window to different file without changing the associated
+   file.
 
 Print Window
-   Print the current window
+   Print the current window to the default printer.
 
 Close
-   Close current window (asks to save if unsaved)
+   Close the current window (ask to save if unsaved).
 
 Exit
-   Close all windows and quit IDLE (asks to save if unsaved)
-
+   Close all windows and quit IDLE (ask to save unsaved windows).
 
 Edit menu (Shell and Editor)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Undo
-   Undo last change to current window (a maximum of 1000 changes may be undone)
+   Undo the last change to the current window.  A maximum of 1000 changes may
+   be undone.
 
 Redo
-   Redo last undone change to current window
+   Redo the last undone change to the current window.
 
 Cut
-   Copy selection into system-wide clipboard; then delete the selection
+   Copy selection into the system-wide clipboard; then delete the selection.
 
 Copy
-   Copy selection into system-wide clipboard
+   Copy selection into the system-wide clipboard.
 
 Paste
-   Insert system-wide clipboard into window
+   Insert contents of the system-wide clipboard into the current window.
+
+The clipboard functions are also available in context menus.
 
 Select All
-   Select the entire contents of the edit buffer
+   Select the entire contents of the current window.
 
 Find...
-   Open a search dialog box with many options
+   Open a search dialog with many options
 
-Find again
-   Repeat last search
+Find Again
+   Repeat the last search, if there is one.
 
-Find selection
-   Search for the string in the selection
+Find Selection
+   Search for the currently selected string, if there is one.
 
 Find in Files...
-   Open a search dialog box for searching files
+   Open a file search dialog.  Put results in a new output window.
 
 Replace...
-   Open a search-and-replace dialog box
+   Open a search-and-replace dialog.
 
-Go to line
-   Ask for a line number and show that line
+Go to Line
+   Move cursor to the line number requested and make that line visible.
 
-Expand word
-   Expand the word you have typed to match another word in the same buffer;
-   repeat to get a different expansion
+Show Completions
+   Open a scrollable list allowing selection of keywords and attributes. See
+   Completions in the Tips sections below.
+
+Expand Word
+   Expand a prefix you have typed to match a full word in the same window;
+   repeat to get a different expansion.
 
 Show call tip
    After an unclosed parenthesis for a function, open a small window with
-   function parameter hints
+   function parameter hints.
 
 Show surrounding parens
-   Highlight the surrounding parenthesis
-
-Show Completions
-   Open a scroll window allowing selection keywords and attributes. See
-   Completions below.
-
+   Highlight the surrounding parenthesis.
 
 Format menu (Editor window only)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Indent region
-   Shift selected lines right by the indent width (default 4 spaces)
+Indent Region
+   Shift selected lines right by the indent width (default 4 spaces).
 
-Dedent region
-   Shift selected lines left by the indent width (default 4 spaces)
+Dedent Region
+   Shift selected lines left by the indent width (default 4 spaces).
 
-Comment out region
-   Insert ## in front of selected lines
+Comment Out Region
+   Insert ## in front of selected lines.
 
-Uncomment region
-   Remove leading # or ## from selected lines
+Uncomment Region
+   Remove leading # or ## from selected lines.
 
-Tabify region
-   Turns *leading* stretches of spaces into tabs. (Note: We recommend using
+Tabify Region
+   Turn *leading* stretches of spaces into tabs. (Note: We recommend using
    4 space blocks to indent Python code.)
 
-Untabify region
-   Turn *all* tabs into the correct number of spaces
+Untabify Region
+   Turn *all* tabs into the correct number of spaces.
 
-Toggle tabs
+Toggle Tabs
    Open a dialog to switch between indenting with spaces and tabs.
 
 New Indent Width
@@ -166,82 +189,105 @@ New Indent Width
    community is 4 spaces.
 
 Format Paragraph
-   Reformat the current blank-line-separated paragraph. All lines in the
-   paragraph will be formatted to less than 80 columns.
+   Reformat the current blank-line-delimited paragraph in comment block or
+   multiline string or selected line in a string.  All lines in the
+   paragraph will be formatted to less than N columns, where N defaults to 72.
 
 Strip trailing whitespace
-   Removes any space characters after the end of the last non-space character
+   Remove trailing space and other whitespace characters after the last
+   non-whitespace character of a line by applying str.rstrip to each line,
+   including lines within multiline strings.
 
 .. index::
-   single: Import module
    single: Run script
-
 
 Run menu (Editor window only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Python Shell
-   Open or wake up the Python Shell window
+   Open or wake up the Python Shell window.
 
-Check module
+Check Module
    Check the syntax of the module currently open in the Editor window. If the
-   module has not been saved IDLE will prompt the user to save the code.
+   module has not been saved IDLE will either prompt the user to save or
+   autosave, as selected in the General tab of the Idle Settings dialog.  If
+   there is a syntax error, the approximate location is indicated in the
+   Editor window.
 
-Run module
-   Restart the shell to clean the environment, then execute the currently
-   open module.  If the module has not been saved IDLE will prompt the user
-   to save the code.
+Run Module
+   Do Check Module (above).  If no error, restart the shell to clean the
+   environment, then execute the module.  Output is displayed in the Shell
+   window.  Note that output requires use of ``print`` or ``write``.
+   When execution is complete, the Shell retains focus and displays a prompt.
+   At this point, one may interactively explore the result of execution.
+   This is similar to executing a file with ``python -i file`` at a command
+   line.
 
 Shell menu (Shell window only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 View Last Restart
-  Scroll the shell window to the last Shell restart
+  Scroll the shell window to the last Shell restart.
 
 Restart Shell
-  Restart the shell to clean the environment
+  Restart the shell to clean the environment.
+
+Interrupt Execution
+  Stop a running program.
 
 Debug menu (Shell window only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Go to file/line
-   Look around the insert point for a filename and line number, open the file,
-   and show the line.  Useful to view the source lines referenced in an
-   exception traceback. Available in the context menu of the Shell window.
-
-Debugger (toggle)
-   This feature is not complete and considered experimental. Run commands in
-   the shell under the debugger
-
-Stack viewer
-   Show the stack traceback of the last exception
-
-Auto-open Stack Viewer
-   Toggle automatically opening the stack viewer on unhandled exception
+Go to File/Line
+   Look on the current line. with the cursor, and the line above for a filename
+   and line number.  If found, open the file if not already open, and show the
+   line.  Use this to view source lines referenced in an exception traceback
+   and lines found by Find in Files. Also available in the context menu of
+   the Shell window and Output windows.
 
 .. index::
-   single: stack viewer
    single: debugger
+   single: stack viewer
+
+Debugger (toggle)
+   When activated, code entered in the Shell or run from an Editor will run
+   under the debugger.  In the Editor, breakpoints can be set with the context
+   menu.  This feature is still incomplete and somewhat experimental.
+
+Stack Viewer
+   Show the stack traceback of the last exception in a tree widget, with
+   access to locals and globals.
+
+Auto-open Stack Viewer
+   Toggle automatically opening the stack viewer on an unhandled exception.
 
 Options menu (Shell and Editor)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Configure IDLE
-   Open a configuration dialog.  Fonts, indentation, keybindings, and color
-   themes may be altered.  Startup Preferences may be set, and additional
-   help sources can be specified.
+   Open a configuration dialog and change preferences for the following:
+   fonts, indentation, keybindings, text color themes, startup windows and
+   size, additional help sources, and extensions (see below).  On macOS,
+   open the configuration dialog by selecting Preferences in the application
+   menu.  To use a new built-in color theme (IDLE Dark) with older IDLEs,
+   save it as a new custom theme.
+
+   Non-default user settings are saved in a .idlerc directory in the user's
+   home directory.  Problems caused by bad user configuration files are solved
+   by editing or deleting one or more of the files in .idlerc.
 
 Code Context (toggle)(Editor Window only)
    Open a pane at the top of the edit window which shows the block context
-   of the section of code which is scrolling off the top of the window.
+   of the code which has scrolled above the top of the window.  Clicking a
+   line in this pane exposes that line at the top of the editor.
 
-Windows menu (Shell and Editor)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Window menu (Shell and Editor)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Zoom Height
-   Toggles the window between normal size (40x80 initial setting) and maximum
-   height. The initial size is in the Configure IDLE dialog under the general
-   tab.
+   Toggles the window between normal size and maximum height. The initial size
+   defaults to 40 lines by 80 chars unless changed on the General tab of the
+   Configure IDLE dialog.
 
 The rest of this menu lists the names of all open windows; select one to bring
 it to the foreground (deiconifying it if necessary).
@@ -250,38 +296,22 @@ Help menu (Shell and Editor)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 About IDLE
-   Version, copyright, license, credits
+   Display version, copyright, license, credits, and more.
 
 IDLE Help
-   Display a help file for IDLE detailing the menu options, basic editing and
+   Display this IDLE document, detailing the menu options, basic editing and
    navigation, and other tips.
 
 Python Docs
-   Access local Python documentation, if installed. Or will start a web browser
+   Access local Python documentation, if installed, or start a web browser
    and open docs.python.org showing the latest Python documentation.
 
+Turtle Demo
+   Run the turtledemo module with example Python code and turtle drawings.
+
 Additional help sources may be added here with the Configure IDLE dialog under
-the General tab.
-
-Editor Window context menu
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Right-click in Editor window (Control-click on OS X)
-
-Cut
-   Copy selection into system-wide clipboard; then delete selection
-
-Copy
-   Copy selection into system-wide clipboard
-
-Paste
-   Insert system-wide clipboard into window
-
-Set Breakpoint
-   Sets a breakpoint.  Breakpoints are only enabled when the debugger is open.
-
-Clear Breakpoint
-   Clears the breakpoint on that line.
+the General tab. See the "Help sources" subsection below for more
+on Help menu choices.
 
 .. index::
    single: Cut
@@ -291,27 +321,67 @@ Clear Breakpoint
    single: Clear Breakpoint
    single: breakpoints
 
+Context Menus
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Shell Window context menu
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Right-click in Python Shell window (Control-click on OS X)
+Open a context menu by right-clicking in a window (Control-click on macOS).
+Context menus have the standard clipboard functions also on the Edit menu.
 
 Cut
-   Copy selection into system-wide clipboard; then delete selection
+   Copy selection into the system-wide clipboard; then delete the selection.
 
 Copy
-   Copy selection into system-wide clipboard
+   Copy selection into the system-wide clipboard.
 
 Paste
-   Insert system-wide clipboard into window
+   Insert contents of the system-wide clipboard into the current window.
+
+Editor windows also have breakpoint functions.  Lines with a breakpoint set are
+specially marked.  Breakpoints only have an effect when running under the
+debugger.  Breakpoints for a file are saved in the user's .idlerc directory.
+
+Set Breakpoint
+   Set a breakpoint on the current line.
+
+Clear Breakpoint
+   Clear the breakpoint on that line.
+
+Shell and Output windows also have the following.
 
 Go to file/line
    Same as in Debug menu.
 
+The Shell window also has an output squeezing facility explained in the
+the *Python Shell window* subsection below.
+
+Squeeze
+   If the cursor is over an output line, squeeze all the output between
+   the code above and the prompt below down to a 'Squeezed text' label.
+
 
 Editing and navigation
 ----------------------
+
+Editor windows
+^^^^^^^^^^^^^^
+
+IDLE may open editor windows when it starts, depending on settings
+and how you start IDLE.  Thereafter, use the File menu.  There can be only
+one open editor window for a given file.
+
+The title bar contains the name of the file, the full path, and the version
+of Python and IDLE running the window.  The status bar contains the line
+number ('Ln') and column number ('Col').  Line numbers start with 1;
+column numbers with 0.
+
+IDLE assumes that files with a known .py* extension contain Python code
+and that other files do not.  Run Python code with the Run menu.
+
+Key bindings
+^^^^^^^^^^^^
+
+In this section, 'C' refers to the :kbd:`Control` key on Windows and Unix and
+the :kbd:`Command` key on macOS.
 
 * :kbd:`Backspace` deletes to the left; :kbd:`Del` deletes to the right
 
@@ -335,7 +405,7 @@ Editing and navigation
 
    * :kbd:`C-l` center window around the insertion point
 
-   * :kbd:`C-b` go backwards one character without deleting (usually you can
+   * :kbd:`C-b` go backward one character without deleting (usually you can
      also use the cursor key for this)
 
    * :kbd:`C-f` go forward one character without deleting (usually you can
@@ -349,7 +419,6 @@ Editing and navigation
 Standard keybindings (like :kbd:`C-c` to copy and :kbd:`C-v` to paste)
 may work.  Keybindings are selected in the Configure IDLE dialog.
 
-
 Automatic indentation
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -357,7 +426,7 @@ After a block-opening statement, the next line is indented by 4 spaces (in the
 Python Shell window by one tab).  After certain keywords (break, return etc.)
 the next line is dedented.  In leading indentation, :kbd:`Backspace` deletes up
 to 4 spaces if they are there. :kbd:`Tab` inserts spaces (in the Python
-Shell window one tab), number depends on Indent width. Currently tabs
+Shell window one tab), number depends on Indent width. Currently, tabs
 are restricted to four spaces due to Tcl/Tk limitations.
 
 See also the indent/dedent region commands in the edit menu.
@@ -381,7 +450,7 @@ If there is only one possible completion for the characters entered, a
 :kbd:`C-space` will open a completions window. In an empty
 string, this will contain the files in the current directory. On a
 blank line, it will contain the built-in and user-defined functions and
-classes in the current name spaces, plus any modules imported. If some
+classes in the current namespaces, plus any modules imported. If some
 characters have been entered, the ACW will attempt to be more specific.
 
 If a string of characters is typed, the ACW selection will jump to the
@@ -404,66 +473,83 @@ Note that IDLE itself places quite a few modules in sys.modules, so
 much can be found by default, e.g. the re module.
 
 If you don't like the ACW popping up unbidden, simply make the delay
-longer or disable the extension.  Or another option is the delay could
-be set to zero. Another alternative to preventing ACW popups is to
-disable the call tips extension.
+longer or disable the extension.
+
+Calltips
+^^^^^^^^
+
+A calltip is shown when one types :kbd:`(` after the name of an *accessible*
+function.  A name expression may include dots and subscripts.  A calltip
+remains until it is clicked, the cursor is moved out of the argument area,
+or :kbd:`)` is typed.  When the cursor is in the argument part of a definition,
+the menu or shortcut display a calltip.
+
+A calltip consists of the function signature and the first line of the
+docstring.  For builtins without an accessible signature, the calltip
+consists of all lines up the fifth line or the first blank line.  These
+details may change.
+
+The set of *accessible* functions depends on what modules have been imported
+into the user process, including those imported by Idle itself,
+and what definitions have been run, all since the last restart.
+
+For example, restart the Shell and enter ``itertools.count(``.  A calltip
+appears because Idle imports itertools into the user process for its own use.
+(This could change.)  Enter ``turtle.write(`` and nothing appears.  Idle does
+not import turtle.  The menu or shortcut do nothing either.  Enter
+``import turtle`` and then ``turtle.write(`` will work.
+
+In an editor, import statements have no effect until one runs the file.  One
+might want to run a file after writing the import statements at the top,
+or immediately run an existing file before editing.
 
 Python Shell window
 ^^^^^^^^^^^^^^^^^^^
 
+With IDLE's Shell, one enters, edits, and recalls complete statements.
+Most consoles and terminals only work with a single physical line at a time.
+
+When one pastes code into Shell, it is not compiled and possibly executed
+until one hits :kbd:`Return`.  One may edit pasted code first.
+If one pastes more that one statement into Shell, the result will be a
+:exc:`SyntaxError` when multiple statements are compiled as if they were one.
+
+The editing features described in previous subsections work when entering
+code interactively.  IDLE's Shell window also responds to the following keys.
+
 * :kbd:`C-c` interrupts executing command
 
 * :kbd:`C-d` sends end-of-file; closes window if typed at a ``>>>`` prompt
-  (this is :kbd:`C-z` on Windows).
 
 * :kbd:`Alt-/` (Expand word) is also useful to reduce typing
 
   Command history
 
   * :kbd:`Alt-p` retrieves previous command matching what you have typed. On
-    OS X use :kbd:`C-p`.
+    macOS use :kbd:`C-p`.
 
-  * :kbd:`Alt-n` retrieves next. On OS X use :kbd:`C-n`.
+  * :kbd:`Alt-n` retrieves next. On macOS use :kbd:`C-n`.
 
   * :kbd:`Return` while on any previous command retrieves that command
 
+Text colors
+^^^^^^^^^^^
 
-Syntax colors
--------------
+Idle defaults to black on white text, but colors text with special meanings.
+For the shell, these are shell output, shell error, user output, and
+user error.  For Python code, at the shell prompt or in an editor, these are
+keywords, builtin class and function names, names following ``class`` and
+``def``, strings, and comments. For any text window, these are the cursor (when
+present), found text (when possible), and selected text.
 
-The coloring is applied in a background "thread," so you may occasionally see
-uncolorized text.  To change the color scheme, edit the ``[Colors]`` section in
-:file:`config.txt`.
-
-Python syntax colors:
-   Keywords
-      orange
-
-   Strings
-      green
-
-   Comments
-      red
-
-   Definitions
-      blue
-
-Shell colors:
-   Console output
-      brown
-
-   stdout
-      blue
-
-   stderr
-      dark green
-
-   stdin
-      black
+Text coloring is done in the background, so uncolorized text is occasionally
+visible.  To change the color scheme, use the Configure IDLE dialog
+Highlighting tab.  The marking of debugger breakpoint lines in the editor and
+text in popups and dialogs is not user-configurable.
 
 
-Startup
--------
+Startup and code execution
+--------------------------
 
 Upon startup with the ``-s`` option, IDLE will execute the file referenced by
 the environment variables :envvar:`IDLESTARTUP` or :envvar:`PYTHONSTARTUP`.
@@ -476,77 +562,252 @@ shell, or for executing import statements to import common modules.
 In addition, ``Tk`` also loads a startup file if it is present.  Note that the
 Tk file is loaded unconditionally.  This additional file is ``.Idle.py`` and is
 looked for in the user's home directory.  Statements in this file will be
-executed in the Tk namespace, so this file is not useful for importing functions
-to be used from IDLE's Python shell.
-
+executed in the Tk namespace, so this file is not useful for importing
+functions to be used from IDLE's Python shell.
 
 Command line usage
 ^^^^^^^^^^^^^^^^^^
 
-::
+.. code-block:: none
 
-   idle.py [-c command] [-d] [-e] [-s] [-t title] [arg] ...
+   idle.py [-c command] [-d] [-e] [-h] [-i] [-r file] [-s] [-t title] [-] [arg] ...
 
-   -c command  run this command
-   -d          enable debugger
-   -e          edit mode; arguments are files to be edited
-   -s          run $IDLESTARTUP or $PYTHONSTARTUP first
+   -c command  run command in the shell window
+   -d          enable debugger and open shell window
+   -e          open editor window
+   -h          print help message with legal combinations and exit
+   -i          open shell window
+   -r file     run file in shell window
+   -s          run $IDLESTARTUP or $PYTHONSTARTUP first, in shell window
    -t title    set title of shell window
+   -           run stdin in shell (- must be last option before args)
 
 If there are arguments:
 
-#. If ``-e`` is used, arguments are files opened for editing and
-   ``sys.argv`` reflects the arguments passed to IDLE itself.
+* If ``-``, ``-c``, or ``r`` is used, all arguments are placed in
+  ``sys.argv[1:...]`` and ``sys.argv[0]`` is set to ``''``, ``'-c'``,
+  or ``'-r'``.  No editor window is opened, even if that is the default
+  set in the Options dialog.
 
-#. Otherwise, if ``-c`` is used, all arguments are placed in
-   ``sys.argv[1:...]``, with ``sys.argv[0]`` set to ``'-c'``.
+* Otherwise, arguments are files opened for editing and
+  ``sys.argv`` reflects the arguments passed to IDLE itself.
 
-#. Otherwise, if neither ``-e`` nor ``-c`` is used, the first
-   argument is a script which is executed with the remaining arguments in
-   ``sys.argv[1:...]``  and ``sys.argv[0]`` set to the script name.  If the script
-   name is '-', no script is executed but an interactive Python session is started;
-   the arguments are still available in ``sys.argv``.
+Startup failure
+^^^^^^^^^^^^^^^
+
+IDLE uses a socket to communicate between the IDLE GUI process and the user
+code execution process.  A connection must be established whenever the Shell
+starts or restarts.  (The latter is indicated by a divider line that says
+'RESTART'). If the user process fails to connect to the GUI process, it
+displays a ``Tk`` error box with a 'cannot connect' message that directs the
+user here.  It then exits.
+
+A common cause of failure is a user-written file with the same name as a
+standard library module, such as *random.py* and *tkinter.py*. When such a
+file is located in the same directory as a file that is about to be run,
+IDLE cannot import the stdlib file.  The current fix is to rename the
+user file.
+
+Though less common than in the past, an antivirus or firewall program may
+stop the connection.  If the program cannot be taught to allow the
+connection, then it must be turned off for IDLE to work.  It is safe to
+allow this internal connection because no data is visible on external
+ports.  A similar problem is a network mis-configuration that blocks
+connections.
+
+Python installation issues occasionally stop IDLE: multiple versions can
+clash, or a single installation might need admin access.  If one undo the
+clash, or cannot or does not want to run as admin, it might be easiest to
+completely remove Python and start over.
+
+A zombie pythonw.exe process could be a problem.  On Windows, use Task
+Manager to detect and stop one.  Sometimes a restart initiated by a program
+crash or Keyboard Interrupt (control-C) may fail to connect.  Dismissing
+the error box or Restart Shell on the Shell menu may fix a temporary problem.
+
+When IDLE first starts, it attempts to read user configuration files in
+~/.idlerc/ (~ is one's home directory).  If there is a problem, an error
+message should be displayed.  Leaving aside random disk glitches, this can
+be prevented by never editing the files by hand, using the configuration
+dialog, under Options, instead Options.  Once it happens, the solution may
+be to delete one or more of the configuration files.
+
+If IDLE quits with no message, and it was not started from a console, try
+starting from a console (``python -m idlelib)`` and see if a message appears.
+
+Running user code
+^^^^^^^^^^^^^^^^^
+
+With rare exceptions, the result of executing Python code with IDLE is
+intended to be the same as executing the same code by the default method,
+directly with Python in a text-mode system console or terminal window.
+However, the different interface and operation occasionally affect
+visible results.  For instance, ``sys.modules`` starts with more entries,
+and ``threading.activeCount()`` returns 2 instead of 1.
+
+By default, IDLE runs user code in a separate OS process rather than in
+the user interface process that runs the shell and editor.  In the execution
+process, it replaces ``sys.stdin``, ``sys.stdout``, and ``sys.stderr``
+with objects that get input from and send output to the Shell window.
+The original values stored in ``sys.__stdin__``, ``sys.__stdout__``, and
+``sys.__stderr__`` are not touched, but may be ``None``.
+
+When Shell has the focus, it controls the keyboard and screen.  This is
+normally transparent, but functions that directly access the keyboard
+and screen will not work.  These include system-specific functions that
+determine whether a key has been pressed and if so, which.
+
+IDLE's standard stream replacements are not inherited by subprocesses
+created in the execution process, whether directly by user code or by modules
+such as multiprocessing.  If such subprocess use ``input`` from sys.stdin
+or ``print`` or ``write`` to sys.stdout or sys.stderr,
+IDLE should be started in a command line window.  The secondary subprocess
+will then be attached to that window for input and output.
+
+If ``sys`` is reset by user code, such as with ``importlib.reload(sys)``,
+IDLE's changes are lost and input from the keyboard and output to the screen
+will not work correctly.
+
+User output in Shell
+^^^^^^^^^^^^^^^^^^^^
+
+When a program outputs text, the result is determined by the
+corresponding output device.  When IDLE executes user code, ``sys.stdout``
+and ``sys.stderr`` are connected to the display area of IDLE's Shell.  Some of
+its features are inherited from the underlying Tk Text widget.  Others
+are programmed additions.  Where it matters, Shell is designed for development
+rather than production runs.
+
+For instance, Shell never throws away output.  A program that sends unlimited
+output to Shell will eventually fill memory, resulting in a memory error.
+In contrast, some system text windows only keep the last n lines of output.
+A Windows console, for instance, keeps a user-settable 1 to 9999 lines,
+with 300 the default.
+
+Text widgets display a subset of Unicode, the Basic Multilingual Plane (BMP).
+Which characters get a proper glyph instead of a replacement box depends on
+the operating system and installed fonts.  Newline characters cause following
+text to appear on a new line, but other control characters are either
+replaced with a box or deleted.  However, ``repr()``, which is used for
+interactive echo of expression values, replaces control characters,
+some BMP codepoints, and all non-BMP characters with escape codes
+before they are output.
+
+Normal and error output are generally kept separate (on separate lines)
+from code input and each other.  They each get different highlight colors.
+
+For SyntaxError tracebacks, the normal '^' marking where the error was
+detected is replaced by coloring the text with an error highlight.
+When code run from a file causes other exceptions, one may right click
+on a traceback line to jump to the corresponding line in an IDLE editor.
+The file will be opened if necessary.
+
+Shell has a special facility for squeezing output lines down to a
+'Squeezed text' label.  This is done automatically
+for output over N lines (N = 50 by default).
+N can be changed in the PyShell section of the General
+page of the Settings dialog.  Output with fewer lines can be squeezed by
+right clicking on the output.  This can be useful lines long enough to slow
+down scrolling.
+
+Squeezed output is expanded in place by double-clicking the label.
+It can also be sent to the clipboard or a separate view window by
+right-clicking the label.
+
+Developing tkinter applications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+IDLE is intentionally different from standard Python in order to
+facilitate development of tkinter programs.  Enter ``import tkinter as tk;
+root = tk.Tk()`` in standard Python and nothing appears.  Enter the same
+in IDLE and a tk window appears.  In standard Python, one must also enter
+``root.update()`` to see the window.  IDLE does the equivalent in the
+background, about 20 times a second, which is about every 50 milleseconds.
+Next enter ``b = tk.Button(root, text='button'); b.pack()``.  Again,
+nothing visibly changes in standard Python until one enters ``root.update()``.
+
+Most tkinter programs run ``root.mainloop()``, which usually does not
+return until the tk app is destroyed.  If the program is run with
+``python -i`` or from an IDLE editor, a ``>>>`` shell prompt does not
+appear until ``mainloop()`` returns, at which time there is nothing left
+to interact with.
+
+When running a tkinter program from an IDLE editor, one can comment out
+the mainloop call.  One then gets a shell prompt immediately and can
+interact with the live application.  One just has to remember to
+re-enable the mainloop call when running in standard Python.
+
+Running without a subprocess
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, IDLE executes user code in a separate subprocess via a socket,
+which uses the internal loopback interface.  This connection is not
+externally visible and no data is sent to or received from the Internet.
+If firewall software complains anyway, you can ignore it.
+
+If the attempt to make the socket connection fails, Idle will notify you.
+Such failures are sometimes transient, but if persistent, the problem
+may be either a firewall blocking the connection or misconfiguration of
+a particular system.  Until the problem is fixed, one can run Idle with
+the -n command line switch.
+
+If IDLE is started with the -n command line switch it will run in a
+single process and will not create the subprocess which runs the RPC
+Python execution server.  This can be useful if Python cannot create
+the subprocess or the RPC socket interface on your platform.  However,
+in this mode user code is not isolated from IDLE itself.  Also, the
+environment is not restarted when Run/Run Module (F5) is selected.  If
+your code has been modified, you must reload() the affected modules and
+re-import any specific items (e.g. from foo import baz) if the changes
+are to take effect.  For these reasons, it is preferable to run IDLE
+with the default subprocess if at all possible.
+
+.. deprecated:: 3.4
 
 
-Additional help sources
------------------------
+Help and preferences
+--------------------
 
-IDLE includes a help menu entry called "Python Docs" that will open the
-extensive sources of help, including tutorials, available at docs.python.org.
+Help sources
+^^^^^^^^^^^^
+
+Help menu entry "IDLE Help" displays a formatted html version of the
+IDLE chapter of the Library Reference.  The result, in a read-only
+tkinter text window, is close to what one sees in a web browser.
+Navigate through the text with a mousewheel,
+the scrollbar, or up and down arrow keys held down.
+Or click the TOC (Table of Contents) button and select a section
+header in the opened box.
+
+Help menu entry "Python Docs" opens the extensive sources of help,
+including tutorials, available at docs.python.org/x.y, where 'x.y'
+is the currently running Python version.  If your system
+has an off-line copy of the docs (this may be an installation option),
+that will be opened instead.
+
 Selected URLs can be added or removed from the help menu at any time using the
-Configure IDLE dialog. See the IDLE help option in the help menu of IDLE for
-more information.
+General tab of the Configure IDLE dialog .
 
-
-Other preferences
------------------
+Setting preferences
+^^^^^^^^^^^^^^^^^^^
 
 The font preferences, highlighting, keys, and general preferences can be
-changed via the Configure IDLE menu option.  Be sure to note that
-keys can be user defined, IDLE ships with four built in key sets. In
-addition a user can create a custom key set in the Configure IDLE dialog
-under the keys tab.
+changed via Configure IDLE on the Option menu.  Keys can be user defined;
+IDLE ships with four built-in key sets. In addition, a user can create a
+custom key set in the Configure IDLE dialog under the keys tab.
+
+IDLE on macOS
+^^^^^^^^^^^^^
+
+Under System Preferences: Dock, one can set "Prefer tabs when opening
+documents" to "Always".  This setting is not compatible with the tk/tkinter
+GUI framework used by IDLE, and it breaks a few IDLE features.
 
 Extensions
-----------
+^^^^^^^^^^
 
-IDLE contains an extension facility.  See the beginning of
-config-extensions.def in the idlelib directory for further information.  The
-default extensions are currently:
-
-* FormatParagraph
-
-* AutoExpand
-
-* ZoomHeight
-
-* ScriptBinding
-
-* CallTips
-
-* ParenMatch
-
-* AutoComplete
-
-* CodeContext
-
+IDLE contains an extension facility.  Preferences for extensions can be
+changed with the Extensions tab of the preferences dialog. See the
+beginning of config-extensions.def in the idlelib directory for further
+information.  The only current default extension is zzdummy, an example
+also used for testing.

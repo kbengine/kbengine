@@ -275,16 +275,16 @@ public:																						\
 		SUPERCLASS::setupScriptMethodAndAttribute(lppmf, lppmd, lppgs);						\
 	}																						\
 																							\
-	/** 安装当前脚本模块 
+	/** 注册脚本模块
 		@param mod: 所要导入的主模块
 	*/																						\
-	static void installScript(PyObject* mod, const char* name = #CLASS)						\
+	static void registerScript(PyObject* mod, const char* name = #CLASS)					\
 	{																						\
-		int nMethodCount			= CLASS::calcTotalMethodCount();						\
-		int nMemberCount			= CLASS::calcTotalMemberCount();						\
-		int nGetSetCount			= CLASS::calcTotalGetSetCount();						\
+		int nMethodCount = CLASS::calcTotalMethodCount();									\
+		int nMemberCount = CLASS::calcTotalMemberCount();									\
+		int nGetSetCount = CLASS::calcTotalGetSetCount();									\
 																							\
-		_##CLASS##_lpScriptmethods	= new PyMethodDef[nMethodCount + 2];					\
+		_##CLASS##_lpScriptmethods = new PyMethodDef[nMethodCount + 2];						\
 		_##CLASS##_lpScriptmembers	= new PyMemberDef[nMemberCount + 2];					\
 		_##CLASS##_lpgetseters		= new PyGetSetDef[nGetSetCount + 2];					\
 																							\
@@ -296,10 +296,8 @@ public:																						\
 		_scriptType.tp_members		= _##CLASS##_lpScriptmembers;							\
 		_scriptType.tp_getset		= _##CLASS##_lpgetseters;								\
 																							\
-																							\
-		CLASS::onInstallScript(mod);														\
 		if (PyType_Ready(&_scriptType) < 0){												\
-			ERROR_MSG("PyType_Ready(" #CLASS ") error!");									\
+			ERROR_MSG("registerScript(): PyType_Ready(" #CLASS ") error!");					\
 			PyErr_Print();																	\
 			return;																			\
 		}																					\
@@ -309,27 +307,43 @@ public:																						\
 			Py_INCREF(&_scriptType);														\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG(fmt::format("PyModule_AddObject({}) error!", name));				\
+				ERROR_MSG(fmt::format("registerScript(): PyModule_AddObject({}) error!", name));\
 			}																				\
 		}																					\
 																							\
 		SCRIPT_ERROR_CHECK();																\
 		_##CLASS##_py_installed = true;														\
+	}																						\
 																							\
+	/** 安装当前脚本模块 
+		@param mod: 所要导入的主模块
+	*/																						\
+	static void installScript(PyObject* mod, const char* name = #CLASS)						\
+	{																						\
+		CLASS::onInstallScript(mod);														\
+																							\
+		registerScript(mod, name);															\
 		ScriptObject::scriptObjectTypes[name] = &_scriptType;								\
+	}																						\
+																							\
+	/** 注销脚本模块
+	*/																						\
+	static void unregisterScript(void)														\
+	{																						\
+		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmethods);										\
+		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmembers);										\
+		SAFE_RELEASE_ARRAY(_##CLASS##_lpgetseters);											\
+																							\
+		if(_##CLASS##_py_installed)															\
+			Py_DECREF(&_scriptType);														\
 	}																						\
 																							\
 	/** 卸载当前脚本模块 
 	*/																						\
 	static void uninstallScript(void)														\
 	{																						\
-		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmethods);										\
-		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmembers);										\
-		SAFE_RELEASE_ARRAY(_##CLASS##_lpgetseters);											\
 		CLASS::onUninstallScript();															\
-																							\
-		if(_##CLASS##_py_installed)															\
-			Py_DECREF(&_scriptType);														\
+		unregisterScript();																	\
 	}																						\
 
 

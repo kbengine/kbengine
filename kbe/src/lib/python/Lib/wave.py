@@ -65,7 +65,7 @@ but when it is set to the correct value, the header does not have to
 be patched up.
 It is best to first set all parameters, perhaps possibly the
 compression type, and then write audio frames using writeframesraw.
-When all frames have been written, either call writeframes('') or
+When all frames have been written, either call writeframes(b'') or
 close() to patch up the sizes in the header.
 The close() method is called automatically when the class instance
 is destroyed.
@@ -73,7 +73,7 @@ is destroyed.
 
 import builtins
 
-__all__ = ["open", "openfp", "Error"]
+__all__ = ["open", "openfp", "Error", "Wave_read", "Wave_write"]
 
 class Error(Exception):
     pass
@@ -87,6 +87,7 @@ import struct
 import sys
 from chunk import Chunk
 from collections import namedtuple
+import warnings
 
 _wave_params = namedtuple('_wave_params',
                      'nchannels sampwidth framerate nframes comptype compname')
@@ -186,10 +187,11 @@ class Wave_read:
         self._soundpos = 0
 
     def close(self):
-        if self._i_opened_the_file:
-            self._i_opened_the_file.close()
-            self._i_opened_the_file = None
         self._file = None
+        file = self._i_opened_the_file
+        if file:
+            self._i_opened_the_file = None
+            file.close()
 
     def tell(self):
         return self._soundpos
@@ -251,12 +253,22 @@ class Wave_read:
     #
 
     def _read_fmt_chunk(self, chunk):
-        wFormatTag, self._nchannels, self._framerate, dwAvgBytesPerSec, wBlockAlign = struct.unpack_from('<HHLLH', chunk.read(14))
+        try:
+            wFormatTag, self._nchannels, self._framerate, dwAvgBytesPerSec, wBlockAlign = struct.unpack_from('<HHLLH', chunk.read(14))
+        except struct.error:
+            raise EOFError from None
         if wFormatTag == WAVE_FORMAT_PCM:
-            sampwidth = struct.unpack_from('<H', chunk.read(2))[0]
+            try:
+                sampwidth = struct.unpack_from('<H', chunk.read(2))[0]
+            except struct.error:
+                raise EOFError from None
             self._sampwidth = (sampwidth + 7) // 8
+            if not self._sampwidth:
+                raise Error('bad sample width')
         else:
             raise Error('unknown format: %r' % (wFormatTag,))
+        if not self._nchannels:
+            raise Error('bad # of channels')
         self._framesize = self._nchannels * self._sampwidth
         self._comptype = 'NONE'
         self._compname = 'not compressed'
@@ -428,17 +440,18 @@ class Wave_write:
             self._patchheader()
 
     def close(self):
-        if self._file:
-            try:
+        try:
+            if self._file:
                 self._ensure_header_written(0)
                 if self._datalength != self._datawritten:
                     self._patchheader()
                 self._file.flush()
-            finally:
-                self._file = None
-        if self._i_opened_the_file:
-            self._i_opened_the_file.close()
-            self._i_opened_the_file = None
+        finally:
+            self._file = None
+            file = self._i_opened_the_file
+            if file:
+                self._i_opened_the_file = None
+                file.close()
 
     #
     # Internal methods.
@@ -500,4 +513,7 @@ def open(f, mode=None):
     else:
         raise Error("mode must be 'r', 'rb', 'w', or 'wb'")
 
-openfp = open # B/W compatibility
+def openfp(f, mode=None):
+    warnings.warn("wave.openfp is deprecated since Python 3.7. "
+                  "Use wave.open instead.", DeprecationWarning, stacklevel=2)
+    return open(f, mode=mode)

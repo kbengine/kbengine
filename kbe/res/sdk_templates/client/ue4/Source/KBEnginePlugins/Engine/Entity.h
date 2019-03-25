@@ -14,12 +14,7 @@ class MemoryStream;
 	KBEngine逻辑层的实体基础类
 	所有扩展出的游戏实体都应该继承于该模块
 
-	要实现一个KBE对应的实体必须经过以下几步
-	1: 在服务器entity_defs中entities.xml中注册实体并实现实体的def定义
-	2: 在服务器的相关位置如：assets/scripts目录的cell（ 取决于实体拥有该部分）或base（ 取决于实体拥有该部分）文件夹下实现实体的服务器部分py脚本模块
-	3: 在UE4客户端中kbe_scripts文件夹下实现实体的客户端部分脚本模块（这里统一称为实体脚本，虽然是C++实现），UE4实现实体后必须有如下几步
-		A：在实体的头文件中按照格式定义ENTITYDEF_DECLARE_模块名（用于声明实体def相关属性和方法用于后续自动化协议绑定）， 具体看demo
-		B：在实体CPP文件中ENTITYDEF_CLASS_REGISTER将实体注册（用于告诉插件客户端具体实现了哪些实体），具体看demo
+	https://github.com/kbengine/kbengine/blob/master/kbe/res/sdk_templates/client/ue4/README.md
 */
 class KBENGINEPLUGINS_API Entity
 {
@@ -160,6 +155,16 @@ public:
 	virtual void onLoseCell()
 	{
 		// 动态生成
+	}
+
+	virtual void onComponentsEnterworld()
+	{
+		// 动态生成， 通知组件onEnterworld
+	}
+
+	virtual void onComponentsLeaveworld()
+	{
+		// 动态生成， 通知组件onLeaveworld
 	}
 
 	virtual void callPropertysSetMethods()

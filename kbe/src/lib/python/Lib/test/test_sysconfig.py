@@ -5,8 +5,8 @@ import subprocess
 import shutil
 from copy import copy
 
-from test.support import (run_unittest, TESTFN, unlink, check_warnings,
-                          captured_stdout, skip_unless_symlink)
+from test.support import (import_module, TESTFN, unlink, check_warnings,
+                          captured_stdout, skip_unless_symlink, change_cwd)
 
 import sysconfig
 from sysconfig import (get_paths, get_platform, get_config_vars,
@@ -118,13 +118,6 @@ class TestSysConfig(unittest.TestCase):
                        '[MSC v.1310 32 bit (Amd64)]')
         sys.platform = 'win32'
         self.assertEqual(get_platform(), 'win-amd64')
-
-        # windows XP, itanium
-        os.name = 'nt'
-        sys.version = ('2.4.4 (#71, Oct 18 2006, 08:34:43) '
-                       '[MSC v.1310 32 bit (Itanium)]')
-        sys.platform = 'win32'
-        self.assertEqual(get_platform(), 'win-ia64')
 
         # macbook
         os.name = 'posix'
@@ -242,21 +235,34 @@ class TestSysConfig(unittest.TestCase):
     def test_symlink(self):
         # On Windows, the EXE needs to know where pythonXY.dll is at so we have
         # to add the directory to the path.
+        env = None
         if sys.platform == "win32":
-            os.environ["PATH"] = "{};{}".format(
-                os.path.dirname(sys.executable), os.environ["PATH"])
+            env = {k.upper(): os.environ[k] for k in os.environ}
+            env["PATH"] = "{};{}".format(
+                os.path.dirname(sys.executable), env.get("PATH", ""))
+            # Requires PYTHONHOME as well since we locate stdlib from the
+            # EXE path and not the DLL path (which should be fixed)
+            env["PYTHONHOME"] = os.path.dirname(sys.executable)
+            if sysconfig.is_python_build(True):
+                env["PYTHONPATH"] = os.path.dirname(os.__file__)
 
         # Issue 7880
-        def get(python):
+        def get(python, env=None):
             cmd = [python, '-c',
                    'import sysconfig; print(sysconfig.get_platform())']
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=os.environ)
-            return p.communicate()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, env=env)
+            out, err = p.communicate()
+            if p.returncode:
+                print((out, err))
+                self.fail('Non-zero return code {0} (0x{0:08X})'
+                            .format(p.returncode))
+            return out, err
         real = os.path.realpath(sys.executable)
         link = os.path.abspath(TESTFN)
         os.symlink(real, link)
         try:
-            self.assertEqual(get(real), get(link))
+            self.assertEqual(get(real), get(link, env))
         finally:
             unlink(link)
 
@@ -361,12 +367,8 @@ class TestSysConfig(unittest.TestCase):
         # srcdir should be independent of the current working directory
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
-        cwd = os.getcwd()
-        try:
-            os.chdir('..')
+        with change_cwd(os.pardir):
             srcdir2 = sysconfig.get_config_var('srcdir')
-        finally:
-            os.chdir(cwd)
         self.assertEqual(srcdir, srcdir2)
 
     @unittest.skipIf(sysconfig.get_config_var('EXT_SUFFIX') is None,
@@ -389,6 +391,28 @@ class TestSysConfig(unittest.TestCase):
         self.assertIsNotNone(vars['SO'])
         self.assertEqual(vars['SO'], vars['EXT_SUFFIX'])
 
+    @unittest.skipUnless(sys.platform == 'linux' and
+                         hasattr(sys.implementation, '_multiarch'),
+                         'multiarch-specific test')
+    def test_triplet_in_ext_suffix(self):
+        ctypes = import_module('ctypes')
+        import platform, re
+        machine = platform.machine()
+        suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        if re.match('(aarch64|arm|mips|ppc|powerpc|s390|sparc)', machine):
+            self.assertTrue('linux' in suffix, suffix)
+        if re.match('(i[3-6]86|x86_64)$', machine):
+            if ctypes.sizeof(ctypes.c_char_p()) == 4:
+                self.assertTrue(suffix.endswith('i386-linux-gnu.so') or
+                                suffix.endswith('x86_64-linux-gnux32.so'),
+                                suffix)
+            else: # 8 byte pointer size
+                self.assertTrue(suffix.endswith('x86_64-linux-gnu.so'), suffix)
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'OS X-specific test')
+    def test_osx_ext_suffix(self):
+        suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        self.assertTrue(suffix.endswith('-darwin.so'), suffix)
 
 class MakefileTests(unittest.TestCase):
 
@@ -406,6 +430,8 @@ class MakefileTests(unittest.TestCase):
             print("var3=42", file=makefile)
             print("var4=$/invalid", file=makefile)
             print("var5=dollar$$5", file=makefile)
+            print("var6=${var3}/lib/python3.5/config-$(VAR2)$(var5)"
+                  "-x86_64-linux-gnu", file=makefile)
         vars = sysconfig._parse_makefile(TESTFN)
         self.assertEqual(vars, {
             'var1': 'ab42',
@@ -413,11 +439,9 @@ class MakefileTests(unittest.TestCase):
             'var3': 42,
             'var4': '$/invalid',
             'var5': 'dollar$5',
+            'var6': '42/lib/python3.5/config-b42dollar$5-x86_64-linux-gnu',
         })
 
 
-def test_main():
-    run_unittest(TestSysConfig, MakefileTests)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

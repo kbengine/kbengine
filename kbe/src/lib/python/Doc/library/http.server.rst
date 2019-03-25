@@ -4,6 +4,7 @@
 .. module:: http.server
    :synopsis: HTTP server and request handlers.
 
+**Source code:** :source:`Lib/http/server.py`
 
 .. index::
    pair: WWW; server
@@ -11,11 +12,14 @@
    single: URL
    single: httpd
 
-**Source code:** :source:`Lib/http/server.py`
-
 --------------
 
 This module defines classes for implementing HTTP servers (Web servers).
+
+.. warning::
+
+    :mod:`http.server` is not recommended for production. It only implements
+    basic security checks.
 
 One class, :class:`HTTPServer`, is a :class:`socketserver.TCPServer` subclass.
 It creates and listens at the HTTP socket, dispatching the requests to a
@@ -34,9 +38,19 @@ handler.  Code to create and run the server looks like this::
    :attr:`server_port`. The server is accessible by the handler, typically
    through the handler's :attr:`server` instance variable.
 
+.. class:: ThreadingHTTPServer(server_address, RequestHandlerClass)
 
-The :class:`HTTPServer` must be given a *RequestHandlerClass* on instantiation,
-of which this module provides three different variants:
+   This class is identical to HTTPServer but uses threads to handle
+   requests by using the :class:`~socketserver.ThreadingMixIn`. This
+   is useful to handle web browsers pre-opening sockets, on which
+   :class:`HTTPServer` would wait indefinitely.
+
+   .. versionadded:: 3.7
+
+
+The :class:`HTTPServer` and :class:`ThreadingHTTPServer` must be given
+a *RequestHandlerClass* on instantiation, of which this module
+provides three different variants:
 
 .. class:: BaseHTTPRequestHandler(request, client_address, server)
 
@@ -64,6 +78,18 @@ of which this module provides three different variants:
 
       Contains the server instance.
 
+   .. attribute:: close_connection
+
+      Boolean that should be set before :meth:`handle_one_request` returns,
+      indicating if another request may be expected, or if the connection should
+      be shut down.
+
+   .. attribute:: requestline
+
+      Contains the string representation of the HTTP request line. The
+      terminating CRLF is stripped. This attribute should be set by
+      :meth:`handle_one_request`. If no valid request line was processed, it
+      should be set to the empty string.
 
    .. attribute:: command
 
@@ -85,19 +111,22 @@ of which this module provides three different variants:
       :mod:`http.client` is used to parse the headers and it requires that the
       HTTP request provide a valid :rfc:`2822` style header.
 
-
    .. attribute:: rfile
 
-      Contains an input stream, positioned at the start of the optional input
-      data.
+      An :class:`io.BufferedIOBase` input stream, ready to read from
+      the start of the optional input data.
 
    .. attribute:: wfile
 
       Contains the output stream for writing a response back to the
       client. Proper adherence to the HTTP protocol must be used when writing to
-      this stream.
+      this stream in order to achieve successful interoperation with HTTP
+      clients.
 
-   :class:`BaseHTTPRequestHandler` has the following class variables:
+      .. versionchanged:: 3.6
+         This is an :class:`io.BufferedIOBase` stream.
+
+   :class:`BaseHTTPRequestHandler` has the following attributes:
 
    .. attribute:: server_version
 
@@ -113,13 +142,10 @@ of which this module provides three different variants:
 
    .. attribute:: error_message_format
 
-      Specifies a format string for building an error response to the client. It
-      uses parenthesized, keyed format specifiers, so the format operand must be
-      a dictionary. The *code* key should be an integer, specifying the numeric
-      HTTP error code value. *message* should be a string containing a
-      (detailed) error message of what occurred, and *explain* should be an
-      explanation of the error code number. Default *message* and *explain*
-      values can found in the :attr:`responses` class variable.
+      Specifies a format string that should be used by :meth:`send_error` method
+      for building an error response to the client. The string is filled by
+      default with variables from :attr:`responses` based on the status code
+      that passed to :meth:`send_error`.
 
    .. attribute:: error_content_type
 
@@ -142,11 +168,11 @@ of which this module provides three different variants:
 
    .. attribute:: responses
 
-      This variable contains a mapping of error code integers to two-element tuples
+      This attribute contains a mapping of error code integers to two-element tuples
       containing a short and long message. For example, ``{code: (shortmessage,
       longmessage)}``. The *shortmessage* is usually used as the *message* key in an
-      error response, and *longmessage* as the *explain* key (see the
-      :attr:`error_message_format` class variable).
+      error response, and *longmessage* as the *explain* key.  It is used by
+      :meth:`send_response_only` and :meth:`send_error` methods.
 
    A :class:`BaseHTTPRequestHandler` instance has the following methods:
 
@@ -164,7 +190,7 @@ of which this module provides three different variants:
 
    .. method:: handle_expect_100()
 
-      When a HTTP/1.1 compliant server receives a ``Expect: 100-continue``
+      When a HTTP/1.1 compliant server receives an ``Expect: 100-continue``
       request header it responds back with a ``100 Continue`` followed by ``200
       OK`` headers.
       This method can be overridden to raise an error if the server does not
@@ -179,16 +205,17 @@ of which this module provides three different variants:
       specifies the HTTP error code, with *message* as an optional, short, human
       readable description of the error.  The *explain* argument can be used to
       provide more detailed information about the error; it will be formatted
-      using the :attr:`error_message_format` class variable and emitted, after
+      using the :attr:`error_message_format` attribute and emitted, after
       a complete set of headers, as the response body.  The :attr:`responses`
-      class variable holds the default values for *message* and *explain* that
+      attribute holds the default values for *message* and *explain* that
       will be used if no value is provided; for unknown codes the default value
-      for both is the string ``???``.
+      for both is the string ``???``. The body will be empty if the method is
+      HEAD or the response code is one of the following: ``1xx``,
+      ``204 No Content``, ``205 Reset Content``, ``304 Not Modified``.
 
       .. versionchanged:: 3.4
          The error response includes a Content-Length header.
          Added the *explain* argument.
-
 
    .. method:: send_response(code, message=None)
 
@@ -198,13 +225,12 @@ of which this module provides three different variants:
       are picked up from the :meth:`version_string` and
       :meth:`date_time_string` methods, respectively. If the server does not
       intend to send any other headers using the :meth:`send_header` method,
-      then :meth:`send_response` should be followed by a :meth:`end_headers`
+      then :meth:`send_response` should be followed by an :meth:`end_headers`
       call.
 
       .. versionchanged:: 3.3
          Headers are stored to an internal buffer and :meth:`end_headers`
          needs to be called explicitly.
-
 
    .. method:: send_header(keyword, value)
 
@@ -217,10 +243,9 @@ of which this module provides three different variants:
       .. versionchanged:: 3.2
          Headers are stored in an internal buffer.
 
-
    .. method:: send_response_only(code, message=None)
 
-      Sends the reponse header only, used for the purposes when ``100
+      Sends the response header only, used for the purposes when ``100
       Continue`` response is sent by the server to the client. The headers not
       buffered and sent directly the output stream.If the *message* is not
       specified, the HTTP message corresponding the response *code*  is sent.
@@ -267,11 +292,11 @@ of which this module provides three different variants:
    .. method:: version_string()
 
       Returns the server software's version string. This is a combination of the
-      :attr:`server_version` and :attr:`sys_version` class variables.
+      :attr:`server_version` and :attr:`sys_version` attributes.
 
    .. method:: date_time_string(timestamp=None)
 
-      Returns the date and time given by *timestamp* (which must be None or in
+      Returns the date and time given by *timestamp* (which must be ``None`` or in
       the format returned by :func:`time.time`), formatted for a message
       header. If *timestamp* is omitted, it uses the current date and time.
 
@@ -290,7 +315,7 @@ of which this module provides three different variants:
          delays, it now always returns the IP address.
 
 
-.. class:: SimpleHTTPRequestHandler(request, client_address, server)
+.. class:: SimpleHTTPRequestHandler(request, client_address, server, directory=None)
 
    This class serves files from the current directory and below, directly
    mapping the directory structure to HTTP requests.
@@ -314,6 +339,10 @@ of which this module provides three different variants:
       ``application/octet-stream``. The mapping is used case-insensitively,
       and so should contain only lower-cased keys.
 
+   .. attribute:: directory
+
+      If not specified, the directory to serve is the current working directory.
+
    The :class:`SimpleHTTPRequestHandler` class defines the following methods:
 
    .. method:: do_HEAD()
@@ -334,11 +363,13 @@ of which this module provides three different variants:
       :func:`os.listdir` to scan the directory, and returns a ``404`` error
       response if the :func:`~os.listdir` fails.
 
-      If the request was mapped to a file, it is opened and the contents are
-      returned.  Any :exc:`OSError` exception in opening the requested file is
-      mapped to a ``404``, ``'File not found'`` error. Otherwise, the content
+      If the request was mapped to a file, it is opened. Any :exc:`OSError`
+      exception in opening the requested file is mapped to a ``404``,
+      ``'File not found'`` error. If there was a ``'If-Modified-Since'``
+      header in the request, and the file was not modified after this time,
+      a ``304``, ``'Not Modified'`` response is sent. Otherwise, the content
       type is guessed by calling the :meth:`guess_type` method, which in turn
-      uses the *extensions_map* variable.
+      uses the *extensions_map* variable, and the file contents are returned.
 
       A ``'Content-type:'`` header with the guessed content type is output,
       followed by a ``'Content-Length:'`` header with the file's size and a
@@ -351,6 +382,8 @@ of which this module provides three different variants:
       For example usage, see the implementation of the :func:`test` function
       invocation in the :mod:`http.server` module.
 
+      .. versionchanged:: 3.7
+         Support of the ``'If-Modified-Since'`` header.
 
 The :class:`SimpleHTTPRequestHandler` class can be used in the following
 manner in order to create a very basic webserver serving files relative to
@@ -363,10 +396,9 @@ the current directory::
 
    Handler = http.server.SimpleHTTPRequestHandler
 
-   httpd = socketserver.TCPServer(("", PORT), Handler)
-
-   print("serving at port", PORT)
-   httpd.serve_forever()
+   with socketserver.TCPServer(("", PORT), Handler) as httpd:
+       print("serving at port", PORT)
+       httpd.serve_forever()
 
 .. _http-server-cli:
 
@@ -385,6 +417,14 @@ following command causes the server to bind to localhost only::
 .. versionadded:: 3.4
     ``--bind`` argument was introduced.
 
+By default, server uses the current directory. The option ``-d/--directory``
+specifies a directory to which it should serve the files. For example,
+the following command uses a specific directory::
+
+        python -m http.server --directory /tmp/
+
+.. versionadded:: 3.7
+    ``--directory`` specify alternate directory
 
 .. class:: CGIHTTPRequestHandler(request, client_address, server)
 
@@ -430,4 +470,3 @@ following command causes the server to bind to localhost only::
 the ``--cgi`` option::
 
         python -m http.server --cgi 8000
-

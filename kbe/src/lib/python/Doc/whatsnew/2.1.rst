@@ -159,8 +159,8 @@ precede any statement that will result in bytecodes being produced.
 PEP 207: Rich Comparisons
 =========================
 
-In earlier versions, Python's support for implementing comparisons on user-
-defined classes and extension types was quite simple. Classes could implement a
+In earlier versions, Python's support for implementing comparisons on user-defined
+classes and extension types was quite simple. Classes could implement a
 :meth:`__cmp__` method that was given two instances of a class, and could only
 return 0 if they were equal or +1 or -1 if they weren't; the method couldn't
 raise an exception or return anything other than a Boolean value.  Users of
@@ -219,7 +219,7 @@ comparison.  I won't cover the C API here, but will refer you to PEP 207, or to
 
 .. seealso::
 
-   :pep:`207` - Rich Comparisions
+   :pep:`207` - Rich Comparisons
       Written by Guido van Rossum, heavily based on earlier work by David Ascher, and
       implemented by Guido van Rossum.
 
@@ -367,7 +367,7 @@ dictionary::
 
 This version works for simple things such as integers, but it has a side effect;
 the ``_cache`` dictionary holds a reference to the return values, so they'll
-never be deallocated until the Python process exits and cleans up This isn't
+never be deallocated until the Python process exits and cleans up. This isn't
 very noticeable for integers, but if :func:`f` returns an object, or a data
 structure that takes up a lot of memory, this can be a problem.
 
@@ -442,8 +442,8 @@ Python syntax::
    f.grammar = "A ::= B (C D)*"
 
 The dictionary containing attributes can be accessed as the function's
-:attr:`__dict__`. Unlike the :attr:`__dict__` attribute of class instances, in
-functions you can actually assign a new dictionary to :attr:`__dict__`, though
+:attr:`~object.__dict__`. Unlike the :attr:`~object.__dict__` attribute of class instances, in
+functions you can actually assign a new dictionary to :attr:`~object.__dict__`, though
 the new value is restricted to a regular Python dictionary; you *can't* be
 tricky and set it to a :class:`UserDict` instance, or any other random object
 that behaves like a mapping.
@@ -465,11 +465,11 @@ Windows being the primary examples; on these systems, it's impossible to
 distinguish the filenames ``FILE.PY`` and ``file.py``, even though they do store
 the file's name  in its original case (they're case-preserving, too).
 
-In Python 2.1, the :keyword:`import` statement will work to simulate case-
-sensitivity on case-insensitive platforms.  Python will now search for the first
+In Python 2.1, the :keyword:`import` statement will work to simulate case-sensitivity
+on case-insensitive platforms.  Python will now search for the first
 case-sensitive match by default, raising an :exc:`ImportError` if no such file
-is found, so ``import file`` will not import a module named ``FILE.PY``.  Case-
-insensitive matching can be requested by setting the :envvar:`PYTHONCASEOK`
+is found, so ``import file`` will not import a module named ``FILE.PY``.
+Case-insensitive matching can be requested by setting the :envvar:`PYTHONCASEOK`
 environment variable before starting the Python interpreter.
 
 .. ======================================================================
@@ -481,8 +481,8 @@ PEP 217: Interactive Display Hook
 When using the Python interpreter interactively, the output of commands is
 displayed using the built-in :func:`repr` function. In Python 2.1, the variable
 :func:`sys.displayhook` can be set to a callable object which will be called
-instead of :func:`repr`. For example, you can set it to a special pretty-
-printing function::
+instead of :func:`repr`. For example, you can set it to a special
+pretty-printing function::
 
    >>> # Create a recursive data structure
    ... L = [1,2,3]
@@ -555,14 +555,14 @@ will include metadata, making it possible to build automated cataloguing systems
 and experiment with them.  With the result experience, perhaps it'll be possible
 to design a really good catalog and then build support for it into Python 2.2.
 For example, the Distutils :command:`sdist` and :command:`bdist_\*` commands
-could support a ``upload`` option that would automatically upload your
+could support an ``upload`` option that would automatically upload your
 package to a catalog server.
 
 You can start creating packages containing :file:`PKG-INFO` even if you're not
 using Python 2.1, since a new release of the Distutils will be made for users of
 earlier Python versions.  Version 1.0.2 of the Distutils includes the changes
 described in PEP 241, as well as various bugfixes and enhancements.  It will be
-available from  the Distutils SIG at http://www.python.org/sigs/distutils-sig/.
+available from the Distutils SIG at https://www.python.org/community/sigs/current/distutils-sig/.
 
 
 .. seealso::
@@ -692,7 +692,7 @@ of the more notable changes are:
   faster than the system :func:`malloc` and have less memory overhead.  The
   allocator uses C's :func:`malloc` function to get large pools of memory, and
   then fulfills smaller memory requests from these pools.  It can be enabled by
-  providing the :option:`--with-pymalloc` option to the :program:`configure`
+  providing the :option:`!--with-pymalloc` option to the :program:`configure`
   script; see :file:`Objects/obmalloc.c` for the implementation details.
 
   Authors of C extension modules should test their code with the object allocator
@@ -731,7 +731,7 @@ of the more notable changes are:
          ...
 
   For a fuller discussion of the line I/O changes, see the python-dev summary for
-  January 1-15, 2001 at http://www.python.org/dev/summary/2001-01-1/.
+  January 1--15, 2001 at https://mail.python.org/pipermail/python-dev/2001-January/.
 
 * A new method, :meth:`popitem`, was added to dictionaries to enable
   destructively iterating through the contents of a dictionary; this can be faster

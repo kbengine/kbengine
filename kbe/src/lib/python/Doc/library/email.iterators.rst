@@ -4,6 +4,9 @@
 .. module:: email.iterators
    :synopsis: Iterate over a  message object tree.
 
+**Source code:** :source:`Lib/email/iterators.py`
+
+--------------
 
 Iterating over a message object tree is fairly easy with the
 :meth:`Message.walk <email.message.Message.walk>` method.  The
@@ -47,9 +50,9 @@ The following function has been added as a useful debugging tool.  It should
 
    .. testsetup::
 
-      >>> import email
-      >>> from email.iterators import _structure
-      >>> somefile = open('Lib/test/test_email/data/msg_02.txt')
+      import email
+      from email.iterators import _structure
+      somefile = open('../Lib/test/test_email/data/msg_02.txt')
 
    .. doctest::
 
@@ -71,9 +74,9 @@ The following function has been added as a useful debugging tool.  It should
                   text/plain
           text/plain
 
-   .. testsetup::
+   .. testcleanup::
 
-      >>> somefile.close()
+      somefile.close()
 
    Optional *fp* is a file-like object to print the output to.  It must be
    suitable for Python's :func:`print` function.  *level* is used internally.

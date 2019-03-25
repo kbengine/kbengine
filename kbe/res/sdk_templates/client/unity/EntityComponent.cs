@@ -26,6 +26,20 @@ namespace KBEngine
 
 		}
 
+		public virtual void onEnterworld()
+		{
+		}
+
+		public virtual void onLeaveworld()
+		{
+		}
+
+        public virtual ScriptModule getScriptModule()
+        {
+			// 动态生成
+            return null;
+        }
+
 		public virtual void onRemoteMethodCall(UInt16 methodUtype, MemoryStream stream)
 		{
 			// 动态生成

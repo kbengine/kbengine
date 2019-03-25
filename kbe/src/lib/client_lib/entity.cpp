@@ -28,6 +28,7 @@ namespace client
 CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("isPlayer",					pyIsPlayer,						METH_VARARGS,				0)
 CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -70,6 +71,8 @@ isControlled_(false)
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+	stopMove();
+
 	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(cellEntityCall_);
@@ -374,6 +377,12 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			else
 				pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
 
+			if (pPropertyDescription == NULL)
+			{
+				ERROR_MSG(fmt::format("{}::onUpdatePropertys: not found EntityComponentProperty(uid={}, aliasID={})!\n", pScriptModule_->getName(), uid, aliasID));
+				return;
+			}
+
 			// 然后得到组件属性，再从其中找到子属性
 			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PyObject_GetAttrString(this, pPropertyDescription->getName()));
 			if (!pEntityComponent)
@@ -389,7 +398,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found uid={}, aliasID={}, child_uid={}\n", uid, aliasID, child_uid));
 
 			if (setToObj != static_cast<PyObject*>(this))
 				Py_DECREF(setToObj);
@@ -454,7 +463,7 @@ PyObject* Entity::pyGetPosition()
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	if(pClientApp_->entityID() == this->id())
+	if(isPlayer())
 		return;
 
 	EventData_PositionChanged eventdata;
@@ -510,7 +519,7 @@ PyObject* Entity::pyGetDirection()
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
-	if(pClientApp_->entityID() == this->id())
+	if(isPlayer())
 		return;
 
 	EventData_DirectionChanged eventdata;
@@ -614,8 +623,8 @@ void Entity::onBecomePlayer()
 
 		if(pyClass == NULL)
 		{
-			SCRIPT_ERROR_CHECK();
-			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->pScriptModule_->getName(), moduleName));
+			// 不在强制需要实现Player**类
+			PyErr_Clear();
 		}
 		else
 		{
@@ -795,11 +804,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(PyUnicode_Check(pyargobj))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
-		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		
-		if(strcmp(s, "Movement") == 0)
+		if (strcmp(PyUnicode_AsUTF8AndSize(pyargobj, NULL), "Movement") == 0)
 		{
 			pobj->stopMove();
 		}
@@ -807,11 +812,8 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->scriptName());
 			PyErr_PrintEx(0);
-			free(s);
 			return 0;
 		}
-
-		free(s);
 
 		S_Return;
 	}
@@ -829,6 +831,21 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	pobj->cancelController(id);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::isPlayer()
+{
+	return id() == pClientApp_->entityID();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyIsPlayer()
+{
+	if (isPlayer())
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------

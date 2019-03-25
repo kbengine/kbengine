@@ -34,17 +34,11 @@ unmarshalling.  Version 2 uses a binary format for floating point numbers.
 
 .. c:function:: PyObject* PyMarshal_WriteObjectToString(PyObject *value, int version)
 
-   Return a string object containing the marshalled representation of *value*.
+   Return a bytes object containing the marshalled representation of *value*.
    *version* indicates the file format.
 
 
 The following functions allow marshalled values to be read back in.
-
-XXX What about error detection?  It appears that reading past the end of the
-file will always result in a negative numeric value (where that's relevant),
-but it's not clear that negative values won't be handled properly when there's
-no error.  What's the right way to tell? Should only non-negative values be
-written using these routines?
 
 
 .. c:function:: long PyMarshal_ReadLongFromFile(FILE *file)
@@ -53,6 +47,9 @@ written using these routines?
    for reading.  Only a 32-bit value can be read in using this function,
    regardless of the native size of :c:type:`long`.
 
+   On error, sets the appropriate exception (:exc:`EOFError`) and returns
+   ``-1``.
+
 
 .. c:function:: int PyMarshal_ReadShortFromFile(FILE *file)
 
@@ -60,12 +57,17 @@ written using these routines?
    for reading.  Only a 16-bit value can be read in using this function,
    regardless of the native size of :c:type:`short`.
 
+   On error, sets the appropriate exception (:exc:`EOFError`) and returns
+   ``-1``.
+
 
 .. c:function:: PyObject* PyMarshal_ReadObjectFromFile(FILE *file)
 
    Return a Python object from the data stream in a :c:type:`FILE\*` opened for
-   reading.  On error, sets the appropriate exception (:exc:`EOFError` or
-   :exc:`TypeError`) and returns *NULL*.
+   reading.
+
+   On error, sets the appropriate exception (:exc:`EOFError`, :exc:`ValueError`
+   or :exc:`TypeError`) and returns *NULL*.
 
 
 .. c:function:: PyObject* PyMarshal_ReadLastObjectFromFile(FILE *file)
@@ -76,14 +78,17 @@ written using these routines?
    aggressively load file data into memory so that the de-serialization can
    operate from data in memory rather than reading a byte at a time from the
    file.  Only use these variant if you are certain that you won't be reading
-   anything else from the file.  On error, sets the appropriate exception
-   (:exc:`EOFError` or :exc:`TypeError`) and returns *NULL*.
+   anything else from the file.
+
+   On error, sets the appropriate exception (:exc:`EOFError`, :exc:`ValueError`
+   or :exc:`TypeError`) and returns *NULL*.
 
 
-.. c:function:: PyObject* PyMarshal_ReadObjectFromString(char *string, Py_ssize_t len)
+.. c:function:: PyObject* PyMarshal_ReadObjectFromString(const char *data, Py_ssize_t len)
 
-   Return a Python object from the data stream in a character buffer
-   containing *len* bytes pointed to by *string*.  On error, sets the
-   appropriate exception (:exc:`EOFError` or :exc:`TypeError`) and returns
-   *NULL*.
+   Return a Python object from the data stream in a byte buffer
+   containing *len* bytes pointed to by *data*.
+
+   On error, sets the appropriate exception (:exc:`EOFError`, :exc:`ValueError`
+   or :exc:`TypeError`) and returns *NULL*.
 

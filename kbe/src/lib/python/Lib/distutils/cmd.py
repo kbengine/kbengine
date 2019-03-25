@@ -221,7 +221,7 @@ class Command:
         self._ensure_stringlike(option, "string", default)
 
     def ensure_string_list(self, option):
-        """Ensure that 'option' is a list of strings.  If 'option' is
+        r"""Ensure that 'option' is a list of strings.  If 'option' is
         currently a string, we split it either on /,\s*/ or /\s+/, so
         "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become
         ["foo", "bar", "baz"].
@@ -329,8 +329,7 @@ class Command:
     # -- External world manipulation -----------------------------------
 
     def warn(self, msg):
-        log.warn("warning: %s: %s\n" %
-                (self.get_command_name(), msg))
+        log.warn("warning: %s: %s\n", self.get_command_name(), msg)
 
     def execute(self, func, args, msg=None, level=1):
         util.execute(func, args, msg, dry_run=self.dry_run)
@@ -402,34 +401,3 @@ class Command:
         # Otherwise, print the "skip" message
         else:
             log.debug(skip_msg)
-
-# XXX 'install_misc' class not currently used -- it was the base class for
-# both 'install_scripts' and 'install_data', but they outgrew it.  It might
-# still be useful for 'install_headers', though, so I'm keeping it around
-# for the time being.
-
-class install_misc(Command):
-    """Common base class for installing some files in a subdirectory.
-    Currently used by install_data and install_scripts.
-    """
-
-    user_options = [('install-dir=', 'd', "directory to install the files to")]
-
-    def initialize_options (self):
-        self.install_dir = None
-        self.outfiles = []
-
-    def _install_dir_from(self, dirname):
-        self.set_undefined_options('install', (dirname, 'install_dir'))
-
-    def _copy_files(self, filelist):
-        self.outfiles = []
-        if not filelist:
-            return
-        self.mkpath(self.install_dir)
-        for f in filelist:
-            self.copy_file(f, self.install_dir)
-            self.outfiles.append(os.path.join(self.install_dir, f))
-
-    def get_outputs(self):
-        return self.outfiles

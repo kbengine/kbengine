@@ -1,5 +1,7 @@
 """Recognize image file formats based on their first few bytes."""
 
+from os import PathLike
+
 __all__ = ["what"]
 
 #-------------------------#
@@ -10,7 +12,7 @@ def what(file, h=None):
     f = None
     try:
         if h is None:
-            if isinstance(file, str):
+            if isinstance(file, (str, PathLike)):
                 f = open(file, 'rb')
                 h = f.read(32)
             else:
@@ -109,6 +111,18 @@ def test_bmp(h, f):
         return 'bmp'
 
 tests.append(test_bmp)
+
+def test_webp(h, f):
+    if h.startswith(b'RIFF') and h[8:12] == b'WEBP':
+        return 'webp'
+
+tests.append(test_webp)
+
+def test_exr(h, f):
+    if h.startswith(b'\x76\x2f\x31\x01'):
+        return 'exr'
+
+tests.append(test_exr)
 
 #--------------------#
 # Small test program #

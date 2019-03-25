@@ -92,16 +92,7 @@ EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj(const std::string& log
 //-------------------------------------------------------------------------------------
 void EndPoint::onReclaimObject()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	socket_ = INVALID_SOCKET;
-#else
-	socket_ = -1;
-#endif
-
-	address_ = Address::NONE;
-
-	isRefSocket_ = false;
-	destroySSL();
+	close();
 }
 
 //-------------------------------------------------------------------------------------
@@ -657,10 +648,61 @@ void EndPoint::sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t network
 }
 
 //-------------------------------------------------------------------------------------
-bool EndPoint::setupSSL()
+static long ssl_bio_callback(BIO *bio, int cmd, const char *argp, int argi, long argl, long ret)
 {
-	// New context saying we are a client, and using SSL 2 or 3
-	sslContext_ = SSL_CTX_new(SSLv23_client_method());
+	if ((cmd & ~BIO_CB_RETURN) != BIO_CB_READ)
+		return ret;
+
+	Packet* pPacket = (Packet*)BIO_get_callback_arg(bio);
+
+	// 类似recv， argi是buffer，argl是buffer长度，这里判断pPacket大于长度返回指定长度，小于长度则返回读取到的长度
+	if ((int)pPacket->length() < argi)
+		argi = (int)pPacket->length();
+
+	// 将我们的buffer填充进去
+	if ((cmd & BIO_CB_RETURN) > 0)
+	{
+		memcpy((void*)argp, pPacket->data() + pPacket->rpos(), argi);
+		pPacket->read_skip(argi);
+		bio->num_read += argi;
+	}
+	else
+	{
+		return ret;
+	}
+
+	if (pPacket->length() == 0)
+	{
+		BIO_set_callback(bio, NULL);
+		BIO_set_callback_arg(bio, (char*)NULL);
+	}
+
+	return argi;
+}
+
+bool EndPoint::setupSSL(int sslVersion, Packet* pPacket)
+{
+	switch (sslVersion)
+	{
+	case SSL2_VERSION:
+		sslContext_ = SSL_CTX_new(SSLv2_server_method());
+		break;
+	case SSL3_VERSION:
+		sslContext_ = SSL_CTX_new(SSLv3_server_method());
+		break;
+	case TLS1_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_server_method());
+		break;
+	case TLS1_1_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_1_server_method());
+		break;
+	case TLS1_2_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_2_server_method());
+		break;
+	default:
+		sslContext_ = SSL_CTX_new(SSLv23_server_method());
+		break;
+	};
 
 	if (!sslContext_)
 	{
@@ -709,12 +751,54 @@ bool EndPoint::setupSSL()
 
 	SSL_set_fd(sslHandle_, *this);
 
-	if (SSL_accept(sslHandle_) == -1) {
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept: {}!\n", ERR_error_string(ERR_get_error(), NULL)));
-		destroySSL();
-		return false;
+	BIO_set_callback(sslHandle_->rbio, ssl_bio_callback);
+	BIO_set_callback_arg(sslHandle_->rbio, (char*)pPacket);
+
+	while (SSL_accept(sslHandle_) == -1)
+	{
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(*this, &fds);
+
+		struct timeval tv = { 0, 100000 }; // 100ms
+
+		switch (SSL_get_error(sslHandle_, -1))
+		{
+		case SSL_ERROR_WANT_READ:
+		{
+			int selgot = select((*this) + 1, &fds, NULL, NULL, &tv);
+			if (selgot <= 0)
+			{
+				ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept(SSL_ERROR_WANT_READ): {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+				destroySSL();
+				return true;
+			}
+
+			break;
+		}
+		case SSL_ERROR_WANT_WRITE:
+		{
+			int selgot = select((*this) + 1, NULL, &fds, NULL, &tv);
+			if (selgot <= 0)
+			{
+				ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept(SSL_ERROR_WANT_WRITE): {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+				destroySSL();
+				return true;
+			}
+
+			break;
+		}
+		default:
+		{
+			ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept: {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+			destroySSL();
+			return false;
+		}
+		}
 	}
 
+	BIO_set_callback(sslHandle_->rbio, NULL);
+	BIO_set_callback_arg(sslHandle_->rbio, (char*)NULL);
 	return true;
 }
 

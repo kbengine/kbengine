@@ -14,6 +14,7 @@
 #include "network/network_interface.h"
 #include "network/event_poller.h"
 #include "network/error_reporter.h"
+#include <openssl/err.h>
 
 namespace KBEngine { 
 namespace Network
@@ -181,6 +182,24 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 	};
 
 #endif // unix
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if (wsaErr == 0
+#else
+	if (errno == 0
+#endif
+		&& pEndPoint()->isSSL())
+	{
+		long sslerr = ERR_get_error();
+		if (sslerr > 0)
+		{
+			WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
+				"Throwing SSL - {}\n",
+				(pEndpoint_ ? pEndpoint_->addr().c_str() : ""), ERR_error_string(sslerr, NULL)));
+
+			return RECV_STATE_INTERRUPT;
+		}
+	}
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "

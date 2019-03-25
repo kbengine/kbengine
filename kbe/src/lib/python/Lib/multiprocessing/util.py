@@ -9,6 +9,7 @@
 
 import os
 import itertools
+import sys
 import weakref
 import atexit
 import threading        # we want threading to install it's
@@ -148,12 +149,15 @@ class Finalize(object):
     Class which supports object finalization using weakrefs
     '''
     def __init__(self, obj, callback, args=(), kwargs=None, exitpriority=None):
-        assert exitpriority is None or type(exitpriority) is int
+        if (exitpriority is not None) and not isinstance(exitpriority,int):
+            raise TypeError(
+                "Exitpriority ({0!r}) must be None or int, not {1!s}".format(
+                    exitpriority, type(exitpriority)))
 
         if obj is not None:
             self._weakref = weakref.ref(obj, self)
-        else:
-            assert exitpriority is not None
+        elif exitpriority is None:
+            raise ValueError("Without object, exitpriority cannot be None")
 
         self._callback = callback
         self._args = args
@@ -212,10 +216,11 @@ class Finalize(object):
             obj = None
 
         if obj is None:
-            return '<Finalize object, dead>'
+            return '<%s object, dead>' % self.__class__.__name__
 
-        x = '<Finalize object, callback=%s' % \
-            getattr(self._callback, '__name__', self._callback)
+        x = '<%s object, callback=%s' % (
+                self.__class__.__name__,
+                getattr(self._callback, '__name__', self._callback))
         if self._args:
             x += ', args=' + str(self._args)
         if self._kwargs:
@@ -239,20 +244,28 @@ def _run_finalizers(minpriority=None):
         return
 
     if minpriority is None:
-        f = lambda p : p[0][0] is not None
+        f = lambda p : p[0] is not None
     else:
-        f = lambda p : p[0][0] is not None and p[0][0] >= minpriority
+        f = lambda p : p[0] is not None and p[0] >= minpriority
 
-    items = [x for x in list(_finalizer_registry.items()) if f(x)]
-    items.sort(reverse=True)
+    # Careful: _finalizer_registry may be mutated while this function
+    # is running (either by a GC run or by another thread).
 
-    for key, finalizer in items:
-        sub_debug('calling %s', finalizer)
-        try:
-            finalizer()
-        except Exception:
-            import traceback
-            traceback.print_exc()
+    # list(_finalizer_registry) should be atomic, while
+    # list(_finalizer_registry.items()) is not.
+    keys = [key for key in list(_finalizer_registry) if f(key)]
+    keys.sort(reverse=True)
+
+    for key in keys:
+        finalizer = _finalizer_registry.get(key)
+        # key may have been removed from the registry
+        if finalizer is not None:
+            sub_debug('calling %s', finalizer)
+            try:
+                finalizer()
+            except Exception:
+                import traceback
+                traceback.print_exc()
 
     if minpriority is None:
         _finalizer_registry.clear()
@@ -327,6 +340,13 @@ class ForkAwareThreadLock(object):
         self.acquire = self._lock.acquire
         self.release = self._lock.release
 
+    def __enter__(self):
+        return self._lock.__enter__()
+
+    def __exit__(self, *args):
+        return self._lock.__exit__(*args)
+
+
 class ForkAwareLocal(threading.local):
     def __init__(self):
         register_after_fork(self, lambda obj : obj.__dict__.clear())
@@ -348,6 +368,42 @@ def close_all_fds_except(fds):
     assert fds[-1] == MAXFD, 'fd too large'
     for i in range(len(fds) - 1):
         os.closerange(fds[i]+1, fds[i+1])
+#
+# Close sys.stdin and replace stdin with os.devnull
+#
+
+def _close_stdin():
+    if sys.stdin is None:
+        return
+
+    try:
+        sys.stdin.close()
+    except (OSError, ValueError):
+        pass
+
+    try:
+        fd = os.open(os.devnull, os.O_RDONLY)
+        try:
+            sys.stdin = open(fd, closefd=False)
+        except:
+            os.close(fd)
+            raise
+    except (OSError, ValueError):
+        pass
+
+#
+# Flush standard streams, if any
+#
+
+def _flush_std_streams():
+    try:
+        sys.stdout.flush()
+    except (AttributeError, ValueError):
+        pass
+    try:
+        sys.stderr.flush()
+    except (AttributeError, ValueError):
+        pass
 
 #
 # Start a program with only specified fds kept open
@@ -355,7 +411,7 @@ def close_all_fds_except(fds):
 
 def spawnv_passfds(path, args, passfds):
     import _posixsubprocess
-    passfds = sorted(passfds)
+    passfds = tuple(sorted(map(int, passfds)))
     errpipe_read, errpipe_write = os.pipe()
     try:
         return _posixsubprocess.fork_exec(

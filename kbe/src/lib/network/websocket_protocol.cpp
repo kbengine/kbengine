@@ -37,19 +37,18 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 
 	(*s) >> data;
 
-	size_t fi = data.find_first_of("Sec-WebSocket-Key");
+	s->rpos(rpos);
+	s->wpos(wpos);
+
+	size_t fi = data.find("Sec-WebSocket-Key");
 	if(fi == std::string::npos)
 	{
-		s->rpos(rpos);
-		s->wpos(wpos);
 		return false;
 	}
 
-	fi = data.find_first_of("GET");
+	fi = data.find("Host");
 	if(fi == std::string::npos)
 	{
-		s->rpos(rpos);
-		s->wpos(wpos);
 		return false;
 	}
 
@@ -58,13 +57,9 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 	
 	if(header_and_data.size() != 2)
 	{
-		s->rpos(rpos);
-		s->wpos(wpos);
 		return false;
 	}
 
-	s->rpos(rpos);
-	s->wpos(wpos);
 	return true;
 }
 
@@ -160,7 +155,6 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	KBE_SHA1 sha;
 	unsigned int message_digest[5];
 
-	sha.Reset();
 	sha << server_key.c_str();
 	sha.Result(message_digest);
 
@@ -367,6 +361,60 @@ bool WebSocketProtocol::decodingDatas(Packet* pPacket, uint8 msg_masked, uint32 
 	}
 
 	return true;
+}
+
+std::string WebSocketProtocol::getFrameTypeName(FrameType frame_type)
+{
+	if (frame_type == NEXT_FRAME)
+	{
+		return "NEXT_FRAME";
+	}
+	else if (frame_type == END_FRAME)
+	{
+		return "NEXT_FRAME";
+	}
+	else if (frame_type == ERROR_FRAME)
+	{
+		return "ERROR_FRAME";
+	}
+	else if (frame_type == INCOMPLETE_FRAME)
+	{
+		return "INCOMPLETE_FRAME";
+	}
+	else if (frame_type == OPENING_FRAME)
+	{
+		return "OPENING_FRAME";
+	}
+	else if (frame_type == INCOMPLETE_TEXT_FRAME)
+	{
+		return "INCOMPLETE_TEXT_FRAME";
+	}
+	else if (frame_type == INCOMPLETE_BINARY_FRAME)
+	{
+		return "INCOMPLETE_BINARY_FRAME";
+	}
+	else if (frame_type == TEXT_FRAME)
+	{
+		return "TEXT_FRAME";
+	}
+	else if (frame_type == BINARY_FRAME)
+	{
+		return "BINARY_FRAME";
+	}
+	else if (frame_type == PING_FRAME)
+	{
+		return "PING_FRAME";
+	}
+	else if (frame_type == PONG_FRAME)
+	{
+		return "PONG_FRAME";
+	}
+	else if (frame_type == CLOSE_FRAME)
+	{
+		return "CLOSE_FRAME";
+	}
+
+	return "UNKOWN_TYPE";
 }
 
 //-------------------------------------------------------------------------------------

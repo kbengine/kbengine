@@ -6,6 +6,7 @@
 
 class Entity;
 class MemoryStream;
+class ScriptModule;
 
 class KBENGINEPLUGINS_API EntityComponent
 {
@@ -20,6 +21,19 @@ public:
 		
 	virtual void onDetached(Entity* pOwnerEntity)
 	{
+	}
+
+	virtual void onEnterworld()
+	{
+	}
+
+	virtual void onLeaveworld()
+	{
+	}
+
+	virtual ScriptModule* getScriptModule()
+	{
+		return NULL;
 	}
 
 	virtual void onRemoteMethodCall(uint16 methodUtype, MemoryStream& stream)

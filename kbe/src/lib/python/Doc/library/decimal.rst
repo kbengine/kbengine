@@ -12,6 +12,8 @@
 .. moduleauthor:: Stefan Krah <skrah at bytereef.org>
 .. sectionauthor:: Raymond D. Hettinger <python at rcn.com>
 
+**Source code:** :source:`Lib/decimal.py`
+
 .. import modules for testing inline doctests with the Sphinx doctest builder
 .. testsetup:: *
 
@@ -20,6 +22,13 @@
    from decimal import *
    # make sure each group gets a fresh context
    setcontext(Context())
+
+.. testcleanup:: *
+
+   # make sure other tests (outside this file) get a fresh context
+   setcontext(Context())
+
+--------------
 
 The :mod:`decimal` module provides support for fast correctly-rounded
 decimal floating point arithmetic. It offers several advantages over the
@@ -107,9 +116,6 @@ reset them before monitoring a calculation.
    * IBM's General Decimal Arithmetic Specification, `The General Decimal Arithmetic
      Specification <http://speleotrove.com/decimal/decarith.html>`_.
 
-   * IEEE standard 854-1987, `Unofficial IEEE 854 Text
-     <http://754r.ucbtest.org/standards/854.pdf>`_.
-
 .. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -162,7 +168,7 @@ an exception::
    >>> c.traps[FloatOperation] = True
    >>> Decimal(3.14)
    Traceback (most recent call last):
-   File "<stdin>", line 1, in <module>
+     File "<stdin>", line 1, in <module>
    decimal.FloatOperation: [<class 'decimal.FloatOperation'>]
    >>> Decimal('3.5') < 3.7
    Traceback (most recent call last):
@@ -261,7 +267,7 @@ For more advanced work, it may be useful to create alternate contexts using the
 Context() constructor.  To make an alternate active, use the :func:`setcontext`
 function.
 
-In accordance with the standard, the :mod:`Decimal` module provides two ready to
+In accordance with the standard, the :mod:`decimal` module provides two ready to
 use standard contexts, :const:`BasicContext` and :const:`ExtendedContext`. The
 former is especially useful for debugging because many of the traps are
 enabled:
@@ -344,7 +350,7 @@ Decimal objects
    *value* can be an integer, string, tuple, :class:`float`, or another :class:`Decimal`
    object. If no *value* is given, returns ``Decimal('0')``.  If *value* is a
    string, it should conform to the decimal numeric string syntax after leading
-   and trailing whitespace characters are removed::
+   and trailing whitespace characters, as well as underscores throughout, are removed::
 
       sign           ::=  '+' | '-'
       digit          ::=  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
@@ -392,6 +398,10 @@ Decimal objects
    .. versionchanged:: 3.3
       :class:`float` arguments raise an exception if the :exc:`FloatOperation`
       trap is set. By default the trap is off.
+
+   .. versionchanged:: 3.6
+      Underscores are allowed for grouping, as with integral and floating-point
+      literals in code.
 
    Decimal floating point objects share many properties with the other built-in
    numeric types such as :class:`float` and :class:`int`.  All of the usual math
@@ -446,6 +456,19 @@ Decimal objects
       ``Decimal('321e+5').adjusted()`` returns seven.  Used for determining the
       position of the most significant digit with respect to the decimal point.
 
+   .. method:: as_integer_ratio()
+
+      Return a pair ``(n, d)`` of integers that represent the given
+      :class:`Decimal` instance as a fraction, in lowest terms and
+      with a positive denominator::
+
+          >>> Decimal('-3.14').as_integer_ratio()
+          (-157, 50)
+
+      The conversion is exact.  Raise OverflowError on infinities and ValueError
+      on NaNs.
+
+   .. versionadded:: 3.6
 
    .. method:: as_tuple()
 
@@ -742,7 +765,7 @@ Decimal objects
       * ``"NaN"``, indicating that the operand is a quiet NaN (Not a Number).
       * ``"sNaN"``, indicating that the operand is a signaling NaN.
 
-   .. method:: quantize(exp, rounding=None, context=None, watchexp=True)
+   .. method:: quantize(exp, rounding=None, context=None)
 
       Return a value equal to the first operand after rounding and having the
       exponent of the second operand.
@@ -765,14 +788,8 @@ Decimal objects
       ``context`` argument; if neither argument is given the rounding mode of
       the current thread's context is used.
 
-      If *watchexp* is set (default), then an error is returned whenever the
-      resulting exponent is greater than :attr:`Emax` or less than
-      :attr:`Etiny`.
-
-      .. deprecated:: 3.3
-         *watchexp* is an implementation detail from the pure Python version
-         and is not present in the C version. It will be removed in version
-         3.4, where it defaults to ``True``.
+      An error is returned whenever the resulting exponent is greater than
+      :attr:`Emax` or less than :attr:`Etiny`.
 
    .. method:: radix()
 
@@ -841,11 +858,13 @@ Decimal objects
 
    .. method:: to_eng_string(context=None)
 
-      Convert to an engineering-type string.
+      Convert to a string, using engineering notation if an exponent is needed.
 
-      Engineering notation has an exponent which is a multiple of 3, so there
-      are up to 3 digits left of the decimal place.  For example, converts
-      ``Decimal('123E+1')`` to ``Decimal('1.23E+3')``
+      Engineering notation has an exponent which is a multiple of 3.  This
+      can leave up to 3 digits to the left of the decimal place and may
+      require the addition of either one or two trailing zeros.
+
+      For example, this converts ``Decimal('123E+1')`` to ``Decimal('1.23E+3')``.
 
    .. method:: to_integral(rounding=None, context=None)
 
@@ -1065,8 +1084,8 @@ In addition to the three supplied contexts, new contexts can be created with the
          Decimal('4.44')
 
       This method implements the to-number operation of the IBM specification.
-      If the argument is a string, no leading or trailing whitespace is
-      permitted.
+      If the argument is a string, no leading or trailing whitespace or
+      underscores are permitted.
 
    .. method:: create_decimal_from_float(f)
 
@@ -1415,7 +1434,11 @@ In addition to the three supplied contexts, new contexts can be created with the
 
    .. method:: to_eng_string(x)
 
-      Converts a number to a string, using scientific notation.
+      Convert to a string, using engineering notation if an exponent is needed.
+
+      Engineering notation has an exponent which is a multiple of 3.  This
+      can leave up to 3 digits to the left of the decimal place and may
+      require the addition of either one or two trailing zeros.
 
 
    .. method:: to_integral_exact(x)
@@ -2092,4 +2115,3 @@ Alternatively, inputs can be rounded upon creation using the
 
    >>> Context(prec=5, rounding=ROUND_DOWN).create_decimal('1.2345678')
    Decimal('1.2345')
-

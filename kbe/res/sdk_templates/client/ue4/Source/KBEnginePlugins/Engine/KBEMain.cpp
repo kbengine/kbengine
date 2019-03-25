@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "KBEMain.h"
 #include "KBEngine.h"
@@ -32,6 +32,9 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 	TCP_RECV_BUFFER_MAX = TCP_PACKET_MAX;
 	UDP_SEND_BUFFER_MAX = 128;
 	UDP_RECV_BUFFER_MAX = 128;
+
+	pUpdaterObj = NULL;
+	automaticallyUpdateSDK = true;
 }
 
 void UKBEMain::InitializeComponent()
@@ -64,35 +67,95 @@ void UKBEMain::BeginPlay()
 	pArgs->UDP_SEND_BUFFER_MAX = UDP_SEND_BUFFER_MAX;
 	pArgs->UDP_RECV_BUFFER_MAX = UDP_RECV_BUFFER_MAX;
 
+	KBEngineApp::destroyKBEngineApp();
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
+
+	installEvents();
+	
+#ifdef KBENGINE_NO_CRYPTO
+	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pArgs->networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
+		ERROR_MSG("No module CryptoPP! Please use unreal engine source code to install");
+	}
+#endif
 }
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (pUpdaterObj != nullptr)
+	{
+		delete pUpdaterObj;
+		pUpdaterObj = nullptr;
+	}
+
+	deregisterEvents();
 	Super::EndPlay(EndPlayReason);
 }
 
 // Called every frame
 void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
+	
+}
 
-	KBEvent::processOutEvents();
+void UKBEMain::installEvents()
+{
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onVersionNotMatch, onVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+}
 
-	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	Entity* kbe_player = KBEngineApp::getSingleton().player();
+void UKBEMain::deregisterEvents()
+{
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully);
+}
 
-	// 每个tick将UE4的玩家坐标写入到KBE插件中的玩家实体坐标，插件会定期同步给服务器
-	if (kbe_player && ue4_player)
+void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
+{
+	downloadSDKFromServer();
+}
+
+void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
+{
+	downloadSDKFromServer();
+}
+
+bool UKBEMain::isUpdateSDK()
+{
+	#if WITH_EDITOR
+		return automaticallyUpdateSDK;
+	#endif
+		return false;
+}
+
+void UKBEMain::downloadSDKFromServer()
+{
+	if (isUpdateSDK())
 	{
-		UE4Pos2KBPos(kbe_player->position, ue4_player->GetActorLocation());
-		UE4Dir2KBDir(kbe_player->direction, ue4_player->GetActorRotation());
+		if (pUpdaterObj == nullptr)
+		{
+			pUpdaterObj = new ClientSDKUpdater();
+		}
 
-		kbe_player->isOnGround(ue4_player->GetMovementComponent() && ue4_player->GetMovementComponent()->IsMovingOnGround());
+		pUpdaterObj->downloadSDKFromServer();
 	}
+	else
+	{
+		if(pUpdaterObj != nullptr)
+		{
+			delete pUpdaterObj;
+			pUpdaterObj = nullptr;
+		}
+	}
+}
 
-	KBEngineApp::getSingleton().process();
+void UKBEMain::onImportClientSDKSuccessfully(const UKBEventData* pEventData)
+{
+	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, true);
 }
 
 FString UKBEMain::getClientVersion()
@@ -141,6 +204,7 @@ bool UKBEMain::destroyKBEngine()
 		return false;
 
 	KBEngineApp::getSingleton().destroy();
+	KBENGINE_EVENT_CLEAR();
 	return true;
 }
 
@@ -157,7 +221,7 @@ bool UKBEMain::login(FString username, FString password, TArray<uint8> datas)
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("login", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::login, pEventData);
 	return true;
 }
 
@@ -174,6 +238,6 @@ bool UKBEMain::createAccount(FString username, FString password, const TArray<ui
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("createAccount", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::createAccount, pEventData);
 	return true;
 }

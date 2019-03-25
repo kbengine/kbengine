@@ -123,7 +123,7 @@ public:
 		isRefSocket_ = true;
 	}
 
-	bool setupSSL();
+	bool setupSSL(int sslVersion, Packet* pPacket);
 	bool destroySSL();
 
 	bool isSSL() const {

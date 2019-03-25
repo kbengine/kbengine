@@ -4,7 +4,6 @@ Test suite for _osx_support: shared OS X support functions.
 
 import os
 import platform
-import shutil
 import stat
 import sys
 import unittest
@@ -25,7 +24,7 @@ class Test_OSXSupport(unittest.TestCase):
         for cv in ('CFLAGS', 'LDFLAGS', 'CPPFLAGS',
                             'BASECFLAGS', 'BLDSHARED', 'LDSHARED', 'CC',
                             'CXX', 'PY_CFLAGS', 'PY_LDFLAGS', 'PY_CPPFLAGS',
-                            'PY_CORE_CFLAGS'):
+                            'PY_CORE_CFLAGS', 'PY_CORE_LDFLAGS'):
             if cv in self.env:
                 self.env.unset(cv)
 
@@ -273,9 +272,5 @@ class Test_OSXSupport(unittest.TestCase):
         result = _osx_support.get_platform_osx(config_vars, ' ', ' ', ' ')
         self.assertEqual(('macosx', '10.6', 'fat'), result)
 
-def test_main():
-    if sys.platform == 'darwin':
-        test.support.run_unittest(Test_OSXSupport)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

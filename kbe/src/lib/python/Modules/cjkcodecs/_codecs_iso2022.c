@@ -292,7 +292,7 @@ iso2022processesc(const void *config, MultibyteCodec_State *state,
                   const unsigned char **inbuf, Py_ssize_t *inleft)
 {
     unsigned char charset, designation;
-    Py_ssize_t i, esclen;
+    Py_ssize_t i, esclen = 0;
 
     for (i = 1;i < MAX_ESCSEQLEN;i++) {
         if (i >= *inleft)
@@ -307,10 +307,9 @@ iso2022processesc(const void *config, MultibyteCodec_State *state,
         }
     }
 
-    if (i >= MAX_ESCSEQLEN)
-        return 1; /* unterminated escape sequence */
-
     switch (esclen) {
+    case 0:
+        return 1; /* unterminated escape sequence */
     case 3:
         if (INBYTE2 == '$') {
             charset = INBYTE3 | CHARSET_DBCS;
@@ -808,15 +807,9 @@ jisx0213_encoder(const Py_UCS4 *data, Py_ssize_t *length, void *config)
     case 2: /* second character of unicode pair */
         coded = find_pairencmap((ucs2_t)data[0], (ucs2_t)data[1],
                                 jisx0213_pair_encmap, JISX0213_ENCPAIRS);
-        if (coded == DBCINV) {
-            *length = 1;
-            coded = find_pairencmap((ucs2_t)data[0], 0,
-                      jisx0213_pair_encmap, JISX0213_ENCPAIRS);
-            if (coded == DBCINV)
-                return MAP_UNMAPPABLE;
-        }
-        else
+        if (coded != DBCINV)
             return coded;
+        /* fall through */
 
     case -1: /* flush unterminated */
         *length = 1;

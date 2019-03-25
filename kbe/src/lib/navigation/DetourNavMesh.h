@@ -118,11 +118,10 @@ enum dtStraightPathOptions
 };
 
 
-/// Options for dtNavMeshQuery::findPath
+/// Options for dtNavMeshQuery::initSlicedFindPath and updateSlicedFindPath
 enum dtFindPathOptions
 {
-	DT_FINDPATH_LOW_QUALITY_FAR = 0x01,		///< [provisional] trade quality for performance far from the origin. The idea is that by then a new query will be issued
-	DT_FINDPATH_ANY_ANGLE	= 0x02,			///< use raycasts during pathfind to "shortcut" (raycast still consider costs)
+	DT_FINDPATH_ANY_ANGLE	= 0x02,		///< use raycasts during pathfind to "shortcut" (raycast still consider costs)
 };
 
 /// Options for dtNavMeshQuery::raycast
@@ -146,7 +145,7 @@ enum dtPolyTypes
 };
 
 
-/// Defines a polyogn within a dtMeshTile object.
+/// Defines a polygon within a dtMeshTile object.
 /// @ingroup detour
 struct dtPoly
 {
@@ -301,6 +300,9 @@ struct dtMeshTile
 	int dataSize;							///< Size of the tile data.
 	int flags;								///< Tile flags. (See: #dtTileFlags)
 	dtMeshTile* next;						///< The next free tile, or the next tile in the spatial grid.
+private:
+	dtMeshTile(const dtMeshTile&);
+	dtMeshTile& operator=(const dtMeshTile&);
 };
 
 /// Configuration parameters used to define multi-tile navigation meshes.
@@ -592,6 +594,9 @@ public:
 	/// @}
 	
 private:
+	// Explicitly disabled copy constructor and copy assignment operator.
+	dtNavMesh(const dtNavMesh&);
+	dtNavMesh& operator=(const dtNavMesh&);
 
 	/// Returns pointer to tile in the tile array.
 	dtMeshTile* getTile(int i);
@@ -620,7 +625,7 @@ private:
 	void connectExtOffMeshLinks(dtMeshTile* tile, dtMeshTile* target, int side);
 	
 	/// Removes external links at specified side.
-	void unconnectExtLinks(dtMeshTile* tile, dtMeshTile* target);
+	void unconnectLinks(dtMeshTile* tile, dtMeshTile* target);
 	
 
 	// TODO: These methods are duplicates from dtNavMeshQuery, but are needed for off-mesh connection finding.
@@ -630,7 +635,7 @@ private:
 							dtPolyRef* polys, const int maxPolys) const;
 	/// Find nearest polygon within a tile.
 	dtPolyRef findNearestPolyInTile(const dtMeshTile* tile, const float* center,
-									const float* extents, float* nearestPt) const;
+									const float* halfExtents, float* nearestPt) const;
 	/// Returns closest point on polygon.
 	void closestPointOnPoly(dtPolyRef ref, const float* pos, float* closest, bool* posOverPoly) const;
 	

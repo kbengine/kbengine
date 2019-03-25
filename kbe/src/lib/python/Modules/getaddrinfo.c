@@ -15,14 +15,14 @@
  *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
- * GAI_ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
- * FOR GAI_ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON GAI_ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN GAI_ANY WAY
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
@@ -136,7 +136,7 @@ static int get_addr(const char *, int, struct addrinfo **,
                         struct addrinfo *, int);
 static int str_isnumber(const char *);
 
-static char *ai_errlist[] = {
+static const char * const ai_errlist[] = {
     "success.",
     "address family for hostname not supported.",       /* EAI_ADDRFAMILY */
     "temporary failure in name resolution.",            /* EAI_AGAIN      */
@@ -198,7 +198,7 @@ if (pai->ai_flags & AI_CANONNAME) {\
 
 #define ERR(err) { error = (err); goto bad; }
 
-char *
+const char *
 gai_strerror(int ecode)
 {
     if (ecode < 0 || ecode > EAI_MAX)
@@ -251,7 +251,7 @@ getaddrinfo(const char*hostname, const char*servname,
     if (firsttime) {
         /* translator hack */
         {
-            char *q = getenv("GAI");
+            const char *q = getenv("GAI");
             if (q && inet_pton(AF_INET6, q, &faith_prefix) == 1)
                 translate = YES;
         }
@@ -342,7 +342,7 @@ getaddrinfo(const char*hostname, const char*servname,
             port = htons((u_short)atoi(servname));
         } else {
             struct servent *sp;
-            char *proto;
+            const char *proto;
 
             proto = NULL;
             switch (pai->ai_socktype) {

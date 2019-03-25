@@ -4,9 +4,10 @@
 .. module:: logging.config
    :synopsis: Configuration of the logging module.
 
-
 .. moduleauthor:: Vinay Sajip <vinay_sajip@red-dove.com>
 .. sectionauthor:: Vinay Sajip <vinay_sajip@red-dove.com>
+
+**Source code:** :source:`Lib/logging/config.py`
 
 .. sidebar:: Important
 
@@ -16,8 +17,6 @@
    * :ref:`Basic Tutorial <logging-basic-tutorial>`
    * :ref:`Advanced Tutorial <logging-advanced-tutorial>`
    * :ref:`Logging Cookbook <logging-cookbook>`
-
-**Source code:** :source:`Lib/logging/config.py`
 
 --------------
 
@@ -106,8 +105,8 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    :param disable_existing_loggers: If specified as ``False``, loggers which
                                     exist when this call is made are left
                                     enabled. The default is ``True`` because this
-                                    enables old behaviour in a backward-
-                                    compatible way. This behaviour is to
+                                    enables old behaviour in a
+                                    backward-compatible way. This behaviour is to
                                     disable any existing loggers unless they or
                                     their ancestors are explicitly named in the
                                     logging configuration.
@@ -127,10 +126,10 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    Starts up a socket server on the specified port, and listens for new
    configurations. If no port is specified, the module's default
    :const:`DEFAULT_LOGGING_CONFIG_PORT` is used. Logging configurations will be
-   sent as a file suitable for processing by :func:`fileConfig`. Returns a
-   :class:`~threading.Thread` instance on which you can call
-   :meth:`~threading.Thread.start` to start the server, and which you can
-   :meth:`~threading.Thread.join` when appropriate. To stop the server,
+   sent as a file suitable for processing by :func:`dictConfig` or
+   :func:`fileConfig`. Returns a :class:`~threading.Thread` instance on which
+   you can call :meth:`~threading.Thread.start` to start the server, and which
+   you can :meth:`~threading.Thread.join` when appropriate. To stop the server,
    call :func:`stopListening`.
 
    The ``verify`` argument, if specified, should be a callable which should
@@ -139,13 +138,13 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    across the socket, such that the ``verify`` callable can perform
    signature verification and/or decryption. The ``verify`` callable is called
    with a single argument - the bytes received across the socket - and should
-   return the bytes to be processed, or None to indicate that the bytes should
+   return the bytes to be processed, or ``None`` to indicate that the bytes should
    be discarded. The returned bytes could be the same as the passed in bytes
    (e.g. when only verification is done), or they could be completely different
    (perhaps if decryption were performed).
 
    To send a configuration to the socket, read in the configuration file and
-   send it to the socket as a string of bytes preceded by a four-byte length
+   send it to the socket as a sequence of bytes preceded by a four-byte length
    string packed in binary using ``struct.pack('>L', n)``.
 
    .. note::
@@ -166,8 +165,17 @@ in :mod:`logging` itself) and defining handlers which are declared either in
       ``verify`` argument to :func:`listen` to prevent unrecognised
       configurations from being applied.
 
-   .. versionchanged:: 3.4.
+   .. versionchanged:: 3.4
       The ``verify`` argument was added.
+
+   .. note::
+
+      If you want to send configurations to the listener which don't
+      disable existing loggers, you will need to use a JSON format for
+      the configuration, which will use :func:`dictConfig` for configuration.
+      This method allows you to specify ``disable_existing_loggers`` as
+      ``False`` in the configuration you send.
+
 
 .. function:: stopListening()
 
@@ -244,7 +252,9 @@ otherwise, the context is used to determine what to instantiate.
     handler.
 
   All *other* keys are passed through as keyword arguments to the
-  handler's constructor.  For example, given the snippet::
+  handler's constructor.  For example, given the snippet:
+
+  .. code-block:: yaml
 
       handlers:
         console:
@@ -353,7 +363,9 @@ it unambiguously, and then using the id in the source object's
 configuration to indicate that a connection exists between the source
 and the destination object with that id.
 
-So, for example, consider the following YAML snippet::
+So, for example, consider the following YAML snippet:
+
+.. code-block:: yaml
 
     formatters:
       brief:
@@ -410,7 +422,9 @@ to provide a 'factory' - a callable which is called with a
 configuration dictionary and which returns the instantiated object.
 This is signalled by an absolute import path to the factory being
 made available under the special key ``'()'``.  Here's a concrete
-example::
+example:
+
+.. code-block:: yaml
 
     formatters:
       brief:
@@ -524,7 +538,9 @@ target handler, and the system will resolve to the handler from the
 id.  If, however, a user defines a ``my.package.MyHandler`` which has
 an ``alternate`` handler, the configuration system would not know that
 the ``alternate`` referred to a handler.  To cater for this, a generic
-resolution system allows the user to specify::
+resolution system allows the user to specify:
+
+.. code-block:: yaml
 
     handlers:
       file:
@@ -538,7 +554,9 @@ The literal string ``'cfg://handlers.file'`` will be resolved in an
 analogous way to strings with the ``ext://`` prefix, but looking
 in the configuration itself rather than the import namespace.  The
 mechanism allows access by dot or by index, in a similar way to
-that provided by ``str.format``.  Thus, given the following snippet::
+that provided by ``str.format``.  Thus, given the following snippet:
+
+.. code-block:: yaml
 
     handlers:
       email:
@@ -615,7 +633,21 @@ called ``form01`` in the ``[formatters]`` section will have its configuration
 specified in a section called ``[formatter_form01]``. The root logger
 configuration must be specified in a section called ``[logger_root]``.
 
-Examples of these sections in the file are given below. ::
+.. note::
+
+   The :func:`fileConfig` API is older than the :func:`dictConfig` API and does
+   not provide functionality to cover certain aspects of logging. For example,
+   you cannot configure :class:`~logging.Filter` objects, which provide for
+   filtering of messages beyond simple integer levels, using :func:`fileConfig`.
+   If you need to have instances of :class:`~logging.Filter` in your logging
+   configuration, you will need to use :func:`dictConfig`. Note that future
+   enhancements to configuration functionality will be added to
+   :func:`dictConfig`, so it's worth considering transitioning to this newer
+   API when it's convenient to do so.
+
+Examples of these sections in the file are given below.
+
+.. code-block:: ini
 
    [loggers]
    keys=root,log02,log03,log04,log05,log06,log07
@@ -627,7 +659,9 @@ Examples of these sections in the file are given below. ::
    keys=form01,form02,form03,form04,form05,form06,form07,form08,form09
 
 The root logger must specify a level and a list of handlers. An example of a
-root logger section is given below. ::
+root logger section is given below.
+
+.. code-block:: ini
 
    [logger_root]
    level=NOTSET
@@ -644,7 +678,9 @@ appear in the ``[handlers]`` section. These names must appear in the
 file.
 
 For loggers other than the root logger, some additional information is required.
-This is illustrated by the following example. ::
+This is illustrated by the following example.
+
+.. code-block:: ini
 
    [logger_parser]
    level=DEBUG
@@ -662,7 +698,8 @@ indicate that messages are **not** propagated to handlers up the hierarchy. The
 say the name used by the application to get the logger.
 
 Sections which specify handler configuration are exemplified by the following.
-::
+
+.. code-block:: ini
 
    [handler_hand01]
    class=StreamHandler
@@ -682,7 +719,14 @@ a corresponding section in the configuration file.
 The ``args`` entry, when :func:`eval`\ uated in the context of the ``logging``
 package's namespace, is the list of arguments to the constructor for the handler
 class. Refer to the constructors for the relevant handlers, or to the examples
-below, to see how typical entries are constructed. ::
+below, to see how typical entries are constructed. If not provided, it defaults
+to ``()``.
+
+The optional ``kwargs`` entry, when :func:`eval`\ uated in the context of the
+``logging`` package's namespace, is the keyword argument dict to the constructor
+for the handler class. If not provided, it defaults to ``{}``.
+
+.. code-block:: ini
 
    [handler_hand02]
    class=FileHandler
@@ -719,6 +763,7 @@ below, to see how typical entries are constructed. ::
    level=WARN
    formatter=form07
    args=('localhost', 'from@abc', ['user1@abc', 'user2@xyz'], 'Logger Subject')
+   kwargs={'timeout': 10.0}
 
    [handler_hand08]
    class=handlers.MemoryHandler
@@ -732,8 +777,11 @@ below, to see how typical entries are constructed. ::
    level=NOTSET
    formatter=form09
    args=('localhost:9022', '/log', 'GET')
+   kwargs={'secure': True}
 
-Sections which specify formatter configuration are typified by the following. ::
+Sections which specify formatter configuration are typified by the following.
+
+.. code-block:: ini
 
    [formatter_form01]
    format=F1 %(asctime)s %(levelname)s %(message)s
@@ -742,11 +790,10 @@ Sections which specify formatter configuration are typified by the following. ::
 
 The ``format`` entry is the overall format string, and the ``datefmt`` entry is
 the :func:`strftime`\ -compatible date/time format string.  If empty, the
-package substitutes ISO8601 format date/times, which is almost equivalent to
-specifying the date format string ``'%Y-%m-%d %H:%M:%S'``.  The ISO8601 format
-also specifies milliseconds, which are appended to the result of using the above
-format string, with a comma separator.  An example time in ISO8601 format is
-``2003-01-23 00:29:50,411``.
+package substitutes something which is almost equivalent to specifying the date
+format string ``'%Y-%m-%d %H:%M:%S'``.  This format also specifies milliseconds,
+which are appended to the result of using the above format string, with a comma
+separator.  An example time in this format is ``2003-01-23 00:29:50,411``.
 
 The ``class`` entry is optional.  It indicates the name of the formatter's class
 (as a dotted module and class name.)  This option is useful for instantiating a
@@ -769,5 +816,3 @@ condensed format.
 
    Module :mod:`logging.handlers`
       Useful handlers included with the logging module.
-
-

@@ -30,7 +30,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "typearith.h"
-#include "memory.h"
+#include "mpalloc.h"
+
+
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4232)
+#endif
 
 
 /* Guaranteed minimum allocation for a coefficient. May be changed once

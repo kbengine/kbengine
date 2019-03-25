@@ -89,6 +89,16 @@
 			// 动态生成
 		}
 
+		public virtual void onComponentsEnterworld()
+		{
+			// 动态生成， 通知组件onEnterworld
+		}
+
+		public virtual void onComponentsLeaveworld()
+		{
+			// 动态生成， 通知组件onLeaveworld
+		}
+
 		public virtual EntityCall getBaseEntityCall()
 		{
 			// 动态生成
@@ -257,6 +267,7 @@
 			
 			try{
 				onEnterWorld();
+				onComponentsEnterworld();
 			}
 			catch (Exception e)
 			{
@@ -277,6 +288,7 @@
 			
 			try{
 				onLeaveWorld();
+				onComponentsLeaveworld();
 			}
 			catch (Exception e)
 			{

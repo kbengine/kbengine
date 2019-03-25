@@ -143,7 +143,6 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				pMsg->handleMessage(*pMemoryStream_);
 
 				pMemoryStream_->clear(false);
-
 				state_ = READ_STATE_MSGID;
 				expectSize_ = 2;
 			}

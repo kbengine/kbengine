@@ -26,15 +26,36 @@ A small number of constants live in the built-in namespace.  They are:
 
 .. data:: NotImplemented
 
-   Special value which can be returned by the "rich comparison" special methods
-   (:meth:`__eq__`, :meth:`__lt__`, and friends), to indicate that the comparison
-   is not implemented with respect to the other type.
+   Special value which should be returned by the binary special methods
+   (e.g. :meth:`__eq__`, :meth:`__lt__`, :meth:`__add__`, :meth:`__rsub__`,
+   etc.) to indicate that the operation is not implemented with respect to
+   the other type; may be returned by the in-place binary special methods
+   (e.g. :meth:`__imul__`, :meth:`__iand__`, etc.) for the same purpose.
+   Its truth value is true.
+
+   .. note::
+
+      When a binary (or in-place) method returns ``NotImplemented`` the
+      interpreter will try the reflected operation on the other type (or some
+      other fallback, depending on the operator).  If all attempts return
+      ``NotImplemented``, the interpreter will raise an appropriate exception.
+      Incorrectly returning ``NotImplemented`` will result in a misleading
+      error message or the ``NotImplemented`` value being returned to Python code.
+
+      See :ref:`implementing-the-arithmetic-operations` for examples.
+
+   .. note::
+
+      ``NotImplementedError`` and ``NotImplemented`` are not interchangeable,
+      even though they have similar names and purposes.
+      See :exc:`NotImplementedError` for details on when to use it.
 
 
+.. index:: single: ...; ellipsis literal
 .. data:: Ellipsis
 
-   The same as ``...``.  Special value used mostly in conjunction with extended
-   slicing syntax for user-defined container data types.
+   The same as the ellipsis literal "``...``".  Special value used mostly in conjunction
+   with extended slicing syntax for user-defined container data types.
 
 
 .. data:: __debug__
@@ -66,10 +87,14 @@ should not be used in programs.
    specified exit code.
 
 .. data:: copyright
-          license
           credits
 
-   Objects that when printed, print a message like "Type license() to see the
-   full license text", and when called, display the corresponding text in a
+   Objects that when printed or called, print the text of copyright or
+   credits, respectively.
+
+.. data:: license
+
+   Object that when printed, prints the message "Type license() to see the
+   full license text", and when called, displays the full license text in a
    pager-like fashion (one screen at a time).
 

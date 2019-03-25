@@ -3,9 +3,13 @@
 
 .. module:: xml.sax.xmlreader
    :synopsis: Interface which SAX-compliant XML parsers must implement.
+
 .. moduleauthor:: Lars Marius Garshol <larsga@garshol.priv.no>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
 
+**Source code:** :source:`Lib/xml/sax/xmlreader.py`
+
+--------------
 
 SAX parsers implement the :class:`XMLReader` interface. They are implemented in
 a Python module, which must provide a function :func:`create_parser`. This
@@ -98,10 +102,12 @@ The :class:`XMLReader` interface supports the following methods:
 
    Process an input source, producing SAX events. The *source* object can be a
    system identifier (a string identifying the input source -- typically a file
-   name or an URL), a file-like object, or an :class:`InputSource` object. When
+   name or a URL), a file-like object, or an :class:`InputSource` object. When
    :meth:`parse` returns, the input is completely processed, and the parser object
-   can be discarded or reset. As a limitation, the current implementation only
-   accepts byte streams; processing of character streams is for further study.
+   can be discarded or reset.
+
+   .. versionchanged:: 3.5
+      Added support of character streams.
 
 
 .. method:: XMLReader.getContentHandler()
@@ -226,12 +232,12 @@ Instances of :class:`Locator` provide these methods:
 
 .. method:: Locator.getColumnNumber()
 
-   Return the column number where the current event ends.
+   Return the column number where the current event begins.
 
 
 .. method:: Locator.getLineNumber()
 
-   Return the line number where the current event ends.
+   Return the line number where the current event begins.
 
 
 .. method:: Locator.getPublicId()
@@ -288,8 +294,7 @@ InputSource Objects
 
 .. method:: InputSource.setByteStream(bytefile)
 
-   Set the byte stream (a Python file-like object which does not perform
-   byte-to-character conversion) for this input source.
+   Set the byte stream (a :term:`binary file`) for this input source.
 
    The SAX parser will ignore this if there is also a character stream specified,
    but it will use a byte stream in preference to opening a URI connection itself.
@@ -303,13 +308,12 @@ InputSource Objects
    Get the byte stream for this input source.
 
    The getEncoding method will return the character encoding for this byte stream,
-   or None if unknown.
+   or ``None`` if unknown.
 
 
 .. method:: InputSource.setCharacterStream(charfile)
 
-   Set the character stream for this input source. (The stream must be a Python 1.6
-   Unicode-wrapped file-like that performs conversion to strings.)
+   Set the character stream (a :term:`text file`) for this input source.
 
    If there is a character stream specified, the SAX parser will ignore any byte
    stream and will not attempt to open a URI connection to the system identifier.

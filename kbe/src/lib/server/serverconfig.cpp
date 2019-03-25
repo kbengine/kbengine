@@ -617,6 +617,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				_cellAppInfo.entity_posdir_additional_updates = xml->getValInt(childnode);
 			}
+
+			childnode = xml->enterNode(node, "entity_posdir_updates");
+			if (childnode)
+			{
+				TiXmlNode* node = xml->enterNode(childnode, "type");
+				if (node)
+					_cellAppInfo.entity_posdir_updates_type = xml->getValInt(node);
+
+				node = xml->enterNode(childnode, "smartThreshold");
+				if (node)
+					_cellAppInfo.entity_posdir_updates_smart_threshold = xml->getValInt(node);
+			}
 		}
 
 		node = xml->enterNode(rootNode, "telnet_service");
@@ -923,7 +935,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if (childnode)
 			{
 				if (xml->getValStr(childnode) != "true")
+				{
 					interfacesAddrs_.clear();
+					g_dbmgr_addDefaultAddress = false;
+				}
 			}
 		}
 
@@ -1035,8 +1050,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 								(*dbinfo_iter).db_port == dbinfo.db_port &&
 								strcmp(dbinfo.db_name, (*dbinfo_iter).db_name) == 0)
 							{
-								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}\" and \"{}\", file={}!\n",
-									(*dbinfo_iter).name, dbinfo.name, fileName.c_str()));
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}=(databaseName={})\" and \"{}=(databaseName={})\", file={}!\n",
+									(*dbinfo_iter).name, (*dbinfo_iter).db_name, dbinfo.name, dbinfo.db_name, fileName.c_str()));
 
 								return false;
 							}
@@ -1307,9 +1322,21 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP);
 
-		node = xml->enterNode(rootNode, "port");	
+		node = xml->enterNode(rootNode, "port_min");	
 		if(node != NULL)
-			_botsInfo.login_port = xml->getValInt(node);
+			_botsInfo.login_port_min = xml->getValInt(node);
+
+		node = xml->enterNode(rootNode, "port_max");
+		if (node != NULL)
+			_botsInfo.login_port_max = xml->getValInt(node);
+
+		if (_botsInfo.login_port_min < 0)
+			_botsInfo.login_port_min = 0;
+			
+		if (_botsInfo.login_port_max < _botsInfo.login_port_min)
+			_botsInfo.login_port_max = _botsInfo.login_port_min;
+		
+		_botsInfo.login_port = _botsInfo.login_port_min;
 
 		node = xml->enterNode(rootNode, "isOnInitCallPropertysSetMethods");
 		if (node != NULL)

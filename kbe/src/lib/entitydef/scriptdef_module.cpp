@@ -3,6 +3,7 @@
 
 #include "scriptdef_module.h"
 #include "entitydef.h"
+#include "py_entitydef.h"
 #include "datatypes.h"
 #include "common.h"
 #include "common/smartpointer.h"
@@ -337,64 +338,80 @@ void ScriptDefModule::autoMatchCompOwn()
 			entities.xml， <Spaces hasCell="true" hasClient="false", hasBase="true"></Spaces>
 	*/
 
-	std::string entitiesFile = Resmgr::getSingleton().getPyUserScriptsPath() + "entities.xml";
-
-	// 打开这个entities.xml文件
-	SmartPointer<XML> xml(new XML());
-	if(!xml->openSection(entitiesFile.c_str()) || !xml->isGood())
-		return;
-	
-	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
-	TiXmlNode* node = xml->getRootNode();
-	if(node == NULL)
-		return;
-
 	int assertionHasClient = -1;
 	int assertionHasBase = -1;
 	int assertionHasCell = -1;
 
-	// 开始遍历所有的entity节点
-	XML_FOR_BEGIN(node)
+	std::string entitiesFile = Resmgr::getSingleton().getPyUserScriptsPath() + "entities.xml";
+
+	// 打开这个entities.xml文件
+	// 允许纯脚本定义，则可能没有这个文件
+	if (access(entitiesFile.c_str(), 0) == 0)
 	{
-		std::string moduleName = xml.get()->getKey(node);
-		if(name_ == moduleName)
+		SmartPointer<XML> xml(new XML());
+		if (!xml->openSection(entitiesFile.c_str()) || !xml->isGood())
+			return;
+
+		// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
+		TiXmlNode* node = xml->getRootNode();
+		if (node == NULL)
+			return;
+
+		// 开始遍历所有的entity节点
+		XML_FOR_BEGIN(node)
 		{
-			const char* val = node->ToElement()->Attribute("hasClient");
-			if(val)
+			std::string moduleName = xml.get()->getKey(node);
+			if (name_ == moduleName)
 			{
-				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
-					assertionHasClient = 1;
-				else
-					assertionHasClient = 0;
+				const char* val = node->ToElement()->Attribute("hasClient");
+				if (val)
+				{
+					if (kbe_strnicmp(val, "true", strlen(val)) == 0)
+						assertionHasClient = 1;
+					else
+						assertionHasClient = 0;
+				}
+
+				EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+
+				val = node->ToElement()->Attribute("hasCell");
+				if (val)
+				{
+					if (kbe_strnicmp(val, "true", strlen(val)) == 0)
+						assertionHasCell = 1;
+					else
+						assertionHasCell = 0;
+				}
+
+				EntityDef::md5().append((void*)&assertionHasCell, sizeof(int));
+
+				val = node->ToElement()->Attribute("hasBase");
+				if (val)
+				{
+					if (kbe_strnicmp(val, "true", strlen(val)) == 0)
+						assertionHasBase = 1;
+					else
+						assertionHasBase = 0;
+				}
+
+				EntityDef::md5().append((void*)&assertionHasBase, sizeof(int));
+				break;
 			}
-
-			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
-
-			val = node->ToElement()->Attribute("hasCell");
-			if(val)
-			{
-				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
-					assertionHasCell = 1;
-				else
-					assertionHasCell = 0;
-			}
-
-			EntityDef::md5().append((void*)&assertionHasCell, sizeof(int));
-
-			val = node->ToElement()->Attribute("hasBase");
-			if(val)
-			{
-				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
-					assertionHasBase = 1;
-				else
-					assertionHasBase = 0;
-			}
-
-			EntityDef::md5().append((void*)&assertionHasBase, sizeof(int));
-			break;
 		}
+		XML_FOR_END(node);
 	}
-	XML_FOR_END(node);
+
+	// 检查PyEntityDef
+	script::entitydef::DefContext* pDefContext = script::entitydef::DefContext::findDefContext(name_);
+	if (pDefContext)
+	{
+		if (pDefContext->hasClient)
+			assertionHasClient = 1;
+		else
+			assertionHasClient = 0;
+
+		EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+	}
 
 	std::string fmodule = "scripts/client/" + name_ + ".py";
 	std::string fmodule_pyc = fmodule + "c";

@@ -174,8 +174,8 @@ def usage(msg):
     sys.stderr.write("Usage: %s [-m] warnings\n" % sys.argv[0])
     sys.stderr.write("Try `%s -h' for more information.\n" % sys.argv[0])
 
-PATTERN = ("^(.+?):(\d+): DeprecationWarning: "
-           "classic (int|long|float|complex) division$")
+PATTERN = (r"^(.+?):(\d+): DeprecationWarning: "
+           r"classic (int|long|float|complex) division$")
 
 def readwarnings(warningsfile):
     prog = re.compile(PATTERN)
@@ -335,8 +335,6 @@ class FileContext:
         self.buffer.append(line)
         self.lineno += 1
         return line
-    def truncate(self):
-        del self.buffer[-window:]
     def __getitem__(self, index):
         self.fill()
         bufstart = self.lineno - len(self.buffer)

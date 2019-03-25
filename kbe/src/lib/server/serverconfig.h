@@ -156,6 +156,8 @@ typedef struct EngineComponentInfo
 	bool use_coordinate_system;								// 是否使用坐标系统 如果为false, view, trap, move等功能将不再维护
 	bool coordinateSystem_hasY;								// 范围管理器是管理Y轴， 注：有y轴则view、trap等功能有了高度， 但y轴的管理会带来一定的消耗
 	uint16 entity_posdir_additional_updates;				// 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。
+	uint16 entity_posdir_updates_type;						// 实体位置更新方式，0：非优化高精度同步, 1:优化同步, 2:智能选择模式
+	uint16 entity_posdir_updates_smart_threshold;			// 实体位置更新智能模式下的同屏人数阈值
 
 	bool aliasEntityID;										// 优化EntityID，view范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	bool entitydefAliasID;									// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
@@ -183,6 +185,8 @@ typedef struct EngineComponentInfo
 
 	float loadSmoothingBias;								// baseapp负载滤平衡调整值， 
 	uint32 login_port;										// 服务器登录端口 目前bots在用
+	uint32 login_port_min;									// 服务器登录端口使用指定范围 目前bots在用
+	uint32 login_port_max;
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 
 	ENTITY_ID ids_criticallyLowSize;						// id剩余这么多个时向dbmgr申请新的id资源

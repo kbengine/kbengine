@@ -17,6 +17,15 @@ PyAPI_FUNC(int) PyErr_WarnFormat(
     Py_ssize_t stack_level,
     const char *format,         /* ASCII-encoded string  */
     ...);
+
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03060000
+/* Emit a ResourceWarning warning */
+PyAPI_FUNC(int) PyErr_ResourceWarning(
+    PyObject *source,
+    Py_ssize_t stack_level,
+    const char *format,         /* ASCII-encoded string  */
+    ...);
+#endif
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(int) PyErr_WarnExplicitObject(
     PyObject *category,
@@ -45,6 +54,10 @@ PyErr_WarnExplicitFormat(PyObject *category,
 /* DEPRECATED: Use PyErr_WarnEx() instead. */
 #ifndef Py_LIMITED_API
 #define PyErr_Warn(category, msg) PyErr_WarnEx(category, msg, 1)
+#endif
+
+#ifndef Py_LIMITED_API
+void _PyErr_WarnUnawaitedCoroutine(PyObject *coro);
 #endif
 
 #ifdef __cplusplus

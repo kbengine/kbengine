@@ -109,8 +109,9 @@ void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Interfaces::handleMainTick()
 {
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Interfaces::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	// time_t t = ::time(NULL);
+	// static int kbeTime = 0;
+	// DEBUG_MSG(fmt::format("Interfaces::handleGameTick[{}]:{}\n", t, ++kbeTime));
 	
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);
@@ -126,6 +127,7 @@ bool Interfaces::initializeBegin()
 bool Interfaces::inInitialize()
 {
 	PythonApp::inInitialize();
+
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
 	return true;
@@ -265,11 +267,7 @@ PyObject* Interfaces::__py_executeRawDatabaseCommand(PyObject* self, PyObject* a
 	std::string dbInterfaceName = "default";
 	if (pyDBInterfaceName)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyDBInterfaceName, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		dbInterfaceName = ccattr;
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		free(ccattr);
+		dbInterfaceName = PyUnicode_AsUTF8AndSize(pyDBInterfaceName, NULL);
 
 		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
 		{
@@ -452,7 +450,7 @@ void Interfaces::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEng
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}

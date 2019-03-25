@@ -1,8 +1,8 @@
 .. _tut-brieftourtwo:
 
-*********************************************
-Brief Tour of the Standard Library -- Part II
-*********************************************
+**********************************************
+Brief Tour of the Standard Library --- Part II
+**********************************************
 
 This second tour covers more advanced modules that support professional
 programming needs.  These modules rarely occur in small scripts.
@@ -18,7 +18,7 @@ abbreviated displays of large or deeply nested containers::
 
    >>> import reprlib
    >>> reprlib.repr(set('supercalifragilisticexpialidocious'))
-   "set(['a', 'c', 'd', 'e', 'f', 'g', ...])"
+   "{'a', 'c', 'd', 'e', 'f', 'g', ...}"
 
 The :mod:`pprint` module offers more sophisticated control over printing both
 built-in and user defined objects in a way that is readable by the interpreter.
@@ -180,6 +180,7 @@ tasks in background while the main program continues to run::
            threading.Thread.__init__(self)
            self.infile = infile
            self.outfile = outfile
+
        def run(self):
            f = zipfile.ZipFile(self.outfile, 'w', zipfile.ZIP_DEFLATED)
            f.write(self.infile)
@@ -277,7 +278,7 @@ applications include caching objects that are expensive to create::
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
        d['primary']                # entry was automatically removed
-     File "C:/python34/lib/weakref.py", line 46, in __getitem__
+     File "C:/python37/lib/weakref.py", line 46, in __getitem__
        o = self.data[key]()
    KeyError: 'primary'
 

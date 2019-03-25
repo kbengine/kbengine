@@ -117,11 +117,7 @@ inline void PyWatcherObject<double>::readVal(PyObject* pyVal, double& v)
 template <>
 inline void PyWatcherObject<std::string>::readVal(PyObject* pyVal, std::string& v)
 {
-	wchar_t* wstr = PyUnicode_AsWideCharString(pyVal, NULL);					
-	char* p = strutil::wchar2char(wstr);	
-	v = p;
-	PyMem_Free(wstr);	
-	free(p);
+	v = PyUnicode_AsUTF8AndSize(pyVal, NULL);
 }
 
 bool initializePyWatcher(Script* pScript);

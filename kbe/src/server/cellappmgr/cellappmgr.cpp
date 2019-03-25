@@ -172,8 +172,8 @@ void Cellappmgr::updateBestCellapp()
 //-------------------------------------------------------------------------------------
 void Cellappmgr::handleGameTick()
 {
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	//time_t t = ::time(NULL);
+	//DEBUG_MSG(fmt::format("Cellappmgr::handleGameTick[{}]:{}\n", t, g_kbetime));
 	
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
@@ -453,6 +453,10 @@ void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componen
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
 	cellapp.flags(flags);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	if (cinfos)
+		cinfos->appFlags = flags;
 	
 	updateBestCellapp();
 }

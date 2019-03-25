@@ -117,7 +117,9 @@ You can also customize the separator between items, e.g.::
 
   print("There are <", 2**32, "> possibilities!", sep="")
 
-which produces::
+which produces:
+
+.. code-block:: none
 
   There are <4294967296> possibilities!
 
@@ -164,7 +166,7 @@ Some well-known APIs no longer return lists:
 
   If the input sequences are not of equal length, :func:`map` will
   stop at the termination of the shortest of the sequences. For full
-  compatibility with `map` from Python 2.x, also wrap the sequences in
+  compatibility with :func:`map` from Python 2.x, also wrap the sequences in
   :func:`itertools.zip_longest`, e.g. ``map(func, *sequences)`` becomes
   ``list(map(func, itertools.zip_longest(*sequences)))``.
 
@@ -204,11 +206,11 @@ Python 3.0 has simplified the rules for ordering comparisons:
 Integers
 --------
 
-* :pep:`0237`: Essentially, :class:`long` renamed to :class:`int`.
+* :pep:`237`: Essentially, :class:`long` renamed to :class:`int`.
   That is, there is only one built-in integral type, named
   :class:`int`; but it behaves mostly like the old :class:`long` type.
 
-* :pep:`0238`: An expression like ``1/2`` returns a float.  Use
+* :pep:`238`: An expression like ``1/2`` returns a float.  Use
   ``1//2`` to get the truncating behavior.  (The latter syntax has
   existed for years, at least since Python 2.2.)
 
@@ -384,7 +386,7 @@ New Syntax
 
 * Dictionary comprehensions: ``{k: v for k, v in stuff}`` means the
   same thing as ``dict(stuff)`` but is more flexible.  (This is
-  :pep:`0274` vindicated. :-)
+  :pep:`274` vindicated. :-)
 
 * Set literals, e.g. ``{1, 2}``.  Note that ``{}`` is an empty
   dictionary; use ``set()`` for an empty set.  Set comprehensions are
@@ -469,7 +471,7 @@ Removed Syntax
 
 * The only acceptable syntax for relative imports is :samp:`from .[{module}]
   import {name}`.  All :keyword:`import` forms not starting with ``.`` are
-  interpreted as absolute imports.  (:pep:`0328`)
+  interpreted as absolute imports.  (:pep:`328`)
 
 * Classic classes are gone.
 
@@ -555,9 +557,9 @@ review:
 
 * Many old modules were removed.  Some, like :mod:`gopherlib` (no
   longer used) and :mod:`md5` (replaced by :mod:`hashlib`), were
-  already deprecated by :pep:`0004`.  Others were removed as a result
+  already deprecated by :pep:`4`.  Others were removed as a result
   of the removal of support for various platforms such as Irix, BeOS
-  and Mac OS 9 (see :pep:`0011`).  Some modules were also selected for
+  and Mac OS 9 (see :pep:`11`).  Some modules were also selected for
   removal in Python 3.0 due to lack of use or because a better
   replacement exists.  See :pep:`3108` for an exhaustive list.
 
@@ -565,10 +567,10 @@ review:
   core standard library has proved over time to be a particular burden
   for the core developers due to testing instability and Berkeley DB's
   release schedule.  However, the package is alive and well,
-  externally maintained at http://www.jcea.es/programacion/pybsddb.htm.
+  externally maintained at https://www.jcea.es/programacion/pybsddb.htm.
 
 * Some modules were renamed because their old name disobeyed
-  :pep:`0008`, or for various other reasons.  Here's the list:
+  :pep:`8`, or for various other reasons.  Here's the list:
 
   =======================  =======================
   Old Name                 New Name
@@ -685,7 +687,7 @@ Changes To Exceptions
 The APIs for raising and catching exception have been cleaned up and
 new powerful features added:
 
-* :pep:`0352`: All exceptions must be derived (directly or indirectly)
+* :pep:`352`: All exceptions must be derived (directly or indirectly)
   from :exc:`BaseException`.  This is the root of the exception
   hierarchy.  This is not new as a recommendation, but the
   *requirement* to inherit from :exc:`BaseException` is new.  (Python
@@ -783,8 +785,8 @@ Operators And Special Methods
   :attr:`func_closure`, :attr:`func_code`, :attr:`func_defaults`,
   :attr:`func_dict`, :attr:`func_doc`, :attr:`func_globals`,
   :attr:`func_name` were renamed to :attr:`__closure__`,
-  :attr:`__code__`, :attr:`__defaults__`, :attr:`__dict__`,
-  :attr:`__doc__`, :attr:`__globals__`, :attr:`__name__`,
+  :attr:`__code__`, :attr:`__defaults__`, :attr:`~object.__dict__`,
+  :attr:`__doc__`, :attr:`__globals__`, :attr:`~definition.__name__`,
   respectively.
 
 * :meth:`__nonzero__` is now :meth:`__bool__`.
@@ -902,7 +904,7 @@ best strategy is the following:
    port from Python 2.x to Python 2.(x+1).  Make sure all your tests
    pass.
 
-2. (Still using 2.6:) Turn on the :option:`-3` command line switch.
+2. (Still using 2.6:) Turn on the :option:`!-3` command line switch.
    This enables warnings about features that will be removed (or
    change) in 3.0.  Run your test suite again, and fix code that you
    get warnings about until there are no warnings left, and all your

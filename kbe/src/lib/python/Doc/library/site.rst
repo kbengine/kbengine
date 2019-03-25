@@ -26,29 +26,32 @@ additions, call the :func:`site.main` function.
    :option:`-S`.
 
 .. index::
-   pair: site-python; directory
    pair: site-packages; directory
 
 It starts by constructing up to four directories from a head and a tail part.
 For the head part, it uses ``sys.prefix`` and ``sys.exec_prefix``; empty heads
 are skipped.  For the tail part, it uses the empty string and then
 :file:`lib/site-packages` (on Windows) or
-:file:`lib/python{X.Y}/site-packages` and then :file:`lib/site-python` (on
-Unix and Macintosh).  For each of the distinct head-tail combinations, it sees
-if it refers to an existing directory, and if so, adds it to ``sys.path`` and
-also inspects the newly added path for configuration files.
+:file:`lib/python{X.Y}/site-packages` (on Unix and Macintosh).  For each
+of the distinct head-tail combinations, it sees if it refers to an existing
+directory, and if so, adds it to ``sys.path`` and also inspects the newly
+added path for configuration files.
 
-.. deprecated:: 3.4
-   Support for the "site-python" directory will be removed in 3.5.
+.. versionchanged:: 3.5
+   Support for the "site-python" directory has been removed.
 
 If a file named "pyvenv.cfg" exists one directory above sys.executable,
 sys.prefix and sys.exec_prefix are set to that directory and
-it is also checked for site-packages and site-python (sys.base_prefix and
+it is also checked for site-packages (sys.base_prefix and
 sys.base_exec_prefix will always be the "real" prefixes of the Python
 installation). If "pyvenv.cfg" (a bootstrap configuration file) contains
 the key "include-system-site-packages" set to anything other than "false"
 (case-insensitive), the system-level prefixes will still also be
 searched for site-packages; otherwise they won't.
+
+.. index::
+   single: # (hash); comment
+   statement: import
 
 A path configuration file is a file whose name has the form :file:`{name}.pth`
 and exists in one of the four directories mentioned above; its contents are
@@ -98,12 +101,12 @@ not mentioned in either path configuration file.
 After these path manipulations, an attempt is made to import a module named
 :mod:`sitecustomize`, which can perform arbitrary site-specific customizations.
 It is typically created by a system administrator in the site-packages
-directory.  If this import fails with an :exc:`ImportError` exception, it is
-silently ignored.  If Python is started without output streams available, as
+directory.  If this import fails with an :exc:`ImportError` or its subclass
+exception, and the exception's :attr:`name` attribute equals to ``'sitecustomize'``,
+it is silently ignored.  If Python is started without output streams available, as
 with :file:`pythonw.exe` on Windows (which is used by default to start IDLE),
-attempted output from :mod:`sitecustomize` is ignored. Any exception other
-than :exc:`ImportError` causes a silent and perhaps mysterious failure of the
-process.
+attempted output from :mod:`sitecustomize` is ignored.  Any other exception
+causes a silent and perhaps mysterious failure of the process.
 
 .. index:: module: usercustomize
 
@@ -111,7 +114,9 @@ After this, an attempt is made to import a module named :mod:`usercustomize`,
 which can perform arbitrary user-specific customizations, if
 :data:`ENABLE_USER_SITE` is true.  This file is intended to be created in the
 user site-packages directory (see below), which is part of ``sys.path`` unless
-disabled by :option:`-s`.  An :exc:`ImportError` will be silently ignored.
+disabled by :option:`-s`.  If this import fails with an :exc:`ImportError` or
+its subclass exception, and the exception's :attr:`name` attribute equals to
+``'usercustomize'``, it is silently ignored.
 
 Note that for some non-Unix systems, ``sys.prefix`` and ``sys.exec_prefix`` are
 empty, and the path manipulations are skipped; however the import of
@@ -184,7 +189,7 @@ Module contents
    unless the Python interpreter was started with the :option:`-S` flag.
 
    .. versionchanged:: 3.3
-      This function used to be called unconditionnally.
+      This function used to be called unconditionally.
 
 
 .. function:: addsitedir(sitedir, known_paths=None)
@@ -195,8 +200,7 @@ Module contents
 
 .. function:: getsitepackages()
 
-   Return a list containing all global site-packages directories (and possibly
-   site-python).
+   Return a list containing all global site-packages directories.
 
    .. versionadded:: 3.2
 
@@ -222,7 +226,7 @@ Module contents
 The :mod:`site` module also provides a way to get the user directories from the
 command line:
 
-.. code-block:: sh
+.. code-block:: shell-session
 
    $ python3 -m site --user-site
    /home/user/.local/lib/python3.3/site-packages
@@ -245,7 +249,7 @@ If it is called without arguments, it will print the contents of
 If both options are given, user base and user site will be printed (always in
 this order), separated by :data:`os.pathsep`.
 
-If any option is given, the script will exit with one of these values: ``O`` if
+If any option is given, the script will exit with one of these values: ``0`` if
 the user site-packages directory is enabled, ``1`` if it was disabled by the
 user, ``2`` if it is disabled for security reasons or by an administrator, and a
 value greater than 2 if there is an error.

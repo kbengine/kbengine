@@ -63,17 +63,8 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	wchar_t* wstr = PyUnicode_AsWideCharString(pyName, NULL);					
-	char* pwatchername = strutil::wchar2char(wstr);	
-	std::string watchername = pwatchername;
-	PyMem_Free(wstr);	
-	free(pwatchername);
-
-	wstr = PyUnicode_AsWideCharString(pyType, NULL);					
-	pwatchername = strutil::wchar2char(wstr);	
-	std::string type = pwatchername;
-	PyMem_Free(wstr);	
-	free(pwatchername);
+	std::string watchername = PyUnicode_AsUTF8AndSize(pyName, NULL);
+	std::string type = PyUnicode_AsUTF8AndSize(pyType, NULL);
 	
 	PyObject* pyObj1 = NULL;
 
@@ -176,12 +167,7 @@ static PyObject* delWatcher(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	wchar_t* wstr = PyUnicode_AsWideCharString(pyName, NULL);					
-	char* pwatchername = strutil::wchar2char(wstr);	
-	PyMem_Free(wstr);	
-	
-	bool ret = _delWatcher(pwatchername);
-	free(pwatchername);
+	bool ret = _delWatcher(PyUnicode_AsUTF8AndSize(pyName, NULL));
 	
 	if(!ret)
 	{

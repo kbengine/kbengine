@@ -5,6 +5,7 @@
 #include "KBECommon.h"
 #include "ServerErrorDescrs.h"
 #include "Interfaces.h"
+#include "KBETicker.h"
 
 class KBEngineArgs;
 class Entity;
@@ -29,7 +30,7 @@ public:
 	
 public:
 	static KBEngineApp& getSingleton();
-
+	static void destroyKBEngineApp();
 public:
 	bool isInitialized() const {
 		return pArgs_ != NULL;
@@ -38,6 +39,9 @@ public:
 	bool initialize(KBEngineArgs* pArgs);
 	void destroy();
 	void reset();
+	
+	void installUKBETicker();
+	void uninstallUKBETicker();
 
 	NetworkInterfaceBase* pNetworkInterface() const {
 		return pNetworkInterface_;
@@ -97,6 +101,8 @@ public:
 	{
 		// 无需实现，已由插件生成静态代码
 	}
+
+	void Client_onImportClientSDK(MemoryStream& stream);
 
 	/**
 		插件的主循环处理函数
@@ -319,8 +325,32 @@ public:
 	void Client_onUpdateData_xyz_p(MemoryStream& stream);
 	void Client_onUpdateData_xyz_r(MemoryStream& stream);
 
+	void Client_onUpdateData_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_r_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xz_r_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_ypr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_yp_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_yr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_pr_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_y_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_p_optimized(MemoryStream& stream);
+	void Client_onUpdateData_xyz_r_optimized(MemoryStream& stream);
+
 private:
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll, int8 isOnGround, bool isOptimized);
 
 	bool initNetwork();
 
@@ -484,6 +514,7 @@ protected:
 	FString component_;
 
 	EncryptionFilter *pFilter_;
+	UKBETicker *pUKBETicker_;
 
 };
 

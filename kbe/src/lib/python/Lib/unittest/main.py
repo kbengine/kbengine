@@ -14,6 +14,7 @@ Examples:
   %(prog)s test_module               - run tests from test_module
   %(prog)s module.TestClass          - run tests from module.TestClass
   %(prog)s module.Class.test_method  - run specified test method
+  %(prog)s path/to/test_file.py      - run tests from test_file.py
 """
 
 MODULE_EXAMPLES = """\
@@ -45,6 +46,12 @@ def _convert_names(names):
     return [_convert_name(name) for name in names]
 
 
+def _convert_select_pattern(pattern):
+    if not '*' in pattern:
+        pattern = '*%s*' % pattern
+    return pattern
+
+
 class TestProgram(object):
     """A command-line program that runs a set of tests; this is primarily
        for making test modules conveniently executable.
@@ -52,13 +59,13 @@ class TestProgram(object):
     # defaults for testing
     module=None
     verbosity = 1
-    failfast = catchbreak = buffer = progName = warnings = None
+    failfast = catchbreak = buffer = progName = warnings = testNamePatterns = None
     _discovery_parser = None
 
     def __init__(self, module='__main__', defaultTest=None, argv=None,
                     testRunner=None, testLoader=loader.defaultTestLoader,
                     exit=True, verbosity=1, failfast=None, catchbreak=None,
-                    buffer=None, warnings=None):
+                    buffer=None, warnings=None, *, tb_locals=False):
         if isinstance(module, str):
             self.module = __import__(module)
             for part in module.split('.')[1:]:
@@ -73,8 +80,9 @@ class TestProgram(object):
         self.catchbreak = catchbreak
         self.verbosity = verbosity
         self.buffer = buffer
+        self.tb_locals = tb_locals
         if warnings is None and not sys.warnoptions:
-            # even if DreprecationWarnings are ignored by default
+            # even if DeprecationWarnings are ignored by default
             # print them anyway unless other warnings settings are
             # specified by the warnings arg or the -W python flag
             self.warnings = 'default'
@@ -138,8 +146,13 @@ class TestProgram(object):
             self.testNames = list(self.defaultTest)
         self.createTests()
 
-    def createTests(self):
-        if self.testNames is None:
+    def createTests(self, from_discovery=False, Loader=None):
+        if self.testNamePatterns:
+            self.testLoader.testNamePatterns = self.testNamePatterns
+        if from_discovery:
+            loader = self.testLoader if Loader is None else Loader()
+            self.test = loader.discover(self.start, self.pattern, self.top)
+        elif self.testNames is None:
             self.test = self.testLoader.loadTestsFromModule(self.module)
         else:
             self.test = self.testLoader.loadTestsFromNames(self.testNames,
@@ -159,7 +172,9 @@ class TestProgram(object):
         parser.add_argument('-q', '--quiet', dest='verbosity',
                             action='store_const', const=0,
                             help='Quiet output')
-
+        parser.add_argument('--locals', dest='tb_locals',
+                            action='store_true',
+                            help='Show local variables in tracebacks')
         if self.failfast is None:
             parser.add_argument('-f', '--failfast', dest='failfast',
                                 action='store_true',
@@ -168,13 +183,18 @@ class TestProgram(object):
         if self.catchbreak is None:
             parser.add_argument('-c', '--catch', dest='catchbreak',
                                 action='store_true',
-                                help='Catch ctrl-C and display results so far')
+                                help='Catch Ctrl-C and display results so far')
             self.catchbreak = False
         if self.buffer is None:
             parser.add_argument('-b', '--buffer', dest='buffer',
                                 action='store_true',
                                 help='Buffer stdout and stderr during tests')
             self.buffer = False
+        if self.testNamePatterns is None:
+            parser.add_argument('-k', dest='testNamePatterns',
+                                action='append', type=_convert_select_pattern,
+                                help='Only run tests which match the given substring')
+            self.testNamePatterns = []
 
         return parser
 
@@ -221,8 +241,7 @@ class TestProgram(object):
                 self._initArgParsers()
             self._discovery_parser.parse_args(argv, self)
 
-        loader = self.testLoader if Loader is None else Loader()
-        self.test = loader.discover(self.start, self.pattern, self.top)
+        self.createTests(from_discovery=True, Loader=Loader)
 
     def runTests(self):
         if self.catchbreak:
@@ -231,10 +250,18 @@ class TestProgram(object):
             self.testRunner = runner.TextTestRunner
         if isinstance(self.testRunner, type):
             try:
-                testRunner = self.testRunner(verbosity=self.verbosity,
-                                             failfast=self.failfast,
-                                             buffer=self.buffer,
-                                             warnings=self.warnings)
+                try:
+                    testRunner = self.testRunner(verbosity=self.verbosity,
+                                                 failfast=self.failfast,
+                                                 buffer=self.buffer,
+                                                 warnings=self.warnings,
+                                                 tb_locals=self.tb_locals)
+                except TypeError:
+                    # didn't accept the tb_locals argument
+                    testRunner = self.testRunner(verbosity=self.verbosity,
+                                                 failfast=self.failfast,
+                                                 buffer=self.buffer,
+                                                 warnings=self.warnings)
             except TypeError:
                 # didn't accept the verbosity, buffer or failfast arguments
                 testRunner = self.testRunner()

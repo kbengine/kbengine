@@ -28,6 +28,7 @@ enum EntityDataFlags
 };
 
 std::string entityDataFlagsToString(uint32 flags);
+EntityDataFlags stringToEntityDataFlags(const std::string& strFlags);
 
 #define ED_FLAG_ALL  ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS \
 	| ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT |	\
@@ -154,6 +155,9 @@ const char ENTITY_LIMITED_PROPERTYS[][34] =
 	"interface"
 	"",
 };
+
+// 获得进程的python环境目录
+std::pair<std::wstring, std::wstring> getComponentPythonPaths(COMPONENT_TYPE componentType);
 
 }
 #endif // KBENGINE_DEF_COMMON_H

@@ -20,14 +20,14 @@ methodDomain_(domain),
 name_(name),
 utype_(utype),
 argTypes_(),
-isExposed_(isExposed),
+exposedType_(NO_EXPOSED),
 aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;
 
 	EntityDef::md5().append((void*)name_.c_str(), (int)name_.size());
 	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_METHOD_UID));
-	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
+	EntityDef::md5().append((void*)&exposedType_, sizeof(EXPOSED_TYPE));
 }
 
 //-------------------------------------------------------------------------------------
@@ -41,10 +41,13 @@ MethodDescription::~MethodDescription()
 }
 
 //-------------------------------------------------------------------------------------
-void MethodDescription::setExposed(void)
-{ 
-	isExposed_ = true; 
-	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
+void MethodDescription::setExposed(EXPOSED_TYPE type)
+{
+	// 只可能被设置为一次EXPOSED_AND_CALLER_CHECK
+	KBE_ASSERT(exposedType_ != EXPOSED_AND_CALLER_CHECK);
+
+	exposedType_ = type;
+	EntityDef::md5().append((void*)&exposedType_, sizeof(EXPOSED_TYPE));
 }
 
 //-------------------------------------------------------------------------------------
@@ -61,7 +64,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 
 	DATATYPE_UID uid = dataType->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
+	EntityDef::md5().append((void*)&exposedType_, sizeof(EXPOSED_TYPE));
 	return true;
 }
 
@@ -77,7 +80,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		return false;
 	}
 	
-	int offset = (isExposed() == true && g_componentType == CELLAPP_TYPE && isCell()) ? 1 : 0;
+	int offset = (isExposed() == EXPOSED_AND_CALLER_CHECK && g_componentType == CELLAPP_TYPE && isCell()) ? 1 : 0;
 	uint8 argsSize = (uint8)argTypes_.size();
 	uint8 giveArgsSize = (uint8)PyTuple_Size(args);
 
@@ -159,7 +162,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	}
 
 	// 如果是exposed方法则先将entityID打包进去
-	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
+	if(isExposed() == EXPOSED_AND_CALLER_CHECK && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
 	}
@@ -179,7 +182,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 	PyObject* pyArgsTuple = NULL;
 	int offset = 0;
 	
-	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
+	if(isExposed() == EXPOSED_AND_CALLER_CHECK && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
 		pyArgsTuple = PyTuple_New(argSize + offset);
@@ -237,7 +240,7 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 
 	if (PyErr_Occurred())
 	{
-		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
+		if (isExposed() == EXPOSED_AND_CALLER_CHECK && PyErr_ExceptionMatches(PyExc_TypeError))
 		{
 			WARNING_MSG(fmt::format("MethodDescription::call: {} is exposed of method, if there is a missing arguments error, "
 				"try adding callerEntityID, For example: \ndef func(msg): => def func(callerEntityID, msg):\n",

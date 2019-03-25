@@ -18,6 +18,20 @@
 
 #define doubletime(TV) ((double)(TV).tv_sec + (TV).tv_usec * 0.000001)
 
+/*[clinic input]
+module resource
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=e89d38ed52609d7c]*/
+
+/*[python input]
+class pid_t_converter(CConverter):
+    type = 'pid_t'
+    format_unit = '" _Py_PARSE_PID "'
+[python start generated code]*/
+/*[python end generated code: output=da39a3ee5e6b4b0d input=0c1d19f640d57e48]*/
+
+#include "clinic/resource.c.h"
+
 PyDoc_STRVAR(struct_rusage__doc__,
 "struct_rusage: Result from getrusage.\n\n"
 "This object may be accessed either as a tuple of\n"
@@ -55,15 +69,20 @@ static PyStructSequence_Desc struct_rusage_desc = {
 static int initialized;
 static PyTypeObject StructRUsageType;
 
+/*[clinic input]
+resource.getrusage
+
+    who: int
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-resource_getrusage(PyObject *self, PyObject *args)
+resource_getrusage_impl(PyObject *module, int who)
+/*[clinic end generated code: output=8fad2880ba6a9843 input=5c857bcc5b9ccb1b]*/
 {
-    int who;
     struct rusage ru;
     PyObject *result;
-
-    if (!PyArg_ParseTuple(args, "i:getrusage", &who))
-        return NULL;
 
     if (getrusage(who, &ru) == -1) {
         if (errno == EINVAL) {
@@ -107,52 +126,72 @@ resource_getrusage(PyObject *self, PyObject *args)
 }
 
 static int
-py2rlimit(PyObject *curobj, PyObject *maxobj, struct rlimit *rl_out)
+py2rlimit(PyObject *limits, struct rlimit *rl_out)
 {
+    PyObject *curobj, *maxobj;
+    limits = PySequence_Tuple(limits);
+    if (!limits)
+        /* Here limits is a borrowed reference */
+        return -1;
+
+    if (PyTuple_GET_SIZE(limits) != 2) {
+        PyErr_SetString(PyExc_ValueError,
+                        "expected a tuple of 2 integers");
+        goto error;
+    }
+    curobj = PyTuple_GET_ITEM(limits, 0);
+    maxobj = PyTuple_GET_ITEM(limits, 1);
 #if !defined(HAVE_LARGEFILE_SUPPORT)
     rl_out->rlim_cur = PyLong_AsLong(curobj);
     if (rl_out->rlim_cur == (rlim_t)-1 && PyErr_Occurred())
-        return -1;
+        goto error;
     rl_out->rlim_max = PyLong_AsLong(maxobj);
     if (rl_out->rlim_max == (rlim_t)-1 && PyErr_Occurred())
-        return -1;
+        goto error;
 #else
     /* The limits are probably bigger than a long */
     rl_out->rlim_cur = PyLong_AsLongLong(curobj);
     if (rl_out->rlim_cur == (rlim_t)-1 && PyErr_Occurred())
-        return -1;
+        goto error;
     rl_out->rlim_max = PyLong_AsLongLong(maxobj);
     if (rl_out->rlim_max == (rlim_t)-1 && PyErr_Occurred())
-        return -1;
+        goto error;
 #endif
 
+    Py_DECREF(limits);
     rl_out->rlim_cur = rl_out->rlim_cur & RLIM_INFINITY;
     rl_out->rlim_max = rl_out->rlim_max & RLIM_INFINITY;
     return 0;
 
+error:
+    Py_DECREF(limits);
+    return -1;
 }
 
 static PyObject*
 rlimit2py(struct rlimit rl)
 {
-#if defined(HAVE_LONG_LONG)
     if (sizeof(rl.rlim_cur) > sizeof(long)) {
         return Py_BuildValue("LL",
-                             (PY_LONG_LONG) rl.rlim_cur,
-                             (PY_LONG_LONG) rl.rlim_max);
+                             (long long) rl.rlim_cur,
+                             (long long) rl.rlim_max);
     }
-#endif
     return Py_BuildValue("ll", (long) rl.rlim_cur, (long) rl.rlim_max);
 }
 
+/*[clinic input]
+resource.getrlimit
+
+    resource: int
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-resource_getrlimit(PyObject *self, PyObject *args)
+resource_getrlimit_impl(PyObject *module, int resource)
+/*[clinic end generated code: output=98327b25061ffe39 input=a697cb0004cb3c36]*/
 {
     struct rlimit rl;
-    int resource;
-
-    if (!PyArg_ParseTuple(args, "i:getrlimit", &resource))
-        return NULL;
 
     if (resource < 0 || resource >= RLIM_NLIMITS) {
         PyErr_SetString(PyExc_ValueError,
@@ -167,15 +206,20 @@ resource_getrlimit(PyObject *self, PyObject *args)
     return rlimit2py(rl);
 }
 
+/*[clinic input]
+resource.setrlimit
+
+    resource: int
+    limits: object
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-resource_setrlimit(PyObject *self, PyObject *args)
+resource_setrlimit_impl(PyObject *module, int resource, PyObject *limits)
+/*[clinic end generated code: output=4e82ec3f34d013d1 input=6235a6ce23b4ca75]*/
 {
     struct rlimit rl;
-    int resource;
-    PyObject *limits, *curobj, *maxobj;
-
-    if (!PyArg_ParseTuple(args, "iO:setrlimit", &resource, &limits))
-        return NULL;
 
     if (resource < 0 || resource >= RLIM_NLIMITS) {
         PyErr_SetString(PyExc_ValueError,
@@ -183,21 +227,8 @@ resource_setrlimit(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    limits = PySequence_Tuple(limits);
-    if (!limits)
-        /* Here limits is a borrowed reference */
+    if (py2rlimit(limits, &rl) < 0) {
         return NULL;
-
-    if (PyTuple_GET_SIZE(limits) != 2) {
-        PyErr_SetString(PyExc_ValueError,
-                        "expected a tuple of 2 integers");
-        goto error;
-    }
-    curobj = PyTuple_GET_ITEM(limits, 0);
-    maxobj = PyTuple_GET_ITEM(limits, 1);
-
-    if (py2rlimit(curobj, maxobj, &rl) < 0) {
-        goto error;
     }
 
     if (setrlimit(resource, &rl) == -1) {
@@ -209,29 +240,31 @@ resource_setrlimit(PyObject *self, PyObject *args)
                             "not allowed to raise maximum limit");
         else
             PyErr_SetFromErrno(PyExc_OSError);
-        goto error;
+        return NULL;
     }
-    Py_DECREF(limits);
-    Py_INCREF(Py_None);
-    return Py_None;
-
-  error:
-    Py_DECREF(limits);
-    return NULL;
+    Py_RETURN_NONE;
 }
 
 #ifdef HAVE_PRLIMIT
+/*[clinic input]
+resource.prlimit
+
+    pid: pid_t
+    resource: int
+    [
+    limits: object
+    ]
+    /
+
+[clinic start generated code]*/
+
 static PyObject *
-resource_prlimit(PyObject *self, PyObject *args)
+resource_prlimit_impl(PyObject *module, pid_t pid, int resource,
+                      int group_right_1, PyObject *limits)
+/*[clinic end generated code: output=ee976b393187a7a3 input=b77743bdccc83564]*/
 {
     struct rlimit old_limit, new_limit;
-    int resource, retval;
-    pid_t pid;
-    PyObject *curobj=NULL, *maxobj=NULL;
-
-    if (!PyArg_ParseTuple(args, _Py_PARSE_PID "i|(OO):prlimit",
-                          &pid, &resource, &curobj, &maxobj))
-        return NULL;
+    int retval;
 
     if (resource < 0 || resource >= RLIM_NLIMITS) {
         PyErr_SetString(PyExc_ValueError,
@@ -239,8 +272,8 @@ resource_prlimit(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (curobj != NULL) {
-        if (py2rlimit(curobj, maxobj, &new_limit) < 0) {
+    if (group_right_1) {
+        if (py2rlimit(limits, &new_limit) < 0) {
             return NULL;
         }
         retval = prlimit(pid, resource, &new_limit, &old_limit);
@@ -262,8 +295,13 @@ resource_prlimit(PyObject *self, PyObject *args)
 }
 #endif /* HAVE_PRLIMIT */
 
-static PyObject *
-resource_getpagesize(PyObject *self, PyObject *unused)
+/*[clinic input]
+resource.getpagesize -> int
+[clinic start generated code]*/
+
+static int
+resource_getpagesize_impl(PyObject *module)
+/*[clinic end generated code: output=9ba93eb0f3d6c3a9 input=546545e8c1f42085]*/
 {
     long pagesize = 0;
 #if defined(HAVE_GETPAGESIZE)
@@ -276,21 +314,18 @@ resource_getpagesize(PyObject *self, PyObject *unused)
     pagesize = sysconf(_SC_PAGESIZE);
 #endif
 #endif
-    return Py_BuildValue("i", pagesize);
-
+    return pagesize;
 }
 
 /* List of functions */
 
 static struct PyMethodDef
 resource_methods[] = {
-    {"getrusage",    resource_getrusage,   METH_VARARGS},
-    {"getrlimit",    resource_getrlimit,   METH_VARARGS},
-#ifdef HAVE_PRLIMIT
-    {"prlimit",      resource_prlimit,     METH_VARARGS},
-#endif
-    {"setrlimit",    resource_setrlimit,   METH_VARARGS},
-    {"getpagesize",  resource_getpagesize, METH_NOARGS},
+    RESOURCE_GETRUSAGE_METHODDEF
+    RESOURCE_GETRLIMIT_METHODDEF
+    RESOURCE_PRLIMIT_METHODDEF
+    RESOURCE_SETRLIMIT_METHODDEF
+    RESOURCE_GETPAGESIZE_METHODDEF
     {NULL, NULL}                             /* sentinel */
 };
 
@@ -438,11 +473,9 @@ PyInit_resource(void)
     PyModule_AddIntMacro(m, RLIMIT_NPTS);
 #endif
 
-#if defined(HAVE_LONG_LONG)
     if (sizeof(RLIM_INFINITY) > sizeof(long)) {
-        v = PyLong_FromLongLong((PY_LONG_LONG) RLIM_INFINITY);
+        v = PyLong_FromLongLong((long long) RLIM_INFINITY);
     } else
-#endif
     {
         v = PyLong_FromLong((long) RLIM_INFINITY);
     }

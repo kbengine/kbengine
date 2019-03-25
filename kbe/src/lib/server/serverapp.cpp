@@ -441,8 +441,8 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		cinfos->pChannel->updateLastReceivedTime();
 	}
 
-	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
-	//	pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
+	//DEBUG_MSG(fmt::format("ServerApp::onAppActiveTick[:p]: {}:{} lastReceivedTime:{} at {}.\n",
+	//	(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pChannel->c_str()));
 }
 
 //-------------------------------------------------------------------------------------

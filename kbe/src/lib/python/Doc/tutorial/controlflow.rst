@@ -78,6 +78,9 @@ slice notation makes this especially convenient::
    >>> words
    ['defenestrate', 'cat', 'window', 'defenestrate']
 
+With ``for w in words:``, the example would attempt to create an infinite list,
+inserting ``defenestrate`` over and over again.
+
 
 .. _tut-range:
 
@@ -102,7 +105,7 @@ is possible to let the range start at another number, or to specify a different
 increment (even negative; sometimes this is called the 'step')::
 
     range(5, 10)
-       5 through 9
+       5, 6, 7, 8, 9
 
     range(0, 10, 3)
        0, 3, 6, 9
@@ -154,7 +157,7 @@ Later we will see more functions that return iterables and take iterables as arg
 :keyword:`break` and :keyword:`continue` Statements, and :keyword:`else` Clauses on Loops
 =========================================================================================
 
-The :keyword:`break` statement, like in C, breaks out of the smallest enclosing
+The :keyword:`break` statement, like in C, breaks out of the innermost enclosing
 :keyword:`for` or :keyword:`while` loop.
 
 Loop statements may have an ``else`` clause; it is executed when the loop
@@ -312,7 +315,7 @@ You can see it if you really want to using :func:`print`::
 It is simple to write a function that returns a list of the numbers of the
 Fibonacci series, instead of printing it::
 
-   >>> def fib2(n): # return Fibonacci series up to n
+   >>> def fib2(n):  # return Fibonacci series up to n
    ...     """Return a list containing the Fibonacci series up to n."""
    ...     result = []
    ...     a, b = 0, 1
@@ -361,7 +364,7 @@ The most useful form is to specify a default value for one or more arguments.
 This creates a function that can be called with fewer arguments than it is
 defined to allow.  For example::
 
-   def ask_ok(prompt, retries=4, complaint='Yes or no, please!'):
+   def ask_ok(prompt, retries=4, reminder='Please try again!'):
        while True:
            ok = input(prompt)
            if ok in ('y', 'ye', 'yes'):
@@ -370,8 +373,8 @@ defined to allow.  For example::
                return False
            retries = retries - 1
            if retries < 0:
-               raise OSError('uncooperative user')
-           print(complaint)
+               raise ValueError('invalid user response')
+           print(reminder)
 
 This function can be called in several ways:
 
@@ -472,7 +475,7 @@ Here's an example that fails due to this restriction::
    ...
    >>> function(0, a=0)
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    TypeError: function() got multiple values for keyword argument 'a'
 
 When a final formal parameter of the form ``**name`` is present, it receives a
@@ -489,8 +492,7 @@ function like this::
        for arg in arguments:
            print(arg)
        print("-" * 40)
-       keys = sorted(keywords.keys())
-       for kw in keys:
+       for kw in keywords:
            print(kw, ":", keywords[kw])
 
 It could be called like this::
@@ -501,20 +503,22 @@ It could be called like this::
               client="John Cleese",
               sketch="Cheese Shop Sketch")
 
-and of course it would print::
+and of course it would print:
+
+.. code-block:: none
 
    -- Do you have any Limburger ?
    -- I'm sorry, we're all out of Limburger
    It's very runny, sir.
    It's really very, VERY runny, sir.
    ----------------------------------------
-   client : John Cleese
    shopkeeper : Michael Palin
+   client : John Cleese
    sketch : Cheese Shop Sketch
 
-Note that the list of keyword argument names is created by sorting the result
-of the keywords dictionary's ``keys()`` method before printing its contents;
-if this is not done, the order in which the arguments are printed is undefined.
+Note that the order in which the keyword arguments are printed is guaranteed
+to match the order in which they were provided in the function call.
+
 
 .. _tut-arbitraryargs:
 
@@ -522,7 +526,7 @@ Arbitrary Argument Lists
 ------------------------
 
 .. index::
-  statement: *
+   single: * (asterisk); in function calls
 
 Finally, the least frequently used option is to specify that a function can be
 called with an arbitrary number of arguments.  These arguments will be wrapped
@@ -540,7 +544,7 @@ parameter are 'keyword-only' arguments, meaning that they can only be used as
 keywords rather than positional arguments. ::
 
    >>> def concat(*args, sep="/"):
-   ...    return sep.join(args)
+   ...     return sep.join(args)
    ...
    >>> concat("earth", "mars", "venus")
    'earth/mars/venus'
@@ -566,10 +570,10 @@ or tuple::
    [3, 4, 5]
 
 .. index::
-  statement: **
+   single: **; in function calls
 
-In the same fashion, dictionaries can deliver keyword arguments with the ``**``\
--operator::
+In the same fashion, dictionaries can deliver keyword arguments with the
+``**``\ -operator::
 
    >>> def parrot(voltage, state='a stiff', action='voom'):
    ...     print("-- This parrot wouldn't", action, end=' ')
@@ -671,13 +675,12 @@ Function Annotations
 .. sectionauthor:: Zachary Ware <zachary.ware@gmail.com>
 .. index::
    pair: function; annotations
-   single: -> (return annotation assignment)
+   single: ->; function annotations
+   single: : (colon); function annotations
 
-:ref:`Function annotations <function>` are completely optional,
-arbitrary metadata information about user-defined functions.  Neither Python
-itself nor the standard library use function annotations in any way; this
-section just shows the syntax. Third-party projects are free to use function
-annotations for documentation, type checking, and other uses.
+:ref:`Function annotations <function>` are completely optional metadata
+information about the types used by user-defined functions (see :pep:`3107` and
+:pep:`484` for more information).
 
 Annotations are stored in the :attr:`__annotations__` attribute of the function
 as a dictionary and have no effect on any other part of the function.  Parameter
@@ -686,16 +689,17 @@ expression evaluating to the value of the annotation.  Return annotations are
 defined by a literal ``->``, followed by an expression, between the parameter
 list and the colon denoting the end of the :keyword:`def` statement.  The
 following example has a positional argument, a keyword argument, and the return
-value annotated with nonsense::
+value annotated::
 
-   >>> def f(ham: 42, eggs: int = 'spam') -> "Nothing to see here":
+   >>> def f(ham: str, eggs: str = 'eggs') -> str:
    ...     print("Annotations:", f.__annotations__)
    ...     print("Arguments:", ham, eggs)
+   ...     return ham + ' and ' + eggs
    ...
-   >>> f('wonderful')
-   Annotations: {'eggs': <class 'int'>, 'return': 'Nothing to see here', 'ham': 42}
-   Arguments: wonderful spam
-
+   >>> f('spam')
+   Annotations: {'ham': <class 'str'>, 'return': <class 'str'>, 'eggs': <class 'str'>}
+   Arguments: spam eggs
+   'spam and eggs'
 
 .. _tut-codingstyle:
 

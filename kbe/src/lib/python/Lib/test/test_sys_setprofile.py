@@ -3,7 +3,6 @@ import pprint
 import sys
 import unittest
 
-from test import support
 
 class TestGetProfile(unittest.TestCase):
     def setUp(self):
@@ -165,7 +164,7 @@ class ProfileHookTestCase(TestCaseBase):
                               (1, 'return', g_ident),
                               ])
 
-    def test_exception_propogation(self):
+    def test_exception_propagation(self):
         def f(p):
             1/0
         def g(p):
@@ -260,7 +259,6 @@ class ProfileHookTestCase(TestCaseBase):
         def f():
             for i in range(2):
                 yield i
-            raise StopIteration
         def g(p):
             for i in f():
                 pass
@@ -336,6 +334,22 @@ class ProfileSimulatorTestCase(TestCaseBase):
                               (1, 'return', j_ident),
                               ])
 
+    # Test an invalid call (bpo-34126)
+    def test_unbound_method_no_args(self):
+        def f(p):
+            dict.get()
+        f_ident = ident(f)
+        self.check_events(f, [(1, 'call', f_ident),
+                              (1, 'return', f_ident)])
+
+    # Test an invalid call (bpo-34126)
+    def test_unbound_method_invalid_args(self):
+        def f(p):
+            dict.get(print, 42)
+        f_ident = ident(f)
+        self.check_events(f, [(1, 'call', f_ident),
+                              (1, 'return', f_ident)])
+
 
 def ident(function):
     if hasattr(function, "f_code"):
@@ -374,13 +388,5 @@ def show_events(callable):
     pprint.pprint(capture_events(callable))
 
 
-def test_main():
-    support.run_unittest(
-        TestGetProfile,
-        ProfileHookTestCase,
-        ProfileSimulatorTestCase
-    )
-
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

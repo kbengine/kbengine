@@ -18,7 +18,7 @@ Syntax errors, also known as parsing errors, are perhaps the most common kind of
 complaint you get while you are still learning Python::
 
    >>> while True print('Hello world')
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1
        while True print('Hello world')
                       ^
    SyntaxError: invalid syntax
@@ -44,15 +44,15 @@ programs, however, and result in error messages as shown here::
 
    >>> 10 * (1/0)
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    ZeroDivisionError: division by zero
    >>> 4 + spam*3
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    NameError: name 'spam' is not defined
    >>> '2' + 2
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    TypeError: Can't convert 'int' object to str implicitly
 
 The last line of the error message indicates what happened. Exceptions come in
@@ -120,6 +120,33 @@ name multiple exceptions as a parenthesized tuple, for example::
    ... except (RuntimeError, TypeError, NameError):
    ...     pass
 
+A class in an :keyword:`except` clause is compatible with an exception if it is
+the same class or a base class thereof (but not the other way around --- an
+except clause listing a derived class is not compatible with a base class).  For
+example, the following code will print B, C, D in that order::
+
+   class B(Exception):
+       pass
+
+   class C(B):
+       pass
+
+   class D(C):
+       pass
+
+   for cls in [B, C, D]:
+       try:
+           raise cls()
+       except D:
+           print("D")
+       except C:
+           print("C")
+       except B:
+           print("B")
+
+Note that if the except clauses were reversed (with ``except B`` first), it
+would have printed B, B, B --- the first matching except clause is triggered.
+
 The last except clause may omit the exception name(s), to serve as a wildcard.
 Use this with extreme caution, since it is easy to mask a real programming error
 in this way!  It can also be used to print an error message and then re-raise
@@ -147,7 +174,7 @@ example::
    for arg in sys.argv[1:]:
        try:
            f = open(arg, 'r')
-       except IOError:
+       except OSError:
            print('cannot open', arg)
        else:
            print(arg, 'has', len(f.readlines()), 'lines')
@@ -170,15 +197,15 @@ reference ``.args``.  One may also instantiate an exception first before
 raising it and add any attributes to it as desired. ::
 
    >>> try:
-   ...    raise Exception('spam', 'eggs')
+   ...     raise Exception('spam', 'eggs')
    ... except Exception as inst:
-   ...    print(type(inst))    # the exception instance
-   ...    print(inst.args)     # arguments stored in .args
-   ...    print(inst)          # __str__ allows args to be printed directly,
-   ...                         # but may be overridden in exception subclasses
-   ...    x, y = inst.args     # unpack args
-   ...    print('x =', x)
-   ...    print('y =', y)
+   ...     print(type(inst))    # the exception instance
+   ...     print(inst.args)     # arguments stored in .args
+   ...     print(inst)          # __str__ allows args to be printed directly,
+   ...                          # but may be overridden in exception subclasses
+   ...     x, y = inst.args     # unpack args
+   ...     print('x =', x)
+   ...     print('y =', y)
    ...
    <class 'Exception'>
    ('spam', 'eggs')
@@ -201,7 +228,7 @@ indirectly) in the try clause. For example::
    ... except ZeroDivisionError as err:
    ...     print('Handling run-time error:', err)
    ...
-   Handling run-time error: int division or modulo by zero
+   Handling run-time error: division by zero
 
 
 .. _tut-raising:
@@ -214,12 +241,15 @@ exception to occur. For example::
 
    >>> raise NameError('HiThere')
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
    NameError: HiThere
 
 The sole argument to :keyword:`raise` indicates the exception to be raised.
 This must be either an exception instance or an exception class (a class that
-derives from :class:`Exception`).
+derives from :class:`Exception`).  If an exception class is passed, it will
+be implicitly instantiated by calling its constructor with no arguments::
+
+   raise ValueError  # shorthand for 'raise ValueError()'
 
 If you need to determine whether an exception was raised but don't intend to
 handle it, a simpler form of the :keyword:`raise` statement allows you to
@@ -233,7 +263,7 @@ re-raise the exception::
    ...
    An exception flew by!
    Traceback (most recent call last):
-     File "<stdin>", line 2, in ?
+     File "<stdin>", line 2, in <module>
    NameError: HiThere
 
 
@@ -244,29 +274,7 @@ User-defined Exceptions
 
 Programs may name their own exceptions by creating a new exception class (see
 :ref:`tut-classes` for more about Python classes).  Exceptions should typically
-be derived from the :exc:`Exception` class, either directly or indirectly.  For
-example::
-
-   >>> class MyError(Exception):
-   ...     def __init__(self, value):
-   ...         self.value = value
-   ...     def __str__(self):
-   ...         return repr(self.value)
-   ...
-   >>> try:
-   ...     raise MyError(2*2)
-   ... except MyError as e:
-   ...     print('My exception occurred, value:', e.value)
-   ...
-   My exception occurred, value: 4
-   >>> raise MyError('oops!')
-   Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
-   __main__.MyError: 'oops!'
-
-In this example, the default :meth:`__init__` of :class:`Exception` has been
-overridden.  The new behavior simply creates the *value* attribute.  This
-replaces the default behavior of creating the *args* attribute.
+be derived from the :exc:`Exception` class, either directly or indirectly.
 
 Exception classes can be defined which do anything any other class can do, but
 are usually kept simple, often only offering a number of attributes that allow
@@ -306,7 +314,7 @@ to create specific exception classes for different error conditions::
            self.next = next
            self.message = message
 
-Most exceptions are defined with names that end in "Error," similar to the
+Most exceptions are defined with names that end in "Error", similar to the
 naming of the standard exceptions.
 
 Many standard modules define their own exceptions to report errors that may
@@ -330,13 +338,13 @@ example::
    ...
    Goodbye, world!
    Traceback (most recent call last):
-     File "<stdin>", line 2, in ?
+     File "<stdin>", line 2, in <module>
    KeyboardInterrupt
 
 A *finally clause* is always executed before leaving the :keyword:`try`
 statement, whether an exception has occurred or not. When an exception has
 occurred in the :keyword:`try` clause and has not been handled by an
-:keyword:`except` clause (or it has occurred in a :keyword:`except` or
+:keyword:`except` clause (or it has occurred in an :keyword:`except` or
 :keyword:`else` clause), it is re-raised after the :keyword:`finally` clause has
 been executed.  The :keyword:`finally` clause is also executed "on the way out"
 when any other clause of the :keyword:`try` statement is left via a
@@ -362,7 +370,7 @@ complicated example::
    >>> divide("2", "1")
    executing finally clause
    Traceback (most recent call last):
-     File "<stdin>", line 1, in ?
+     File "<stdin>", line 1, in <module>
      File "<stdin>", line 3, in divide
    TypeError: unsupported operand type(s) for /: 'str' and 'str'
 

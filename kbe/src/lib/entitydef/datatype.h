@@ -31,6 +31,12 @@ class RefCountable;
 class ScriptDefModule;
 class PropertyDescription;
 
+namespace script {
+	namespace entitydef {
+		class DefContext;
+	}
+}
+
 class DataType : public RefCountable
 {
 public:	
@@ -649,6 +655,7 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	bool initialize(XML* xml, TiXmlNode* node, const std::string& parentName);
+	bool initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName);
 
 	const char* getName(void) const{ return "ARRAY";}
 
@@ -682,6 +689,7 @@ public:
 
 	typedef KBEShared_ptr< DictItemDataType > DictItemDataTypePtr;
 	typedef std::vector< std::pair< std::string, DictItemDataTypePtr > > FIXEDDICT_KEYTYPE_MAP;
+
 public:	
 	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
@@ -703,8 +711,10 @@ public:
 	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
+
 	bool initialize(XML* xml, TiXmlNode* node, std::string& parentName);
-	
+	bool initialize(script::entitydef::DefContext* pDefContext, const std::string& parentName);
+
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
@@ -727,6 +737,7 @@ public:
 		加载impl模块
 	*/
 	bool loadImplModule(std::string moduleName);
+	bool setImplModule(PyObject* pyobj);
 
 	/** 
 		impl相关实现
@@ -740,7 +751,9 @@ public:
 	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDDICT; }
 
 	std::string& moduleName(){ return moduleName_; }
-	
+
+	std::string getNotFoundKeys(PyObject* dict);
+
 protected:
 	// 这个固定字典里的各个key的类型
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				

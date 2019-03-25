@@ -62,25 +62,23 @@ get_proxy_settings(PyObject* mod __attribute__((__unused__)))
     PyObject* v;
     int r;
 
+    Py_BEGIN_ALLOW_THREADS
     proxyDict = SCDynamicStoreCopyProxies(NULL);
+    Py_END_ALLOW_THREADS
+
     if (!proxyDict) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     result = PyDict_New();
     if (result == NULL) goto error;
 
-    if (&kSCPropNetProxiesExcludeSimpleHostnames != NULL) {
-        aNum = CFDictionaryGetValue(proxyDict,
-            kSCPropNetProxiesExcludeSimpleHostnames);
-        if (aNum == NULL) {
-            v = PyBool_FromLong(0);
-        } else {
-            v = PyBool_FromLong(cfnum_to_int32(aNum));
-        }
-    }  else {
+    aNum = CFDictionaryGetValue(proxyDict,
+        kSCPropNetProxiesExcludeSimpleHostnames);
+    if (aNum == NULL) {
         v = PyBool_FromLong(0);
+    } else {
+        v = PyBool_FromLong(cfnum_to_int32(aNum));
     }
 
     if (v == NULL) goto error;
@@ -130,7 +128,7 @@ error:
 }
 
 static int
-set_proxy(PyObject* proxies, char* proto, CFDictionaryRef proxyDict,
+set_proxy(PyObject* proxies, const char* proto, CFDictionaryRef proxyDict,
                 CFStringRef enabledKey,
                 CFStringRef hostKey, CFStringRef portKey)
 {
@@ -177,7 +175,10 @@ get_proxies(PyObject* mod __attribute__((__unused__)))
     int r;
     CFDictionaryRef proxyDict = NULL;
 
+    Py_BEGIN_ALLOW_THREADS
     proxyDict = SCDynamicStoreCopyProxies(NULL);
+    Py_END_ALLOW_THREADS
+
     if (proxyDict == NULL) {
         return PyDict_New();
     }
@@ -249,7 +250,7 @@ static struct PyModuleDef mod_module = {
 extern "C" {
 #endif
 
-PyObject*
+PyMODINIT_FUNC
 PyInit__scproxy(void)
 {
     return PyModule_Create(&mod_module);

@@ -3,7 +3,8 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
-#ifdef HAVE_GETC_UNLOCKED
+#if defined(HAVE_GETC_UNLOCKED) && !defined(_Py_MEMORY_SANITIZER)
+/* clang MemorySanitizer doesn't yet understand getc_unlocked. */
 #define GETC(f) getc_unlocked(f)
 #define FLOCKFILE(f) flockfile(f)
 #define FUNLOCKFILE(f) funlockfile(f)
@@ -49,6 +50,7 @@ PyFile_FromFd(int fd, const char *name, const char *mode, int buffering, const c
 PyObject *
 PyFile_GetLine(PyObject *f, int n)
 {
+    _Py_IDENTIFIER(readline);
     PyObject *result;
 
     if (f == NULL) {
@@ -56,32 +58,18 @@ PyFile_GetLine(PyObject *f, int n)
         return NULL;
     }
 
-    {
-        PyObject *reader;
-        PyObject *args;
-        _Py_IDENTIFIER(readline);
-
-        reader = _PyObject_GetAttrId(f, &PyId_readline);
-        if (reader == NULL)
-            return NULL;
-        if (n <= 0)
-            args = PyTuple_New(0);
-        else
-            args = Py_BuildValue("(i)", n);
-        if (args == NULL) {
-            Py_DECREF(reader);
-            return NULL;
-        }
-        result = PyEval_CallObject(reader, args);
-        Py_DECREF(reader);
-        Py_DECREF(args);
-        if (result != NULL && !PyBytes_Check(result) &&
-            !PyUnicode_Check(result)) {
-            Py_DECREF(result);
-            result = NULL;
-            PyErr_SetString(PyExc_TypeError,
-                       "object.readline() returned non-string");
-        }
+    if (n <= 0) {
+        result = _PyObject_CallMethodIdObjArgs(f, &PyId_readline, NULL);
+    }
+    else {
+        result = _PyObject_CallMethodId(f, &PyId_readline, "i", n);
+    }
+    if (result != NULL && !PyBytes_Check(result) &&
+        !PyUnicode_Check(result)) {
+        Py_DECREF(result);
+        result = NULL;
+        PyErr_SetString(PyExc_TypeError,
+                   "object.readline() returned non-string");
     }
 
     if (n < 0 && result != NULL && PyBytes_Check(result)) {
@@ -127,7 +115,7 @@ PyFile_GetLine(PyObject *f, int n)
 int
 PyFile_WriteObject(PyObject *v, PyObject *f, int flags)
 {
-    PyObject *writer, *value, *args, *result;
+    PyObject *writer, *value, *result;
     _Py_IDENTIFIER(write);
 
     if (f == NULL) {
@@ -146,14 +134,7 @@ PyFile_WriteObject(PyObject *v, PyObject *f, int flags)
         Py_DECREF(writer);
         return -1;
     }
-    args = PyTuple_Pack(1, value);
-    if (args == NULL) {
-        Py_DECREF(value);
-        Py_DECREF(writer);
-        return -1;
-    }
-    result = PyEval_CallObject(writer, args);
-    Py_DECREF(args);
+    result = PyObject_CallFunctionObjArgs(writer, value, NULL);
     Py_DECREF(value);
     Py_DECREF(writer);
     if (result == NULL)
@@ -204,7 +185,7 @@ PyObject_AsFileDescriptor(PyObject *o)
     }
     else if ((meth = _PyObject_GetAttrId(o, &PyId_fileno)) != NULL)
     {
-        PyObject *fno = PyEval_CallObject(meth, NULL);
+        PyObject *fno = _PyObject_CallNoArg(meth);
         Py_DECREF(meth);
         if (fno == NULL)
             return -1;
@@ -372,8 +353,11 @@ PyFile_NewStdPrinter(int fd)
 static PyObject *
 stdprinter_write(PyStdPrinter_Object *self, PyObject *args)
 {
-    char *c;
+    PyObject *unicode;
+    PyObject *bytes = NULL;
+    const char *str;
     Py_ssize_t n;
+    int err;
 
     if (self->fd < 0) {
         /* fd might be invalid on Windows
@@ -383,26 +367,31 @@ stdprinter_write(PyStdPrinter_Object *self, PyObject *args)
         Py_RETURN_NONE;
     }
 
-    if (!PyArg_ParseTuple(args, "s", &c)) {
+    if (!PyArg_ParseTuple(args, "U", &unicode))
         return NULL;
+
+    /* encode Unicode to UTF-8 */
+    str = PyUnicode_AsUTF8AndSize(unicode, &n);
+    if (str == NULL) {
+        PyErr_Clear();
+        bytes = _PyUnicode_AsUTF8String(unicode, "backslashreplace");
+        if (bytes == NULL)
+            return NULL;
+        str = PyBytes_AS_STRING(bytes);
+        n = PyBytes_GET_SIZE(bytes);
     }
-    n = strlen(c);
 
-    Py_BEGIN_ALLOW_THREADS
-    errno = 0;
-#ifdef MS_WINDOWS
-    if (n > INT_MAX)
-        n = INT_MAX;
-    n = write(self->fd, c, (int)n);
-#else
-    n = write(self->fd, c, n);
-#endif
-    Py_END_ALLOW_THREADS
+    n = _Py_write(self->fd, str, n);
+    /* save errno, it can be modified indirectly by Py_XDECREF() */
+    err = errno;
 
-    if (n < 0) {
-        if (errno == EAGAIN)
+    Py_XDECREF(bytes);
+
+    if (n == -1) {
+        if (err == EAGAIN) {
+            PyErr_Clear();
             Py_RETURN_NONE;
-        PyErr_SetFromErrno(PyExc_IOError);
+        }
         return NULL;
     }
 
@@ -455,8 +444,7 @@ static PyMethodDef stdprinter_methods[] = {
 static PyObject *
 get_closed(PyStdPrinter_Object *self, void *closure)
 {
-    Py_INCREF(Py_False);
-    return Py_False;
+    Py_RETURN_FALSE;
 }
 
 static PyObject *

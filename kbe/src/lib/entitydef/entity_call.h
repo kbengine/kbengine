@@ -58,6 +58,9 @@ public:
 	
 	virtual void newCall(Network::Bundle& bundle);
 
+	PyObject* pyGetComponent(const std::string& componentName, bool all);
+	static PyObject* __py_pyGetComponent(PyObject* self, PyObject* args);
+
 protected:
 	std::string								scriptModuleName_;
 

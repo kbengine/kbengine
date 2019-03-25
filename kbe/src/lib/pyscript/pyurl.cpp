@@ -100,17 +100,7 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 					return NULL;
 				}
 
-				wchar_t* PyUnicode_AsWideCharStringRet = PyUnicode_AsWideCharString(key, NULL);
-				char* ckey = strutil::wchar2char(PyUnicode_AsWideCharStringRet);
-				PyMem_Free(PyUnicode_AsWideCharStringRet);
-
-				PyUnicode_AsWideCharStringRet = PyUnicode_AsWideCharString(value, NULL);
-				char* cval = strutil::wchar2char(PyUnicode_AsWideCharStringRet);
-				PyMem_Free(PyUnicode_AsWideCharStringRet);
-
-				map_headers[ckey] = cval;
-				free(ckey);
-				free(cval);
+				map_headers[PyUnicode_AsUTF8AndSize(key, NULL)] = PyUnicode_AsUTF8AndSize(value, NULL);
 			}
 		}
 		else if (PyBytes_Check(pyobj))
@@ -149,17 +139,7 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 					return NULL;
 				}
 
-				wchar_t* PyUnicode_AsWideCharStringRet = PyUnicode_AsWideCharString(key, NULL);
-				char* ckey = strutil::wchar2char(PyUnicode_AsWideCharStringRet);
-				PyMem_Free(PyUnicode_AsWideCharStringRet);
-
-				PyUnicode_AsWideCharStringRet = PyUnicode_AsWideCharString(value, NULL);
-				char* cval = strutil::wchar2char(PyUnicode_AsWideCharStringRet);
-				PyMem_Free(PyUnicode_AsWideCharStringRet);
-
-				map_headers[ckey] = cval;
-				free(ckey);
-				free(cval);
+				map_headers[PyUnicode_AsUTF8AndSize(key, NULL)] = PyUnicode_AsUTF8AndSize(value, NULL);
 			}
 		}
 		else

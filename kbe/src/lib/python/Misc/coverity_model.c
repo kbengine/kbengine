@@ -22,7 +22,6 @@
 #define assert(op) /* empty */
 typedef int sdigit;
 typedef long Py_ssize_t;
-typedef long long PY_LONG_LONG;
 typedef unsigned short wchar_t;
 typedef struct {} PyObject;
 typedef struct {} grammar;
@@ -30,7 +29,7 @@ typedef struct {} DIR;
 typedef struct {} RFILE;
 
 /* Python/pythonrun.c
- * resourece leak false positive */
+ * resource leak false positive */
 
 void Py_FatalError(const char *msg) {
     __coverity_panic__();
@@ -63,7 +62,7 @@ PyObject *PyLong_FromLong(long ival)
         return NULL;
 }
 
-PyObject *PyLong_FromLongLong(PY_LONG_LONG ival)
+PyObject *PyLong_FromLongLong(long long ival)
 {
     return PyLong_FromLong((long)ival);
 }
@@ -85,7 +84,7 @@ PyObject *PyErr_SetFromErrnoWithFilename(PyObject *exc, const char *filename)
 }
 
 /* Python/fileutils.c */
-wchar_t *_Py_char2wchar(const char* arg, size_t *size)
+wchar_t *Py_DecodeLocale(const char* arg, size_t *size)
 {
    wchar_t *w;
     __coverity_tainted_data_sink__(arg);
@@ -94,7 +93,7 @@ wchar_t *_Py_char2wchar(const char* arg, size_t *size)
 }
 
 /* Parser/pgenmain.c */
-grammar *getgrammar(char *filename)
+grammar *getgrammar(const char *filename)
 {
     grammar *g;
     __coverity_tainted_data_sink__(filename);
@@ -122,11 +121,67 @@ static long r_long(RFILE *p)
 
 /* Coverity doesn't understand that fdopendir() may take ownership of fd. */
 
-DIR *fdopendir(int fd) {
+DIR *fdopendir(int fd)
+{
     DIR *d;
     if (d) {
         __coverity_close__(fd);
     }
     return d;
+}
+
+/* Modules/_datetime.c
+ *
+ * Coverity thinks that the input values for these function come from a
+ * tainted source PyDateTime_DATE_GET_* macros use bit shifting.
+ */
+static PyObject *
+build_struct_time(int y, int m, int d, int hh, int mm, int ss, int dstflag)
+{
+    PyObject *result;
+
+    __coverity_tainted_data_sanitize__(y);
+    __coverity_tainted_data_sanitize__(m);
+    __coverity_tainted_data_sanitize__(d);
+    __coverity_tainted_data_sanitize__(hh);
+    __coverity_tainted_data_sanitize__(mm);
+    __coverity_tainted_data_sanitize__(ss);
+    __coverity_tainted_data_sanitize__(dstflag);
+
+    return result;
+}
+
+static int
+ymd_to_ord(int year, int month, int day)
+{
+    int ord = 0;
+
+    __coverity_tainted_data_sanitize__(year);
+    __coverity_tainted_data_sanitize__(month);
+    __coverity_tainted_data_sanitize__(day);
+
+    return ord;
+}
+
+static int
+normalize_date(int *year, int *month, int *day)
+{
+    __coverity_tainted_data_sanitize__(*year);
+    __coverity_tainted_data_sanitize__(*month);
+    __coverity_tainted_data_sanitize__(*day);
+
+    return 0;
+}
+
+static int
+weekday(int year, int month, int day)
+{
+    int w = 0;
+
+    __coverity_tainted_data_sanitize__(year);
+    __coverity_tainted_data_sanitize__(month);
+    __coverity_tainted_data_sanitize__(day);
+
+    return w;
 }
 

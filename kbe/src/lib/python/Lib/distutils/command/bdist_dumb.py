@@ -22,7 +22,8 @@ class bdist_dumb(Command):
                      "platform name to embed in generated filenames "
                      "(default: %s)" % get_platform()),
                     ('format=', 'f',
-                     "archive format to create (tar, ztar, gztar, zip)"),
+                     "archive format to create (tar, gztar, bztar, xztar, "
+                     "ztar, zip)"),
                     ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
@@ -31,7 +32,7 @@ class bdist_dumb(Command):
                     ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),
                     ('relative', None,
-                     "build the archive using relative paths"
+                     "build the archive using relative paths "
                      "(default: false)"),
                     ('owner=', 'u',
                      "Owner name used when creating a tar file"
@@ -84,7 +85,7 @@ class bdist_dumb(Command):
         install.skip_build = self.skip_build
         install.warn_dir = 0
 
-        log.info("installing to %s" % self.bdist_dir)
+        log.info("installing to %s", self.bdist_dir)
         self.run_command('install')
 
         # And make an archive relative to the root of the

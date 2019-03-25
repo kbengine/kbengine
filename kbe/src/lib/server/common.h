@@ -61,6 +61,7 @@ namespace KBEngine {
 																																		\
 			pCurrPacket_##ACTIONNAME->insert(currMsgLengthPos_##ACTIONNAME + NETWORK_MESSAGE_LENGTH_SIZE, 								\
 											(uint8*)&ex_msg_length, NETWORK_MESSAGE_LENGTH1_SIZE);										\
+			SENDBUNDLE->currMsgLength(SENDBUNDLE->currMsgLength() + NETWORK_MESSAGE_LENGTH1_SIZE);										\
 		}																																\
 		else																															\
 		{																																\

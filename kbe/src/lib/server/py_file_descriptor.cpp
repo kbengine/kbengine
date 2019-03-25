@@ -213,7 +213,7 @@ void PyFileDescriptor::callback()
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("PyFileDescriptor::callback: can't found callback:{}.\n", fd_));
+		ERROR_MSG(fmt::format("PyFileDescriptor::callback: not found callback:{}.\n", fd_));
 	}
 }
 

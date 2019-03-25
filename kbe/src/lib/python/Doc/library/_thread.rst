@@ -4,12 +4,13 @@
 .. module:: _thread
    :synopsis: Low-level threading API.
 
-
 .. index::
    single: light-weight processes
    single: processes, light-weight
    single: binary semaphores
    single: semaphores, binary
+
+--------------
 
 This module provides low-level primitives for working with multiple threads
 (also called :dfn:`light-weight processes` or :dfn:`tasks`) --- multiple threads of
@@ -22,14 +23,10 @@ threading API built on top of this module.
    single: pthreads
    pair: threads; POSIX
 
-The module is optional.  It is supported on Windows, Linux, SGI IRIX, Solaris
-2.x, as well as on systems that have a POSIX thread (a.k.a. "pthread")
-implementation.  For systems lacking the :mod:`_thread` module, the
-:mod:`_dummy_thread` module is available. It duplicates this module's interface
-and can be used as a drop-in replacement.
+.. versionchanged:: 3.7
+   This module used to be optional, it is now always available.
 
-It defines the following constants and functions:
-
+This module defines the following constants and functions:
 
 .. exception:: error
 
@@ -93,7 +90,8 @@ It defines the following constants and functions:
    Return the thread stack size used when creating new threads.  The optional
    *size* argument specifies the stack size to be used for subsequently created
    threads, and must be 0 (use platform or configured default) or a positive
-   integer value of at least 32,768 (32 KiB). If changing the thread stack size is
+   integer value of at least 32,768 (32 KiB). If *size* is not specified,
+   0 is used.  If changing the thread stack size is
    unsupported, a :exc:`RuntimeError` is raised.  If the specified stack size is
    invalid, a :exc:`ValueError` is raised and the stack size is unmodified.  32 KiB
    is currently the minimum supported stack size value to guarantee sufficient
@@ -103,7 +101,8 @@ It defines the following constants and functions:
    memory page size - platform documentation should be referred to for more
    information (4 KiB pages are common; using multiples of 4096 for the stack size is
    the suggested approach in the absence of more specific information).
-   Availability: Windows, systems with POSIX threads.
+
+   .. availability:: Windows, systems with POSIX threads.
 
 
 .. data:: TIMEOUT_MAX

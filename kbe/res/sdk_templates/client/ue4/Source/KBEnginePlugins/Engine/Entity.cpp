@@ -52,6 +52,7 @@ void Entity::enterWorld()
 	inWorld_ = true;
 
 	onEnterWorld();
+	onComponentsEnterworld();
 
 	UKBEventData_onEnterWorld* pEventData = NewObject<UKBEventData_onEnterWorld>();
 	pEventData->entityID = id();
@@ -63,7 +64,7 @@ void Entity::enterWorld()
 	pEventData->isPlayer = isPlayer();
 	pEventData->entityClassName = className();
 	pEventData->res = TEXT("");
-	KBENGINE_EVENT_FIRE("onEnterWorld", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onEnterWorld, pEventData);
 }
 
 void Entity::onEnterWorld()
@@ -76,12 +77,13 @@ void Entity::leaveWorld()
 	inWorld_ = false;
 
 	onLeaveWorld();
+	onComponentsLeaveworld();
 
 	UKBEventData_onLeaveWorld* pEventData = NewObject<UKBEventData_onLeaveWorld>();
 	pEventData->entityID = id();
 	pEventData->spaceID = KBEngineApp::getSingleton().spaceID();
 	pEventData->isPlayer = isPlayer();
-	KBENGINE_EVENT_FIRE("onLeaveWorld", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onLeaveWorld, pEventData);
 }
 
 void Entity::onLeaveWorld()
@@ -105,7 +107,7 @@ void Entity::enterSpace()
 	pEventData->isPlayer = isPlayer();
 	pEventData->entityClassName = className();
 	pEventData->res = TEXT("");
-	KBENGINE_EVENT_FIRE("onEnterSpace", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onEnterSpace, pEventData);
 	
 	// 要立即刷新表现层对象的位置
 	UKBEventData_set_position* pPosEventData = NewObject<UKBEventData_set_position>();
@@ -113,12 +115,12 @@ void Entity::enterSpace()
 	pPosEventData->entityID = id();
 	pPosEventData->moveSpeed = velocity_;
 	pPosEventData->isOnGround = isOnGround();
-	KBENGINE_EVENT_FIRE("set_position", pPosEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::set_position, pPosEventData);
 
 	UKBEventData_set_direction* pDirEventData = NewObject<UKBEventData_set_direction>();
 	KBDir2UE4Dir(pDirEventData->direction, direction);
 	pDirEventData->entityID = id();
-	KBENGINE_EVENT_FIRE("set_direction", pDirEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::set_direction, pDirEventData);
 }
 
 void Entity::onEnterSpace()
@@ -136,7 +138,7 @@ void Entity::leaveSpace()
 	pEventData->entityID = id();
 	pEventData->spaceID = KBEngineApp::getSingleton().spaceID();
 	pEventData->isPlayer = isPlayer();
-	KBENGINE_EVENT_FIRE("onLeaveSpace", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onLeaveSpace, pEventData);
 }
 
 void Entity::onLeaveSpace()
@@ -159,7 +161,7 @@ void Entity::onPositionChanged(const FVector& oldValue)
 		pEventData->entityID = id();
 		pEventData->moveSpeed = velocity_;
 		pEventData->isOnGround = isOnGround();
-		KBENGINE_EVENT_FIRE("set_position", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::set_position, pEventData);
 	}
 }
 
@@ -173,6 +175,6 @@ void Entity::onDirectionChanged(const FVector& oldValue)
 		UKBEventData_set_direction* pEventData = NewObject<UKBEventData_set_direction>();
 		KBDir2UE4Dir(pEventData->direction, direction);
 		pEventData->entityID = id();
-		KBENGINE_EVENT_FIRE("set_direction", pEventData);
+		KBENGINE_EVENT_FIRE(KBEventTypes::set_direction, pEventData);
 	}
 }

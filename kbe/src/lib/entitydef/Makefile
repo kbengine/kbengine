@@ -10,6 +10,7 @@ SRCS =				\
 	entity_component_call	\
 	entity_call		\
 	entitydef		\
+	py_entitydef	\
 	entitycallabstract		\
 	fixeddict		\
 	method			\

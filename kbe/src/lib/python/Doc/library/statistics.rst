@@ -3,17 +3,18 @@
 
 .. module:: statistics
    :synopsis: mathematical statistics functions
+
 .. moduleauthor:: Steven D'Aprano <steve+python@pearwood.info>
 .. sectionauthor:: Steven D'Aprano <steve+python@pearwood.info>
 
 .. versionadded:: 3.4
 
+**Source code:** :source:`Lib/statistics.py`
+
 .. testsetup:: *
 
    from statistics import *
    __name__ = '<doctest>'
-
-**Source code:** :source:`Lib/statistics.py`
 
 --------------
 
@@ -38,6 +39,7 @@ or sample.
 
 =======================  =============================================
 :func:`mean`             Arithmetic mean ("average") of data.
+:func:`harmonic_mean`    Harmonic mean of data.
 :func:`median`           Median (middle value) of data.
 :func:`median_low`       Low median of data.
 :func:`median_high`      High median of data.
@@ -67,8 +69,7 @@ However, for reading convenience, most of the examples show sorted sequences.
 
 .. function:: mean(data)
 
-   Return the sample arithmetic mean of *data*, a sequence or iterator of
-   real-valued numbers.
+   Return the sample arithmetic mean of *data* which can be a sequence or iterator.
 
    The arithmetic mean is the sum of the data divided by the number of data
    points.  It is commonly called "the average", although it is only one of many
@@ -110,10 +111,43 @@ However, for reading convenience, most of the examples show sorted sequences.
       ``mean(data)`` is equivalent to calculating the true population mean μ.
 
 
+.. function:: harmonic_mean(data)
+
+   Return the harmonic mean of *data*, a sequence or iterator of
+   real-valued numbers.
+
+   The harmonic mean, sometimes called the subcontrary mean, is the
+   reciprocal of the arithmetic :func:`mean` of the reciprocals of the
+   data. For example, the harmonic mean of three values *a*, *b* and *c*
+   will be equivalent to ``3/(1/a + 1/b + 1/c)``.
+
+   The harmonic mean is a type of average, a measure of the central
+   location of the data.  It is often appropriate when averaging quantities
+   which are rates or ratios, for example speeds. For example:
+
+   Suppose an investor purchases an equal value of shares in each of
+   three companies, with P/E (price/earning) ratios of 2.5, 3 and 10.
+   What is the average P/E ratio for the investor's portfolio?
+
+   .. doctest::
+
+      >>> harmonic_mean([2.5, 3, 10])  # For an equal investment portfolio.
+      3.6
+
+   Using the arithmetic mean would give an average of about 5.167, which
+   is too high.
+
+   :exc:`StatisticsError` is raised if *data* is empty, or any element
+   is less than zero.
+
+   .. versionadded:: 3.6
+
+
 .. function:: median(data)
 
    Return the median (middle value) of numeric data, using the common "mean of
    middle two" method.  If *data* is empty, :exc:`StatisticsError` is raised.
+   *data* can be a sequence or iterator.
 
    The median is a robust measure of central location, and is less affected by
    the presence of outliers in your data.  When the number of data points is
@@ -135,13 +169,17 @@ However, for reading convenience, most of the examples show sorted sequences.
    This is suited for when your data is discrete, and you don't mind that the
    median may not be an actual data point.
 
+   If your data is ordinal (supports order operations) but not numeric (doesn't
+   support addition), you should use :func:`median_low` or :func:`median_high`
+   instead.
+
    .. seealso:: :func:`median_low`, :func:`median_high`, :func:`median_grouped`
 
 
 .. function:: median_low(data)
 
    Return the low median of numeric data.  If *data* is empty,
-   :exc:`StatisticsError` is raised.
+   :exc:`StatisticsError` is raised.  *data* can be a sequence or iterator.
 
    The low median is always a member of the data set.  When the number of data
    points is odd, the middle value is returned.  When it is even, the smaller of
@@ -161,7 +199,7 @@ However, for reading convenience, most of the examples show sorted sequences.
 .. function:: median_high(data)
 
    Return the high median of data.  If *data* is empty, :exc:`StatisticsError`
-   is raised.
+   is raised.  *data* can be a sequence or iterator.
 
    The high median is always a member of the data set.  When the number of data
    points is odd, the middle value is returned.  When it is even, the larger of
@@ -182,7 +220,7 @@ However, for reading convenience, most of the examples show sorted sequences.
 
    Return the median of grouped continuous data, calculated as the 50th
    percentile, using interpolation.  If *data* is empty, :exc:`StatisticsError`
-   is raised.
+   is raised.  *data* can be a sequence or iterator.
 
    .. doctest::
 
@@ -190,9 +228,9 @@ However, for reading convenience, most of the examples show sorted sequences.
       52.5
 
    In the following example, the data are rounded, so that each value represents
-   the midpoint of data classes, e.g. 1 is the midpoint of the class 0.5-1.5, 2
-   is the midpoint of 1.5-2.5, 3 is the midpoint of 2.5-3.5, etc.  With the data
-   given, the middle value falls somewhere in the class 3.5-4.5, and
+   the midpoint of data classes, e.g. 1 is the midpoint of the class 0.5--1.5, 2
+   is the midpoint of 1.5--2.5, 3 is the midpoint of 2.5--3.5, etc.  With the data
+   given, the middle value falls somewhere in the class 3.5--4.5, and
    interpolation is used to estimate it:
 
    .. doctest::
@@ -223,10 +261,8 @@ However, for reading convenience, most of the examples show sorted sequences.
       * "Statistics for the Behavioral Sciences", Frederick J Gravetter and
         Larry B Wallnau (8th Edition).
 
-      * Calculating the `median <http://www.ualberta.ca/~opscan/median.html>`_.
-
       * The `SSMEDIAN
-        <https://projects.gnome.org/gnumeric/doc/gnumeric-function-SSMEDIAN.shtml>`_
+        <https://help.gnome.org/users/gnumeric/stable/gnumeric.html#gnumeric-function-SSMEDIAN>`_
         function in the Gnome Gnumeric spreadsheet, including `this discussion
         <https://mail.gnome.org/archives/gnumeric-list/2011-April/msg00018.html>`_.
 

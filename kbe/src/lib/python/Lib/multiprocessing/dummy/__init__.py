@@ -41,7 +41,10 @@ class DummyProcess(threading.Thread):
         self._parent = current_process()
 
     def start(self):
-        assert self._parent is current_process()
+        if self._parent is not current_process():
+            raise RuntimeError(
+                "Parent is {0!r} but current_process is {1!r}".format(
+                    self._parent, current_process()))
         self._start_called = True
         if hasattr(self._parent, '_children'):
             self._parent._children[self] = None
@@ -86,7 +89,7 @@ class Namespace(object):
             if not name.startswith('_'):
                 temp.append('%s=%r' % (name, value))
         temp.sort()
-        return 'Namespace(%s)' % str.join(', ', temp)
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(temp))
 
 dict = dict
 list = list
@@ -98,11 +101,15 @@ class Value(object):
     def __init__(self, typecode, value, lock=True):
         self._typecode = typecode
         self._value = value
-    def _get(self):
+
+    @property
+    def value(self):
         return self._value
-    def _set(self, value):
+
+    @value.setter
+    def value(self, value):
         self._value = value
-    value = property(_get, _set)
+
     def __repr__(self):
         return '<%s(%r, %r)>'%(type(self).__name__,self._typecode,self._value)
 

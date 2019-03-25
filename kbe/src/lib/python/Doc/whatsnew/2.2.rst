@@ -24,8 +24,8 @@ up irregularities and dark corners of the language design.
 This article doesn't attempt to provide a complete specification of the new
 features, but instead provides a convenient overview.  For full details, you
 should refer to the documentation for Python 2.2, such as the `Python Library
-Reference <http://www.python.org/doc/2.2/lib/lib.html>`_ and the `Python
-Reference Manual <http://www.python.org/doc/2.2/ref/ref.html>`_.  If you want to
+Reference <https://docs.python.org/2.2/lib/lib.html>`_ and the `Python
+Reference Manual <https://docs.python.org/2.2/ref/ref.html>`_.  If you want to
 understand the complete implementation and design rationale for a change, refer
 to the PEP for a particular new feature.
 
@@ -157,7 +157,7 @@ attributes and methods were supported by an object. There were some informal
 conventions, such as defining :attr:`__members__` and :attr:`__methods__`
 attributes that were lists of names, but often the author of an extension type
 or a class wouldn't bother to define them.  You could fall back on inspecting
-the :attr:`__dict__` of an object, but when class inheritance or an arbitrary
+the :attr:`~object.__dict__` of an object, but when class inheritance or an arbitrary
 :meth:`__getattr__` hook were in use this could still be inaccurate.
 
 The one big idea underlying the new class model is that an API for describing
@@ -169,7 +169,7 @@ possible, as well as more exotic constructs.
 Attribute descriptors are objects that live inside class objects, and have a few
 attributes of their own:
 
-* :attr:`__name__` is the attribute's name.
+* :attr:`~definition.__name__` is the attribute's name.
 
 * :attr:`__doc__` is the attribute's docstring.
 
@@ -329,7 +329,7 @@ However, Python 2.2's support for :dfn:`properties` will often be a simpler way
 to trap attribute references.  Writing a :meth:`__getattr__` method is
 complicated because to avoid recursion you can't use regular attribute accesses
 inside them, and instead have to mess around with the contents of
-:attr:`__dict__`. :meth:`__getattr__` methods also end up being called by Python
+:attr:`~object.__dict__`. :meth:`__getattr__` methods also end up being called by Python
 when it checks for other methods such as :meth:`__repr__` or :meth:`__coerce__`,
 and so have to be written with this in mind. Finally, calling a function on
 every attribute access results in a sizable performance loss.
@@ -357,15 +357,15 @@ write::
 That is certainly clearer and easier to write than a pair of
 :meth:`__getattr__`/:meth:`__setattr__` methods that check for the :attr:`size`
 attribute and handle it specially while retrieving all other attributes from the
-instance's :attr:`__dict__`.  Accesses to :attr:`size` are also the only ones
+instance's :attr:`~object.__dict__`.  Accesses to :attr:`size` are also the only ones
 which have to perform the work of calling a function, so references to other
 attributes run at their usual speed.
 
 Finally, it's possible to constrain the list of attributes that can be
-referenced on an object using the new :attr:`__slots__` class attribute. Python
+referenced on an object using the new :attr:`~object.__slots__` class attribute. Python
 objects are usually very dynamic; at any time it's possible to define a new
 attribute on an instance by just doing ``obj.new_attr=1``.   A new-style class
-can define a class attribute named :attr:`__slots__` to limit the legal
+can define a class attribute named :attr:`~object.__slots__` to limit the legal
 attributes  to a particular set of names.  An example will make this clear::
 
    >>> class C(object):
@@ -383,7 +383,7 @@ attributes  to a particular set of names.  An example will make this clear::
    AttributeError: 'C' object has no attribute 'newattr'
 
 Note how you get an :exc:`AttributeError` on the attempt to assign to an
-attribute not listed in :attr:`__slots__`.
+attribute not listed in :attr:`~object.__slots__`.
 
 
 .. _sect-rellinks:
@@ -395,7 +395,7 @@ This section has just been a quick overview of the new features, giving enough
 of an explanation to start you programming, but many details have been
 simplified or ignored.  Where should you go to get a more complete picture?
 
-http://www.python.org/2.2/descrintro.html is a lengthy tutorial introduction to
+https://docs.python.org/dev/howto/descriptor.html is a lengthy tutorial introduction to
 the descriptor features, written by Guido van Rossum. If my description has
 whetted your appetite, go read this tutorial next, because it goes into much
 more detail about the new features while still remaining quite easy to read.
@@ -576,9 +576,9 @@ similar to a :keyword:`return` statement.  The big difference between
 variables are preserved.  On the next call to the generator's ``next()`` method,
 the function will resume executing immediately after the :keyword:`yield`
 statement.  (For complicated reasons, the :keyword:`yield` statement isn't
-allowed inside the :keyword:`try` block of a :keyword:`try`...\
-:keyword:`finally` statement; read :pep:`255` for a full explanation of the
-interaction between :keyword:`yield` and exceptions.)
+allowed inside the :keyword:`try` block of a
+:keyword:`try`...\ :keyword:`finally` statement; read :pep:`255` for a full
+explanation of the interaction between :keyword:`yield` and exceptions.)
 
 Here's a sample usage of the :func:`generate_ints` generator::
 
@@ -632,10 +632,10 @@ queen threatens another) and the Knight's Tour (a route that takes a knight to
 every square of an $NxN$ chessboard without visiting any square twice).
 
 The idea of generators comes from other programming languages, especially Icon
-(http://www.cs.arizona.edu/icon/), where the idea of generators is central.  In
+(https://www.cs.arizona.edu/icon/), where the idea of generators is central.  In
 Icon, every expression and function call behaves like a generator.  One example
 from "An Overview of the Icon Programming Language" at
-http://www.cs.arizona.edu/icon/docs/ipd266.htm gives an idea of what this looks
+https://www.cs.arizona.edu/icon/docs/ipd266.htm gives an idea of what this looks
 like::
 
    sentence := "Store it in the neighboring harbor"
@@ -720,7 +720,7 @@ possible types of the operands.
 
 (The controversy is over whether this is *really* a design flaw, and whether
 it's worth breaking existing code to fix this.  It's caused endless discussions
-on python-dev, and in July 2001 erupted into an storm of acidly sarcastic
+on python-dev, and in July 2001 erupted into a storm of acidly sarcastic
 postings on :newsgroup:`comp.lang.python`. I won't argue for either side here
 and will stick to describing what's  implemented in 2.2.  Read :pep:`238` for a
 summary of arguments and counter-arguments.)
@@ -758,7 +758,7 @@ Here are the changes 2.2 introduces:
   operators.
 
 * Python 2.2 supports some command-line arguments for testing whether code will
-  works with the changed division semantics.  Running python with :option:`-Q
+  work with the changed division semantics.  Running python with :option:`!-Q
   warn` will cause a warning to be issued whenever division is applied to two
   integers.  You can use this to find code that's affected by the change and fix
   it.  By default, Python 2.2 will simply perform classic division without a
@@ -779,8 +779,8 @@ Unicode Changes
 Python's Unicode support has been enhanced a bit in 2.2.  Unicode strings are
 usually stored as UCS-2, as 16-bit unsigned integers. Python 2.2 can also be
 compiled to use UCS-4, 32-bit unsigned integers, as its internal encoding by
-supplying :option:`--enable-unicode=ucs4` to the configure script.   (It's also
-possible to specify :option:`--disable-unicode` to completely disable Unicode
+supplying :option:`!--enable-unicode=ucs4` to the configure script.   (It's also
+possible to specify :option:`!--disable-unicode` to completely disable Unicode
 support.)
 
 When built to use UCS-4 (a "wide Python"), the interpreter can natively handle
@@ -957,13 +957,13 @@ New and Improved Modules
      #   'title': 'html2fo 0.3 (Default)'}, ... ]
 
   The :mod:`SimpleXMLRPCServer` module makes it easy to create straightforward
-  XML-RPC servers.  See http://www.xmlrpc.com/ for more information about XML-RPC.
+  XML-RPC servers.  See http://xmlrpc.scripting.com/ for more information about XML-RPC.
 
 * The new :mod:`hmac` module implements the HMAC algorithm described by
   :rfc:`2104`. (Contributed by Gerhard Häring.)
 
-* Several functions that originally returned lengthy tuples now return pseudo-
-  sequences that still behave like tuples but also have mnemonic attributes such
+* Several functions that originally returned lengthy tuples now return
+  pseudo-sequences that still behave like tuples but also have mnemonic attributes such
   as memberst_mtime or :attr:`tm_year`. The enhanced functions include
   :func:`stat`, :func:`fstat`, :func:`statvfs`, and :func:`fstatvfs` in the
   :mod:`os` module, and :func:`localtime`, :func:`gmtime`, and :func:`strptime` in
@@ -979,7 +979,7 @@ New and Improved Modules
   output have been corrected.  (Contributed by Fred L. Drake, Jr. and Tim Peters.)
 
 * The :mod:`socket` module can be compiled to support IPv6; specify the
-  :option:`--enable-ipv6` option to Python's configure script.  (Contributed by
+  :option:`!--enable-ipv6` option to Python's configure script.  (Contributed by
   Jun-ichiro "itojun" Hagino.)
 
 * Two new format characters were added to the :mod:`struct` module for 64-bit
@@ -1140,9 +1140,9 @@ Some of the more notable changes are:
   in the main Python CVS tree, and many changes have been made to support MacOS X.
 
   The most significant change is the ability to build Python as a framework,
-  enabled by supplying the :option:`--enable-framework` option to the configure
-  script when compiling Python.  According to Jack Jansen, "This installs a self-
-  contained Python installation plus the OS X framework "glue" into
+  enabled by supplying the :option:`!--enable-framework` option to the configure
+  script when compiling Python.  According to Jack Jansen, "This installs a
+  self-contained Python installation plus the OS X framework "glue" into
   :file:`/Library/Frameworks/Python.framework` (or another location of choice).
   For now there is little immediate added benefit to this (actually, there is the
   disadvantage that you have to change your PATH to be able to find Python), but
@@ -1159,7 +1159,7 @@ Some of the more notable changes are:
      The main change is the possibility to build Python as a
      framework. This installs a self-contained Python installation plus the
      OSX framework "glue" into /Library/Frameworks/Python.framework (or
-     another location of choice). For now there is little immedeate added
+     another location of choice). For now there is little immediate added
      benefit to this (actually, there is the disadvantage that you have to
      change your PATH to be able to find Python), but it is the basis for
      creating a fullblown Python application, porting the MacPython IDE,
@@ -1168,7 +1168,7 @@ Some of the more notable changes are:
      The other change is that most MacPython toolbox modules, which
      interface to all the MacOS APIs such as windowing, quicktime,
      scripting, etc. have been ported. Again, most of these are not of
-     immedeate use, as they need a full application to be really useful, so
+     immediate use, as they need a full application to be really useful, so
      they have been commented out in setup.py. People wanting to experiment
      can uncomment them. Gestalt and Internet Config modules are enabled by
      default.

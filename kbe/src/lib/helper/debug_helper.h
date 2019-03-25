@@ -228,8 +228,8 @@ void myassert(const char* exp, const char * func, const char * file, unsigned in
 #define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FUNCTION__, __FILE__, __LINE__);
 #define KBE_REAL_ASSERT assert(0);
 #else
-#define KBE_ASSERT(exp) NULL;
-#define KBE_REAL_ASSERT
+#define KBE_ASSERT(exp) assert((exp));
+#define KBE_REAL_ASSERT assert(0);
 #endif
 
 #ifdef _DEBUG

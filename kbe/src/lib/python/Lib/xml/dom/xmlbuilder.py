@@ -1,6 +1,7 @@
 """Implementation of the DOM Level 3 'LS-Load' feature."""
 
 import copy
+import warnings
 import xml.dom
 
 from xml.dom.NodeFilter import NodeFilter
@@ -79,7 +80,7 @@ class DOMBuilder:
                 settings = self._settings[(_name_xform(name), state)]
             except KeyError:
                 raise xml.dom.NotSupportedErr(
-                    "unsupported feature: %r" % (name,))
+                    "unsupported feature: %r" % (name,)) from None
             else:
                 for name, value in settings:
                     setattr(self._options, name, value)
@@ -334,12 +335,13 @@ del NodeFilter
 class DocumentLS:
     """Mixin to create documents that conform to the load/save spec."""
 
-    async = False
+    async_ = False
 
     def _get_async(self):
         return False
-    def _set_async(self, async):
-        if async:
+
+    def _set_async(self, flag):
+        if flag:
             raise xml.dom.NotSupportedErr(
                 "asynchronous document loading is not supported")
 

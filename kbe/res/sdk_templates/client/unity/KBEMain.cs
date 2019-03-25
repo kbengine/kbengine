@@ -31,6 +31,8 @@ public class KBEMain : MonoBehaviour
 	public bool isOnInitCallPropertysSetMethods = true;
 	public bool forceDisableUDP = false;
 
+	public bool automaticallyUpdateSDK = true;
+
 	protected virtual void Awake() 
 	 {
 		DontDestroyOnLoad(transform.gameObject);
@@ -46,8 +48,26 @@ public class KBEMain : MonoBehaviour
 	
 	public virtual void installEvents()
 	{
+        KBEngine.Event.registerOut(EventOutTypes.onVersionNotMatch, this, "onVersionNotMatch");
+        KBEngine.Event.registerOut(EventOutTypes.onScriptVersionNotMatch, this, "onScriptVersionNotMatch");
 	}
 	
+	public void onVersionNotMatch(string verInfo, string serVerInfo)
+	{
+#if UNITY_EDITOR
+		if(automaticallyUpdateSDK)
+			gameObject.AddComponent<ClientSDKUpdater>();
+#endif
+	}
+
+	public void onScriptVersionNotMatch(string verInfo, string serVerInfo)
+	{
+#if UNITY_EDITOR
+		if(automaticallyUpdateSDK)
+			gameObject.AddComponent<ClientSDKUpdater>();
+#endif
+	}
+
 	public virtual void initKBEngine()
 	{
 		// 如果此处发生错误，请查看 Assets\Scripts\kbe_scripts\if_Entity_error_use______git_submodule_update_____kbengine_plugins_______open_this_file_and_I_will_tell_you.cs
@@ -88,6 +108,7 @@ public class KBEMain : MonoBehaviour
             KBEngineApp.app.destroy();
             KBEngineApp.app = null;
         }
+		KBEngine.Event.clear();
 		MonoBehaviour.print("clientapp::OnDestroy(): end");
 	}
 	

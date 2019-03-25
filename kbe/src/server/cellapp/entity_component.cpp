@@ -29,7 +29,7 @@ BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
 {
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	if (ownerID_ > 0)
 	{
@@ -49,13 +49,6 @@ PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
 			}
 			else
 			{
-				// 如果访问了def持久化类容器属性
-				// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
-				PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pComponentDescrs_)->findPersistentPropertyDescription(ccattr);
-				if (pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
-				{
-					pOwner->setDirty();
-				}
 			}
 		}
 	}

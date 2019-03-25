@@ -4,14 +4,13 @@ import random
 import selectors
 import signal
 import socket
+import sys
 from test import support
 from time import sleep
 import unittest
 import unittest.mock
-try:
-    from time import monotonic as time
-except ImportError:
-    from time import time as time
+import tempfile
+from time import monotonic as time
 try:
     import resource
 except ImportError:
@@ -24,7 +23,7 @@ else:
     def socketpair(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
         with socket.socket(family, type, proto) as l:
             l.bind((support.HOST, 0))
-            l.listen(3)
+            l.listen()
             c = socket.socket(family, type, proto)
             try:
                 c.connect(l.getsockname())
@@ -176,18 +175,48 @@ class BaseSelectorTestCase(unittest.TestCase):
         self.assertFalse(s.register.called)
         self.assertFalse(s.unregister.called)
 
+    def test_modify_unregister(self):
+        # Make sure the fd is unregister()ed in case of error on
+        # modify(): http://bugs.python.org/issue30014
+        if self.SELECTOR.__name__ == 'EpollSelector':
+            patch = unittest.mock.patch(
+                'selectors.EpollSelector._selector_cls')
+        elif self.SELECTOR.__name__ == 'PollSelector':
+            patch = unittest.mock.patch(
+                'selectors.PollSelector._selector_cls')
+        elif self.SELECTOR.__name__ == 'DevpollSelector':
+            patch = unittest.mock.patch(
+                'selectors.DevpollSelector._selector_cls')
+        else:
+            raise self.skipTest("")
+
+        with patch as m:
+            m.return_value.modify = unittest.mock.Mock(
+                side_effect=ZeroDivisionError)
+            s = self.SELECTOR()
+            self.addCleanup(s.close)
+            rd, wr = self.make_socketpair()
+            s.register(rd, selectors.EVENT_READ)
+            self.assertEqual(len(s._map), 1)
+            with self.assertRaises(ZeroDivisionError):
+                s.modify(rd, selectors.EVENT_WRITE)
+            self.assertEqual(len(s._map), 0)
+
     def test_close(self):
         s = self.SELECTOR()
         self.addCleanup(s.close)
 
+        mapping = s.get_map()
         rd, wr = self.make_socketpair()
 
         s.register(rd, selectors.EVENT_READ)
         s.register(wr, selectors.EVENT_WRITE)
 
         s.close()
-        self.assertRaises(KeyError, s.get_key, rd)
-        self.assertRaises(KeyError, s.get_key, wr)
+        self.assertRaises(RuntimeError, s.get_key, rd)
+        self.assertRaises(RuntimeError, s.get_key, wr)
+        self.assertRaises(KeyError, mapping.__getitem__, rd)
+        self.assertRaises(KeyError, mapping.__getitem__, wr)
 
     def test_get_key(self):
         s = self.SELECTOR()
@@ -254,8 +283,8 @@ class BaseSelectorTestCase(unittest.TestCase):
             sel.register(rd, selectors.EVENT_READ)
             sel.register(wr, selectors.EVENT_WRITE)
 
-        self.assertRaises(KeyError, s.get_key, rd)
-        self.assertRaises(KeyError, s.get_key, wr)
+        self.assertRaises(RuntimeError, s.get_key, rd)
+        self.assertRaises(RuntimeError, s.get_key, wr)
 
     def test_fileno(self):
         s = self.SELECTOR()
@@ -319,6 +348,15 @@ class BaseSelectorTestCase(unittest.TestCase):
 
         self.assertEqual(bufs, [MSG] * NUM_SOCKETS)
 
+    @unittest.skipIf(sys.platform == 'win32',
+                     'select.select() cannot be used with empty fd sets')
+    def test_empty_select(self):
+        # Issue #23009: Make sure EpollSelector.select() works when no FD is
+        # registered.
+        s = self.SELECTOR()
+        self.addCleanup(s.close)
+        self.assertEqual(s.select(timeout=0), [])
+
     def test_timeout(self):
         s = self.SELECTOR()
         self.addCleanup(s.close)
@@ -342,11 +380,42 @@ class BaseSelectorTestCase(unittest.TestCase):
         self.assertFalse(s.select(1))
         t1 = time()
         dt = t1 - t0
-        self.assertTrue(0.8 <= dt <= 1.6, dt)
+        # Tolerate 2.0 seconds for very slow buildbots
+        self.assertTrue(0.8 <= dt <= 2.0, dt)
 
     @unittest.skipUnless(hasattr(signal, "alarm"),
                          "signal.alarm() required for this test")
-    def test_select_interrupt(self):
+    def test_select_interrupt_exc(self):
+        s = self.SELECTOR()
+        self.addCleanup(s.close)
+
+        rd, wr = self.make_socketpair()
+
+        class InterruptSelect(Exception):
+            pass
+
+        def handler(*args):
+            raise InterruptSelect
+
+        orig_alrm_handler = signal.signal(signal.SIGALRM, handler)
+        self.addCleanup(signal.signal, signal.SIGALRM, orig_alrm_handler)
+
+        try:
+            signal.alarm(1)
+
+            s.register(rd, selectors.EVENT_READ)
+            t = time()
+            # select() is interrupted by a signal which raises an exception
+            with self.assertRaises(InterruptSelect):
+                s.select(30)
+            # select() was interrupted before the timeout of 30 seconds
+            self.assertLess(time() - t, 5.0)
+        finally:
+            signal.alarm(0)
+
+    @unittest.skipUnless(hasattr(signal, "alarm"),
+                         "signal.alarm() required for this test")
+    def test_select_interrupt_noraise(self):
         s = self.SELECTOR()
         self.addCleanup(s.close)
 
@@ -354,14 +423,19 @@ class BaseSelectorTestCase(unittest.TestCase):
 
         orig_alrm_handler = signal.signal(signal.SIGALRM, lambda *args: None)
         self.addCleanup(signal.signal, signal.SIGALRM, orig_alrm_handler)
-        self.addCleanup(signal.alarm, 0)
 
-        signal.alarm(1)
+        try:
+            signal.alarm(1)
 
-        s.register(rd, selectors.EVENT_READ)
-        t = time()
-        self.assertFalse(s.select(2))
-        self.assertLess(time() - t, 2.5)
+            s.register(rd, selectors.EVENT_READ)
+            t = time()
+            # select() is interrupted by a signal, but the signal handler doesn't
+            # raise an exception, so select() should by retries with a recomputed
+            # timeout
+            self.assertFalse(s.select(1.5))
+            self.assertGreaterEqual(time() - t, 1.0)
+        finally:
+            signal.alarm(0)
 
 
 class ScalableSelectorMixIn:
@@ -407,7 +481,14 @@ class ScalableSelectorMixIn:
                     self.skipTest("FD limit reached")
                 raise
 
-        self.assertEqual(NUM_FDS // 2, len(s.select()))
+        try:
+            fds = s.select()
+        except OSError as e:
+            if e.errno == errno.EINVAL and sys.platform == 'darwin':
+                # unexplainable errors on macOS don't need to fail the test
+                self.skipTest("Invalid argument error calling poll()")
+            raise
+        self.assertEqual(NUM_FDS // 2, len(fds))
 
 
 class DefaultSelectorTestCase(BaseSelectorTestCase):
@@ -433,6 +514,16 @@ class EpollSelectorTestCase(BaseSelectorTestCase, ScalableSelectorMixIn):
 
     SELECTOR = getattr(selectors, 'EpollSelector', None)
 
+    def test_register_file(self):
+        # epoll(7) returns EPERM when given a file to watch
+        s = self.SELECTOR()
+        with tempfile.NamedTemporaryFile() as f:
+            with self.assertRaises(IOError):
+                s.register(f, selectors.EVENT_READ)
+            # the SelectorKey has been removed
+            with self.assertRaises(KeyError):
+                s.get_key(f)
+
 
 @unittest.skipUnless(hasattr(selectors, 'KqueueSelector'),
                      "Test needs selectors.KqueueSelector)")
@@ -440,11 +531,31 @@ class KqueueSelectorTestCase(BaseSelectorTestCase, ScalableSelectorMixIn):
 
     SELECTOR = getattr(selectors, 'KqueueSelector', None)
 
+    def test_register_bad_fd(self):
+        # a file descriptor that's been closed should raise an OSError
+        # with EBADF
+        s = self.SELECTOR()
+        bad_f = support.make_bad_fd()
+        with self.assertRaises(OSError) as cm:
+            s.register(bad_f, selectors.EVENT_READ)
+        self.assertEqual(cm.exception.errno, errno.EBADF)
+        # the SelectorKey has been removed
+        with self.assertRaises(KeyError):
+            s.get_key(bad_f)
+
+
+@unittest.skipUnless(hasattr(selectors, 'DevpollSelector'),
+                     "Test needs selectors.DevpollSelector")
+class DevpollSelectorTestCase(BaseSelectorTestCase, ScalableSelectorMixIn):
+
+    SELECTOR = getattr(selectors, 'DevpollSelector', None)
+
+
 
 def test_main():
     tests = [DefaultSelectorTestCase, SelectSelectorTestCase,
              PollSelectorTestCase, EpollSelectorTestCase,
-             KqueueSelectorTestCase]
+             KqueueSelectorTestCase, DevpollSelectorTestCase]
     support.run_unittest(*tests)
     support.reap_children()
 

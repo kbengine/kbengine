@@ -30,12 +30,11 @@ ifeq (,$(findstring $(KBE_CONFIG), Release Hybrid Debug Evaluation \
 	Debug_SingleThreaded \
 	Hybrid_SingleThreaded \
 	Hybrid64 Hybrid64_SingleThreaded \
-	Hybrid_SystemPython Hybrid64_SystemPython \
-	Debug_SystemPython Debug64_SystemPython \
 	Release_SingleThreaded  \
+	Release64 Release64_SingleThreaded \
 	Debug64 Debug64_SingleThreaded \
-	Debug64_GCOV Debug64_GCOV_SingleThreaded Debug64_GCOV_SystemPython \
-	Debug_GCOV Debug_GCOV_SingleThreaded Debug_GCOV_SystemPython ))
+	Debug64_GCOV Debug64_GCOV_SingleThreaded \
+	Debug_GCOV Debug_GCOV_SingleThreaded ))
 all:: 
 	@echo Error - Unknown configuration type $(KBE_CONFIG)
 	@false
@@ -66,42 +65,17 @@ MSG_FILE := make$(MAKELEVEL)_$(shell echo $$RANDOM).tmp
 ifdef BIN
 MAKE_LIBS=1
 ifndef INSTALL_DIR
-ifeq ($(IS_COMMAND),1)
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/commands
-else
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server
-endif # IS_COMMAND == 1
+OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server
 else # INSTALL_DIR
-
-# INSTALL_ALL_CONFIGS has been put in to be used by unit_tests so the Debug
-# and Hybrid binaries are both placed in KBE_ROOT/tests/KBE_CONFIG not just
-# the Hybrid builds.
-ifdef INSTALL_ALL_CONFIGS
-	OUTPUTDIR = $(INSTALL_DIR)/$(KBE_CONFIG)
-else
-# For the tools, the Hybrid configuration is automatically made into the install
-# directory. Other configurations are made locally.
-ifeq ($(KBE_CONFIG), Hybrid) 
-	OUTPUTDIR = $(INSTALL_DIR)
-else # KBE_CONFIG == Hybrid
-
-ifeq ($(KBE_CONFIG), Hybrid64) 
-	OUTPUTDIR = $(INSTALL_DIR)
-else # KBE_CONFIG == Hybrid64
-	OUTPUTDIR = $(KBE_CONFIG)
-endif # KBE_CONFIG == Hybrid64
-
-endif # KBE_CONFIG == Hybrid
 endif # INSTALL_DIR
-endif # INSTALL_ALL_CONFIGS
 
-	OUTPUTFILE = $(OUTPUTDIR)/$(BIN)
+OUTPUTFILE = $(OUTPUTDIR)/$(BIN)
 endif # BIN
 
 ifdef SO
 MAKE_LIBS=1
 ifndef OUTPUTDIR
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/$(COMPONENT)-extensions
+	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/extensions
 endif # OUTPUTDIR
 	OUTPUTFILE = $(OUTPUTDIR)/$(SO).so
 endif # SO
@@ -138,6 +112,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/zlib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/fmt/include
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/curl/include
@@ -147,10 +122,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/curl/include
 # CPPFLAGS += -save-temps
 
 LDLIBS += $(addprefix -l, $(MY_LIBS))
-LDLIBS += -lm
-LDLIBS += -lfmt
 LDLIBS += -lcurl
-LDLIBS += -lzip
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
@@ -194,11 +166,7 @@ LDFLAGS += -export-dynamic
 
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/log4cxx/src/main/include
 ifeq ($(NO_USE_LOG4CXX),0)
-ifeq ($(KBE_CONFIG), Hybrid64)
 LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
-else
-LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
-endif
 else
 CPPFLAGS += -DNO_USE_LOG4CXX
 endif
@@ -238,13 +206,6 @@ LDLIBS += -ltmxparser
 CPPFLAGS += -DUSE_TMXPARSER
 endif
 
-ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zip
-KBE_INCLUDES += -I$(ZIP_DIR)
-ifeq ($(USE_ZIP),1)
-LDLIBS += -lzip
-CPPFLAGS += -DUSE_ZIP
-endif
-
 JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc
 KBE_INCLUDES += -I$(JEMALLOC_DIR)/include
 #ifeq ($(USE_JEMALLOC),1)
@@ -253,6 +214,9 @@ CPPFLAGS += -DUSE_JEMALLOC
 #endif
 
 LDLIBS += -ltinyxml
+LDLIBS += -lm
+LDLIBS += -lfmt
+LDLIBS += -lz
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1

@@ -37,10 +37,6 @@ typedef struct
     PyObject_HEAD
     sqlite3* db;
 
-    /* 1 if we are currently within a transaction, i. e. if a BEGIN has been
-     * issued */
-    char inTransaction;
-
     /* the type detection mode. Only 0, PARSE_DECLTYPES, PARSE_COLNAMES or a
      * bitwise combination thereof makes sense */
     int detect_types;
@@ -52,12 +48,11 @@ typedef struct
      * first get called with count=0? */
     double timeout_started;
 
-    /* None for autocommit, otherwise a PyString with the isolation level */
+    /* None for autocommit, otherwise a PyUnicode with the isolation level */
     PyObject* isolation_level;
 
-    /* NULL for autocommit, otherwise a string with the BEGIN statement; will be
-     * freed in connection destructor */
-    char* begin_statement;
+    /* NULL for autocommit, otherwise a string with the BEGIN statement */
+    const char* begin_statement;
 
     /* 1 if a check should be performed for each API call if the connection is
      * used from the same thread it was created in */
@@ -66,7 +61,7 @@ typedef struct
     int initialized;
 
     /* thread identification of the thread the connection was created in */
-    long thread_ident;
+    unsigned long thread_ident;
 
     pysqlite_Cache* statement_cache;
 

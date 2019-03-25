@@ -2,10 +2,12 @@
 ========================================================
 
 .. module:: ensurepip
-   :synopsis: Bootstrapping the ``pip`` installer into an existing Python
+   :synopsis: Bootstrapping the "pip" installer into an existing Python
               installation or virtual environment.
 
 .. versionadded:: 3.4
+
+--------------
 
 The :mod:`ensurepip` package provides support for bootstrapping the ``pip``
 installer into an existing Python installation or virtual environment. This
@@ -94,7 +96,7 @@ Module API
    Bootstraps ``pip`` into the current or designated environment.
 
    *root* specifies an alternative root directory to install relative to.
-   If *root* is None, then installation uses the default install location
+   If *root* is ``None``, then installation uses the default install location
    for the current environment.
 
    *upgrade* indicates whether or not to upgrade an existing installation

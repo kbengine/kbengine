@@ -118,6 +118,60 @@ void finalise(void)
 	Network::destroyObjPool();
 }
 
+#if KBE_PLATFORM != PLATFORM_WIN32	
+#include <sys/poll.h>
+bool kbe_poll(int fd)
+{
+	int32 timeout = 100000;
+	int maxi = 0;
+	int icount = 1;
+	struct pollfd clientfds[1024];
+
+	clientfds[0].fd = fd;
+	clientfds[0].events = POLLIN;
+
+	for (int i = 1; i < 1024; i++)
+		clientfds[i].fd = -1;
+
+	while (1)
+	{
+		int nready = poll(clientfds, maxi + 1, timeout / 1000);
+
+		if (nready == -1)
+		{
+			return false;
+		}
+		else if (nready == 0)
+		{
+			if (icount > 5)
+				return false;
+
+			icount++;
+			continue;
+		}
+		else if (clientfds[0].revents & POLLIN)
+		{
+			return true;
+		}
+	}
+}
+#else
+bool kbe_poll(int fd)
+{
+	fd_set	frds;
+	struct timeval tv = { 0, 1000000 }; // 1s
+
+	FD_ZERO(&frds);
+	FD_SET(fd, &frds);
+
+	int selgot = select(fd + 1, &frds, NULL, NULL, &tv);
+	if (selgot <= 0)
+		return false;
+	else
+		return true;
+}
+#endif
+
 //-------------------------------------------------------------------------------------
 }
 }

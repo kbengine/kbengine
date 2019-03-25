@@ -8,6 +8,8 @@
 
    from math import fsum
 
+--------------
+
 This module is always available.  It provides access to the mathematical
 functions defined by the C standard.
 
@@ -40,14 +42,17 @@ Number-theoretic and representation functions
    *y*.  On platforms that support signed zeros, ``copysign(1.0, -0.0)``
    returns *-1.0*.
 
+
 .. function:: fabs(x)
 
    Return the absolute value of *x*.
+
 
 .. function:: factorial(x)
 
    Return *x* factorial.  Raises :exc:`ValueError` if *x* is not integral or
    is negative.
+
 
 .. function:: floor(x)
 
@@ -97,7 +102,49 @@ Number-theoretic and representation functions
 
    For further discussion and two alternative approaches, see the `ASPN cookbook
    recipes for accurate floating point summation
-   <http://code.activestate.com/recipes/393090/>`_\.
+   <https://code.activestate.com/recipes/393090/>`_\.
+
+
+.. function:: gcd(a, b)
+
+   Return the greatest common divisor of the integers *a* and *b*.  If either
+   *a* or *b* is nonzero, then the value of ``gcd(a, b)`` is the largest
+   positive integer that divides both *a* and *b*.  ``gcd(0, 0)`` returns
+   ``0``.
+
+   .. versionadded:: 3.5
+
+
+.. function:: isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
+
+   Return ``True`` if the values *a* and *b* are close to each other and
+   ``False`` otherwise.
+
+   Whether or not two values are considered close is determined according to
+   given absolute and relative tolerances.
+
+   *rel_tol* is the relative tolerance -- it is the maximum allowed difference
+   between *a* and *b*, relative to the larger absolute value of *a* or *b*.
+   For example, to set a tolerance of 5%, pass ``rel_tol=0.05``.  The default
+   tolerance is ``1e-09``, which assures that the two values are the same
+   within about 9 decimal digits.  *rel_tol* must be greater than zero.
+
+   *abs_tol* is the minimum absolute tolerance -- useful for comparisons near
+   zero. *abs_tol* must be at least zero.
+
+   If no errors occur, the result will be:
+   ``abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)``.
+
+   The IEEE 754 special values of ``NaN``, ``inf``, and ``-inf`` will be
+   handled according to IEEE rules.  Specifically, ``NaN`` is not considered
+   close to any other value, including ``NaN``.  ``inf`` and ``-inf`` are only
+   considered close to themselves.
+
+   .. versionadded:: 3.5
+
+   .. seealso::
+
+      :pep:`485` -- A function for testing approximate equality
 
 
 .. function:: isfinite(x)
@@ -131,11 +178,32 @@ Number-theoretic and representation functions
    of *x* and are floats.
 
 
+.. function:: remainder(x, y)
+
+   Return the IEEE 754-style remainder of *x* with respect to *y*.  For
+   finite *x* and finite nonzero *y*, this is the difference ``x - n*y``,
+   where ``n`` is the closest integer to the exact value of the quotient ``x /
+   y``.  If ``x / y`` is exactly halfway between two consecutive integers, the
+   nearest *even* integer is used for ``n``.  The remainder ``r = remainder(x,
+   y)`` thus always satisfies ``abs(r) <= 0.5 * abs(y)``.
+
+   Special cases follow IEEE 754: in particular, ``remainder(x, math.inf)`` is
+   *x* for any finite *x*, and ``remainder(x, 0)`` and
+   ``remainder(math.inf, x)`` raise :exc:`ValueError` for any non-NaN *x*.
+   If the result of the remainder operation is zero, that zero will have
+   the same sign as *x*.
+
+   On platforms using IEEE 754 binary floating-point, the result of this
+   operation is always exactly representable: no rounding error is introduced.
+
+   .. versionadded:: 3.7
+
+
 .. function:: trunc(x)
 
    Return the :class:`~numbers.Real` value *x* truncated to an
    :class:`~numbers.Integral` (usually an integer). Delegates to
-   ``x.__trunc__()``.
+   :meth:`x.__trunc__() <object.__trunc__>`.
 
 
 Note that :func:`frexp` and :func:`modf` have a different call/return pattern
@@ -155,14 +223,17 @@ Power and logarithmic functions
 
 .. function:: exp(x)
 
-   Return ``e**x``.
+   Return *e* raised to the power *x*, where *e* = 2.718281... is the base
+   of natural logarithms.  This is usually more accurate than ``math.e ** x``
+   or ``pow(math.e, x)``.
 
 
 .. function:: expm1(x)
 
-   Return ``e**x - 1``.  For small floats *x*, the subtraction in ``exp(x) - 1``
+   Return *e* raised to the power *x*, minus 1.  Here *e* is the base of natural
+   logarithms.  For small floats *x*, the subtraction in ``exp(x) - 1``
    can result in a `significant loss of precision
-   <http://en.wikipedia.org/wiki/Loss_of_significance>`_\; the :func:`expm1`
+   <https://en.wikipedia.org/wiki/Loss_of_significance>`_\; the :func:`expm1`
    function provides a way to compute this quantity to full precision::
 
       >>> from math import exp, expm1
@@ -225,9 +296,9 @@ Power and logarithmic functions
 
    Return the square root of *x*.
 
+
 Trigonometric functions
 -----------------------
-
 
 .. function:: acos(x)
 
@@ -274,23 +345,24 @@ Trigonometric functions
 
    Return the tangent of *x* radians.
 
+
 Angular conversion
 ------------------
 
-
 .. function:: degrees(x)
 
-   Converts angle *x* from radians to degrees.
+   Convert angle *x* from radians to degrees.
 
 
 .. function:: radians(x)
 
-   Converts angle *x* from degrees to radians.
+   Convert angle *x* from degrees to radians.
+
 
 Hyperbolic functions
 --------------------
 
-`Hyperbolic functions <http://en.wikipedia.org/wiki/Hyperbolic_function>`_
+`Hyperbolic functions <https://en.wikipedia.org/wiki/Hyperbolic_function>`_
 are analogs of trigonometric functions that are based on hyperbolas
 instead of circles.
 
@@ -329,12 +401,12 @@ Special functions
 
 .. function:: erf(x)
 
-   Return the `error function <http://en.wikipedia.org/wiki/Error_function>`_ at
+   Return the `error function <https://en.wikipedia.org/wiki/Error_function>`_ at
    *x*.
 
    The :func:`erf` function can be used to compute traditional statistical
    functions such as the `cumulative standard normal distribution
-   <http://en.wikipedia.org/wiki/Normal_distribution#Cumulative_distribution_function>`_::
+   <https://en.wikipedia.org/wiki/Normal_distribution#Cumulative_distribution_function>`_::
 
      def phi(x):
          'Cumulative distribution function for the standard normal distribution'
@@ -346,17 +418,17 @@ Special functions
 .. function:: erfc(x)
 
    Return the complementary error function at *x*.  The `complementary error
-   function <http://en.wikipedia.org/wiki/Error_function>`_ is defined as
+   function <https://en.wikipedia.org/wiki/Error_function>`_ is defined as
    ``1.0 - erf(x)``.  It is used for large values of *x* where a subtraction
    from one would cause a `loss of significance
-   <http://en.wikipedia.org/wiki/Loss_of_significance>`_\.
+   <https://en.wikipedia.org/wiki/Loss_of_significance>`_\.
 
    .. versionadded:: 3.2
 
 
 .. function:: gamma(x)
 
-   Return the `Gamma function <http://en.wikipedia.org/wiki/Gamma_function>`_ at
+   Return the `Gamma function <https://en.wikipedia.org/wiki/Gamma_function>`_ at
    *x*.
 
    .. versionadded:: 3.2
@@ -375,12 +447,39 @@ Constants
 
 .. data:: pi
 
-   The mathematical constant π = 3.141592..., to available precision.
+   The mathematical constant *π* = 3.141592..., to available precision.
 
 
 .. data:: e
 
-   The mathematical constant e = 2.718281..., to available precision.
+   The mathematical constant *e* = 2.718281..., to available precision.
+
+
+.. data:: tau
+
+   The mathematical constant *τ* = 6.283185..., to available precision.
+   Tau is a circle constant equal to 2\ *π*, the ratio of a circle's circumference to
+   its radius. To learn more about Tau, check out Vi Hart's video `Pi is (still)
+   Wrong <https://www.youtube.com/watch?v=jG7vhMMXagQ>`_, and start celebrating
+   `Tau day <https://tauday.com/>`_ by eating twice as much pie!
+
+   .. versionadded:: 3.6
+
+
+.. data:: inf
+
+   A floating-point positive infinity.  (For negative infinity, use
+   ``-math.inf``.)  Equivalent to the output of ``float('inf')``.
+
+   .. versionadded:: 3.5
+
+
+.. data:: nan
+
+   A floating-point "not a number" (NaN) value.  Equivalent to the output of
+   ``float('nan')``.
+
+   .. versionadded:: 3.5
 
 
 .. impl-detail::

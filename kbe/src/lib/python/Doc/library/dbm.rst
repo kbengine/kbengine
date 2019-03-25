@@ -4,10 +4,14 @@
 .. module:: dbm
    :synopsis: Interfaces to various Unix "database" formats.
 
+**Source code:** :source:`Lib/dbm/__init__.py`
+
+--------------
+
 :mod:`dbm` is a generic interface to variants of the DBM database ---
 :mod:`dbm.gnu` or :mod:`dbm.ndbm`.  If none of these modules is installed, the
 slow-but-simple implementation in module :mod:`dbm.dumb` will be used.  There
-is a `third party interface <http://www.jcea.es/programacion/pybsddb.htm>`_ to
+is a `third party interface <https://www.jcea.es/programacion/pybsddb.htm>`_ to
 the Oracle Berkeley DB.
 
 
@@ -124,6 +128,9 @@ The individual submodules are described in the following sections.
    :platform: Unix
    :synopsis: GNU's reinterpretation of dbm.
 
+**Source code:** :source:`Lib/dbm/gnu.py`
+
+--------------
 
 This module is quite similar to the :mod:`dbm` module, but uses the GNU library
 ``gdbm`` instead to provide some additional functionality.  Please note that the
@@ -233,6 +240,9 @@ supported.
    :platform: Unix
    :synopsis: The standard "database" interface, based on ndbm.
 
+**Source code:** :source:`Lib/dbm/ndbm.py`
+
+--------------
 
 The :mod:`dbm.ndbm` module provides an interface to the Unix "(n)dbm" library.
 Dbm objects behave like mappings (dictionaries), except that keys and values are
@@ -295,6 +305,8 @@ to locate the appropriate header file to simplify building this module.
 .. module:: dbm.dumb
    :synopsis: Portable implementation of the simple DBM interface.
 
+**Source code:** :source:`Lib/dbm/dumb.py`
+
 .. index:: single: databases
 
 .. note::
@@ -303,6 +315,8 @@ to locate the appropriate header file to simplify building this module.
    :mod:`dbm` module when a more robust module is not available. The :mod:`dbm.dumb`
    module is not written for speed and is not nearly as heavily used as the other
    database modules.
+
+--------------
 
 The :mod:`dbm.dumb` module provides a persistent dictionary-like interface which
 is written entirely in Python.  Unlike other modules such as :mod:`dbm.gnu` no
@@ -325,12 +339,26 @@ The module defines the following:
    dumbdbm database is created, files with :file:`.dat` and :file:`.dir` extensions
    are created.
 
-   The optional *flag* argument is currently ignored; the database is always opened
-   for update, and will be created if it does not exist.
+   The optional *flag* argument supports only the semantics of ``'c'``
+   and ``'n'`` values.  Other values will default to database being always
+   opened for update, and will be created if it does not exist.
 
    The optional *mode* argument is the Unix mode of the file, used only when the
    database has to be created.  It defaults to octal ``0o666`` (and will be modified
    by the prevailing umask).
+
+   .. warning::
+      It is possible to crash the Python interpreter when loading a database
+      with a sufficiently large/complex entry due to stack depth limitations in
+      Python's AST compiler.
+
+   .. versionchanged:: 3.5
+      :func:`.open` always creates a new database when the flag has the value
+      ``'n'``.
+
+   .. deprecated-removed:: 3.6 3.8
+      Creating database in ``'r'`` and ``'w'`` modes.  Modifying database in
+      ``'r'`` mode.
 
    In addition to the methods provided by the
    :class:`collections.abc.MutableMapping` class, :class:`dumbdbm` objects

@@ -19,6 +19,7 @@ public:
 	enum TimeOutType
 	{
 		TIMEOUT_SHUTDOWN_TICK,
+		TIMEOUT_SHUTDOWN_READY_END_TICK,
 		TIMEOUT_SHUTDOWN_END_TICK,
 		TIMEOUT_MAX
 	};
@@ -36,7 +37,7 @@ protected:
 	TimerHandle pTimerHandle_;
 	Network::EventDispatcher* pDispatcher_;
 	float tickPeriod_;
-
+	int	shutDownCount_;
 };
 
 }

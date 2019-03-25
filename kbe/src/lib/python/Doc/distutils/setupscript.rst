@@ -28,7 +28,7 @@ the package into Python 1.5.2.) ::
           description='Python Distribution Utilities',
           author='Greg Ward',
           author_email='gward@python.net',
-          url='http://www.python.org/sigs/distutils-sig/',
+          url='https://www.python.org/sigs/distutils-sig/',
           packages=['distutils', 'distutils.command'],
          )
 
@@ -201,7 +201,7 @@ The second argument to the :class:`~distutils.core.Extension` constructor is
 a list of source
 files.  Since the Distutils currently only support C, C++, and Objective-C
 extensions, these are normally C/C++/Objective-C source files.  (Be sure to use
-appropriate extensions to distinguish C++\ source files: :file:`.cc` and
+appropriate extensions to distinguish C++ source files: :file:`.cc` and
 :file:`.cpp` seem to be recognized by both Unix and Windows compilers.)
 
 However, you can also include SWIG interface (:file:`.i`) files in the list; the
@@ -446,7 +446,7 @@ command line.  Scripts don't require Distutils to do anything very complicated.
 The only clever feature is that if the first line of the script starts with
 ``#!`` and contains the word "python", the Distutils will adjust the first line
 to refer to the current interpreter location. By default, it is replaced with
-the current interpreter location.  The :option:`--executable` (or :option:`-e`)
+the current interpreter location.  The :option:`!--executable` (or :option:`!-e`)
 option will allow the interpreter path to be explicitly overridden.
 
 The ``scripts`` option simply is a list of files to be handled in this
@@ -581,17 +581,19 @@ This information includes:
 |                      | description of the        |                 |        |
 |                      | package                   |                 |        |
 +----------------------+---------------------------+-----------------+--------+
-| ``long_description`` | longer description of the | long string     | \(5)   |
+| ``long_description`` | longer description of the | long string     | \(4)   |
 |                      | package                   |                 |        |
 +----------------------+---------------------------+-----------------+--------+
-| ``download_url``     | location where the        | URL             | \(4)   |
+| ``download_url``     | location where the        | URL             |        |
 |                      | package may be downloaded |                 |        |
 +----------------------+---------------------------+-----------------+--------+
-| ``classifiers``      | a list of classifiers     | list of strings | \(4)   |
+| ``classifiers``      | a list of classifiers     | list of strings | (6)(7) |
 +----------------------+---------------------------+-----------------+--------+
-| ``platforms``        | a list of platforms       | list of strings |        |
+| ``platforms``        | a list of platforms       | list of strings | (6)(8) |
 +----------------------+---------------------------+-----------------+--------+
-| ``license``          | license for the package   | short string    | \(6)   |
+| ``keywords``         | a list of keywords        | list of strings | (6)(8) |
++----------------------+---------------------------+-----------------+--------+
+| ``license``          | license for the package   | short string    | \(5)   |
 +----------------------+---------------------------+-----------------+--------+
 
 Notes:
@@ -607,28 +609,36 @@ Notes:
     provided, distutils lists it as the author in :file:`PKG-INFO`.
 
 (4)
-    These fields should not be used if your package is to be compatible with Python
-    versions prior to 2.2.3 or 2.3.  The list is available from the `PyPI website
-    <http://pypi.python.org/pypi>`_.
-
-(5)
     The ``long_description`` field is used by PyPI when you are
     :ref:`registering <package-register>` a package, to
     :ref:`build its home page <package-display>`.
 
-(6)
+(5)
     The ``license`` field is a text indicating the license covering the
     package where the license is not a selection from the "License" Trove
     classifiers. See the ``Classifier`` field. Notice that
     there's a ``licence`` distribution option which is deprecated but still
     acts as an alias for ``license``.
 
+(6)
+    This field must be a list.
+
+(7)
+    The valid classifiers are listed on
+    `PyPI <https://pypi.org/classifiers>`_.
+
+(8)
+    To preserve backward compatibility, this field also accepts a string. If
+    you pass a comma-separated string ``'foo, bar'``, it will be converted to
+    ``['foo', 'bar']``, Otherwise, it will be converted to a list of one
+    string.
+
 'short string'
     A single line of text, not more than 200 characters.
 
 'long string'
     Multiple lines of plain text in reStructuredText format (see
-    http://docutils.sf.net/).
+    http://docutils.sourceforge.net/).
 
 'list of strings'
     See below.
@@ -650,7 +660,7 @@ information is sometimes used to indicate sub-releases.  These are
 1.0.1a2
     the second alpha release of the first patch version of 1.0
 
-``classifiers`` are specified in a Python list::
+``classifiers`` must be specified in a list::
 
     setup(...,
           classifiers=[
@@ -671,19 +681,9 @@ information is sometimes used to indicate sub-releases.  These are
               ],
           )
 
-If you wish to include classifiers in your :file:`setup.py` file and also wish
-to remain backwards-compatible with Python releases prior to 2.2.3, then you can
-include the following code fragment in your :file:`setup.py` before the
-:func:`setup` call. ::
-
-    # patch distutils if it can't cope with the "classifiers" or
-    # "download_url" keywords
-    from sys import version
-    if version < '2.2.3':
-        from distutils.dist import DistributionMetadata
-        DistributionMetadata.classifiers = None
-        DistributionMetadata.download_url = None
-
+.. versionchanged:: 3.7
+   :class:`~distutils.core.setup` now warns when ``classifiers``, ``keywords``
+   or ``platforms`` fields are not specified as a list or a string.
 
 .. _debug-setup-script:
 

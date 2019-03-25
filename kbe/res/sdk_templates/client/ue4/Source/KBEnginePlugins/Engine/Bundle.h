@@ -31,6 +31,8 @@ public:
 
 	void checkStream(uint32 v);
 
+	void clear();
+
 public:
 	Bundle &operator<<(uint8 value);
 	Bundle &operator<<(uint16 value);

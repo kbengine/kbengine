@@ -72,7 +72,7 @@ Dbmgr::~Dbmgr()
 }
 
 //-------------------------------------------------------------------------------------
-bool Dbmgr::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Dbmgr::canShutdown()
 {
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
@@ -86,15 +86,13 @@ bool Dbmgr::canShutdown()
 			bool isReady = (pyResult == Py_True);
 			Py_DECREF(pyResult);
 
-			if (isReady)
-				return true;
-			else
-				return false;
+			if (!isReady)
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 	}
 
@@ -110,41 +108,41 @@ bool Dbmgr::canShutdown()
 				bditer->first, bditer->second.size(), bditer->second.getTasksinfos(), (pThreadPool->currentThreadCount() - pThreadPool->currentFreeThreadCount()),
 				pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
 
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 		}
 	}
 
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if(cellapp_components.size() > 0)
+	if (cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); ++i)
+		for (size_t i = 0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for cellapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for cellapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
 	Components::COMPONENTS& baseapp_components = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	if(baseapp_components.size() > 0)
+	if (baseapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<baseapp_components.size(); ++i)
+		for (size_t i = 0; i<baseapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", baseapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for baseapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for baseapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -213,8 +211,9 @@ void Dbmgr::handleMainTick()
 {
 	AUTO_SCOPED_PROFILE("mainTick");
 	
-	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 // time_t t = ::time(NULL);
+	 // static int kbeTime = 0;
+	 // DEBUG_MSG(fmt::format("Dbmgr::handleGameTick[{}]:{}\n", t, ++kbeTime));
 	
 	threadPool_.onMainThreadTick();
 	DBUtil::handleMainTick();
@@ -849,11 +848,7 @@ PyObject* Dbmgr::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 	std::string dbInterfaceName = "default";
 	if (pyDBInterfaceName)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyDBInterfaceName, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		dbInterfaceName = ccattr;
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		free(ccattr);
+		dbInterfaceName = PyUnicode_AsUTF8AndSize(pyDBInterfaceName, NULL);
 
 		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
 		{
@@ -1021,7 +1016,7 @@ void Dbmgr::onExecuteRawDatabaseCommandCB(KBEngine::MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: not found callback:{}.\n",
 				callbackID));
 		}
 	}
@@ -1238,12 +1233,8 @@ std::string Dbmgr::selectAccountDBInterfaceName(const std::string& name)
 
 	if (pyResult != NULL)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyResult, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		dbInterfaceName = ccattr;
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		dbInterfaceName = PyUnicode_AsUTF8AndSize(pyResult, NULL);
 		Py_DECREF(pyResult);
-		free(ccattr);
 	}
 	else
 	{

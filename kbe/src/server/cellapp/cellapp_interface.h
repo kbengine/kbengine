@@ -192,12 +192,6 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	//entity丢失了一个观察者(客户端)
 	ENTITY_MESSAGE_DECLARE_ARGS0(onLoseWitness,										NETWORK_FIXED_MESSAGE)
-
-	// entity传送。
-	ENTITY_MESSAGE_DECLARE_ARGS3(teleportFromBaseapp,								NETWORK_FIXED_MESSAGE,
-									COMPONENT_ID,									cellAppID,
-									ENTITY_ID,										targetEntityID,
-									COMPONENT_ID,									sourceBaseAppID)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

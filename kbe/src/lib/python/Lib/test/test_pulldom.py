@@ -1,12 +1,12 @@
 import io
 import unittest
-import sys
 import xml.sax
 
 from xml.sax.xmlreader import AttributesImpl
+from xml.sax.handler import feature_external_ges
 from xml.dom import pulldom
 
-from test.support import run_unittest, findfile
+from test.support import findfile
 
 
 tstfile = findfile("test.xml", subdir="xmltestdata")
@@ -159,6 +159,12 @@ class PullDOMTestCase(unittest.TestCase):
         except StopIteration:
             self.fail(
                 "Ran out of events, but should have received END_DOCUMENT")
+
+    def test_external_ges_default(self):
+        parser = pulldom.parseString(SMALL_SAMPLE)
+        saxparser = parser.parser
+        ges = saxparser.getFeature(feature_external_ges)
+        self.assertEqual(ges, False)
 
 
 class ThoroughTestCase(unittest.TestCase):
@@ -339,9 +345,5 @@ class SAX2DOMTestCase(unittest.TestCase):
         doc.unlink()
 
 
-def test_main():
-    run_unittest(PullDOMTestCase, ThoroughTestCase, SAX2DOMTestCase)
-
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

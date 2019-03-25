@@ -2,10 +2,18 @@ import enum
 import inspect
 import pydoc
 import unittest
+import threading
 from collections import OrderedDict
-from enum import Enum, IntEnum, EnumMeta, unique
+from enum import Enum, IntEnum, EnumMeta, Flag, IntFlag, unique, auto
 from io import StringIO
 from pickle import dumps, loads, PicklingError, HIGHEST_PROTOCOL
+from test import support
+from datetime import timedelta
+
+try:
+    import threading
+except ImportError:
+    threading = None
 
 # for pickle tests
 try:
@@ -31,6 +39,14 @@ try:
         MOE = 3.142596
 except Exception as exc:
     FloatStooges = exc
+
+try:
+    class FlagStooges(Flag):
+        LARRY = 1
+        CURLY = 2
+        MOE = 3
+except Exception as exc:
+    FlagStooges = exc
 
 # for pickle test and subclass tests
 try:
@@ -60,24 +76,20 @@ except Exception as exc:
 # for doctests
 try:
     class Fruit(Enum):
-        tomato = 1
-        banana = 2
-        cherry = 3
+        TOMATO = 1
+        BANANA = 2
+        CHERRY = 3
 except Exception:
     pass
 
-def test_pickle_dump_load(assertion, source, target=None,
-        *, protocol=(0, HIGHEST_PROTOCOL)):
-    start, stop = protocol
+def test_pickle_dump_load(assertion, source, target=None):
     if target is None:
         target = source
-    for protocol in range(start, stop+1):
+    for protocol in range(HIGHEST_PROTOCOL + 1):
         assertion(loads(dumps(source, protocol=protocol)), target)
 
-def test_pickle_exception(assertion, exception, obj,
-        *, protocol=(0, HIGHEST_PROTOCOL)):
-    start, stop = protocol
-    for protocol in range(start, stop+1):
+def test_pickle_exception(assertion, exception, obj):
+    for protocol in range(HIGHEST_PROTOCOL + 1):
         with assertion(exception):
             dumps(obj, protocol=protocol)
 
@@ -108,6 +120,23 @@ class TestHelpers(unittest.TestCase):
                 '__', '___', '____', '_____',):
             self.assertFalse(enum._is_dunder(s))
 
+# for subclassing tests
+
+class classproperty:
+
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        if doc is None and fget is not None:
+            doc = fget.__doc__
+        self.__doc__ = doc
+
+    def __get__(self, instance, ownerclass):
+        return self.fget(ownerclass)
+
+
+# tests
 
 class TestEnum(unittest.TestCase):
 
@@ -174,6 +203,18 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(
                 set(dir(Test.this)),
                 set(['__class__', '__doc__', '__module__', 'name', 'value', 'wowser']),
+                )
+
+    def test_dir_on_sub_with_behavior_on_super(self):
+        # see issue22506
+        class SuperEnum(Enum):
+            def invisible(self):
+                return "did you see me?"
+        class SubEnum(SuperEnum):
+            sample = 5
+        self.assertEqual(
+                set(dir(SubEnum.sample)),
+                set(['__class__', '__doc__', '__module__', 'name', 'value', 'invisible']),
                 )
 
     def test_enum_in_enum_out(self):
@@ -245,6 +286,19 @@ class TestEnum(unittest.TestCase):
         with self.assertRaises(AttributeError):
             del Season.SPRING.name
 
+    def test_bool_of_class(self):
+        class Empty(Enum):
+            pass
+        self.assertTrue(bool(Empty))
+
+    def test_bool_of_member(self):
+        class Count(Enum):
+            zero = 0
+            one = 1
+            two = 2
+        for member in Count:
+            self.assertTrue(bool(member))
+
     def test_invalid_names(self):
         with self.assertRaises(ValueError):
             class Wrong(Enum):
@@ -262,10 +316,35 @@ class TestEnum(unittest.TestCase):
             class Wrong(Enum):
                 _any_name_ = 9
 
+    def test_bool(self):
+        # plain Enum members are always True
+        class Logic(Enum):
+            true = True
+            false = False
+        self.assertTrue(Logic.true)
+        self.assertTrue(Logic.false)
+        # unless overridden
+        class RealLogic(Enum):
+            true = True
+            false = False
+            def __bool__(self):
+                return bool(self._value_)
+        self.assertTrue(RealLogic.true)
+        self.assertFalse(RealLogic.false)
+        # mixed Enums depend on mixed-in type
+        class IntLogic(int, Enum):
+            true = 1
+            false = 0
+        self.assertTrue(IntLogic.true)
+        self.assertFalse(IntLogic.false)
+
     def test_contains(self):
         Season = self.Season
         self.assertIn(Season.AUTUMN, Season)
-        self.assertNotIn(3, Season)
+        with self.assertWarns(DeprecationWarning):
+            self.assertNotIn(3, Season)
+        with self.assertWarns(DeprecationWarning):
+            self.assertNotIn('AUTUMN', Season)
 
         val = Season(3)
         self.assertIn(val, Season)
@@ -273,6 +352,11 @@ class TestEnum(unittest.TestCase):
         class OtherEnum(Enum):
             one = 1; two = 2
         self.assertNotIn(OtherEnum.two, Season)
+
+    def test_member_contains(self):
+        self.assertRaises(TypeError, lambda: 'test' in self.Season.AUTUMN)
+        self.assertRaises(TypeError, lambda: 3 in self.Season.AUTUMN)
+        self.assertRaises(TypeError, lambda: 'AUTUMN' in self.Season.AUTUMN)
 
     def test_comparisons(self):
         Season = self.Season
@@ -520,6 +604,18 @@ class TestEnum(unittest.TestCase):
         self.assertEqual([k for k,v in WeekDay.__members__.items()
                 if v.name != k], ['TEUSDAY', ])
 
+    def test_intenum_from_bytes(self):
+        self.assertIs(IntStooges.from_bytes(b'\x00\x03', 'big'), IntStooges.MOE)
+        with self.assertRaises(ValueError):
+            IntStooges.from_bytes(b'\x00\x05', 'big')
+
+    def test_floatenum_fromhex(self):
+        h = float.hex(FloatStooges.MOE.value)
+        self.assertIs(FloatStooges.fromhex(h), FloatStooges.MOE)
+        h = float.hex(FloatStooges.MOE.value + 0.01)
+        with self.assertRaises(ValueError):
+            FloatStooges.fromhex(h)
+
     def test_pickle_enum(self):
         if isinstance(Stooges, Exception):
             raise Stooges
@@ -563,11 +659,15 @@ class TestEnum(unittest.TestCase):
 
         self.__class__.NestedEnum = NestedEnum
         self.NestedEnum.__qualname__ = '%s.NestedEnum' % self.__class__.__name__
-        test_pickle_exception(
-                self.assertRaises, PicklingError, self.NestedEnum.twigs,
-                protocol=(0, 3))
-        test_pickle_dump_load(self.assertIs, self.NestedEnum.twigs,
-                protocol=(4, HIGHEST_PROTOCOL))
+        test_pickle_dump_load(self.assertIs, self.NestedEnum.twigs)
+
+    def test_pickle_by_name(self):
+        class ReplaceGlobalInt(IntEnum):
+            ONE = 1
+            TWO = 2
+        ReplaceGlobalInt.__reduce_ex__ = enum._reduce_ex_by_name
+        for proto in range(HIGHEST_PROTOCOL):
+            self.assertEqual(ReplaceGlobalInt.TWO.__reduce_ex__(proto), 'TWO')
 
     def test_exploding_pickle(self):
         BadPickle = Enum(
@@ -617,7 +717,7 @@ class TestEnum(unittest.TestCase):
                  self.Season.SPRING]
                 )
 
-    def test_programatic_function_string(self):
+    def test_programmatic_function_string(self):
         SummerMonth = Enum('SummerMonth', 'june july august')
         lst = list(SummerMonth)
         self.assertEqual(len(lst), len(SummerMonth))
@@ -634,7 +734,24 @@ class TestEnum(unittest.TestCase):
             self.assertIn(e, SummerMonth)
             self.assertIs(type(e), SummerMonth)
 
-    def test_programatic_function_string_list(self):
+    def test_programmatic_function_string_with_start(self):
+        SummerMonth = Enum('SummerMonth', 'june july august', start=10)
+        lst = list(SummerMonth)
+        self.assertEqual(len(lst), len(SummerMonth))
+        self.assertEqual(len(SummerMonth), 3, SummerMonth)
+        self.assertEqual(
+                [SummerMonth.june, SummerMonth.july, SummerMonth.august],
+                lst,
+                )
+        for i, month in enumerate('june july august'.split(), 10):
+            e = SummerMonth(i)
+            self.assertEqual(int(e.value), i)
+            self.assertNotEqual(e, i)
+            self.assertEqual(e.name, month)
+            self.assertIn(e, SummerMonth)
+            self.assertIs(type(e), SummerMonth)
+
+    def test_programmatic_function_string_list(self):
         SummerMonth = Enum('SummerMonth', ['june', 'july', 'august'])
         lst = list(SummerMonth)
         self.assertEqual(len(lst), len(SummerMonth))
@@ -651,7 +768,24 @@ class TestEnum(unittest.TestCase):
             self.assertIn(e, SummerMonth)
             self.assertIs(type(e), SummerMonth)
 
-    def test_programatic_function_iterable(self):
+    def test_programmatic_function_string_list_with_start(self):
+        SummerMonth = Enum('SummerMonth', ['june', 'july', 'august'], start=20)
+        lst = list(SummerMonth)
+        self.assertEqual(len(lst), len(SummerMonth))
+        self.assertEqual(len(SummerMonth), 3, SummerMonth)
+        self.assertEqual(
+                [SummerMonth.june, SummerMonth.july, SummerMonth.august],
+                lst,
+                )
+        for i, month in enumerate('june july august'.split(), 20):
+            e = SummerMonth(i)
+            self.assertEqual(int(e.value), i)
+            self.assertNotEqual(e, i)
+            self.assertEqual(e.name, month)
+            self.assertIn(e, SummerMonth)
+            self.assertIs(type(e), SummerMonth)
+
+    def test_programmatic_function_iterable(self):
         SummerMonth = Enum(
                 'SummerMonth',
                 (('june', 1), ('july', 2), ('august', 3))
@@ -671,7 +805,7 @@ class TestEnum(unittest.TestCase):
             self.assertIn(e, SummerMonth)
             self.assertIs(type(e), SummerMonth)
 
-    def test_programatic_function_from_dict(self):
+    def test_programmatic_function_from_dict(self):
         SummerMonth = Enum(
                 'SummerMonth',
                 OrderedDict((('june', 1), ('july', 2), ('august', 3)))
@@ -691,7 +825,7 @@ class TestEnum(unittest.TestCase):
             self.assertIn(e, SummerMonth)
             self.assertIs(type(e), SummerMonth)
 
-    def test_programatic_function_type(self):
+    def test_programmatic_function_type(self):
         SummerMonth = Enum('SummerMonth', 'june july august', type=int)
         lst = list(SummerMonth)
         self.assertEqual(len(lst), len(SummerMonth))
@@ -707,7 +841,23 @@ class TestEnum(unittest.TestCase):
             self.assertIn(e, SummerMonth)
             self.assertIs(type(e), SummerMonth)
 
-    def test_programatic_function_type_from_subclass(self):
+    def test_programmatic_function_type_with_start(self):
+        SummerMonth = Enum('SummerMonth', 'june july august', type=int, start=30)
+        lst = list(SummerMonth)
+        self.assertEqual(len(lst), len(SummerMonth))
+        self.assertEqual(len(SummerMonth), 3, SummerMonth)
+        self.assertEqual(
+                [SummerMonth.june, SummerMonth.july, SummerMonth.august],
+                lst,
+                )
+        for i, month in enumerate('june july august'.split(), 30):
+            e = SummerMonth(i)
+            self.assertEqual(e, i)
+            self.assertEqual(e.name, month)
+            self.assertIn(e, SummerMonth)
+            self.assertIs(type(e), SummerMonth)
+
+    def test_programmatic_function_type_from_subclass(self):
         SummerMonth = IntEnum('SummerMonth', 'june july august')
         lst = list(SummerMonth)
         self.assertEqual(len(lst), len(SummerMonth))
@@ -717,6 +867,22 @@ class TestEnum(unittest.TestCase):
                 lst,
                 )
         for i, month in enumerate('june july august'.split(), 1):
+            e = SummerMonth(i)
+            self.assertEqual(e, i)
+            self.assertEqual(e.name, month)
+            self.assertIn(e, SummerMonth)
+            self.assertIs(type(e), SummerMonth)
+
+    def test_programmatic_function_type_from_subclass_with_start(self):
+        SummerMonth = IntEnum('SummerMonth', 'june july august', start=40)
+        lst = list(SummerMonth)
+        self.assertEqual(len(lst), len(SummerMonth))
+        self.assertEqual(len(SummerMonth), 3, SummerMonth)
+        self.assertEqual(
+                [SummerMonth.june, SummerMonth.july, SummerMonth.august],
+                lst,
+                )
+        for i, month in enumerate('june july august'.split(), 40):
             e = SummerMonth(i)
             self.assertEqual(e, i)
             self.assertEqual(e.name, month)
@@ -1010,9 +1176,9 @@ class TestEnum(unittest.TestCase):
         globals()['NEI'] = NEI
         NI5 = NamedInt('test', 5)
         self.assertEqual(NI5, 5)
-        test_pickle_dump_load(self.assertEqual, NI5, 5, protocol=(4, 4))
+        test_pickle_dump_load(self.assertEqual, NI5, 5)
         self.assertEqual(NEI.y.value, 2)
-        test_pickle_dump_load(self.assertIs, NEI.y, protocol=(4, 4))
+        test_pickle_dump_load(self.assertIs, NEI.y)
         test_pickle_dump_load(self.assertIs, NEI)
 
     def test_subclasses_with_reduce(self):
@@ -1366,6 +1532,23 @@ class TestEnum(unittest.TestCase):
             yellow = 6
         self.assertEqual(MoreColor.magenta.hex(), '5 hexlified!')
 
+    def test_subclass_duplicate_name(self):
+        class Base(Enum):
+            def test(self):
+                pass
+        class Test(Base):
+            test = 1
+        self.assertIs(type(Test.test), Test)
+
+    def test_subclass_duplicate_name_dynamic(self):
+        from types import DynamicClassAttribute
+        class Base(Enum):
+            @DynamicClassAttribute
+            def test(self):
+                return 'dynamic'
+        class Test(Base):
+            test = 1
+        self.assertEqual(Test.test.test, 'dynamic')
 
     def test_no_duplicates(self):
         class UniqueEnum(Enum):
@@ -1410,6 +1593,34 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(round(Planet.EARTH.surface_gravity, 2), 9.80)
         self.assertEqual(Planet.EARTH.value, (5.976e+24, 6.37814e6))
 
+    def test_ignore(self):
+        class Period(timedelta, Enum):
+            '''
+            different lengths of time
+            '''
+            def __new__(cls, value, period):
+                obj = timedelta.__new__(cls, value)
+                obj._value_ = value
+                obj.period = period
+                return obj
+            _ignore_ = 'Period i'
+            Period = vars()
+            for i in range(13):
+                Period['month_%d' % i] = i*30, 'month'
+            for i in range(53):
+                Period['week_%d' % i] = i*7, 'week'
+            for i in range(32):
+                Period['day_%d' % i] = i, 'day'
+            OneDay = day_1
+            OneWeek = week_1
+            OneMonth = month_1
+        self.assertFalse(hasattr(Period, '_ignore_'))
+        self.assertFalse(hasattr(Period, 'Period'))
+        self.assertFalse(hasattr(Period, 'i'))
+        self.assertTrue(isinstance(Period.day_1, timedelta))
+        self.assertTrue(Period.month_1 is Period.day_30)
+        self.assertTrue(Period.week_4 is Period.day_28)
+
     def test_nonhash_value(self):
         class AutoNumberInAList(Enum):
             def __new__(cls):
@@ -1444,6 +1655,1079 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(LabelledList.unprocessed, 1)
         self.assertEqual(LabelledList(1), LabelledList.unprocessed)
 
+    def test_auto_number(self):
+        class Color(Enum):
+            red = auto()
+            blue = auto()
+            green = auto()
+
+        self.assertEqual(list(Color), [Color.red, Color.blue, Color.green])
+        self.assertEqual(Color.red.value, 1)
+        self.assertEqual(Color.blue.value, 2)
+        self.assertEqual(Color.green.value, 3)
+
+    def test_auto_name(self):
+        class Color(Enum):
+            def _generate_next_value_(name, start, count, last):
+                return name
+            red = auto()
+            blue = auto()
+            green = auto()
+
+        self.assertEqual(list(Color), [Color.red, Color.blue, Color.green])
+        self.assertEqual(Color.red.value, 'red')
+        self.assertEqual(Color.blue.value, 'blue')
+        self.assertEqual(Color.green.value, 'green')
+
+    def test_auto_name_inherit(self):
+        class AutoNameEnum(Enum):
+            def _generate_next_value_(name, start, count, last):
+                return name
+        class Color(AutoNameEnum):
+            red = auto()
+            blue = auto()
+            green = auto()
+
+        self.assertEqual(list(Color), [Color.red, Color.blue, Color.green])
+        self.assertEqual(Color.red.value, 'red')
+        self.assertEqual(Color.blue.value, 'blue')
+        self.assertEqual(Color.green.value, 'green')
+
+    def test_auto_garbage(self):
+        class Color(Enum):
+            red = 'red'
+            blue = auto()
+        self.assertEqual(Color.blue.value, 1)
+
+    def test_auto_garbage_corrected(self):
+        class Color(Enum):
+            red = 'red'
+            blue = 2
+            green = auto()
+
+        self.assertEqual(list(Color), [Color.red, Color.blue, Color.green])
+        self.assertEqual(Color.red.value, 'red')
+        self.assertEqual(Color.blue.value, 2)
+        self.assertEqual(Color.green.value, 3)
+
+    def test_duplicate_auto(self):
+        class Dupes(Enum):
+            first = primero = auto()
+            second = auto()
+            third = auto()
+        self.assertEqual([Dupes.first, Dupes.second, Dupes.third], list(Dupes))
+
+    def test_missing(self):
+        class Color(Enum):
+            red = 1
+            green = 2
+            blue = 3
+            @classmethod
+            def _missing_(cls, item):
+                if item == 'three':
+                    return cls.blue
+                elif item == 'bad return':
+                    # trigger internal error
+                    return 5
+                elif item == 'error out':
+                    raise ZeroDivisionError
+                else:
+                    # trigger not found
+                    return None
+        self.assertIs(Color('three'), Color.blue)
+        self.assertRaises(ValueError, Color, 7)
+        try:
+            Color('bad return')
+        except TypeError as exc:
+            self.assertTrue(isinstance(exc.__context__, ValueError))
+        else:
+            raise Exception('Exception not raised.')
+        try:
+            Color('error out')
+        except ZeroDivisionError as exc:
+            self.assertTrue(isinstance(exc.__context__, ValueError))
+        else:
+            raise Exception('Exception not raised.')
+
+    def test_multiple_mixin(self):
+        class MaxMixin:
+            @classproperty
+            def MAX(cls):
+                max = len(cls)
+                cls.MAX = max
+                return max
+        class StrMixin:
+            def __str__(self):
+                return self._name_.lower()
+        class SomeEnum(Enum):
+            def behavior(self):
+                return 'booyah'
+        class AnotherEnum(Enum):
+            def behavior(self):
+                return 'nuhuh!'
+            def social(self):
+                return "what's up?"
+        class Color(MaxMixin, Enum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 3)
+        self.assertEqual(Color.MAX, 3)
+        self.assertEqual(str(Color.BLUE), 'Color.BLUE')
+        class Color(MaxMixin, StrMixin, Enum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 3)
+        self.assertEqual(Color.MAX, 3)
+        self.assertEqual(str(Color.BLUE), 'blue')
+        class Color(StrMixin, MaxMixin, Enum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 3)
+        self.assertEqual(Color.MAX, 3)
+        self.assertEqual(str(Color.BLUE), 'blue')
+        class CoolColor(StrMixin, SomeEnum, Enum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(CoolColor.RED.value, 1)
+        self.assertEqual(CoolColor.GREEN.value, 2)
+        self.assertEqual(CoolColor.BLUE.value, 3)
+        self.assertEqual(str(CoolColor.BLUE), 'blue')
+        self.assertEqual(CoolColor.RED.behavior(), 'booyah')
+        class CoolerColor(StrMixin, AnotherEnum, Enum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(CoolerColor.RED.value, 1)
+        self.assertEqual(CoolerColor.GREEN.value, 2)
+        self.assertEqual(CoolerColor.BLUE.value, 3)
+        self.assertEqual(str(CoolerColor.BLUE), 'blue')
+        self.assertEqual(CoolerColor.RED.behavior(), 'nuhuh!')
+        self.assertEqual(CoolerColor.RED.social(), "what's up?")
+        class CoolestColor(StrMixin, SomeEnum, AnotherEnum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(CoolestColor.RED.value, 1)
+        self.assertEqual(CoolestColor.GREEN.value, 2)
+        self.assertEqual(CoolestColor.BLUE.value, 3)
+        self.assertEqual(str(CoolestColor.BLUE), 'blue')
+        self.assertEqual(CoolestColor.RED.behavior(), 'booyah')
+        self.assertEqual(CoolestColor.RED.social(), "what's up?")
+        class ConfusedColor(StrMixin, AnotherEnum, SomeEnum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(ConfusedColor.RED.value, 1)
+        self.assertEqual(ConfusedColor.GREEN.value, 2)
+        self.assertEqual(ConfusedColor.BLUE.value, 3)
+        self.assertEqual(str(ConfusedColor.BLUE), 'blue')
+        self.assertEqual(ConfusedColor.RED.behavior(), 'nuhuh!')
+        self.assertEqual(ConfusedColor.RED.social(), "what's up?")
+        class ReformedColor(StrMixin, IntEnum, SomeEnum, AnotherEnum):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(ReformedColor.RED.value, 1)
+        self.assertEqual(ReformedColor.GREEN.value, 2)
+        self.assertEqual(ReformedColor.BLUE.value, 3)
+        self.assertEqual(str(ReformedColor.BLUE), 'blue')
+        self.assertEqual(ReformedColor.RED.behavior(), 'booyah')
+        self.assertEqual(ConfusedColor.RED.social(), "what's up?")
+        self.assertTrue(issubclass(ReformedColor, int))
+
+    def test_multiple_inherited_mixin(self):
+        class StrEnum(str, Enum):
+            def __new__(cls, *args, **kwargs):
+                for a in args:
+                    if not isinstance(a, str):
+                        raise TypeError("Enumeration '%s' (%s) is not"
+                                        " a string" % (a, type(a).__name__))
+                return str.__new__(cls, *args, **kwargs)
+        @unique
+        class Decision1(StrEnum):
+            REVERT = "REVERT"
+            REVERT_ALL = "REVERT_ALL"
+            RETRY = "RETRY"
+        class MyEnum(StrEnum):
+            pass
+        @unique
+        class Decision2(MyEnum):
+            REVERT = "REVERT"
+            REVERT_ALL = "REVERT_ALL"
+            RETRY = "RETRY"
+
+
+class TestOrder(unittest.TestCase):
+
+    def test_same_members(self):
+        class Color(Enum):
+            _order_ = 'red green blue'
+            red = 1
+            green = 2
+            blue = 3
+
+    def test_same_members_with_aliases(self):
+        class Color(Enum):
+            _order_ = 'red green blue'
+            red = 1
+            green = 2
+            blue = 3
+            verde = green
+
+    def test_same_members_wrong_order(self):
+        with self.assertRaisesRegex(TypeError, 'member order does not match _order_'):
+            class Color(Enum):
+                _order_ = 'red green blue'
+                red = 1
+                blue = 3
+                green = 2
+
+    def test_order_has_extra_members(self):
+        with self.assertRaisesRegex(TypeError, 'member order does not match _order_'):
+            class Color(Enum):
+                _order_ = 'red green blue purple'
+                red = 1
+                green = 2
+                blue = 3
+
+    def test_order_has_extra_members_with_aliases(self):
+        with self.assertRaisesRegex(TypeError, 'member order does not match _order_'):
+            class Color(Enum):
+                _order_ = 'red green blue purple'
+                red = 1
+                green = 2
+                blue = 3
+                verde = green
+
+    def test_enum_has_extra_members(self):
+        with self.assertRaisesRegex(TypeError, 'member order does not match _order_'):
+            class Color(Enum):
+                _order_ = 'red green blue'
+                red = 1
+                green = 2
+                blue = 3
+                purple = 4
+
+    def test_enum_has_extra_members_with_aliases(self):
+        with self.assertRaisesRegex(TypeError, 'member order does not match _order_'):
+            class Color(Enum):
+                _order_ = 'red green blue'
+                red = 1
+                green = 2
+                blue = 3
+                purple = 4
+                verde = green
+
+
+class TestFlag(unittest.TestCase):
+    """Tests of the Flags."""
+
+    class Perm(Flag):
+        R, W, X = 4, 2, 1
+
+    class Color(Flag):
+        BLACK = 0
+        RED = 1
+        GREEN = 2
+        BLUE = 4
+        PURPLE = RED|BLUE
+
+    class Open(Flag):
+        RO = 0
+        WO = 1
+        RW = 2
+        AC = 3
+        CE = 1<<19
+
+    def test_str(self):
+        Perm = self.Perm
+        self.assertEqual(str(Perm.R), 'Perm.R')
+        self.assertEqual(str(Perm.W), 'Perm.W')
+        self.assertEqual(str(Perm.X), 'Perm.X')
+        self.assertEqual(str(Perm.R | Perm.W), 'Perm.R|W')
+        self.assertEqual(str(Perm.R | Perm.W | Perm.X), 'Perm.R|W|X')
+        self.assertEqual(str(Perm(0)), 'Perm.0')
+        self.assertEqual(str(~Perm.R), 'Perm.W|X')
+        self.assertEqual(str(~Perm.W), 'Perm.R|X')
+        self.assertEqual(str(~Perm.X), 'Perm.R|W')
+        self.assertEqual(str(~(Perm.R | Perm.W)), 'Perm.X')
+        self.assertEqual(str(~(Perm.R | Perm.W | Perm.X)), 'Perm.0')
+        self.assertEqual(str(Perm(~0)), 'Perm.R|W|X')
+
+        Open = self.Open
+        self.assertEqual(str(Open.RO), 'Open.RO')
+        self.assertEqual(str(Open.WO), 'Open.WO')
+        self.assertEqual(str(Open.AC), 'Open.AC')
+        self.assertEqual(str(Open.RO | Open.CE), 'Open.CE')
+        self.assertEqual(str(Open.WO | Open.CE), 'Open.CE|WO')
+        self.assertEqual(str(~Open.RO), 'Open.CE|AC|RW|WO')
+        self.assertEqual(str(~Open.WO), 'Open.CE|RW')
+        self.assertEqual(str(~Open.AC), 'Open.CE')
+        self.assertEqual(str(~(Open.RO | Open.CE)), 'Open.AC')
+        self.assertEqual(str(~(Open.WO | Open.CE)), 'Open.RW')
+
+    def test_repr(self):
+        Perm = self.Perm
+        self.assertEqual(repr(Perm.R), '<Perm.R: 4>')
+        self.assertEqual(repr(Perm.W), '<Perm.W: 2>')
+        self.assertEqual(repr(Perm.X), '<Perm.X: 1>')
+        self.assertEqual(repr(Perm.R | Perm.W), '<Perm.R|W: 6>')
+        self.assertEqual(repr(Perm.R | Perm.W | Perm.X), '<Perm.R|W|X: 7>')
+        self.assertEqual(repr(Perm(0)), '<Perm.0: 0>')
+        self.assertEqual(repr(~Perm.R), '<Perm.W|X: 3>')
+        self.assertEqual(repr(~Perm.W), '<Perm.R|X: 5>')
+        self.assertEqual(repr(~Perm.X), '<Perm.R|W: 6>')
+        self.assertEqual(repr(~(Perm.R | Perm.W)), '<Perm.X: 1>')
+        self.assertEqual(repr(~(Perm.R | Perm.W | Perm.X)), '<Perm.0: 0>')
+        self.assertEqual(repr(Perm(~0)), '<Perm.R|W|X: 7>')
+
+        Open = self.Open
+        self.assertEqual(repr(Open.RO), '<Open.RO: 0>')
+        self.assertEqual(repr(Open.WO), '<Open.WO: 1>')
+        self.assertEqual(repr(Open.AC), '<Open.AC: 3>')
+        self.assertEqual(repr(Open.RO | Open.CE), '<Open.CE: 524288>')
+        self.assertEqual(repr(Open.WO | Open.CE), '<Open.CE|WO: 524289>')
+        self.assertEqual(repr(~Open.RO), '<Open.CE|AC|RW|WO: 524291>')
+        self.assertEqual(repr(~Open.WO), '<Open.CE|RW: 524290>')
+        self.assertEqual(repr(~Open.AC), '<Open.CE: 524288>')
+        self.assertEqual(repr(~(Open.RO | Open.CE)), '<Open.AC: 3>')
+        self.assertEqual(repr(~(Open.WO | Open.CE)), '<Open.RW: 2>')
+
+    def test_or(self):
+        Perm = self.Perm
+        for i in Perm:
+            for j in Perm:
+                self.assertEqual((i | j), Perm(i.value | j.value))
+                self.assertEqual((i | j).value, i.value | j.value)
+                self.assertIs(type(i | j), Perm)
+        for i in Perm:
+            self.assertIs(i | i, i)
+        Open = self.Open
+        self.assertIs(Open.RO | Open.CE, Open.CE)
+
+    def test_and(self):
+        Perm = self.Perm
+        RW = Perm.R | Perm.W
+        RX = Perm.R | Perm.X
+        WX = Perm.W | Perm.X
+        RWX = Perm.R | Perm.W | Perm.X
+        values = list(Perm) + [RW, RX, WX, RWX, Perm(0)]
+        for i in values:
+            for j in values:
+                self.assertEqual((i & j).value, i.value & j.value)
+                self.assertIs(type(i & j), Perm)
+        for i in Perm:
+            self.assertIs(i & i, i)
+            self.assertIs(i & RWX, i)
+            self.assertIs(RWX & i, i)
+        Open = self.Open
+        self.assertIs(Open.RO & Open.CE, Open.RO)
+
+    def test_xor(self):
+        Perm = self.Perm
+        for i in Perm:
+            for j in Perm:
+                self.assertEqual((i ^ j).value, i.value ^ j.value)
+                self.assertIs(type(i ^ j), Perm)
+        for i in Perm:
+            self.assertIs(i ^ Perm(0), i)
+            self.assertIs(Perm(0) ^ i, i)
+        Open = self.Open
+        self.assertIs(Open.RO ^ Open.CE, Open.CE)
+        self.assertIs(Open.CE ^ Open.CE, Open.RO)
+
+    def test_invert(self):
+        Perm = self.Perm
+        RW = Perm.R | Perm.W
+        RX = Perm.R | Perm.X
+        WX = Perm.W | Perm.X
+        RWX = Perm.R | Perm.W | Perm.X
+        values = list(Perm) + [RW, RX, WX, RWX, Perm(0)]
+        for i in values:
+            self.assertIs(type(~i), Perm)
+            self.assertEqual(~~i, i)
+        for i in Perm:
+            self.assertIs(~~i, i)
+        Open = self.Open
+        self.assertIs(Open.WO & ~Open.WO, Open.RO)
+        self.assertIs((Open.WO|Open.CE) & ~Open.WO, Open.CE)
+
+    def test_bool(self):
+        Perm = self.Perm
+        for f in Perm:
+            self.assertTrue(f)
+        Open = self.Open
+        for f in Open:
+            self.assertEqual(bool(f.value), bool(f))
+
+    def test_programatic_function_string(self):
+        Perm = Flag('Perm', 'R W X')
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_string_with_start(self):
+        Perm = Flag('Perm', 'R W X', start=8)
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 8<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_string_list(self):
+        Perm = Flag('Perm', ['R', 'W', 'X'])
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_iterable(self):
+        Perm = Flag('Perm', (('R', 2), ('W', 8), ('X', 32)))
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<(2*i+1)
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_from_dict(self):
+        Perm = Flag('Perm', OrderedDict((('R', 2), ('W', 8), ('X', 32))))
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<(2*i+1)
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_pickle(self):
+        if isinstance(FlagStooges, Exception):
+            raise FlagStooges
+        test_pickle_dump_load(self.assertIs, FlagStooges.CURLY|FlagStooges.MOE)
+        test_pickle_dump_load(self.assertIs, FlagStooges)
+
+    def test_contains(self):
+        Open = self.Open
+        Color = self.Color
+        self.assertFalse(Color.BLACK in Open)
+        self.assertFalse(Open.RO in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse('BLACK' in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse('RO' in Open)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse(1 in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse(1 in Open)
+
+    def test_member_contains(self):
+        Perm = self.Perm
+        R, W, X = Perm
+        RW = R | W
+        RX = R | X
+        WX = W | X
+        RWX = R | W | X
+        self.assertTrue(R in RW)
+        self.assertTrue(R in RX)
+        self.assertTrue(R in RWX)
+        self.assertTrue(W in RW)
+        self.assertTrue(W in WX)
+        self.assertTrue(W in RWX)
+        self.assertTrue(X in RX)
+        self.assertTrue(X in WX)
+        self.assertTrue(X in RWX)
+        self.assertFalse(R in WX)
+        self.assertFalse(W in RX)
+        self.assertFalse(X in RW)
+
+    def test_auto_number(self):
+        class Color(Flag):
+            red = auto()
+            blue = auto()
+            green = auto()
+
+        self.assertEqual(list(Color), [Color.red, Color.blue, Color.green])
+        self.assertEqual(Color.red.value, 1)
+        self.assertEqual(Color.blue.value, 2)
+        self.assertEqual(Color.green.value, 4)
+
+    def test_auto_number_garbage(self):
+        with self.assertRaisesRegex(TypeError, 'Invalid Flag value: .not an int.'):
+            class Color(Flag):
+                red = 'not an int'
+                blue = auto()
+
+    def test_cascading_failure(self):
+        class Bizarre(Flag):
+            c = 3
+            d = 4
+            f = 6
+        # Bizarre.c | Bizarre.d
+        self.assertRaisesRegex(ValueError, "5 is not a valid Bizarre", Bizarre, 5)
+        self.assertRaisesRegex(ValueError, "5 is not a valid Bizarre", Bizarre, 5)
+        self.assertRaisesRegex(ValueError, "2 is not a valid Bizarre", Bizarre, 2)
+        self.assertRaisesRegex(ValueError, "2 is not a valid Bizarre", Bizarre, 2)
+        self.assertRaisesRegex(ValueError, "1 is not a valid Bizarre", Bizarre, 1)
+        self.assertRaisesRegex(ValueError, "1 is not a valid Bizarre", Bizarre, 1)
+
+    def test_duplicate_auto(self):
+        class Dupes(Enum):
+            first = primero = auto()
+            second = auto()
+            third = auto()
+        self.assertEqual([Dupes.first, Dupes.second, Dupes.third], list(Dupes))
+
+    def test_bizarre(self):
+        class Bizarre(Flag):
+            b = 3
+            c = 4
+            d = 6
+        self.assertEqual(repr(Bizarre(7)), '<Bizarre.d|c|b: 7>')
+
+    def test_multiple_mixin(self):
+        class AllMixin:
+            @classproperty
+            def ALL(cls):
+                members = list(cls)
+                all_value = None
+                if members:
+                    all_value = members[0]
+                    for member in members[1:]:
+                        all_value |= member
+                cls.ALL = all_value
+                return all_value
+        class StrMixin:
+            def __str__(self):
+                return self._name_.lower()
+        class Color(AllMixin, Flag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'Color.BLUE')
+        class Color(AllMixin, StrMixin, Flag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'blue')
+        class Color(StrMixin, AllMixin, Flag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'blue')
+
+    @support.reap_threads
+    def test_unique_composite(self):
+        # override __eq__ to be identity only
+        class TestFlag(Flag):
+            one = auto()
+            two = auto()
+            three = auto()
+            four = auto()
+            five = auto()
+            six = auto()
+            seven = auto()
+            eight = auto()
+            def __eq__(self, other):
+                return self is other
+            def __hash__(self):
+                return hash(self._value_)
+        # have multiple threads competing to complete the composite members
+        seen = set()
+        failed = False
+        def cycle_enum():
+            nonlocal failed
+            try:
+                for i in range(256):
+                    seen.add(TestFlag(i))
+            except Exception:
+                failed = True
+        threads = [
+                threading.Thread(target=cycle_enum)
+                for _ in range(8)
+                ]
+        with support.start_threads(threads):
+            pass
+        # check that only 248 members were created
+        self.assertFalse(
+                failed,
+                'at least one thread failed while creating composite members')
+        self.assertEqual(256, len(seen), 'too many composite members created')
+
+
+class TestIntFlag(unittest.TestCase):
+    """Tests of the IntFlags."""
+
+    class Perm(IntFlag):
+        X = 1 << 0
+        W = 1 << 1
+        R = 1 << 2
+
+    class Color(IntFlag):
+        BLACK = 0
+        RED = 1
+        GREEN = 2
+        BLUE = 4
+        PURPLE = RED|BLUE
+
+    class Open(IntFlag):
+        RO = 0
+        WO = 1
+        RW = 2
+        AC = 3
+        CE = 1<<19
+
+    def test_type(self):
+        Perm = self.Perm
+        Open = self.Open
+        for f in Perm:
+            self.assertTrue(isinstance(f, Perm))
+            self.assertEqual(f, f.value)
+        self.assertTrue(isinstance(Perm.W | Perm.X, Perm))
+        self.assertEqual(Perm.W | Perm.X, 3)
+        for f in Open:
+            self.assertTrue(isinstance(f, Open))
+            self.assertEqual(f, f.value)
+        self.assertTrue(isinstance(Open.WO | Open.RW, Open))
+        self.assertEqual(Open.WO | Open.RW, 3)
+
+
+    def test_str(self):
+        Perm = self.Perm
+        self.assertEqual(str(Perm.R), 'Perm.R')
+        self.assertEqual(str(Perm.W), 'Perm.W')
+        self.assertEqual(str(Perm.X), 'Perm.X')
+        self.assertEqual(str(Perm.R | Perm.W), 'Perm.R|W')
+        self.assertEqual(str(Perm.R | Perm.W | Perm.X), 'Perm.R|W|X')
+        self.assertEqual(str(Perm.R | 8), 'Perm.8|R')
+        self.assertEqual(str(Perm(0)), 'Perm.0')
+        self.assertEqual(str(Perm(8)), 'Perm.8')
+        self.assertEqual(str(~Perm.R), 'Perm.W|X')
+        self.assertEqual(str(~Perm.W), 'Perm.R|X')
+        self.assertEqual(str(~Perm.X), 'Perm.R|W')
+        self.assertEqual(str(~(Perm.R | Perm.W)), 'Perm.X')
+        self.assertEqual(str(~(Perm.R | Perm.W | Perm.X)), 'Perm.-8')
+        self.assertEqual(str(~(Perm.R | 8)), 'Perm.W|X')
+        self.assertEqual(str(Perm(~0)), 'Perm.R|W|X')
+        self.assertEqual(str(Perm(~8)), 'Perm.R|W|X')
+
+        Open = self.Open
+        self.assertEqual(str(Open.RO), 'Open.RO')
+        self.assertEqual(str(Open.WO), 'Open.WO')
+        self.assertEqual(str(Open.AC), 'Open.AC')
+        self.assertEqual(str(Open.RO | Open.CE), 'Open.CE')
+        self.assertEqual(str(Open.WO | Open.CE), 'Open.CE|WO')
+        self.assertEqual(str(Open(4)), 'Open.4')
+        self.assertEqual(str(~Open.RO), 'Open.CE|AC|RW|WO')
+        self.assertEqual(str(~Open.WO), 'Open.CE|RW')
+        self.assertEqual(str(~Open.AC), 'Open.CE')
+        self.assertEqual(str(~(Open.RO | Open.CE)), 'Open.AC|RW|WO')
+        self.assertEqual(str(~(Open.WO | Open.CE)), 'Open.RW')
+        self.assertEqual(str(Open(~4)), 'Open.CE|AC|RW|WO')
+
+    def test_repr(self):
+        Perm = self.Perm
+        self.assertEqual(repr(Perm.R), '<Perm.R: 4>')
+        self.assertEqual(repr(Perm.W), '<Perm.W: 2>')
+        self.assertEqual(repr(Perm.X), '<Perm.X: 1>')
+        self.assertEqual(repr(Perm.R | Perm.W), '<Perm.R|W: 6>')
+        self.assertEqual(repr(Perm.R | Perm.W | Perm.X), '<Perm.R|W|X: 7>')
+        self.assertEqual(repr(Perm.R | 8), '<Perm.8|R: 12>')
+        self.assertEqual(repr(Perm(0)), '<Perm.0: 0>')
+        self.assertEqual(repr(Perm(8)), '<Perm.8: 8>')
+        self.assertEqual(repr(~Perm.R), '<Perm.W|X: -5>')
+        self.assertEqual(repr(~Perm.W), '<Perm.R|X: -3>')
+        self.assertEqual(repr(~Perm.X), '<Perm.R|W: -2>')
+        self.assertEqual(repr(~(Perm.R | Perm.W)), '<Perm.X: -7>')
+        self.assertEqual(repr(~(Perm.R | Perm.W | Perm.X)), '<Perm.-8: -8>')
+        self.assertEqual(repr(~(Perm.R | 8)), '<Perm.W|X: -13>')
+        self.assertEqual(repr(Perm(~0)), '<Perm.R|W|X: -1>')
+        self.assertEqual(repr(Perm(~8)), '<Perm.R|W|X: -9>')
+
+        Open = self.Open
+        self.assertEqual(repr(Open.RO), '<Open.RO: 0>')
+        self.assertEqual(repr(Open.WO), '<Open.WO: 1>')
+        self.assertEqual(repr(Open.AC), '<Open.AC: 3>')
+        self.assertEqual(repr(Open.RO | Open.CE), '<Open.CE: 524288>')
+        self.assertEqual(repr(Open.WO | Open.CE), '<Open.CE|WO: 524289>')
+        self.assertEqual(repr(Open(4)), '<Open.4: 4>')
+        self.assertEqual(repr(~Open.RO), '<Open.CE|AC|RW|WO: -1>')
+        self.assertEqual(repr(~Open.WO), '<Open.CE|RW: -2>')
+        self.assertEqual(repr(~Open.AC), '<Open.CE: -4>')
+        self.assertEqual(repr(~(Open.RO | Open.CE)), '<Open.AC|RW|WO: -524289>')
+        self.assertEqual(repr(~(Open.WO | Open.CE)), '<Open.RW: -524290>')
+        self.assertEqual(repr(Open(~4)), '<Open.CE|AC|RW|WO: -5>')
+
+    def test_or(self):
+        Perm = self.Perm
+        for i in Perm:
+            for j in Perm:
+                self.assertEqual(i | j, i.value | j.value)
+                self.assertEqual((i | j).value, i.value | j.value)
+                self.assertIs(type(i | j), Perm)
+            for j in range(8):
+                self.assertEqual(i | j, i.value | j)
+                self.assertEqual((i | j).value, i.value | j)
+                self.assertIs(type(i | j), Perm)
+                self.assertEqual(j | i, j | i.value)
+                self.assertEqual((j | i).value, j | i.value)
+                self.assertIs(type(j | i), Perm)
+        for i in Perm:
+            self.assertIs(i | i, i)
+            self.assertIs(i | 0, i)
+            self.assertIs(0 | i, i)
+        Open = self.Open
+        self.assertIs(Open.RO | Open.CE, Open.CE)
+
+    def test_and(self):
+        Perm = self.Perm
+        RW = Perm.R | Perm.W
+        RX = Perm.R | Perm.X
+        WX = Perm.W | Perm.X
+        RWX = Perm.R | Perm.W | Perm.X
+        values = list(Perm) + [RW, RX, WX, RWX, Perm(0)]
+        for i in values:
+            for j in values:
+                self.assertEqual(i & j, i.value & j.value, 'i is %r, j is %r' % (i, j))
+                self.assertEqual((i & j).value, i.value & j.value, 'i is %r, j is %r' % (i, j))
+                self.assertIs(type(i & j), Perm, 'i is %r, j is %r' % (i, j))
+            for j in range(8):
+                self.assertEqual(i & j, i.value & j)
+                self.assertEqual((i & j).value, i.value & j)
+                self.assertIs(type(i & j), Perm)
+                self.assertEqual(j & i, j & i.value)
+                self.assertEqual((j & i).value, j & i.value)
+                self.assertIs(type(j & i), Perm)
+        for i in Perm:
+            self.assertIs(i & i, i)
+            self.assertIs(i & 7, i)
+            self.assertIs(7 & i, i)
+        Open = self.Open
+        self.assertIs(Open.RO & Open.CE, Open.RO)
+
+    def test_xor(self):
+        Perm = self.Perm
+        for i in Perm:
+            for j in Perm:
+                self.assertEqual(i ^ j, i.value ^ j.value)
+                self.assertEqual((i ^ j).value, i.value ^ j.value)
+                self.assertIs(type(i ^ j), Perm)
+            for j in range(8):
+                self.assertEqual(i ^ j, i.value ^ j)
+                self.assertEqual((i ^ j).value, i.value ^ j)
+                self.assertIs(type(i ^ j), Perm)
+                self.assertEqual(j ^ i, j ^ i.value)
+                self.assertEqual((j ^ i).value, j ^ i.value)
+                self.assertIs(type(j ^ i), Perm)
+        for i in Perm:
+            self.assertIs(i ^ 0, i)
+            self.assertIs(0 ^ i, i)
+        Open = self.Open
+        self.assertIs(Open.RO ^ Open.CE, Open.CE)
+        self.assertIs(Open.CE ^ Open.CE, Open.RO)
+
+    def test_invert(self):
+        Perm = self.Perm
+        RW = Perm.R | Perm.W
+        RX = Perm.R | Perm.X
+        WX = Perm.W | Perm.X
+        RWX = Perm.R | Perm.W | Perm.X
+        values = list(Perm) + [RW, RX, WX, RWX, Perm(0)]
+        for i in values:
+            self.assertEqual(~i, ~i.value)
+            self.assertEqual((~i).value, ~i.value)
+            self.assertIs(type(~i), Perm)
+            self.assertEqual(~~i, i)
+        for i in Perm:
+            self.assertIs(~~i, i)
+        Open = self.Open
+        self.assertIs(Open.WO & ~Open.WO, Open.RO)
+        self.assertIs((Open.WO|Open.CE) & ~Open.WO, Open.CE)
+
+    def test_programatic_function_string(self):
+        Perm = IntFlag('Perm', 'R W X')
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e, v)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_string_with_start(self):
+        Perm = IntFlag('Perm', 'R W X', start=8)
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 8<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e, v)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_string_list(self):
+        Perm = IntFlag('Perm', ['R', 'W', 'X'])
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<i
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e, v)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_iterable(self):
+        Perm = IntFlag('Perm', (('R', 2), ('W', 8), ('X', 32)))
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<(2*i+1)
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e, v)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+    def test_programatic_function_from_dict(self):
+        Perm = IntFlag('Perm', OrderedDict((('R', 2), ('W', 8), ('X', 32))))
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 3, Perm)
+        self.assertEqual(lst, [Perm.R, Perm.W, Perm.X])
+        for i, n in enumerate('R W X'.split()):
+            v = 1<<(2*i+1)
+            e = Perm(v)
+            self.assertEqual(e.value, v)
+            self.assertEqual(type(e.value), int)
+            self.assertEqual(e, v)
+            self.assertEqual(e.name, n)
+            self.assertIn(e, Perm)
+            self.assertIs(type(e), Perm)
+
+
+    def test_programatic_function_from_empty_list(self):
+        Perm = enum.IntFlag('Perm', [])
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 0, Perm)
+        Thing = enum.Enum('Thing', [])
+        lst = list(Thing)
+        self.assertEqual(len(lst), len(Thing))
+        self.assertEqual(len(Thing), 0, Thing)
+
+
+    def test_programatic_function_from_empty_tuple(self):
+        Perm = enum.IntFlag('Perm', ())
+        lst = list(Perm)
+        self.assertEqual(len(lst), len(Perm))
+        self.assertEqual(len(Perm), 0, Perm)
+        Thing = enum.Enum('Thing', ())
+        self.assertEqual(len(lst), len(Thing))
+        self.assertEqual(len(Thing), 0, Thing)
+
+    def test_contains(self):
+        Color = self.Color
+        Open = self.Open
+        self.assertTrue(Color.GREEN in Color)
+        self.assertTrue(Open.RW in Open)
+        self.assertFalse(Color.GREEN in Open)
+        self.assertFalse(Open.RW in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse('GREEN' in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse('RW' in Open)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse(2 in Color)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse(2 in Open)
+
+    def test_member_contains(self):
+        Perm = self.Perm
+        R, W, X = Perm
+        RW = R | W
+        RX = R | X
+        WX = W | X
+        RWX = R | W | X
+        self.assertTrue(R in RW)
+        self.assertTrue(R in RX)
+        self.assertTrue(R in RWX)
+        self.assertTrue(W in RW)
+        self.assertTrue(W in WX)
+        self.assertTrue(W in RWX)
+        self.assertTrue(X in RX)
+        self.assertTrue(X in WX)
+        self.assertTrue(X in RWX)
+        self.assertFalse(R in WX)
+        self.assertFalse(W in RX)
+        self.assertFalse(X in RW)
+        with self.assertWarns(DeprecationWarning):
+            self.assertFalse('swallow' in RW)
+
+    def test_bool(self):
+        Perm = self.Perm
+        for f in Perm:
+            self.assertTrue(f)
+        Open = self.Open
+        for f in Open:
+            self.assertEqual(bool(f.value), bool(f))
+
+    def test_multiple_mixin(self):
+        class AllMixin:
+            @classproperty
+            def ALL(cls):
+                members = list(cls)
+                all_value = None
+                if members:
+                    all_value = members[0]
+                    for member in members[1:]:
+                        all_value |= member
+                cls.ALL = all_value
+                return all_value
+        class StrMixin:
+            def __str__(self):
+                return self._name_.lower()
+        class Color(AllMixin, IntFlag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'Color.BLUE')
+        class Color(AllMixin, StrMixin, IntFlag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'blue')
+        class Color(StrMixin, AllMixin, IntFlag):
+            RED = auto()
+            GREEN = auto()
+            BLUE = auto()
+        self.assertEqual(Color.RED.value, 1)
+        self.assertEqual(Color.GREEN.value, 2)
+        self.assertEqual(Color.BLUE.value, 4)
+        self.assertEqual(Color.ALL.value, 7)
+        self.assertEqual(str(Color.BLUE), 'blue')
+
+    @support.reap_threads
+    def test_unique_composite(self):
+        # override __eq__ to be identity only
+        class TestFlag(IntFlag):
+            one = auto()
+            two = auto()
+            three = auto()
+            four = auto()
+            five = auto()
+            six = auto()
+            seven = auto()
+            eight = auto()
+            def __eq__(self, other):
+                return self is other
+            def __hash__(self):
+                return hash(self._value_)
+        # have multiple threads competing to complete the composite members
+        seen = set()
+        failed = False
+        def cycle_enum():
+            nonlocal failed
+            try:
+                for i in range(256):
+                    seen.add(TestFlag(i))
+            except Exception:
+                failed = True
+        threads = [
+                threading.Thread(target=cycle_enum)
+                for _ in range(8)
+                ]
+        with support.start_threads(threads):
+            pass
+        # check that only 248 members were created
+        self.assertFalse(
+                failed,
+                'at least one thread failed while creating composite members')
+        self.assertEqual(256, len(seen), 'too many composite members created')
+
 
 class TestUnique(unittest.TestCase):
 
@@ -1477,11 +2761,29 @@ class TestUnique(unittest.TestCase):
                 triple = 3
                 turkey = 3
 
+    def test_unique_with_name(self):
+        @unique
+        class Silly(Enum):
+            one = 1
+            two = 'dos'
+            name = 3
+        @unique
+        class Sillier(IntEnum):
+            single = 1
+            name = 2
+            triple = 3
+            value = 4
 
-expected_help_output = """
+
+
+expected_help_output_with_docs = """\
 Help on class Color in module %s:
 
 class Color(enum.Enum)
+ |  Color(value, names=None, *, module=None, qualname=None, type=None, start=1)
+ |\x20\x20
+ |  An enumeration.
+ |\x20\x20
  |  Method resolution order:
  |      Color
  |      enum.Enum
@@ -1511,10 +2813,42 @@ class Color(enum.Enum)
  |      Returns a mapping of member name->value.
  |\x20\x20\x20\x20\x20\x20
  |      This mapping lists all enum members, including aliases. Note that this
- |      is a read-only view of the internal mapping.
-""".strip()
+ |      is a read-only view of the internal mapping."""
+
+expected_help_output_without_docs = """\
+Help on class Color in module %s:
+
+class Color(enum.Enum)
+ |  Color(value, names=None, *, module=None, qualname=None, type=None, start=1)
+ |\x20\x20
+ |  Method resolution order:
+ |      Color
+ |      enum.Enum
+ |      builtins.object
+ |\x20\x20
+ |  Data and other attributes defined here:
+ |\x20\x20
+ |  blue = <Color.blue: 3>
+ |\x20\x20
+ |  green = <Color.green: 2>
+ |\x20\x20
+ |  red = <Color.red: 1>
+ |\x20\x20
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from enum.Enum:
+ |\x20\x20
+ |  name
+ |\x20\x20
+ |  value
+ |\x20\x20
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from enum.EnumMeta:
+ |\x20\x20
+ |  __members__"""
 
 class TestStdLib(unittest.TestCase):
+
+    maxDiff = None
 
     class Color(Enum):
         red = 1
@@ -1523,7 +2857,10 @@ class TestStdLib(unittest.TestCase):
 
     def test_pydoc(self):
         # indirectly test __objclass__
-        expected_text = expected_help_output % __name__
+        if StrEnum.__doc__ is None:
+            expected_text = expected_help_output_without_docs % __name__
+        else:
+            expected_text = expected_help_output_with_docs % __name__
         output = StringIO()
         helper = pydoc.Helper(output=output)
         helper(self.Color)
@@ -1533,7 +2870,7 @@ class TestStdLib(unittest.TestCase):
     def test_inspect_getmembers(self):
         values = dict((
                 ('__class__', EnumMeta),
-                ('__doc__', None),
+                ('__doc__', 'An enumeration.'),
                 ('__members__', self.Color.__members__),
                 ('__module__', __name__),
                 ('blue', self.Color.blue),
@@ -1561,7 +2898,7 @@ class TestStdLib(unittest.TestCase):
                 Attribute(name='__class__', kind='data',
                     defining_class=object, object=EnumMeta),
                 Attribute(name='__doc__', kind='data',
-                    defining_class=self.Color, object=None),
+                    defining_class=self.Color, object='An enumeration.'),
                 Attribute(name='__members__', kind='property',
                     defining_class=EnumMeta, object=EnumMeta.__members__),
                 Attribute(name='__module__', kind='data',
@@ -1587,6 +2924,50 @@ class TestStdLib(unittest.TestCase):
                 failed = True
         if failed:
             self.fail("result does not equal expected, see print above")
+
+
+class MiscTestCase(unittest.TestCase):
+    def test__all__(self):
+        support.check__all__(self, enum)
+
+
+# These are unordered here on purpose to ensure that declaration order
+# makes no difference.
+CONVERT_TEST_NAME_D = 5
+CONVERT_TEST_NAME_C = 5
+CONVERT_TEST_NAME_B = 5
+CONVERT_TEST_NAME_A = 5  # This one should sort first.
+CONVERT_TEST_NAME_E = 5
+CONVERT_TEST_NAME_F = 5
+
+class TestIntEnumConvert(unittest.TestCase):
+    def test_convert_value_lookup_priority(self):
+        test_type = enum.IntEnum._convert(
+                'UnittestConvert',
+                ('test.test_enum', '__main__')[__name__=='__main__'],
+                filter=lambda x: x.startswith('CONVERT_TEST_'))
+        # We don't want the reverse lookup value to vary when there are
+        # multiple possible names for a given value.  It should always
+        # report the first lexigraphical name in that case.
+        self.assertEqual(test_type(5).name, 'CONVERT_TEST_NAME_A')
+
+    def test_convert(self):
+        test_type = enum.IntEnum._convert(
+                'UnittestConvert',
+                ('test.test_enum', '__main__')[__name__=='__main__'],
+                filter=lambda x: x.startswith('CONVERT_TEST_'))
+        # Ensure that test_type has all of the desired names and values.
+        self.assertEqual(test_type.CONVERT_TEST_NAME_F,
+                         test_type.CONVERT_TEST_NAME_A)
+        self.assertEqual(test_type.CONVERT_TEST_NAME_B, 5)
+        self.assertEqual(test_type.CONVERT_TEST_NAME_C, 5)
+        self.assertEqual(test_type.CONVERT_TEST_NAME_D, 5)
+        self.assertEqual(test_type.CONVERT_TEST_NAME_E, 5)
+        # Ensure that test_type only picked up names matching the filter.
+        self.assertEqual([name for name in dir(test_type)
+                          if name[0:2] not in ('CO', '__')],
+                         [], msg='Names other than CONVERT_TEST_* found.')
+
 
 if __name__ == '__main__':
     unittest.main()

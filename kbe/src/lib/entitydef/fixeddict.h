@@ -77,6 +77,8 @@ public:
 	PyObject* tp_repr();
 	PyObject* tp_str();
 
+	bool isSameType(PyObject* pyValue);
+
 protected:
 	FixedDictType* _dataType;
 } ;

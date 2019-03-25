@@ -99,7 +99,7 @@
 	</publish>
 	
 	<channelCommon> 
-		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
+		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道（秒）
 			(If long (configurable value) no communication, channel will be kicked out of the server.)
 		-->
 		<timeout> 
@@ -520,6 +520,16 @@
 				If 0, then always update)
 			-->
 			<entity_posdir_additional_updates> 2 </entity_posdir_additional_updates>
+						
+			<!-- 实体位置更新方式，
+				0：直接同步高精度浮点数据，View范围无限制。 
+				1：优化同步，降低海量同屏时带宽使用，有小许精度损耗，View范围限制在500以内。 
+				2：智能选择模式，当同屏人数小于等于smartThreshold时使用0方式同步，否则使用1方式。View范围限制在500以内。
+			-->
+			<entity_posdir_updates> 
+				<type> 2 </type>
+				<smartThreshold> 10 </smartThreshold>
+			</entity_posdir_updates>
 		</coordinate_system>
 
 		<!-- Telnet服务, 如果端口被占用则向后尝试50001.. 
@@ -817,7 +827,8 @@
 			（loginapp address)
 		-->
 		<host> localhost </host>										<!-- Type: String -->
-		<port> 20013 </port>											<!-- Type: Integer -->
+		<port_min> 20013 </port_min>									<!-- Type: Integer -->
+		<port_max> 0 </port_max>										<!-- Type: Integer -->
 		
 		<!-- 在Entity初始化时是否触发属性的set_*事件 -->
 		<isOnInitCallPropertysSetMethods> true </isOnInitCallPropertysSetMethods>

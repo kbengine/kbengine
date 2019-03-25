@@ -98,7 +98,7 @@ public:
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		std::string str;
-		s >> str;
+		s.readBlob(str);
 		dlg->onReceiveRemoteLog(str);
 	};
 };
@@ -758,6 +758,40 @@ HCURSOR CguiconsoleDlg::OnQueryDragIcon()
 void CguiconsoleDlg::addThreadTask(thread::TPTask* tptask)
 {
 	threadPool_.addTask(tptask);
+}
+
+void CguiconsoleDlg::autoSelectLogger()
+{
+	HTREEITEM hItem = m_tree.GetSelectedItem();
+	if (hItem == NULL)
+		return;
+
+	HTREEITEM rootitem = m_tree.GetRootItem();
+	if (rootitem == hItem)
+		return;
+	
+	CString s = m_tree.GetItemText(hItem);
+	if (s.Find(L"uid[") == -1)
+		hItem = m_tree.GetParentItem(hItem);
+
+	HTREEITEM item = m_tree.GetChildItem(hItem);
+	while (NULL != item)
+	{
+		if (getTreeItemComponent(item) == LOGGER_TYPE && !m_tree.GetCheck(item))
+		{
+			m_tree.SetCheck(item, TRUE);
+			m_tree.SelectItem(item);
+			
+			if (!connectTo())
+				return;
+
+			KBEngine::Network::Address addr = getTreeItemAddr(item);
+			m_logWnd.onConnectionState(true, addr);
+			break;
+		}
+
+		item = m_tree.GetNextItem(item, TVGN_NEXT);
+	}
 }
 
 void CguiconsoleDlg::updateFindTreeStatus()
@@ -1473,6 +1507,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
 		m_graphsWindow.ShowWindow(SW_HIDE);
+		autoSelectLogger();
 		break;
     case 3:
 		m_statusWnd.ShowWindow(SW_HIDE);
