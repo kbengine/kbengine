@@ -61,6 +61,7 @@ void UKBEMain::BeginPlay()
 	pArgs->SEND_BUFFER_MAX = SEND_BUFFER_MAX;
 	pArgs->RECV_BUFFER_MAX = RECV_BUFFER_MAX;
 
+	KBEngineApp::destroyKBEngineApp();
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
@@ -90,23 +91,7 @@ void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 // Called every frame
 void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-
-	KBEvent::processOutEvents();
-
-	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	Entity* kbe_player = KBEngineApp::getSingleton().player();
-
-	// 每个tick将UE4的玩家坐标写入到KBE插件中的玩家实体坐标，插件会定期同步给服务器
-	if (kbe_player && ue4_player)
-	{
-		UE4Pos2KBPos(kbe_player->position, ue4_player->GetActorLocation());
-		UE4Dir2KBDir(kbe_player->direction, ue4_player->GetActorRotation());
-
-		kbe_player->isOnGround(ue4_player->GetMovementComponent() && ue4_player->GetMovementComponent()->IsMovingOnGround());
-	}
-
-	KBEngineApp::getSingleton().process();
+	
 }
 
 void UKBEMain::installEvents()
@@ -157,6 +142,7 @@ void UKBEMain::downloadSDKFromServer()
 		if(pUpdaterObj != nullptr)
 		{
 			delete pUpdaterObj;
+			pUpdaterObj = nullptr;
 		}
 	}
 }
