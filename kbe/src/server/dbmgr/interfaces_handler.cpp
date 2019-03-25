@@ -299,10 +299,8 @@ void InterfacesHandler_Interfaces::onCreateAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(success != SERVER_SUCCESS)
-	{
+	if (success != SERVER_SUCCESS && success != SERVER_ERR_LOCAL_PROCESSING)
 		accountName = "";
-	}
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(LOGINAPP_TYPE, cid);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -320,6 +318,39 @@ void InterfacesHandler_Interfaces::onCreateAccountCB(KBEngine::MemoryStream& s)
 			dbInterfaceName));
 
 		return;
+	}
+
+	if (success == SERVER_ERR_LOCAL_PROCESSING)
+	{
+		ACCOUNT_TYPE type = ACCOUNT_TYPE(g_kbeSrvConfig.getLoginApp().account_type);
+		if (type == ACCOUNT_TYPE_SMART)
+		{
+			if (email_isvalid(accountName.c_str()))
+			{
+				pThreadPool->addTask(new DBTaskCreateMailAccount(cinfos->pChannel->addr(),
+					registerName, accountName, password, postdatas, getdatas));
+
+				return;
+			}
+			
+		}
+		else if (type == ACCOUNT_TYPE_MAIL)
+		{
+			if (!email_isvalid(accountName.c_str()))
+			{
+				WARNING_MSG(fmt::format("InterfacesHandler_Interfaces::onCreateAccountCB: invalid email={}\n",
+					accountName));
+
+				accountName = "";
+			}
+			else
+			{
+				pThreadPool->addTask(new DBTaskCreateMailAccount(cinfos->pChannel->addr(),
+					registerName, accountName, password, postdatas, getdatas));
+
+				return;
+			}
+		}
 	}
 
 	pThreadPool->addTask(new DBTaskCreateAccount(cinfos->pChannel->addr(),
