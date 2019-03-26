@@ -21,7 +21,7 @@ typedef uint16 SERVER_ERROR_CODE;										// 错误码类别
 #define SERVER_ERR_NAME_PASSWORD							4			// 用户名或者密码不正确。
 #define SERVER_ERR_NAME										5			// 用户名不正确。
 #define SERVER_ERR_PASSWORD									6			// 密码不正确。
-#define SERVER_ERR_ACCOUNT_CREATE_FAILED					7			// 创建账号失败（已经存在一个相同的账号）。
+#define SERVER_ERR_ACCOUNT_CREATE_FAILED					7			// 创建账号失败。
 #define SERVER_ERR_BUSY										8			// 操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。
 #define SERVER_ERR_ACCOUNT_LOGIN_ANOTHER					9			// 当前账号在另一处登录了。
 #define SERVER_ERR_ACCOUNT_IS_ONLINE						10			// 你已经登录了，服务器拒绝再次登录。
