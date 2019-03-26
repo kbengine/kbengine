@@ -1310,7 +1310,13 @@ void Entity::addWitnessed(Entity* entity)
 //-------------------------------------------------------------------------------------
 void Entity::delWitnessed(Entity* entity)
 {
-	KBE_ASSERT(witnesses_count_ > 0);
+	if (witnesses_count_ == 0)
+	{
+		ERROR_MSG(fmt::format("{}::delWitnessed({}): witness is empty!\n",
+			scriptName(), id()));
+
+		return;
+	}
 
 	witnesses_.remove(entity->id());
 	--witnesses_count_;
