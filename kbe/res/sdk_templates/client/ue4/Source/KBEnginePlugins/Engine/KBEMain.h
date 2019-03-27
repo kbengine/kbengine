@@ -5,6 +5,7 @@
 #include "KBECommon.h"
 #include "KBEvent.h"
 #include "ClientSDKUpdater.h"
+#include "ClientSDKUpdateUI.h"
 #include "Components/ActorComponent.h"
 #include "KBEMain.generated.h"
 
@@ -58,6 +59,7 @@ public:
 
 	bool isUpdateSDK();
 	void downloadSDKFromServer();
+	void onDownloadSDK(const UKBEventData* pEventData);
 	void onImportClientSDKSuccessfully(const UKBEventData* pEventData);
 
 
@@ -128,5 +130,7 @@ public:
 	bool automaticallyUpdateSDK;
 
 	ClientSDKUpdater* pUpdaterObj;
+
+	TSharedPtr<class SClientSDKUpdateUI> ClientSDKUpdateUI;
 
 };

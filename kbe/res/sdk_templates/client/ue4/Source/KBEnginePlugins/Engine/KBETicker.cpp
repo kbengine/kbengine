@@ -6,9 +6,15 @@
 #include "Entity.h"
 #include "KBEngine.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 UKBETicker::UKBETicker()
 {
+#if WITH_EDITOR
+	FEditorDelegates::EndPIE.AddUObject(this, &UKBETicker::OnEndPIE);
+#endif
 }
 
 UKBETicker::~UKBETicker()
@@ -47,11 +53,10 @@ TStatId UKBETicker::GetStatId() const
 UWorld* UKBETicker::GetWorld() const
 { 
 	UWorld* World = (GetOuter() != nullptr) ? GetOuter()->GetWorld() : GWorld;	
-	if (World == nullptr) 
+	if (World == nullptr)
 	{
-		World = GWorld; 
+		World = GWorld;
 	}
-
 	return World; 
 }
 
@@ -68,4 +73,11 @@ bool UKBETicker::IsTickableInEditor() const
 UWorld* UKBETicker::GetTickableGameObjectWorld() const
 {
 	return GetWorld();
+}
+
+void UKBETicker::OnEndPIE(const bool data)
+{
+#if WITH_EDITOR
+	KBEngineApp::destroyKBEngineApp();
+#endif
 }

@@ -634,3 +634,14 @@ class KBENGINEPLUGINS_API UKBEventData_onImportClientSDKSuccessfully : public UK
 public:
 
 };
+
+UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_onDownloadSDK : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	bool isDownload;
+};
+
