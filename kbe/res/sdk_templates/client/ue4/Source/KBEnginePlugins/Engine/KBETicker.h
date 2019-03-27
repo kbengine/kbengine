@@ -28,4 +28,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override;
 	virtual TStatId GetStatId() const override;
+
+	void OnEndPIE(const bool);
 };

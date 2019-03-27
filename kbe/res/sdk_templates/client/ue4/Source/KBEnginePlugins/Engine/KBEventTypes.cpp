@@ -45,3 +45,4 @@ const FString KBEventTypes::onStreamDataCompleted = "onStreamDataCompleted";
 
 // ------------------------------------SDK更新相关-------------------------------------
 const FString KBEventTypes::onImportClientSDKSuccessfully = "onImportClientSDKSuccessfully";
+const FString KBEventTypes::onDownloadSDK = "onDownloadSDK";

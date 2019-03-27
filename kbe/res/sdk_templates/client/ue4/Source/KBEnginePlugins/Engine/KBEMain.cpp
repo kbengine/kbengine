@@ -67,9 +67,7 @@ void UKBEMain::BeginPlay()
 	pArgs->UDP_SEND_BUFFER_MAX = UDP_SEND_BUFFER_MAX;
 	pArgs->UDP_RECV_BUFFER_MAX = UDP_RECV_BUFFER_MAX;
 
-	KBEngineApp::destroyKBEngineApp();
-	if (!KBEngineApp::getSingleton().initialize(pArgs))
-		delete pArgs;
+	KBEngineApp::getSingleton().initialize(pArgs);
 
 	installEvents();
 	
@@ -89,7 +87,7 @@ void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		delete pUpdaterObj;
 		pUpdaterObj = nullptr;
 	}
-
+	ClientSDKUpdateUI.Reset();
 	deregisterEvents();
 	Super::EndPlay(EndPlayReason);
 }
@@ -105,6 +103,7 @@ void UKBEMain::installEvents()
 	KBENGINE_REGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
 	KBENGINE_REGISTER_EVENT(KBEventTypes::onVersionNotMatch, onVersionNotMatch);
 	KBENGINE_REGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+	KBENGINE_REGISTER_EVENT(KBEventTypes::onDownloadSDK, onDownloadSDK);
 }
 
 void UKBEMain::deregisterEvents()
@@ -112,6 +111,7 @@ void UKBEMain::deregisterEvents()
 	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch);
 	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onVersionNotMatch);
 	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully);
+	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onDownloadSDK);
 }
 
 void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
@@ -134,7 +134,43 @@ bool UKBEMain::isUpdateSDK()
 
 void UKBEMain::downloadSDKFromServer()
 {
+	if (GEngine->IsValidLowLevel())
+	{
+		GEngine->GameViewport->RemoveAllViewportWidgets();
+	}
+
 	if (isUpdateSDK())
+	{
+		ClientSDKUpdateUI = SNew(SClientSDKUpdateUI);
+
+		if (GEngine->IsValidLowLevel())
+		{
+			GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(ClientSDKUpdateUI.ToSharedRef()));
+		}
+
+		if (ClientSDKUpdateUI.IsValid())
+		{
+			ClientSDKUpdateUI->SetVisibility(EVisibility::Visible);
+		}
+	
+	}
+}
+
+void UKBEMain::onImportClientSDKSuccessfully(const UKBEventData* pEventData)
+{
+	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, true);
+}
+
+void UKBEMain::onDownloadSDK(const UKBEventData* pEventData)
+{
+	ClientSDKUpdateUI.Reset();
+	if (GEngine->IsValidLowLevel())
+	{
+		GEngine->GameViewport->RemoveAllViewportWidgets();
+	}
+
+	const UKBEventData_onDownloadSDK* pData = Cast<UKBEventData_onDownloadSDK>(pEventData);
+	if(pData->isDownload)
 	{
 		if (pUpdaterObj == nullptr)
 		{
@@ -145,17 +181,13 @@ void UKBEMain::downloadSDKFromServer()
 	}
 	else
 	{
-		if(pUpdaterObj != nullptr)
+		if (pUpdaterObj != nullptr)
 		{
 			delete pUpdaterObj;
 			pUpdaterObj = nullptr;
 		}
 	}
-}
 
-void UKBEMain::onImportClientSDKSuccessfully(const UKBEventData* pEventData)
-{
-	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, true);
 }
 
 FString UKBEMain::getClientVersion()
