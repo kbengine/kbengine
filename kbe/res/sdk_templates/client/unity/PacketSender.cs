@@ -17,24 +17,24 @@
 		包发送模块(与服务端网络部分的名称对应)
 		处理网络数据的发送
 	*/
-    public class PacketSender 
-    {
-    		public delegate void AsyncSendMethod();
+	public class PacketSender 
+	{
+		public delegate void AsyncSendMethod();
 
 		private byte[] _buffer;
 
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
-		int _sending = 0;
+		Boolean _sending = false;
 		
 		private NetworkInterface _networkInterface = null;
 		AsyncCallback _asyncCallback = null;
 		AsyncSendMethod _asyncSendMethod;
 		
-        public PacketSender(NetworkInterface networkInterface)
-        {
-        	_init(networkInterface);
-        }
+		public PacketSender(NetworkInterface networkInterface)
+		{
+			_init(networkInterface);
+		}
 
 		~PacketSender()
 		{
@@ -51,7 +51,7 @@
 			
 			_wpos = 0; 
 			_spos = 0;
-			_sending = 0;
+			_sending = false;
 		}
 
 		public NetworkInterface networkInterface()
@@ -65,7 +65,8 @@
 			if (dataLength <= 0)
 				return true;
 
-			if (0 == Interlocked.Add(ref _sending, 0))
+			Monitor.Enter(_sending);
+			if (!_sending)
 			{
 				if (_wpos == _spos)
 				{
@@ -74,7 +75,7 @@
 				}
 			}
 
-			int t_spos = Interlocked.Add(ref _spos, 0);
+			int t_spos = _spos;
 			int space = 0;
 			int tt_wpos = _wpos % _buffer.Length;
 			int tt_spos = t_spos % _buffer.Length;
@@ -104,11 +105,18 @@
 				Array.Copy(stream.data(), stream.rpos + remain, _buffer, 0, expect_total - _buffer.Length);
 			}
 
-			Interlocked.Add(ref _wpos, dataLength);
+			_wpos += dataLength;
 
-			if (Interlocked.CompareExchange(ref _sending, 1, 0) == 0)
+			if (!_sending)
 			{
+				_sending = true;
+				Monitor.Exit(_sending);
+
 				_startSend();
+			}
+			else
+			{
+				Monitor.Exit(_sending);
 			}
 
 			return true;
@@ -133,7 +141,9 @@
 
 			while (true)
 			{
-				int sendSize = Interlocked.Add(ref _wpos, 0) - _spos;
+				Monitor.Enter(_sending);
+
+				int sendSize = _wpos - _spos;
 				int t_spos = _spos % _buffer.Length;
 				if (t_spos == 0)
 					t_spos = sendSize;
@@ -150,17 +160,22 @@
 				{
 					Dbg.ERROR_MSG(string.Format("PacketSender::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
+
+					Monitor.Exit(_sending);
 					return;
 				}
 
-				int spos = Interlocked.Add(ref _spos, bytesSent);
+				_spos += bytesSent;
 
 				// 所有数据发送完毕了
-				if (spos == Interlocked.Add(ref _wpos, 0))
+				if (_spos == _wpos)
 				{
-					Interlocked.Exchange(ref _sending, 0);
+					_sending = false;
+					Monitor.Exit(_sending);
 					return;
 				}
+
+				Monitor.Exit(_sending);
 			}
 		}
 		
