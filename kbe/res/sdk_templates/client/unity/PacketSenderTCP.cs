@@ -17,22 +17,22 @@
 		包发送模块(与服务端网络部分的名称对应)
 		处理网络数据的发送
 	*/
-    public class PacketSenderTCP : PacketSenderBase
-    {
+	public class PacketSenderTCP : PacketSenderBase
+	{
 		private byte[] _buffer;
 
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
 		Boolean _sending = false;
 		
-        public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
-        {
-        	_buffer = new byte[KBEngineApp.app.getInitArgs().TCP_SEND_BUFFER_MAX];
+		public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
+		{
+			_buffer = new byte[KBEngineApp.app.getInitArgs().TCP_SEND_BUFFER_MAX];
 
 			_wpos = 0; 
 			_spos = 0;
 			_sending = false;
-        }
+		}
 
 		~PacketSenderTCP()
 		{
@@ -45,8 +45,8 @@
 			if (dataLength <= 0)
 				return true;
 
-            Monitor.Enter(_sending);
-            if (!_sending)
+			Monitor.Enter(_sending);
+			if (!_sending)
 			{
 				if (_wpos == _spos)
 				{
@@ -87,19 +87,19 @@
 
 			_wpos += dataLength;
 
-            if (!_sending)
-            {
-                _sending = true;
-                Monitor.Exit(_sending);
+			if (!_sending)
+			{
+				_sending = true;
+				Monitor.Exit(_sending);
 
-                _startSend();
-            }
-            else
-            {
-                Monitor.Exit(_sending);
-            }
+				_startSend();
+			}
+			else
+			{
+				Monitor.Exit(_sending);
+			}
 
-            return true;
+			return true;
 		}
 
 		protected override void _asyncSend()
@@ -114,9 +114,9 @@
 
 			while (true)
 			{
-                Monitor.Enter(_sending);
+				Monitor.Enter(_sending);
 
-                int sendSize = _wpos - _spos;
+				int sendSize = _wpos - _spos;
 				int t_spos = _spos % _buffer.Length;
 				if (t_spos == 0)
 					t_spos = sendSize;
@@ -134,8 +134,8 @@
 					Dbg.ERROR_MSG(string.Format("PacketSenderTCP::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 
-                    Monitor.Exit(_sending);
-                    return;
+					Monitor.Exit(_sending);
+					return;
 				}
 
 				_spos += bytesSent;
@@ -143,13 +143,13 @@
 				// 所有数据发送完毕了
 				if (_spos == _wpos)
 				{
-                    _sending = false;
-                    Monitor.Exit(_sending);
-                    return;
+					_sending = false;
+					Monitor.Exit(_sending);
+					return;
 				}
 
-                Monitor.Exit(_sending);
-            }
+				Monitor.Exit(_sending);
+			}
 		}
 	}
 } 
