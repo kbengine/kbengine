@@ -128,7 +128,7 @@ void ClientSDKUpdater::downloadSDKFromServer()
 		FString tool_options = "ue4";
 		FString callbackIP = "";
 		uint16 callbackPort = 0;
-		int clientWindowSize = (int)KBEngineApp::getSingleton().getInitArgs()->TCP_RECV_BUFFER_MAX;
+		int clientWindowSize = (int)KBEngineApp::getSingleton().getInitArgs()->RECV_BUFFER_MAX;
 
 		Bundle* bundle = Bundle::createObject();
 		bundle->newMessage(Messages::messages["Loginapp_importClientSDK"]);
