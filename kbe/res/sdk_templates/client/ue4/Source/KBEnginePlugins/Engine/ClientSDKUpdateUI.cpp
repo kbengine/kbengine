@@ -45,7 +45,6 @@ void SClientSDKUpdateUI::Construct(const FArguments& args)
 			]
 		]
 		];
-
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
