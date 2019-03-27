@@ -23,7 +23,6 @@ UKBETicker::~UKBETicker()
 
 void UKBETicker::Tick(float DeltaTime)
 {
-
 	KBEvent::processOutEvents();
 
 	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -66,12 +65,10 @@ bool UKBETicker::IsTickableWhenPaused() const
 	return false;
 }
 
-
 bool UKBETicker::IsTickableInEditor() const
 {
 	return false;
 }
-
 
 UWorld* UKBETicker::GetTickableGameObjectWorld() const
 {

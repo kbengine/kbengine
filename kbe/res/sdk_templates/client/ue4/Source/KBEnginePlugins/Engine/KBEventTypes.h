@@ -158,8 +158,8 @@ struct KBENGINEPLUGINS_API KBEventTypes
 	// <para> param1(uint16): resouce id</para>
 	static const FString onStreamDataCompleted;
 
-
 	// ------------------------------------SDK更新相关-----------------------------------
 	static const FString onImportClientSDKSuccessfully;
 	static const FString onDownloadSDK;
+
 };
