@@ -19,7 +19,6 @@ BlowfishFilter::BlowfishFilter(int keySize) :
 	keySize_(0),
 	pBlowFishKey_(NULL)
 {
-
 	unsigned char buf[20] = "";
 	RAND_bytes(buf, 20);
 	key_ = (char *)buf;
@@ -30,15 +29,13 @@ BlowfishFilter::BlowfishFilter(int keySize) :
 
 BlowfishFilter::BlowfishFilter(const FString & key) :
 	isGood_(false),
-	key_(key),
-	keySize_(key_.Len()),
 	pPacket_(new MemoryStream()),
 	pEncryptStream_(new MemoryStream()),
 	packetLen_(0),
 	padSize_(0),
 	key_(),
-	keyArray_(),
-	keySize_(0),
+	key_(key),
+	keySize_(key_.Len()),
 	pBlowFishKey_(NULL)
 {
 	init();
