@@ -23,7 +23,7 @@
 
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
-		int _sending = 0;
+		Boolean _sending = false;
 		
         public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
         {
@@ -31,7 +31,7 @@
 
 			_wpos = 0; 
 			_spos = 0;
-			_sending = 0;
+			_sending = false;
         }
 
 		~PacketSenderTCP()
@@ -45,7 +45,8 @@
 			if (dataLength <= 0)
 				return true;
 
-			if (0 == Interlocked.Add(ref _sending, 0))
+            Monitor.Enter(_sending);
+            if (!_sending)
 			{
 				if (_wpos == _spos)
 				{
@@ -54,7 +55,7 @@
 				}
 			}
 
-			int t_spos = Interlocked.Add(ref _spos, 0);
+			int t_spos =_spos;
 			int space = 0;
 			int tt_wpos = _wpos % _buffer.Length;
 			int tt_spos = t_spos % _buffer.Length;
@@ -84,14 +85,21 @@
 				Array.Copy(stream.data(), stream.rpos + remain, _buffer, 0, expect_total - _buffer.Length);
 			}
 
-			Interlocked.Add(ref _wpos, dataLength);
+			_wpos += dataLength;
 
-			if (Interlocked.CompareExchange(ref _sending, 1, 0) == 0)
-			{
-				_startSend();
-			}
+            if (!_sending)
+            {
+                _sending = true;
+                Monitor.Exit(_sending);
 
-			return true;
+                _startSend();
+            }
+            else
+            {
+                Monitor.Exit(_sending);
+            }
+
+            return true;
 		}
 
 		protected override void _asyncSend()
@@ -106,7 +114,9 @@
 
 			while (true)
 			{
-				int sendSize = Interlocked.Add(ref _wpos, 0) - _spos;
+                Monitor.Enter(_sending);
+
+                int sendSize = _wpos - _spos;
 				int t_spos = _spos % _buffer.Length;
 				if (t_spos == 0)
 					t_spos = sendSize;
@@ -123,18 +133,23 @@
 				{
 					Dbg.ERROR_MSG(string.Format("PacketSenderTCP::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
-					return;
+
+                    Monitor.Exit(_sending);
+                    return;
 				}
 
-				int spos = Interlocked.Add(ref _spos, bytesSent);
+				_spos += bytesSent;
 
 				// 所有数据发送完毕了
-				if (spos == Interlocked.Add(ref _wpos, 0))
+				if (_spos == _wpos)
 				{
-					Interlocked.Exchange(ref _sending, 0);
-					return;
+                    _sending = false;
+                    Monitor.Exit(_sending);
+                    return;
 				}
-			}
+
+                Monitor.Exit(_sending);
+            }
 		}
 	}
 } 
