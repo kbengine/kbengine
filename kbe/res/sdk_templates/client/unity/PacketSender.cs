@@ -17,8 +17,8 @@
 		包发送模块(与服务端网络部分的名称对应)
 		处理网络数据的发送
 	*/
-    public class PacketSender 
-    {
+	public class PacketSender 
+	{
 		public delegate void AsyncSendMethod();
 
 		private byte[] _buffer;
@@ -31,10 +31,10 @@
 		AsyncCallback _asyncCallback = null;
 		AsyncSendMethod _asyncSendMethod;
 		
-        public PacketSender(NetworkInterface networkInterface)
-        {
-        	_init(networkInterface);
-        }
+		public PacketSender(NetworkInterface networkInterface)
+		{
+			_init(networkInterface);
+		}
 
 		~PacketSender()
 		{
