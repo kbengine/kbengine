@@ -70,14 +70,6 @@ void UKBEMain::BeginPlay()
 	KBEngineApp::getSingleton().initialize(pArgs);
 
 	installEvents();
-	
-#ifdef KBENGINE_NO_CRYPTO
-	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
-	{
-		pArgs->networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
-		ERROR_MSG("No module CryptoPP! Please use unreal engine source code to install");
-	}
-#endif
 }
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -87,6 +79,7 @@ void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		delete pUpdaterObj;
 		pUpdaterObj = nullptr;
 	}
+
 	ClientSDKUpdateUI.Reset();
 	deregisterEvents();
 	Super::EndPlay(EndPlayReason);
@@ -126,10 +119,11 @@ void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
 
 bool UKBEMain::isUpdateSDK()
 {
-	#if WITH_EDITOR
-		return automaticallyUpdateSDK;
-	#endif
-		return false;
+#if WITH_EDITOR
+	return automaticallyUpdateSDK;
+#endif
+
+	return false;
 }
 
 void UKBEMain::downloadSDKFromServer()
@@ -187,7 +181,6 @@ void UKBEMain::onDownloadSDK(const UKBEventData* pEventData)
 			pUpdaterObj = nullptr;
 		}
 	}
-
 }
 
 FString UKBEMain::getClientVersion()

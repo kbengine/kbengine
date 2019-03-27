@@ -1,6 +1,5 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-
 using UnrealBuildTool;
 using System.IO;
 using System.Collections.Generic;
@@ -13,23 +12,9 @@ public class KBEnginePlugins : ModuleRules
 
         bEnableUndefinedIdentifierWarnings = false;
 
-        string CryptoPPPath = Target.UEThirdPartySourceDirectory + "CryptoPP/5.6.5/lib/";
         string[] PrivateModules = new string[] { "Slate", "SlateCore", "Networking", "Sockets", "OpenSSL" };
         string[] PublicModules = new string[] { "Core", "CoreUObject", "Engine"};
         List<string> PublicModulesList = new List<string>(PublicModules);
-
-        //if (Directory.Exists(CryptoPPPath))
-        //{
-        //    List<string> PrivateModuleList = new List<string>(PrivateModules);
-        //    PrivateModuleList.Add("CryptoPP");
-        //    PrivateModules = PrivateModuleList.ToArray();
-        //}
-        //else
-        //{
-        //   // PublicDefinitions.Add("KBENGINE_NO_CRYPTO");
-        //   // PublicDefinitions.Add("_MINWINDEF_");
-        //}
-
 
         PublicIncludePaths.AddRange(
 			new string[] {
@@ -60,6 +45,6 @@ public class KBEnginePlugins : ModuleRules
             {
 				// ... add any modules that your module loads dynamically here ...
 			}
-            );
+        );
     }
 }

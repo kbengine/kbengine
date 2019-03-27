@@ -5,30 +5,37 @@
 #include "PacketSenderKCP.h"
 #include "Engine/KBDebug.h"
 
+EncryptionFilter::~EncryptionFilter()
+{
+}
+
 BlowfishFilter::BlowfishFilter(int keySize) :
 	isGood_(false),
 	pPacket_(new MemoryStream()),
 	pEncryptStream_(new MemoryStream()),
 	packetLen_(0),
-	padSize_(0)
+	padSize_(0),
+	key_(),
+	keySize_(0),
+	pBlowFishKey_(NULL)
 {
-
 	unsigned char buf[20] = "";
 	RAND_bytes(buf, 20);
 	key_ = (char *)buf;
 	keySize_ = key_.Len();
-	//reinterpret_cast<unsigned char*>(TCHAR_TO_ANSI(*key_)
+
 	init();
 }
 
 BlowfishFilter::BlowfishFilter(const FString & key) :
 	isGood_(false),
-	key_(key),
-	keySize_(key_.Len()),
 	pPacket_(new MemoryStream()),
 	pEncryptStream_(new MemoryStream()),
 	packetLen_(0),
-	padSize_(0)
+	padSize_(0),
+	key_(key),
+	keySize_(key_.Len()),
+	pBlowFishKey_(NULL)
 {
 	init();
 }
@@ -37,11 +44,13 @@ BlowfishFilter::~BlowfishFilter()
 {
 	KBE_SAFE_RELEASE(pPacket_);
 	KBE_SAFE_RELEASE(pEncryptStream_);
+	KBE_SAFE_RELEASE(pBlowFishKey_);
 }
 
 bool BlowfishFilter::init()
 {
 	pBlowFishKey_ = new BF_KEY;
+
 	if (MIN_KEY_SIZE <= keySize_ && keySize_ <= MAX_KEY_SIZE)
 	{
 
@@ -53,8 +62,7 @@ bool BlowfishFilter::init()
 		ERROR_MSG("BlowfishFilter::init: invalid length %d", key_.Len());
 		isGood_ = false;
 	}
-	keyArray_.SetNum(key_.Len());
-	memcpy(keyArray_.GetData(), TCHAR_TO_ANSI(*key_), key_.Len());
+
 	return isGood_;
 }
 
@@ -257,6 +265,3 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 	return true;
 }
 
-EncryptionFilter::~EncryptionFilter()
-{
-}
