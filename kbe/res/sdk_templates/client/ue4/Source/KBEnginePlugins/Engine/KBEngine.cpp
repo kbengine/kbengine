@@ -272,6 +272,7 @@ void KBEngineApp::uninstallUKBETicker()
 	if (pUKBETicker_)
 	{
 		pUKBETicker_->RemoveFromRoot();
+		pUKBETicker_->ConditionalBeginDestroy();
 		pUKBETicker_ = nullptr;
 	}
 }

@@ -161,4 +161,5 @@ struct KBENGINEPLUGINS_API KBEventTypes
 
 	// ------------------------------------SDK更新相关-----------------------------------
 	static const FString onImportClientSDKSuccessfully;
+	static const FString onDownloadSDK;
 };

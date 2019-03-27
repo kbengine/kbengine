@@ -6,9 +6,15 @@
 #include "Entity.h"
 #include "KBEngine.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 UKBETicker::UKBETicker()
 {
+#if WITH_EDITOR
+	FEditorDelegates::EndPIE.AddUObject(this, &UKBETicker::OnEndPIE);
+#endif
 }
 
 UKBETicker::~UKBETicker()
@@ -17,6 +23,7 @@ UKBETicker::~UKBETicker()
 
 void UKBETicker::Tick(float DeltaTime)
 {
+
 	KBEvent::processOutEvents();
 
 	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -47,11 +54,10 @@ TStatId UKBETicker::GetStatId() const
 UWorld* UKBETicker::GetWorld() const
 { 
 	UWorld* World = (GetOuter() != nullptr) ? GetOuter()->GetWorld() : GWorld;	
-	if (World == nullptr) 
+	if (World == nullptr)
 	{
-		World = GWorld; 
+		World = GWorld;
 	}
-
 	return World; 
 }
 
@@ -60,12 +66,21 @@ bool UKBETicker::IsTickableWhenPaused() const
 	return false;
 }
 
+
 bool UKBETicker::IsTickableInEditor() const
 {
 	return false;
 }
 
+
 UWorld* UKBETicker::GetTickableGameObjectWorld() const
 {
 	return GetWorld();
+}
+
+void UKBETicker::OnEndPIE(const bool data)
+{
+#if WITH_EDITOR
+	KBEngineApp::destroyKBEngineApp();
+#endif
 }
