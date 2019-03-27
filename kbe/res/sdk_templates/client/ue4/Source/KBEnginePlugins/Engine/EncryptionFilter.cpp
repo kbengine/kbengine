@@ -15,7 +15,6 @@ BlowfishFilter::BlowfishFilter(int keySize) :
 	packetLen_(0),
 	padSize_(0),
 	key_(),
-	keyArray_(),
 	keySize_(0),
 	pBlowFishKey_(NULL)
 {
@@ -33,7 +32,6 @@ BlowfishFilter::BlowfishFilter(const FString & key) :
 	pEncryptStream_(new MemoryStream()),
 	packetLen_(0),
 	padSize_(0),
-	key_(),
 	key_(key),
 	keySize_(key_.Len()),
 	pBlowFishKey_(NULL)
@@ -64,8 +62,6 @@ bool BlowfishFilter::init()
 		isGood_ = false;
 	}
 
-	keyArray_.SetNum(key_.Len());
-	memcpy(keyArray_.GetData(), TCHAR_TO_ANSI(*key_), key_.Len());
 	return isGood_;
 }
 

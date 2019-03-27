@@ -74,8 +74,13 @@ public:
 
 	BF_KEY * pBlowFishKey() { return (BF_KEY*)pBlowFishKey_; }
 
-	TArray<uint8>& key() {
-		return keyArray_;
+	TArray<uint8> key() 
+	{
+		TArray<uint8> keyArray;
+		keyArray.SetNum(key_.Len());
+		memcpy(keyArray.GetData(), TCHAR_TO_ANSI(*key_), key_.Len());
+
+		return keyArray;
 	}
 
 private:
@@ -89,7 +94,6 @@ private:
 	uint8			padSize_;
 
 	FString key_;
-	TArray<uint8> keyArray_;
 	int keySize_;
 	void * pBlowFishKey_;
 };
