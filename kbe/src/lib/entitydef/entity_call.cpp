@@ -86,12 +86,6 @@ EntityCall::~EntityCall()
 	EntityCall::entityCalls.pop_back();
 
 	script::PyGC::decTracing("EntityCall");
-
-	std::map<std::string, EntityCall*>::iterator iter = entityCallMap_.begin();
-	for (; iter != entityCallMap_.end(); iter++)
-		Py_DECREF(iter->second);
-
-	entityCallMap_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -181,23 +175,8 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		{
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
-				std::map<std::string, EntityCall*>::iterator iter = entityCallMap_.find(ccattr);
-				EntityCall* pEntityCall = NULL;
-
-				if (iter == entityCallMap_.end())
-				{
-					pEntityCall = new EntityCall(pScriptModule_, &addr_, componentID_,
-						id_, (ENTITYCALL_TYPE)mbtype);
-
-					entityCallMap_.insert(std::make_pair(ccattr, pEntityCall));
-				}
-				else
-				{
-					pEntityCall = iter->second;
-				}
-
-				Py_INCREF(pEntityCall);
-				return pEntityCall;
+				return new EntityCall(pScriptModule_, &addr_, componentID_, 
+					id_, (ENTITYCALL_TYPE)mbtype);
 			}
 			else
 			{

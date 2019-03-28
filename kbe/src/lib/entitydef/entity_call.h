@@ -138,8 +138,6 @@ protected:
 	}
 
 	ENTITYCALLS::size_type	atIdx_;
-
-	std::map<std::string, EntityCall*> entityCallMap_;
 };
 
 }
