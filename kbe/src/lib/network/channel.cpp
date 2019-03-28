@@ -308,7 +308,7 @@ void Channel::startInactivityDetection( float period, float checkPeriod )
 			return;
 		}
 
-		inactivityExceptionPeriod_ = uint64(period * stampsPerSecond()) - uint64(0.05f * stampsPerSecond());
+		inactivityExceptionPeriod_ = uint64(period * stampsPerSecond()) + uint64(0.05f * stampsPerSecond());
 		lastReceivedTime_ = timestamp();
 
 		inactivityTimerHandle_ =
@@ -468,6 +468,7 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 			{
 				this->networkInterface().onChannelTimeOut(this);
 			}
+
 			break;
 		}
 		default:
