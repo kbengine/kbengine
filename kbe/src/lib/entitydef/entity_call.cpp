@@ -65,18 +65,6 @@ EntityCall::~EntityCall()
 	EntityCall::entityCalls.pop_back();
 
 	script::PyGC::decTracing("EntityCall");
-
-	std::map<std::string, EntityCall*>::iterator iter1 = entityCallMap_.begin();
-	for (; iter1 != entityCallMap_.end(); iter1++)
-		Py_DECREF(iter1->second);
-
-	entityCallMap_.clear();
-
-	std::map<std::string, EntityComponentCall*>::iterator iter2 = entityComponentCallMap_.begin();
-	for (; iter2 != entityComponentCallMap_.end(); iter2++)
-		Py_DECREF(iter2->second);
-
-	entityComponentCallMap_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,21 +128,7 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		PropertyDescription* pComponentPropertyDescription = pScriptModule_->findComponentPropertyDescription(ccattr);
 		if (pComponentPropertyDescription)
 		{
-			std::map<std::string, EntityComponentCall*>::iterator iter = entityComponentCallMap_.find(ccattr);
-			EntityComponentCall* pEntityComponentCall = NULL;
-
-			if (iter == entityComponentCallMap_.end())
-			{
-				pEntityComponentCall = new EntityComponentCall(this, pComponentPropertyDescription);
-				entityComponentCallMap_.insert(std::make_pair(ccattr, pEntityComponentCall));
-			}
-			else
-			{
-				pEntityComponentCall = iter->second;
-			}
-
-			Py_INCREF(pEntityComponentCall);
-			return pEntityComponentCall;
+			return new EntityComponentCall(this, pComponentPropertyDescription);
 		}
 	}
 
@@ -189,23 +163,8 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		{
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
-				std::map<std::string, EntityCall*>::iterator iter = entityCallMap_.find(ccattr);
-				EntityCall* pEntityCall = NULL;
-
-				if (iter == entityCallMap_.end())
-				{
-					pEntityCall = new EntityCall(pScriptModule_, &addr_, componentID_,
-						id_, (ENTITYCALL_TYPE)mbtype);
-
-					entityCallMap_.insert(std::make_pair(ccattr, pEntityCall));
-				}
-				else
-				{
-					pEntityCall = iter->second;
-				}
-				
-				Py_INCREF(pEntityCall);
-				return pEntityCall;
+				return new EntityCall(pScriptModule_, &addr_, componentID_, 
+					id_, (ENTITYCALL_TYPE)mbtype);
 			}
 			else
 			{
