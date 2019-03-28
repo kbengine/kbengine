@@ -11,6 +11,7 @@
 	
 namespace KBEngine{
 
+class EntityComponentCall;
 
 class EntityCall : public EntityCallAbstract
 {
@@ -72,6 +73,10 @@ protected:
 	}
 
 	ENTITYCALLS::size_type	atIdx_;
+	
+	std::map<std::string, EntityCall*> entityCallMap_;
+
+	std::map<std::string, EntityComponentCall*> entityComponentCallMap_;
 };
 
 }
