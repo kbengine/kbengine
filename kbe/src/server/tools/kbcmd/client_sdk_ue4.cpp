@@ -2192,7 +2192,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 		fileBody() += fmt::format("#include \"DataTypes.h\"\n");
 		fileBody() += fmt::format("#include \"CustomDataTypes.h\"\n");
 		fileBody() += fmt::format("#include \"MemoryStream.h\"\n");
-		fileBody() += fmt::format("#include \"EntityComponent.h\"\n");
+		fileBody() += fmt::format("#include \"EntityComponent.h\"\n\n");
 
 		std::map<std::string, PropertyDescription*> includesHistroy;
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
