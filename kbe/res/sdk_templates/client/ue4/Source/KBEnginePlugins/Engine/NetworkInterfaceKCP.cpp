@@ -11,6 +11,9 @@
 #include "PacketSenderKCP.h"
 #include "PacketReceiverKCP.h"
 
+namespace KBEngine
+{
+
 NetworkInterfaceKCP::NetworkInterfaceKCP():
 	NetworkInterfaceBase(),
 	pKCP_(NULL),
@@ -196,4 +199,6 @@ void NetworkInterfaceKCP::process()
 	}
 
 	NetworkInterfaceBase::process();
+}
+
 }

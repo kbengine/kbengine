@@ -8,6 +8,9 @@
 #include "PacketSenderTCP.h"
 #include "PacketReceiverTCP.h"
 
+namespace KBEngine
+{
+
 NetworkInterfaceTCP::NetworkInterfaceTCP():
 	NetworkInterfaceBase()
 {
@@ -27,3 +30,4 @@ PacketReceiverBase* NetworkInterfaceTCP::createPacketReceiver()
 	return new PacketReceiverTCP(this);
 }
 
+}

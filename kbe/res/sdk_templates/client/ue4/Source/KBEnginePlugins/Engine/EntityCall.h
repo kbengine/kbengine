@@ -4,13 +4,15 @@
 
 #include "KBECommon.h"
 
-class Bundle;
-
 /*
 	实体的EntityCall
 	关于EntityCall请参考API手册中对它的描述
 	https://github.com/kbengine/kbengine/tree/master/docs/api
 */
+namespace KBEngine
+{
+
+class Bundle;
 class KBENGINEPLUGINS_API EntityCall
 {
 public:
@@ -51,3 +53,5 @@ public:
 	ENTITYCALL_TYPE type;
 	Bundle* pBundle;
 };
+
+}

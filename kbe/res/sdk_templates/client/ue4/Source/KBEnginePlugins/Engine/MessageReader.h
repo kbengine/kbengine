@@ -3,6 +3,8 @@
 #pragma once
 
 #include "KBECommon.h"
+namespace KBEngine
+{
 
 class MemoryStream;
 
@@ -43,3 +45,5 @@ protected:
 	MemoryStream* pMemoryStream_;
 
 };
+
+}

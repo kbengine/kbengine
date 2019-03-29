@@ -3,6 +3,8 @@
 #pragma once
 
 #include "KBECommon.h"
+namespace KBEngine
+{
 
 /*
 接口模块
@@ -16,3 +18,5 @@ public:
 
 };
 
+
+}

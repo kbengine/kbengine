@@ -5,6 +5,9 @@
 #include "KBECommon.h"
 #include "PacketSenderBase.h"
 
+namespace KBEngine
+{
+
 class NetworkInterfaceBase;
 class MemoryStream;
 
@@ -24,3 +27,5 @@ public:
 protected:
 
 };
+
+}

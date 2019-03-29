@@ -3,6 +3,8 @@
 #pragma once
 
 #include "KBECommon.h"
+namespace KBEngine
+{
 
 class Entity;
 class MemoryStream;
@@ -59,3 +61,5 @@ public:
 	ENTITY_ID ownerID;
 	Entity* pOwner;
 };
+
+}

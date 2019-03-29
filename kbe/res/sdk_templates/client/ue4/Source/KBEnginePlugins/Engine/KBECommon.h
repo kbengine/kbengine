@@ -9,8 +9,12 @@
 #include "GameFramework/Actor.h"
 #include "KBECommon.generated.h"
 
+namespace KBEngine
+{
+
 DECLARE_LOG_CATEGORY_EXTERN(LogKBEngine, Log, All);
 
+}
 #define KBE_ASSERT check
 
 typedef uint16 MessageID;
@@ -20,8 +24,8 @@ typedef int32 ENTITY_ID;
 typedef uint32 SPACE_ID;
 typedef uint64 DBID;
 typedef TArray<uint8> ByteArray;
-typedef TMap<FString, KBVar> KB_FIXED_DICT;
-typedef TArray<KBVar> KB_ARRAY;
+typedef TMap<FString, KBEngine::KBVar> KB_FIXED_DICT;
+typedef TArray<KBEngine::KBVar> KB_ARRAY;
 
 #define KBE_FLT_MAX FLT_MAX
 
@@ -170,7 +174,7 @@ inline bool almostEqual(float f1, float f2, float epsilon)
 	return FMath::Abs(f1 - f2) < epsilon;
 }
 
-inline bool isNumeric(KBVar& v)
+inline bool isNumeric(KBEngine::KBVar& v)
 {
 	return v.GetType() == EKBVarTypes::Bool || 
 		v.GetType() == EKBVarTypes::Double ||

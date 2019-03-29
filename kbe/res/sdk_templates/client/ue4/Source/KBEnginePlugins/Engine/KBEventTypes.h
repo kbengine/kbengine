@@ -1,6 +1,8 @@
 #pragma once
 
 #include "KBECommon.h"
+namespace KBEngine
+{
 
 struct KBENGINEPLUGINS_API KBEventTypes
 {
@@ -163,3 +165,5 @@ struct KBENGINEPLUGINS_API KBEventTypes
 	static const FString onDownloadSDK;
 
 };
+
+}

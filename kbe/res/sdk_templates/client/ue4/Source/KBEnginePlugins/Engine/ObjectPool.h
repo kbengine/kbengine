@@ -1,4 +1,6 @@
 #pragma once
+namespace KBEngine
+{
 
 template<typename T>
 class ObjectPool
@@ -42,3 +44,5 @@ public:
 private:
 	OBJECT_LIST objects_;
 };
+
+}

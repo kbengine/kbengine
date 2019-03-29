@@ -2,8 +2,12 @@
 
 #include "KBECommon.h"
 #include "KBDebug.h"
+namespace KBEngine
+{
 
 DEFINE_LOG_CATEGORY(LogKBEngine);
+
+}
 
 double getTimeSeconds()
 {

@@ -4,6 +4,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class NetworkInterfaceBase;
 class MemoryStream;
 
@@ -23,3 +26,5 @@ public:
 protected:
 	NetworkInterfaceBase * pNetworkInterface_;
 };
+
+}

@@ -4,6 +4,9 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class DATATYPE_BASE;
 
 /*
@@ -24,3 +27,5 @@ public:
 
 	TArray<DATATYPE_BASE*> args;
 };
+
+}

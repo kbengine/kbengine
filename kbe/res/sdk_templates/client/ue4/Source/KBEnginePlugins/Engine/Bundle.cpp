@@ -6,6 +6,8 @@
 #include "KBDebug.h"
 #include "ObjectPool.h"
 
+namespace KBEngine
+{
 static ObjectPool<Bundle> _g_bundlePool;
 
 Bundle::Bundle():
@@ -292,4 +294,6 @@ void Bundle::writeVector4(const FVector4& v)
 {
 	checkStream(16);
 	(*pCurrPacket_).writeVector4(v);
+}
+
 }

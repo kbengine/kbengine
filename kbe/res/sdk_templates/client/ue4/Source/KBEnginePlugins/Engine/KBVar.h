@@ -45,6 +45,9 @@ namespace EKBVarTypes
 *
 * @param T The type to be used in KBVar.
 */
+namespace KBEngine
+{
+
 template<typename T> struct TKBVariantTraits
 {
 	static int32 GetType()
@@ -864,3 +867,4 @@ template<> struct TKBVariantTraits<TMap<FString, KBVar>>
 	static int32 GetType() { return EKBVarTypes::KBVarMap; }
 };
 
+}

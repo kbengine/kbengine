@@ -3,6 +3,8 @@
 #include "Messages.h"
 #include "KBDebug.h"
 #include "MemoryStream.h"
+namespace KBEngine
+{
 
 MessageReader::MessageReader():
 	msgid_(0),
@@ -154,4 +156,6 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 			}
 		}
 	}
+}
+
 }

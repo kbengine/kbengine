@@ -17,6 +17,8 @@
 #include "KBDebug.h"
 #include "KBEvent.h"
 #include "EncryptionFilter.h"
+namespace KBEngine
+{
 
 ServerErrorDescrs KBEngineApp::serverErrs_;
 
@@ -2336,4 +2338,6 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 
 	if (done)
 		entity.onUpdateVolatileData();
+}
+
 }
