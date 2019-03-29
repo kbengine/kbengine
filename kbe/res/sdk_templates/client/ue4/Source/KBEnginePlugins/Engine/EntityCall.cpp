@@ -8,6 +8,9 @@
 #include "Method.h"
 #include "ScriptModule.h"
 
+namespace KBEngine
+{
+
 EntityCall::EntityCall(int32 eid, const FString& ename):
 	id(eid),
 	className(ename),
@@ -78,4 +81,6 @@ void EntityCall::sendCall(Bundle* inBundle)
 
 	if (inBundle == pBundle)
 		pBundle = NULL;
+}
+
 }

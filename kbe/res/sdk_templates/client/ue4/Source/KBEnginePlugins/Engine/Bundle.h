@@ -4,6 +4,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class MemoryStream;
 class NetworkInterfaceBase;
 class Message;
@@ -145,3 +148,5 @@ protected:
 	Message* pMsgtype_;
 	int curMsgStreamIndex_;
 };
+
+}

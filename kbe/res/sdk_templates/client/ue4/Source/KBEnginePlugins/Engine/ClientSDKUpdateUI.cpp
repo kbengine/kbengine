@@ -57,6 +57,6 @@ FReply SClientSDKUpdateUI::UpdateSDKClicked()
 
 	UKBEventData_onDownloadSDK* pEventData = NewObject<UKBEventData_onDownloadSDK>();
 	pEventData->isDownload = true;
-	KBENGINE_EVENT_FIRE(KBEventTypes::onDownloadSDK, pEventData);
+	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::onDownloadSDK, pEventData);
 	return FReply::Handled();
 }

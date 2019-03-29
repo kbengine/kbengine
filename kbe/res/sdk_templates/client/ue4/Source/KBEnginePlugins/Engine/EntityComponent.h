@@ -4,6 +4,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class Entity;
 class MemoryStream;
 class ScriptModule;
@@ -59,3 +62,5 @@ public:
 	ENTITY_ID ownerID;
 	Entity* pOwner;
 };
+
+}

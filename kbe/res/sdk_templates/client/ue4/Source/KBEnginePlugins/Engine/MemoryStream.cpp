@@ -3,6 +3,9 @@
 #include "KBDebug.h"
 #include "ObjectPool.h"
 
+namespace KBEngine
+{
+
 static ObjectPool<MemoryStream> _g_memoryStreamPool;
 
 MemoryStream* MemoryStream::createObject()
@@ -56,4 +59,6 @@ void MemoryStream::hexlike()
 	DEBUG_MSG("%s", *fbuffer);
 
 	rpos_ = trpos;
+}
+
 }

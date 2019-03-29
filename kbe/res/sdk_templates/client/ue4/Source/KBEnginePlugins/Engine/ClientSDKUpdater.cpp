@@ -9,8 +9,10 @@
 #include "FileHelper.h"
 #include "OutPutDeviceDebug.h"
 
-using namespace std;
+namespace KBEngine
+{
 
+using namespace std;
 
 ClientSDKUpdater::ClientSDKUpdater()
 {
@@ -254,3 +256,4 @@ void  ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
 	PlatformFile.CopyDirectoryTree(*toDicPath, *fromDicPath, true);
 }
 
+}

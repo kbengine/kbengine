@@ -5,6 +5,9 @@
 #include "PacketSenderKCP.h"
 #include "Engine/KBDebug.h"
 
+namespace KBEngine
+{
+
 EncryptionFilter::~EncryptionFilter()
 {
 }
@@ -265,3 +268,4 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 	return true;
 }
 
+}

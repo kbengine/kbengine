@@ -4,6 +4,10 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
+
+namespace KBEngine
+{
+
 class DATATYPE_BASE;
 
 /*
@@ -45,3 +49,5 @@ public:
 	KBVar* pDefaultVal;
 
 };
+
+}

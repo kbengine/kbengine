@@ -6,6 +6,9 @@
 #include "PacketReceiverBase.h"
 #include "Runtime/Sockets/Public/SocketSubsystem.h"
 
+namespace KBEngine
+{
+
 class NetworkInterfaceBase;
 class MessageReader;
 class MemoryStream;
@@ -26,3 +29,5 @@ public:
 protected:
 	TSharedRef<FInternetAddr> remoteAddr_;
 };
+
+}

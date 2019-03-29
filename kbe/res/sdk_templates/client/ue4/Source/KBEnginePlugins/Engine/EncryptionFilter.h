@@ -17,6 +17,9 @@ THIRD_PARTY_INCLUDES_END
 #include "HideWindowsPlatformTypes.h"
 #endif
 
+namespace KBEngine
+{
+
 class MemoryStream;
 class PacketSenderBase;
 class MessageReader;
@@ -97,3 +100,5 @@ private:
 	int keySize_;
 	void * pBlowFishKey_;
 };
+
+}
