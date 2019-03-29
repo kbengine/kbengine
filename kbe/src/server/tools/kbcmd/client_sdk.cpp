@@ -1,4 +1,4 @@
-Ôªø// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "kbcmd.h"
 #include "client_sdk.h"
@@ -833,7 +833,7 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 
 	std::string newModuleName;
 
-	// ÂÖàÂÜôBaseEntityCall
+	// œ»–¥BaseEntityCall
 	if(!writeBaseEntityCallBegin(pScriptDefModule))
 		return false;
 
@@ -932,7 +932,7 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 	headerfileBody_ += fmt::format("\n");
 	sourcefileBody_ += fmt::format("\n");
 
-	// ÂÜçÂÜôCellEntityCall
+	// ‘Ÿ–¥CellEntityCall
 	if (!writeCellEntityCallBegin(pScriptDefModule))
 		return false;
 
