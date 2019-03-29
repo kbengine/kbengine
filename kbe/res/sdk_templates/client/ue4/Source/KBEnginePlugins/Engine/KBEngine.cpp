@@ -17,6 +17,7 @@
 #include "KBDebug.h"
 #include "KBEvent.h"
 #include "EncryptionFilter.h"
+
 namespace KBEngine
 {
 

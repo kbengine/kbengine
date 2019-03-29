@@ -18,6 +18,7 @@
 */
 namespace KBEngine
 {
+
 class PacketSenderBase;
 class PacketReceiverBase;
 class MemoryStream;

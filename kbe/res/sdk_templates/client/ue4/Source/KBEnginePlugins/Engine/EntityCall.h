@@ -13,6 +13,7 @@ namespace KBEngine
 {
 
 class Bundle;
+
 class KBENGINEPLUGINS_API EntityCall
 {
 public:

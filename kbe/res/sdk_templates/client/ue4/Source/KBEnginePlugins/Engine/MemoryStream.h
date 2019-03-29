@@ -41,6 +41,7 @@ namespace MemoryStreamConverter
 
 namespace KBEngine
 {
+
 template<typename T> inline void EndianConvert(T& val) 
 { 
 	if(!FGenericPlatformProperties::IsLittleEndian())

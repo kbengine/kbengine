@@ -8,6 +8,7 @@
 
 namespace KBEngine
 {
+
 static ObjectPool<Bundle> _g_bundlePool;
 
 Bundle::Bundle():

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "KBECommon.h"
+
 namespace KBEngine
 {
 
