@@ -12,8 +12,6 @@
 namespace KBEngine
 {
 
-using namespace std;
-
 ClientSDKUpdater::ClientSDKUpdater()
 {
 	pSdkFileStream = nullptr;
