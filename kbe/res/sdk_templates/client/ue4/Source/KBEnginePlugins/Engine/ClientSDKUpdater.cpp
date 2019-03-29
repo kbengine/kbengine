@@ -246,7 +246,7 @@ void ClientSDKUpdater::moveToFile(FString fromFileName, FString toFileName)
 	PlatformFile.MoveFile(*toFileName, *fromFileName);
 }
 
-void  ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
+void ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
 {
 	FPaths::NormalizeDirectoryName(fromDicPath);
 	FPaths::NormalizeDirectoryName(toDicPath);
