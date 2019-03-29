@@ -18,6 +18,9 @@
 /**
  * 
  */
+namespace KBEngine
+{
+
 class KBENGINEPLUGINS_API ClientSDKUpdater
 {
 public:
@@ -53,3 +56,5 @@ public:
 
 	MemoryStream* pSdkFileStream = nullptr;
 };
+
+}

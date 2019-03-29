@@ -10,6 +10,9 @@
 #include "Runtime/Networking/Public/Networking.h"
 #include "Runtime/Sockets/Public/Sockets.h"
 
+namespace KBEngine
+{
+
 class PacketSender;
 class PacketReceiver;
 class MemoryStream;
@@ -70,3 +73,5 @@ protected:
 	EncryptionFilter *pFilter_;
 
 };
+
+}

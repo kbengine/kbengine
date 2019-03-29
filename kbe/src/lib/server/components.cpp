@@ -346,7 +346,7 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 				{
 					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit(reason={})! Channel(timestamp={}, lastReceivedTime={}, inactivityExceptionPeriod={})\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid, pChannel->condemnReason(), timestamp(), pChannel->lastReceivedTime(), pChannel->inactivityExceptionPeriod()));
-
+					 
 #if KBE_PLATFORM == PLATFORM_WIN32
 					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit(reason={})!\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid, pChannel->condemnReason())).c_str());

@@ -129,7 +129,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	bool automaticallyUpdateSDK;
 
-	ClientSDKUpdater* pUpdaterObj;
+	KBEngine::ClientSDKUpdater* pUpdaterObj;
 
 	TSharedPtr<class SClientSDKUpdateUI> ClientSDKUpdateUI;
 

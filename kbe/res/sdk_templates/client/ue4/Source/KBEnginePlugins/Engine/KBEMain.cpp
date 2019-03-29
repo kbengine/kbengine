@@ -49,7 +49,7 @@ void UKBEMain::BeginPlay()
 {
 	Super::BeginPlay();
 
-	KBEngineArgs* pArgs = new KBEngineArgs();
+	KBEngine::KBEngineArgs* pArgs = new KBEngine::KBEngineArgs();
 	pArgs->ip = ip;
 	pArgs->port = port;
 	pArgs->syncPlayerMS = syncPlayerMS;
@@ -61,8 +61,7 @@ void UKBEMain::BeginPlay()
 	pArgs->SEND_BUFFER_MAX = SEND_BUFFER_MAX;
 	pArgs->RECV_BUFFER_MAX = RECV_BUFFER_MAX;
 
-	KBEngineApp::destroyKBEngineApp();
-	if (!KBEngineApp::getSingleton().initialize(pArgs))
+	if(KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
 	installEvents();
@@ -89,18 +88,18 @@ void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UKBEMain::installEvents()
 {
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onVersionNotMatch, onVersionNotMatch);
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onDownloadSDK, onDownloadSDK);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onVersionNotMatch, onVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onDownloadSDK, onDownloadSDK);
 }
 
 void UKBEMain::deregisterEvents()
 {
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch);
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onVersionNotMatch);
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully);
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onDownloadSDK);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onScriptVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onImportClientSDKSuccessfully);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onDownloadSDK);
 }
 
 void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
@@ -164,7 +163,7 @@ void UKBEMain::onDownloadSDK(const UKBEventData* pEventData)
 	{
 		if (pUpdaterObj == nullptr)
 		{
-			pUpdaterObj = new ClientSDKUpdater();
+			pUpdaterObj = new KBEngine::ClientSDKUpdater();
 		}
 
 		pUpdaterObj->downloadSDKFromServer();
@@ -181,84 +180,84 @@ void UKBEMain::onDownloadSDK(const UKBEventData* pEventData)
 
 FString UKBEMain::getClientVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().clientVersion();
+	return KBEngine::KBEngineApp::getSingleton().clientVersion();
 }
 
 FString UKBEMain::getClientScriptVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().clientScriptVersion();
+	return KBEngine::KBEngineApp::getSingleton().clientScriptVersion();
 }
 
 FString UKBEMain::getServerVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().serverVersion();
+	return KBEngine::KBEngineApp::getSingleton().serverVersion();
 }
 
 FString UKBEMain::getServerScriptVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().serverScriptVersion();
+	return KBEngine::KBEngineApp::getSingleton().serverScriptVersion();
 }
 
 FString UKBEMain::getComponentName()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().component();
+	return KBEngine::KBEngineApp::getSingleton().component();
 }
 
 bool UKBEMain::destroyKBEngine()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return false;
 
-	KBEngineApp::getSingleton().destroy();
+	KBEngine::KBEngineApp::getSingleton().destroy();
 	KBENGINE_EVENT_CLEAR();
 	return true;
 }
 
 bool UKBEMain::login(FString username, FString password, TArray<uint8> datas)
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 	{
 		return false;
 	}
 
-	KBEngineApp::getSingleton().reset();
+	KBEngine::KBEngineApp::getSingleton().reset();
 
 	UKBEventData_login* pEventData = NewObject<UKBEventData_login>();
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE(KBEventTypes::login, pEventData);
+	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::login, pEventData);
 	return true;
 }
 
 bool UKBEMain::createAccount(FString username, FString password, const TArray<uint8>& datas)
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 	{
 		return false;
 	}
 
-	KBEngineApp::getSingleton().reset();
+	KBEngine::KBEngineApp::getSingleton().reset();
 
 	UKBEventData_createAccount* pEventData = NewObject<UKBEventData_createAccount>();
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE(KBEventTypes::createAccount, pEventData);
+	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::createAccount, pEventData);
 	return true;
 }

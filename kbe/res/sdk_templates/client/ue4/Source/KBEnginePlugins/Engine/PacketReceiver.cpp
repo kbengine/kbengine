@@ -6,6 +6,9 @@
 #include "KBDebug.h"
 #include "MemoryStream.h"
 
+namespace KBEngine
+{
+
 PacketReceiver::PacketReceiver(NetworkInterface* pNetworkInterface):
 	pNetworkInterface_(pNetworkInterface),
 	pMessageReader_(new MessageReader()),
@@ -45,4 +48,6 @@ void PacketReceiver::process()
 			}
 		}
 	}
+}
+
 }

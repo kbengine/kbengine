@@ -1,9 +1,15 @@
 
 #include "EntityCall.h"
+#include "EntityDef.h"
 #include "Bundle.h"
 #include "KBEngine.h"
 #include "Messages.h"
 #include "KBDebug.h"
+#include "Method.h"
+#include "ScriptModule.h"
+
+namespace KBEngine
+{
 
 EntityCall::EntityCall():
 	id(0),
@@ -74,4 +80,6 @@ void EntityCall::sendCall(Bundle* inBundle)
 
 	if (inBundle == pBundle)
 		pBundle = NULL;
+}
+
 }

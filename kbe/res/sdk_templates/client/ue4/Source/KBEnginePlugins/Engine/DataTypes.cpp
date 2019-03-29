@@ -4,6 +4,10 @@
 #include "EntityDef.h"
 #include "KBDebug.h"
 #include "Runtime/Core/Public/Misc/Variant.h"
+#include "Bundle.h"
+
+namespace KBEngine
+{
 
 KBVar* DATATYPE_INT8::createFromStream(MemoryStream& stream)
 {
@@ -588,4 +592,6 @@ bool DATATYPE_FIXED_DICT::isSameType(KBVar& v)
 	}
 
 	return true;
+}
+
 }

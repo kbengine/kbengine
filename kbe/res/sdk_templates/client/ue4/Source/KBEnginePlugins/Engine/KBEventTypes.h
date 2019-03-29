@@ -2,6 +2,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 struct KBENGINEPLUGINS_API KBEventTypes
 {
 	// Create new account.
@@ -163,3 +166,5 @@ struct KBENGINEPLUGINS_API KBEventTypes
 	static const FString onDownloadSDK;
 
 };
+
+}

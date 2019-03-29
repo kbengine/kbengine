@@ -4,6 +4,9 @@
 #include "PacketSender.h"
 #include "Engine/KBDebug.h"
 
+namespace KBEngine
+{
+
 EncryptionFilter::~EncryptionFilter()
 {
 }
@@ -262,4 +265,6 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 		padSize_ = 0;
 	}
 	return true;
+}
+
 }
