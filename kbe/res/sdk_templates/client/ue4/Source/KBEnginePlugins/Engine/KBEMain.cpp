@@ -66,7 +66,7 @@ void UKBEMain::BeginPlay()
 	pArgs->UDP_SEND_BUFFER_MAX = UDP_SEND_BUFFER_MAX;
 	pArgs->UDP_RECV_BUFFER_MAX = UDP_RECV_BUFFER_MAX;
 
-	if(KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
+	if(!KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
 	installEvents();
