@@ -61,7 +61,7 @@ void UKBEMain::BeginPlay()
 	pArgs->SEND_BUFFER_MAX = SEND_BUFFER_MAX;
 	pArgs->RECV_BUFFER_MAX = RECV_BUFFER_MAX;
 
-	if(KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
+	if(!KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
 	installEvents();
