@@ -901,7 +901,12 @@ public:																										\
 			timerID = PyLong_AsLong(pyargobj);																\
 		}																									\
 																											\
-		return pobj->pyDelTimer(timerID);																	\
+		if(!ScriptTimersUtil::delTimer(&pobj->scriptTimers(), timerID))										\
+		{																									\
+			return PyLong_FromLong(-1);																		\
+		}																									\
+																											\
+		return PyLong_FromLong(timerID);																	\
 	}																										\
 																											\
 	static PyObject* __py_pyWriteToDB(PyObject* self, PyObject* args)										\
@@ -1481,12 +1486,7 @@ public:																										\
 																											\
 	PyObject* CLASS::pyDelTimer(ScriptID timerID)															\
 	{																										\
-		if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))											\
-		{																									\
-			return PyLong_FromLong(-1);																		\
-		}																									\
-																											\
-		return PyLong_FromLong(timerID);																	\
+		return CLASS::__py_pyDelTimer(this, PyLong_FromLong(timerID));										\
 	}																										\
 																											\
 	void CLASS::destroyEntity()																				\
