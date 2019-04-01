@@ -9,7 +9,6 @@
 
 namespace EKBVarTypes
 {
-
 	const int32 Empty = 0;
 	const int32 Ansichar = 1;
 	const int32 Bool = 2;
