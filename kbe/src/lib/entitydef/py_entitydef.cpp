@@ -13,6 +13,8 @@
 #include "pyscript/script.h"
 #include "pyscript/copy.h"
 #include "resmgr/resmgr.h"
+#include "server/serverconfig.h"
+#include "server/components.h"
 
 namespace KBEngine{ namespace script{ namespace entitydef {
 
@@ -1550,6 +1552,22 @@ bool uninstallModule()
 //-------------------------------------------------------------------------------------
 static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 {
+	std::string entryScriptFileName = "";
+	if (loadComponentType == BASEAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+	else if (loadComponentType == CELLAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+	else
+	{
+		KBE_ASSERT(false);
+	}
+
 	std::string rootPath = Resmgr::getSingleton().getPyUserComponentScriptsPath(loadComponentType);
 
 	if (rootPath.size() == 0)
@@ -1563,10 +1581,31 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 	while (rootPath[rootPath.size() - 1] == '/' || rootPath[rootPath.size() - 1] == '\\') rootPath.pop_back();
 
 	wchar_t* wpath = strutil::char2wchar((rootPath).c_str());
+
+	wchar_t* _wentryScriptFileName = strutil::char2wchar((entryScriptFileName).c_str());
+	std::wstring wentryScriptFileName = _wentryScriptFileName;
+	free(_wentryScriptFileName);
+
 	std::vector<std::wstring> results;
 	Resmgr::getSingleton().listPathRes(wpath, L"py|pyc", results);
 
+	// 优先执行入口脚本
 	std::vector<std::wstring>::iterator iter = results.begin();
+	for (; iter != results.end(); )
+	{
+		std::wstring wstrpath = (*iter);
+		if (wstrpath.find(wentryScriptFileName + L".py") == std::wstring::npos && wstrpath.find(wentryScriptFileName + L".pyc") == std::wstring::npos)
+		{
+			++iter;
+			continue;
+		}
+
+		iter = results.erase(iter);
+	}
+
+	results.insert(results.begin(), std::wstring(wpath) + L"/" + wentryScriptFileName + L".py");
+
+	iter = results.begin();
 	for (; iter != results.end(); ++iter)
 	{
 		std::wstring wstrpath = (*iter);
@@ -1611,6 +1650,7 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 			if (!pyModule)
 			{
 				SCRIPT_ERROR_CHECK();
+				free(wpath);
 				return false;
 			}
 			else
@@ -1623,6 +1663,7 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 	}
 
 	free(wpath);
+	
 	return true;
 }
 
