@@ -1909,6 +1909,13 @@ bool EntityDef::loadAllComponentScriptModules(std::string entitiesPath, std::vec
 {
 	std::string entitiesFile = entitiesPath + "entities.xml";
 
+	// 打开这个entities.xml文件
+	// 允许纯脚本定义，则可能没有这个文件
+	if (access(entitiesFile.c_str(), 0) != 0)
+	{
+		return true;
+	}
+
 	SmartPointer<XML> xml(new XML());
 	if (!xml->openSection(entitiesFile.c_str()))
 		return false;
@@ -2144,14 +2151,14 @@ ERASE_PROPERTYS:
 bool EntityDef::loadAllEntityScriptModules(std::string entitiesPath,
 									std::vector<PyTypeObject*>& scriptBaseTypes)
 {
+	std::string entitiesFile = entitiesPath + "entities.xml";
+
 	// 允许纯脚本定义，则可能没有这个文件
-	if (access(entitiesPath.c_str(), 0) != 0)
+	if (access(entitiesFile.c_str(), 0) != 0)
 		return true;
 
 	if (!loadAllComponentScriptModules(entitiesPath, scriptBaseTypes))
 		return false;
-
-	std::string entitiesFile = entitiesPath + "entities.xml";
 
 	SmartPointer<XML> xml(new XML());
 	if(!xml->openSection(entitiesFile.c_str()))

@@ -1236,8 +1236,19 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			{
 				continue;
 			}
-			else if (parentClass == "Entity" || parentClass == "Proxy")
+			else if (parentClass == "Entity")
 			{
+				defContext.inheritEngineModuleType = DefContext::DC_TYPE_ENTITY;
+				continue;
+			}
+			else if (parentClass == "Proxy")
+			{
+				if (defContext.componentType != BASEAPP_TYPE)
+				{
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'%s\' Only BASE can inherit KBEngine.Proxy!\n", defContext.optionName.c_str(), moduleQualname);
+					PY_RETURN_ERROR;
+				}
+
 				defContext.inheritEngineModuleType = DefContext::DC_TYPE_ENTITY;
 				continue;
 			}
@@ -2213,6 +2224,7 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
+	pScriptModule->setScriptType((PyTypeObject *)defContext.pyObjectPtr.get());
 	pScriptModule->autoMatchCompOwn();
 	return true;
 }
