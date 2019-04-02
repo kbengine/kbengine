@@ -828,7 +828,6 @@ public:																										\
 	PyObject * onScriptGetAttribute(PyObject* attr);														\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
-	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
 																											\
 	static PyObject* __py_pyWriteToDB(PyObject* self, PyObject* args)										\
 	{																										\
@@ -1405,9 +1404,78 @@ public:																										\
 		return PyLong_FromLong(id);																			\
 	}																										\
 																											\
-	PyObject* CLASS::pyDelTimer(ScriptID timerID)															\
+	static PyObject* __py_pyDelTimer(PyObject* self, PyObject* args)										\
 	{																										\
-		if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))											\
+		uint16 currargsSize = PyTuple_Size(args);															\
+		CLASS* pobj = static_cast<CLASS*>(self);															\
+																											\
+		if (currargsSize != 1)																				\
+		{																									\
+			PyErr_Format(PyExc_AssertionError,																\
+				"%s::delTimer: args require 1 args(id|int or \"All\"|str), gived %d! is script[%s].\n",		\
+				pobj->scriptName(), currargsSize);															\
+																											\
+			PyErr_PrintEx(0);																				\
+			return PyLong_FromLong(-1);																		\
+		}																									\
+																											\
+		ScriptID timerID = 0;																				\
+		PyObject* pyargobj = NULL;																			\
+																											\
+		if (PyArg_ParseTuple(args, "O", &pyargobj) == -1)													\
+		{																									\
+			PyErr_Format(PyExc_TypeError,																	\
+				"%s::delTimer: args(id|int or \"All\"|str) error!",											\
+				pobj->scriptName());																		\
+																											\
+			PyErr_PrintEx(0);																				\
+			return PyLong_FromLong(-1);																		\
+		}																									\
+																											\
+		if (pyargobj == NULL)																				\
+		{																									\
+			PyErr_Format(PyExc_TypeError,																	\
+				"%s::delTimer: args(id|int or \"All\"|str) error!",											\
+				pobj->scriptName());																		\
+																											\
+			PyErr_PrintEx(0);																				\
+			return PyLong_FromLong(-1);																		\
+		}																									\
+																											\
+		if (PyUnicode_Check(pyargobj))																		\
+		{																									\
+			if (strcmp(PyUnicode_AsUTF8AndSize(pyargobj, NULL), "All") == 0)								\
+			{																								\
+				pobj->scriptTimers().cancelAll();															\
+			}																								\
+			else																							\
+			{																								\
+				PyErr_Format(PyExc_TypeError,																\
+					"%s::delTimer: args not is \"All\"!",													\
+					pobj->scriptName());																	\
+																											\
+				PyErr_PrintEx(0);																			\
+				return PyLong_FromLong(-1);																	\
+			}																								\
+																											\
+			return PyLong_FromLong(0);																		\
+		}																									\
+		else                                                                                                \
+		{																									\
+			if (!PyLong_Check(pyargobj))																	\
+			{																								\
+				PyErr_Format(PyExc_TypeError,																\
+					"%s::delTimer: args(id|int) error!",													\
+					pobj->scriptName());																	\
+																											\
+				PyErr_PrintEx(0);																			\
+				return PyLong_FromLong(-1);																	\
+			}																								\
+																											\
+			timerID = PyLong_AsLong(pyargobj);																\
+		}																									\
+																											\
+		if(!ScriptTimersUtil::delTimer(&pobj->scriptTimers(), timerID))										\
 		{																									\
 			return PyLong_FromLong(-1);																		\
 		}																									\
