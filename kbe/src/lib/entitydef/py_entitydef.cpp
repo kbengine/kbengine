@@ -2224,6 +2224,7 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
+	Py_INCREF((PyTypeObject *)defContext.pyObjectPtr.get());
 	pScriptModule->setScriptType((PyTypeObject *)defContext.pyObjectPtr.get());
 	pScriptModule->autoMatchCompOwn();
 	return true;
@@ -2262,6 +2263,7 @@ bool initialize()
 
 	g_inited = true;
 
+	KBE_ASSERT(pyDefModuleName.size() > 0);
 	PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
 
 	ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.begin();
