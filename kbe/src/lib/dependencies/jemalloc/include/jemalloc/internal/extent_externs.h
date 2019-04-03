@@ -4,12 +4,13 @@
 #include "jemalloc/internal/mutex.h"
 #include "jemalloc/internal/mutex_pool.h"
 #include "jemalloc/internal/ph.h"
-#include "jemalloc/internal/rb.h"
 #include "jemalloc/internal/rtree.h"
 
-extern rtree_t			extents_rtree;
-extern const extent_hooks_t	extent_hooks_default;
-extern mutex_pool_t		extent_mutex_pool;
+extern size_t opt_lg_extent_max_active_fit;
+
+extern rtree_t extents_rtree;
+extern const extent_hooks_t extent_hooks_default;
+extern mutex_pool_t extent_mutex_pool;
 
 extent_t *extent_alloc(tsdn_t *tsdn, arena_t *arena);
 void extent_dalloc(tsdn_t *tsdn, arena_t *arena, extent_t *extent);
@@ -30,6 +31,10 @@ bool extents_init(tsdn_t *tsdn, extents_t *extents, extent_state_t state,
     bool delay_coalesce);
 extent_state_t extents_state_get(const extents_t *extents);
 size_t extents_npages_get(extents_t *extents);
+/* Get the number of extents in the given page size index. */
+size_t extents_nextents_get(extents_t *extents, pszind_t ind);
+/* Get the sum total bytes of the extents in the given page size index. */
+size_t extents_nbytes_get(extents_t *extents, pszind_t ind);
 extent_t *extents_alloc(tsdn_t *tsdn, arena_t *arena,
     extent_hooks_t **r_extent_hooks, extents_t *extents, void *new_addr,
     size_t size, size_t pad, size_t alignment, bool slab, szind_t szind,
