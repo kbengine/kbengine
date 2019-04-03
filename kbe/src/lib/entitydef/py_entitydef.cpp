@@ -1587,6 +1587,17 @@ PY_DEF_HOOK(fixed_item)
 
 static PyObject* _tp_entitydef_getattro(PyObject* self, PyObject* name)
 {
+	if (!isRefEntityDefModule(name))
+	{
+		const char* typeName = PyUnicode_AsUTF8AndSize(name, NULL);
+		DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.find(typeName);
+		if (iter != DefContext::allScriptDefContextMaps.end())
+		{
+			Py_INCREF(name);
+			return name;
+		}
+	}
+
 	return PyObject_GenericGetAttr(self, name);
 }
 
@@ -1600,10 +1611,13 @@ bool installModule(const char* moduleName)
 	PyObject_SetAttrString(entitydefModule, "__doc__", pyDoc);
 	Py_DECREF(pyDoc);
 
-	static PyMethodDef _tp_entitydef_getattro_method = { "__get__", (PyCFunction)&_tp_entitydef_getattro, METH_VARARGS, 0 };
-	PyObject* pyFunc = PyCFunction_New(&_tp_entitydef_getattro_method, NULL);
-	PyObject_SetAttrString(entitydefModule, "__get__", pyFunc);
-	Py_DECREF(pyFunc);
+	static  PyMethodDef entitydef_getattro_methods[] =
+	{
+		{ "__getattr__", (PyCFunction)&_tp_entitydef_getattro, METH_O, 0 },
+		{ NULL, NULL, 0, NULL }
+	};
+
+	PyModule_AddFunctions(entitydefModule, entitydef_getattro_methods);
 
 	PY_ADD_METHOD(rename, "");
 	PY_ADD_METHOD(method, "");
