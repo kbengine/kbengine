@@ -24,8 +24,8 @@
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
 
-        object _sendingObj = new object();
-        Boolean _sending = false;
+		object _sendingObj = new object();
+		Boolean _sending = false;
 		
 		public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
 		{
