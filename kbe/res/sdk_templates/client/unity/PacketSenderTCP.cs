@@ -23,6 +23,8 @@
 
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
+
+		object _sendingObj = new object();
 		Boolean _sending = false;
 		
 		public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
@@ -45,7 +47,7 @@
 			if (dataLength <= 0)
 				return true;
 
-			Monitor.Enter(_sending);
+			Monitor.Enter(_sendingObj);
 			if (!_sending)
 			{
 				if (_wpos == _spos)
@@ -90,13 +92,13 @@
 			if (!_sending)
 			{
 				_sending = true;
-				Monitor.Exit(_sending);
+				Monitor.Exit(_sendingObj);
 
 				_startSend();
 			}
 			else
 			{
-				Monitor.Exit(_sending);
+				Monitor.Exit(_sendingObj);
 			}
 
 			return true;
@@ -114,7 +116,7 @@
 
 			while (true)
 			{
-				Monitor.Enter(_sending);
+				Monitor.Enter(_sendingObj);
 
 				int sendSize = _wpos - _spos;
 				int t_spos = _spos % _buffer.Length;
@@ -134,7 +136,7 @@
 					Dbg.ERROR_MSG(string.Format("PacketSenderTCP::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 
-					Monitor.Exit(_sending);
+					Monitor.Exit(_sendingObj);
 					return;
 				}
 
@@ -144,11 +146,11 @@
 				if (_spos == _wpos)
 				{
 					_sending = false;
-					Monitor.Exit(_sending);
+					Monitor.Exit(_sendingObj);
 					return;
 				}
 
-				Monitor.Exit(_sending);
+				Monitor.Exit(_sendingObj);
 			}
 		}
 	}
