@@ -1384,27 +1384,55 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 
-		while (PyDict_Next(kwargs, &pos, &key, &value)) {
-			if (!PyType_Check(value))
+		while (PyDict_Next(kwargs, &pos, &key, &value)) 
+		{
+			std::string typeName = "";
+			if (!PyUnicode_Check(value))
 			{
-				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
-				return NULL;
-			}
+				if (PyType_Check(value))
+				{
+					PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
+					if (!pyQualname)
+					{
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
+						return NULL;
+					}
 
-			PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
-			if (!pyQualname)
+					typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
+					Py_DECREF(pyQualname);
+				}
+				else
+				{
+					PyObject* pyName = PyObject_GetAttrString(value, "__name__");
+					if (!pyName)
+					{
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
+						return NULL;
+					}
+
+					typeName = PyUnicode_AsUTF8AndSize(pyName, NULL);
+					Py_DECREF(pyName);
+				}
+			}
+			else
 			{
-				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
-				return NULL;
+				typeName = PyUnicode_AsUTF8AndSize(value, NULL);
 			}
-
-			std::string typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
-			Py_DECREF(pyQualname);
 
 			if (!PyUnicode_Check(key))
 			{
 				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg1 must be a string! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
 				return NULL;
+			}
+
+			if (!isRefEntityDefModule(value))
+			{
+				DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.find(typeName);
+				if (iter == DefContext::allScriptDefContextMaps.end())
+				{
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.rename(ENTITY_ID=EntityDef.INT32)\n", cc.optionName.c_str());
+					return NULL;
+				}
 			}
 
 			DefContext defContext;
@@ -1455,27 +1483,55 @@ static PyObject* __py_def_fixed_array(PyObject* self, PyObject* args, PyObject* 
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 
-		while (PyDict_Next(kwargs, &pos, &key, &value)) {
-			if (!PyType_Check(value))
+		while (PyDict_Next(kwargs, &pos, &key, &value)) 
+		{
+			std::string typeName = "";
+			if (!PyUnicode_Check(value))
 			{
-				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
-				return NULL;
-			}
+				if (PyType_Check(value))
+				{
+					PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
+					if (!pyQualname)
+					{
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+						return NULL;
+					}
 
-			PyObject* pyQualname = PyObject_GetAttrString(value, "__qualname__");
-			if (!pyQualname)
+					typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
+					Py_DECREF(pyQualname);
+				}
+				else
+				{
+					PyObject* pyName = PyObject_GetAttrString(value, "__name__");
+					if (!pyName)
+					{
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+						return NULL;
+					}
+
+					typeName = PyUnicode_AsUTF8AndSize(pyName, NULL);
+					Py_DECREF(pyName);
+				}
+			}
+			else
 			{
-				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 get __qualname__ error! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
-				return NULL;
+				typeName = PyUnicode_AsUTF8AndSize(value, NULL);
 			}
-
-			std::string typeName = PyUnicode_AsUTF8AndSize(pyQualname, NULL);
-			Py_DECREF(pyQualname);
 
 			if (!PyUnicode_Check(key))
 			{
 				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg1 must be a string! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
 				return NULL;
+			}
+
+			if (!isRefEntityDefModule(value))
+			{
+				DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.find(typeName);
+				if (iter == DefContext::allScriptDefContextMaps.end())
+				{
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: arg2 not legal type! such as: EntityDef.fixed_array(XXArray=EntityDef.INT32)\n", cc.optionName.c_str());
+					return NULL;
+				}
 			}
 
 			DefContext defContext;
@@ -1529,13 +1585,25 @@ PY_DEF_HOOK(component)
 PY_DEF_HOOK(fixed_dict)
 PY_DEF_HOOK(fixed_item)
 
+static PyObject* _tp_entitydef_getattro(PyObject* self, PyObject* name)
+{
+	return PyObject_GenericGetAttr(self, name);
+}
+
 //-------------------------------------------------------------------------------------
 bool installModule(const char* moduleName)
 {
 	pyDefModuleName = moduleName;
 
 	PyObject *entitydefModule = PyImport_AddModule(pyDefModuleName.c_str());
-	PyObject_SetAttrString(entitydefModule, "__doc__", PyUnicode_FromString("This module is created by KBEngine!"));
+	PyObject* pyDoc = PyUnicode_FromString("This module is created by KBEngine!");
+	PyObject_SetAttrString(entitydefModule, "__doc__", pyDoc);
+	Py_DECREF(pyDoc);
+
+	static PyMethodDef _tp_entitydef_getattro_method = { "__get__", (PyCFunction)&_tp_entitydef_getattro, METH_VARARGS, 0 };
+	PyObject* pyFunc = PyCFunction_New(&_tp_entitydef_getattro_method, NULL);
+	PyObject_SetAttrString(entitydefModule, "__get__", pyFunc);
+	Py_DECREF(pyFunc);
 
 	PY_ADD_METHOD(rename, "");
 	PY_ADD_METHOD(method, "");

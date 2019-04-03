@@ -5,6 +5,7 @@
 #include "client_sdk.h"
 #include "server_assets.h"
 #include "entitydef/entitydef.h"
+#include "entitydef/py_entitydef.h"
 #include "pyscript/py_compression.h"
 #include "pyscript/py_platform.h"
 
@@ -172,7 +173,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	}
 
 	std::vector<PyTypeObject*> scriptBaseTypes;
-	if (!EntityDef::initialize(scriptBaseTypes, g_componentType)) 
+	if (!script::entitydef::installModule("EntityDef") || !EntityDef::initialize(scriptBaseTypes, g_componentType))
 	{
 		ERROR_MSG("app::initialize(): EntityDef initialization failed!\n");
 
@@ -272,6 +273,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 		}
 	}
 
+	script::entitydef::uninstallModule();
 	app.finalise();
 	INFO_MSG(fmt::format("{}({}) has shut down. ClientSDK={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pClientSDK->good()));
 
