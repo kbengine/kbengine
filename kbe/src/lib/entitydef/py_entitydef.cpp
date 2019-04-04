@@ -906,6 +906,46 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			if (pyUtype)
 				defContext.utype = (int)PyLong_AsLong(pyUtype);
 		}
+		else
+		{
+			static char * keywords[] =
+			{
+				const_cast<char *> ("persistent"),
+				const_cast<char *> ("databaseLength"),
+				NULL
+			};
+
+			PyObject* pyPersistent = NULL;
+			PyObject* pyDatabaseLength = NULL;
+
+			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|OO",
+				keywords, &pyPersistent, &pyDatabaseLength))
+			{
+				PY_RETURN_ERROR;
+			}
+
+			if (pyDatabaseLength && !PyLong_Check(pyDatabaseLength))
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'databaseLength\' error! not a number type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			if (pyPersistent && !PyBool_Check(pyPersistent))
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			// 如果是数据类型定义，默认应该是存储的
+			// fixed_item只有定义fixed_dict时会用到
+			defContext.persistent = true;
+
+			if (pyPersistent)
+				defContext.persistent = pyPersistent == Py_True;
+
+			if (pyDatabaseLength)
+				defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
+		}
 
 		// 对于属性， 我们需要获得返回值作为默认值
 		PyObject* pyRet = PyObject_CallFunction(pyFunc,
