@@ -32,6 +32,7 @@ DefContext::DEF_CONTEXT_MAP DefContext::allScriptDefContextMaps;
 DefContext::DEF_CONTEXT_MAP DefContext::allScriptDefContextLineMaps;
 
 static bool g_inited = false;
+static int g_order = 1;
 
 //-------------------------------------------------------------------------------------
 static PyObject* __py_array(PyObject* self, PyObject* args)
@@ -138,6 +139,8 @@ BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 DefContext::DefContext()
 {
+	order = g_order++;
+
 	optionName = "";
 
 	moduleName = "";
@@ -171,6 +174,7 @@ DefContext::DefContext()
 //-------------------------------------------------------------------------------------
 bool DefContext::addToStream(MemoryStream* pMemoryStream)
 {
+	(*pMemoryStream) << order;
 	(*pMemoryStream) << optionName;
 	(*pMemoryStream) << moduleName;
 	(*pMemoryStream) << attrName;
@@ -238,6 +242,7 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 //-------------------------------------------------------------------------------------
 bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 {
+	(*pMemoryStream) >> order;
 	(*pMemoryStream) >> optionName;
 	(*pMemoryStream) >> moduleName;
 	(*pMemoryStream) >> attrName;
@@ -1920,64 +1925,93 @@ static bool loadAllScripts()
 //-------------------------------------------------------------------------------------
 static bool registerDefTypes()
 {
-	DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
-	for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
+	std::vector< DefContext* > defContexts;
+
 	{
-		DefContext& defContext = iter->second;
-
-		if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY)
+		// 由于注册的类型有先后依赖关系，这里对他们做个排序再后续处理
+		DefContext::DEF_CONTEXT_MAP::iterator iter = DefContext::allScriptDefContextMaps.begin();
+		for (; iter != DefContext::allScriptDefContextMaps.end(); ++iter)
 		{
-			FixedArrayType* fixedArray = new FixedArrayType;
+			DefContext& defContext = iter->second;
 
-			if (fixedArray->initialize(&defContext, defContext.moduleName))
+			if (defContext.type == DefContext::DC_TYPE_RENAME || defContext.type == DefContext::DC_TYPE_FIXED_ARRAY || defContext.type == DefContext::DC_TYPE_FIXED_DICT)
 			{
-				if (!DataTypes::addDataType(defContext.moduleName, fixedArray))
-					return false;
-			}
-			else
-			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error! file: \"{}\"!\n",
-					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+				size_t size = defContexts.size();
+				for (int i = 0; i < defContexts.size(); ++i)
+				{
+					if (defContexts[i]->order > defContext.order)
+					{
+						defContexts.insert(defContexts.begin() + max<int>(0, (i - 1)), &defContext);
+						break;
+					}
+				}
 
-				delete fixedArray;
-				return false;
+				if(size == defContexts.size())
+					defContexts.push_back(&defContext);
 			}
 		}
-		else if (defContext.type == DefContext::DC_TYPE_FIXED_DICT)
-		{
-			FixedDictType* fixedDict = new FixedDictType;
+	}
 
-			if (fixedDict->initialize(&defContext, defContext.moduleName))
+	{
+		std::vector< DefContext* >::iterator iter = defContexts.begin();
+		for (; iter != defContexts.end(); ++iter)
+		{
+			DefContext& defContext = *(*iter);
+
+			if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY)
 			{
-				if (!DataTypes::addDataType(defContext.moduleName, fixedDict))
+				FixedArrayType* fixedArray = new FixedArrayType;
+
+				if (fixedArray->initialize(&defContext, defContext.moduleName))
+				{
+					if (!DataTypes::addDataType(defContext.moduleName, fixedArray))
+						return false;
+				}
+				else
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse ARRAY [{}] error! file: \"{}\"!\n",
+						defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+
+					delete fixedArray;
 					return false;
+				}
 			}
-			else
+			else if (defContext.type == DefContext::DC_TYPE_FIXED_DICT)
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error! file: \"{}\"!\n",
-					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+				FixedDictType* fixedDict = new FixedDictType;
 
-				delete fixedDict;
-				return false;
+				if (fixedDict->initialize(&defContext, defContext.moduleName))
+				{
+					if (!DataTypes::addDataType(defContext.moduleName, fixedDict))
+						return false;
+				}
+				else
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse FIXED_DICT [{}] error! file: \"{}\"!\n",
+						defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+
+					delete fixedDict;
+					return false;
+				}
 			}
-		}
-		else if (defContext.type == DefContext::DC_TYPE_RENAME)
-		{
-			DataType* dataType = DataTypes::getDataType(defContext.returnType, false);
-			if (dataType == NULL)
+			else if (defContext.type == DefContext::DC_TYPE_RENAME)
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: cannot fount type \'{}\', by alias[{}], file: \"{}\"!\n",
-					defContext.returnType, defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+				DataType* dataType = DataTypes::getDataType(defContext.returnType, false);
+				if (dataType == NULL)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: cannot fount type \'{}\', by alias[{}], file: \"{}\"!\n",
+						defContext.returnType, defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
-				return false;
-			}
+					return false;
+				}
 
-			if (!DataTypes::addDataType(defContext.moduleName, dataType))
-			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: addDataType \"{}\" error! file: \"{}\"!\n",
-					defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
+				if (!DataTypes::addDataType(defContext.moduleName, dataType))
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: addDataType \"{}\" error! file: \"{}\"!\n",
+						defContext.moduleName.c_str(), defContext.pyObjectSourceFile));
 
-				return false;
+					return false;
+				}
 			}
 		}
 	}

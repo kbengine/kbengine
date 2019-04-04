@@ -51,6 +51,8 @@ public:
 		return NULL;
 	}
 
+	int order;
+
 	std::string optionName;
 
 	std::string moduleName;
