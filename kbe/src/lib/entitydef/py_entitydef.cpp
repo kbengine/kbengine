@@ -1019,7 +1019,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else if (defContext.optionName == "fixed_array")
 	{
-		defContext.isModuleScope = true;
+		// @Def.fixed_array() 
+		// def ENTITYID_LIST()->ENTITY_ID: pass
+		defContext.isModuleScope = false;
 	}
 	else if (defContext.optionName == "fixed_item")
 	{
@@ -1040,7 +1042,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		if (moduleQualname)
 			strutil::kbe_splits(moduleQualname, ".", outs);
 
-		if (defContext.optionName != "rename")
+		if (defContext.optionName != "rename" && defContext.optionName != "fixed_array")
 		{
 			if (outs.size() != 2)
 			{
@@ -1112,7 +1114,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				Py_DECREF(pyGetMethodArgsResult);
 				Py_DECREF(pyGetMethodAnnotationsResult);
 
-				if (defContext.optionName != "rename")
+				if (defContext.optionName != "rename" && defContext.optionName != "fixed_array")
 				{
 					Py_ssize_t argsSize = PyList_Size(pyGetMethodArgsResult);
 					if (argsSize == 0)
@@ -1213,7 +1215,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 		PyObject* pyBases = PyObject_GetAttrString(pyFunc, "__bases__");
 		if (!pyBases)
+		{
 			PY_RETURN_ERROR;
+		}
 
 		Py_ssize_t basesSize = PyTuple_Size(pyBases);
 		if (basesSize == 0)
@@ -1937,7 +1941,7 @@ static bool registerDefTypes()
 			if (defContext.type == DefContext::DC_TYPE_RENAME || defContext.type == DefContext::DC_TYPE_FIXED_ARRAY || defContext.type == DefContext::DC_TYPE_FIXED_DICT)
 			{
 				size_t size = defContexts.size();
-				for (int i = 0; i < defContexts.size(); ++i)
+				for (int i = 0; i < (int)defContexts.size(); ++i)
 				{
 					if (defContexts[i]->order > defContext.order)
 					{
