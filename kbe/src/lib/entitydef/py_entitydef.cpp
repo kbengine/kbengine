@@ -1945,7 +1945,7 @@ static bool registerDefTypes()
 				{
 					if (defContexts[i]->order > defContext.order)
 					{
-						defContexts.insert(defContexts.begin() + KBEngine::max<int>(0, (i - 1)), &defContext);
+						defContexts.insert(defContexts.begin() + KBE_MAX(0, (i - 1)), &defContext);
 						break;
 					}
 				}
