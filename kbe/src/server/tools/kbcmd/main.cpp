@@ -172,11 +172,23 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 		return -1;
 	}
 
-	std::vector<PyTypeObject*> scriptBaseTypes;
-	if (!script::entitydef::installModule("EntityDef") || !EntityDef::initialize(scriptBaseTypes, g_componentType))
+	if (!script::entitydef::installModule("EntityDef"))
 	{
 		ERROR_MSG("app::initialize(): EntityDef initialization failed!\n");
 
+		app.finalise();
+
+		// 如果还有日志未同步完成， 这里会继续同步完成才结束
+		DebugHelper::getSingleton().finalise();
+		return -1;
+	}
+
+	std::vector<PyTypeObject*> scriptBaseTypes;
+	if (!EntityDef::initialize(scriptBaseTypes, g_componentType))
+	{
+		ERROR_MSG("app::initialize(): EntityDef initialization failed!\n");
+
+		script::entitydef::uninstallModule();
 		app.finalise();
 
 		// 如果还有日志未同步完成， 这里会继续同步完成才结束
@@ -345,11 +357,23 @@ int process_newassets(int argc, char* argv[], const std::string assetsType)
 		return -1;
 	}
 
+	if (!script::entitydef::installModule("EntityDef"))
+	{
+		ERROR_MSG("app::initialize(): EntityDef initialization failed!\n");
+
+		app.finalise();
+
+		// 如果还有日志未同步完成， 这里会继续同步完成才结束
+		DebugHelper::getSingleton().finalise();
+		return -1;
+	}
+
 	std::vector<PyTypeObject*> scriptBaseTypes;
 	if (!EntityDef::initialize(scriptBaseTypes, g_componentType))
 	{
 		ERROR_MSG("app::initialize(): EntityDef initialization failed!\n");
 
+		script::entitydef::uninstallModule();
 		app.finalise();
 
 		// 如果还有日志未同步完成， 这里会继续同步完成才结束
@@ -387,6 +411,7 @@ int process_newassets(int argc, char* argv[], const std::string assetsType)
 		ret = -1;
 	}
 
+	script::entitydef::uninstallModule();
 	app.finalise();
 	INFO_MSG(fmt::format("{}({}) has shut down. ServerAssets={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pServerAssets->good()));
 
