@@ -71,39 +71,52 @@ COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 {
 	COMPONENT_ID cid = 0;
 		
-	send(componentType, uid);
-
-	int32 timeout = 500000;
-	MachineInterface::queryComponentIDArgs5 args;
-
-	if (receive(&args, 0, timeout, false))
+	bool hasContinue = true;
+	while (hasContinue)
 	{
-		bool hasContinue = false;
-		do
+		send(componentType, uid);
+
+		int32 timeout = 500000;
+		MachineInterface::queryComponentIDArgs5 args;
+
+		if (receive(&args, 0, timeout, false))
 		{
-			if (hasContinue)
+			do
 			{
-				try
+				if (hasContinue)
 				{
-					args.createFromStream(*pCurrPacket());
+					try
+					{
+						args.createFromStream(*pCurrPacket());
+					}
+					catch (MemoryStreamException &)
+					{
+						hasContinue = false;
+					}
 				}
-				catch (MemoryStreamException &)
+
+				// 如果是未知类型则继续一次
+				if (args.componentType == UNKNOWN_COMPONENT_TYPE)
+					continue;
+
+
+				if (args.componentID == 0)
 				{
+					hasContinue = true;
+					pCurrPacket()->clear(false);
 					break;
 				}
-			}
+				else
+				{
+					cid = args.componentID;
+					hasContinue = false;
+					break;
+				}
+			} while (pCurrPacket()->length() > 0);
+		}
 
-			hasContinue = true;
-
-			// 如果是未知类型则继续一次
-			if (args.componentType == UNKNOWN_COMPONENT_TYPE)
-				continue;
-
-			cid = args.componentID;
-
-		} while (pCurrPacket()->length() > 0);
 	}
-		
+	
 	return cid;
 }
 
