@@ -333,8 +333,8 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 	int32 uid, uint16 finderRecvPort, std::string machineInfo)
 {
 	
-	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{} componentID:{} uid:{} finderRecvPort:{} macinfos={}.\n",
-		pChannel->c_str(), componentType, componentID, uid, finderRecvPort, machineInfo));
+	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{}[{}] componentID:{} uid:{} finderRecvPort:{} macinfos={}.\n",
+		pChannel->c_str(), componentType, COMPONENT_NAME_EX(componentType), componentID, uid, finderRecvPort, machineInfo));
 
 	uint32 ip = pChannel->addr().ip;
 	
@@ -393,8 +393,8 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 			}
 		}
 
-		INFO_MSG(fmt::format("Machine::queryComponentID[{}], setComponentID: componentType:{} uid:{} cid={}.\n",
-			pChannel->c_str(), componentType, uid, cid));
+		INFO_MSG(fmt::format("Machine::queryComponentID[{}], setComponentID: componentType={}[{}] uid={} cid={}.\n",
+			pChannel->c_str(), componentType, COMPONENT_NAME_EX(componentType), uid, cid));
 
 		Network::EndPoint ep;
 		ep.socket(SOCK_DGRAM);
