@@ -1775,8 +1775,6 @@ static bool loadAllScriptForComponentType(COMPONENT_TYPE loadComponentType)
 
 		char* moduleName = strutil::wchar2char(filePair.first.c_str());
 
-		// 由于脚本内部可能会import造成重复import， 我们过滤已经import过的模块
-		if (DefContext::allScriptDefContextMaps.find(moduleName) == DefContext::allScriptDefContextMaps.end())
 		{
 			PyObject* pyModule = NULL;
 
