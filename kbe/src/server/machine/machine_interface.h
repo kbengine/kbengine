@@ -77,6 +77,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									int32,							uid, 
 									std::string,					username,
 									uint16,							finderRecvPort)
+
+	MACHINE_MESSAGE_DECLARE_ARGS5(queryComponentID,					NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_TYPE,					componentType,
+									COMPONENT_ID,					componentID,
+									int32,							uid,
+									uint16,							finderRecvPort,
+									std::string,					machineInfo)
 	// 某app主动请求look。
 	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							NETWORK_FIXED_MESSAGE)
 
@@ -94,6 +101,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 
 	// 请求强制杀死当前app
 	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					NETWORK_VARIABLE_MESSAGE)
+
+	
 
 NETWORK_INTERFACE_DECLARE_END()
 

@@ -21,6 +21,7 @@
 #include "../tools/logger/logger_interface.h"
 #include "../../server/tools/interfaces/interfaces_interface.h"
 #include "../../server/tools/bots/bots_interface.h"
+#include "common/md5.h"
 
 namespace KBEngine{
 	
@@ -325,6 +326,83 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 	else
 	{
 		pChannel->send(pBundle);
+	}
+}
+
+void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+	int32 uid, uint16 finderRecvPort, std::string machineInfo)
+{
+	
+	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{} componentID:{} uid:{} finderRecvPort:{} macinfos={}.\n",
+		pChannel->c_str(), componentType, componentID, uid, finderRecvPort, machineInfo));
+
+	uint32 ip = pChannel->addr().ip;
+	
+	if (this->networkInterface().intTcpAddr().ip == ip ||
+		this->networkInterface().extTcpAddr().ip == ip)
+	{
+		std::string md5_digest = KBE_MD5::getDigest(machineInfo.data(), (int)machineInfo.length());
+
+		INFO_MSG(fmt::format("md5_digest = {} \n", md5_digest));
+
+		int mod = 0;
+		int divider = 65535;
+
+		for (int i = 0; i < 32; i++)
+		{
+			int digit = md5_digest[i];
+			mod = (mod * 16 + digit) % divider;
+		}
+
+		INFO_MSG(fmt::format("mac md5 = {} \n", mod));
+
+		COMPONENT_ID cid1 = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE;
+		COMPONENT_ID cid2 = (COMPONENT_ID)mod * 10000;
+		COMPONENT_ID cid3 = (COMPONENT_ID)componentType * 100;
+
+		INFO_MSG(fmt::format("cid1={}, cid2={}, cid3={} \n", cid1, cid2, cid3));
+		COMPONENT_ID cid = cid1 + cid2 + cid3 + 1;
+
+		std::map<int32, CID_MAP>::iterator iter = cidMap_.find(uid);
+		if (iter == cidMap_.end())
+		{
+			ID_LOGS cidLog;
+			cidLog.push_back(cid);
+
+			CID_MAP cidMap;
+			cidMap.insert(std::make_pair(componentType, cidLog));
+			cidMap_.insert(std::make_pair(uid, cidMap));
+		}
+		else
+		{
+			CID_MAP cidMap = iter->second;
+			CID_MAP::iterator iter = cidMap.find(componentType);
+
+			if (iter == cidMap.end())
+			{
+				ID_LOGS cidLog;
+				cidLog.push_back(cid);
+				cidMap.insert(std::make_pair(componentType, cidLog));
+				cidMap_[uid] = cidMap;
+			}
+			else
+			{
+				ID_LOGS cidLog = iter->second;
+				cid += cidLog.size();
+				cidLog.push_back(cid);
+			}
+		}
+
+		INFO_MSG(fmt::format("Machine::queryComponentID[{}], setComponentID: componentType:{} uid:{} cid={}.\n",
+			pChannel->c_str(), componentType, uid, cid));
+
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+		MachineInterface::queryComponentIDArgs5::staticAddToBundle((*pBundle), componentType, cid, uid, finderRecvPort, machineInfo);
+		ep.sendto(pBundle, finderRecvPort, ip);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 }
 

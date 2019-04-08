@@ -16,6 +16,7 @@
 #include "network/network_interface.h"
 #include "server/components.h"
 #include "server/machine_infos.h"
+#include "server/id_component_querier.h"
 #include "resmgr/resmgr.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -101,18 +102,50 @@ inline void setEvns()
 	setenv("KBE_BOOTIDX_GROUP", scomponentGroupOrder.c_str(), 1);
 }
 
+inline void checkComponentID(COMPONENT_TYPE componentType)
+{
+	if (getUserUID() <= 0)
+	{
+		autoFixUserDigestUID();
+	}
+
+	int32 uid = getUserUID();
+	if (componentType == MACHINE_TYPE && g_componentID == -1)
+	{
+		g_componentID = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE * 100 + 1;
+	}
+	else if (componentType == LOGGER_TYPE && g_componentID == -1)
+	{
+		g_componentID = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE * 100 + (COMPONENT_ID)componentType * COMPONENT_ID_MULTIPLE + 1;
+	}
+	else
+	{
+		if (g_componentID == -1)
+		{
+			IDComponentQuerier cidQuerier;
+			if (cidQuerier.good())
+			{
+				g_componentID = cidQuerier.query(componentType, uid);
+			}
+		}
+	}
+}
+
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 	int32 extlisteningTcpPort_min = -1, int32 extlisteningTcpPort_max = -1, 
 	int32 extlisteningUdpPort_min = -1, int32 extlisteningUdpPort_max = -1, const char * extlisteningInterface = "",
 	int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
+	int getuid = getUserUID();
+	checkComponentID(componentType);
 	setEvns();
 	startLeakDetection(componentType, g_componentID);
 
 	g_componentType = componentType;
 	DebugHelper::initialize(componentType);
 
+	INFO_MSG(fmt::format("--=-=-=-  g_componentID = {} \n", g_componentID));
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
@@ -138,10 +171,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
 			networkInterface.intTcpAddr(), networkInterface.extTcpAddr(), networkInterface.extUdpAddr());
 	
-	if(getUserUID() <= 0)
+	if (getuid <= 0)
 	{
-		int getuid = getUserUID();
-		autoFixUserDigestUID();
 		WARNING_MSG(fmt::format("invalid UID({}) <= 0, please check UID for environment! automatically set to {}.\n", getuid, getUserUID()));
 	}
 
@@ -174,9 +205,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 #if KBE_PLATFORM == PLATFORM_WIN32
 	printf("[INFO]: %s", (fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType))).c_str());
 #endif
-
 	int ret = app.run();
-
+	
 	Components::getSingleton().finalise();
 	app.finalise();
 	INFO_MSG(fmt::format("{}({}) has shut down.\n", COMPONENT_NAME_EX(componentType), g_componentID));
@@ -217,6 +247,10 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			}
 
 			continue;
+		}
+		else
+		{
+			g_componentID = -1;
 		}
 
 		findcmd = "--gus=";

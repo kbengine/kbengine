@@ -72,6 +72,9 @@ public:
 	void onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
 		uint16 finderRecvPort);
 
+	void queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID,
+		int32 uid, uint16 finderRecvPort, std::string machineInfo);
+
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	/* 初始化相关接口 */
@@ -138,6 +141,11 @@ protected:
 
 	// 本机使用的uid
 	std::vector<int32>			localuids_;
+
+	typedef std::vector<COMPONENT_ID> ID_LOGS;
+	typedef std::map<COMPONENT_TYPE, ID_LOGS> CID_MAP;
+
+	std::map<int32, CID_MAP>		cidMap_;
 };
 
 }
