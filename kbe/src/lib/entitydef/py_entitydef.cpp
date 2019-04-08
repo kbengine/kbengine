@@ -551,6 +551,13 @@ static bool registerDefContext(DefContext& defContext)
 
 				}
 
+				// 脚本对象强制设置为当前进程的对象
+				if (g_componentType == defContext.componentType)
+				{
+					iter->second.pyObjectPtr = defContext.pyObjectPtr;
+					iter->second.pyObjectSourceFile = defContext.pyObjectSourceFile;
+				}
+
 				return true;
 			}
 
@@ -1938,27 +1945,23 @@ static bool execPython(COMPONENT_TYPE componentType)
 static bool loadAllScripts()
 {
 	std::vector< COMPONENT_TYPE > loadOtherComponentTypes;
-
-	if (g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE)
-	{
-		bool otherPartSuccess = loadAllScriptForComponentType(g_componentType);
-		if (!otherPartSuccess)
-			return false;
-
-		loadOtherComponentTypes.push_back((g_componentType == BASEAPP_TYPE) ? CELLAPP_TYPE : BASEAPP_TYPE);
-	}
-	else
-	{
-		loadOtherComponentTypes.push_back(BASEAPP_TYPE);
-		loadOtherComponentTypes.push_back(CELLAPP_TYPE);
-	}
+	loadOtherComponentTypes.push_back(BASEAPP_TYPE);
+	loadOtherComponentTypes.push_back(CELLAPP_TYPE);
 
 	for (std::vector< COMPONENT_TYPE >::iterator iter = loadOtherComponentTypes.begin(); iter != loadOtherComponentTypes.end(); ++iter)
 	{
 		COMPONENT_TYPE componentType = (*iter);
 		
-		if (!execPython(componentType))
-			return false;
+		if (g_componentType == componentType)
+		{
+			if (!loadAllScriptForComponentType(g_componentType))
+				return false;
+		}
+		else
+		{
+			if (!execPython(componentType))
+				return false;
+		}
 	}
 
 	return true;
@@ -2083,7 +2086,7 @@ static bool registerDefPropertys(ScriptDefModule* pScriptModule, DefContext& def
 		int32						hasClientFlags = 0;
 		DataType*					dataType = NULL;
 		bool						isPersistent = (defPropContext.persistent != 0);
-		bool						isIdentifier = false;								// 是否是一个索引键
+		bool						isIdentifier = false;									// 是否是一个索引键
 		uint32						databaseLength = defPropContext.databaseLength;			// 这个属性在数据库中的长度
 		std::string					indexType = defPropContext.propertyIndex;
 		DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
@@ -2375,8 +2378,12 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
-	Py_INCREF((PyTypeObject *)defContext.pyObjectPtr.get());
-	pScriptModule->setScriptType((PyTypeObject *)defContext.pyObjectPtr.get());
+	if (defContext.pyObjectPtr.get())
+	{
+		Py_INCREF((PyTypeObject *)defContext.pyObjectPtr.get());
+		pScriptModule->setScriptType((PyTypeObject *)defContext.pyObjectPtr.get());
+	}
+
 	pScriptModule->autoMatchCompOwn();
 	return true;
 }
