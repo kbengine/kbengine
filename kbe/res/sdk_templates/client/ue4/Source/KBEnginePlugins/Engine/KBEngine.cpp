@@ -1316,7 +1316,6 @@ void KBEngineApp::newPassword(const FString& old_password, const FString& new_pa
 	Bundle* pBundle = Bundle::createObject();
 	pBundle->newMessage(Messages::messages[TEXT("Baseapp_reqAccountNewPassword"]));
 	(*pBundle) << entity_id_;
-	(*pBundle) << password_;
 	(*pBundle) << old_password;
 	(*pBundle) << new_password;
 	pBundle->send(pNetworkInterface_);
