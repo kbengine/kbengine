@@ -21,7 +21,7 @@ public:
 
 	COMPONENT_ID query(COMPONENT_TYPE componentType, int32 uid);
 
-	bool broadcast(uint16 port = 0);
+	bool broadcast(uint16 port = 0, bool again = false);
 	bool receive(Network::MessageArgs* recvArgs, sockaddr_in* psin = NULL, int32 timeout = 100000, bool showerr = true);
 
 	bool good() const {
@@ -29,7 +29,7 @@ public:
 	}
 
 private:
-	void send(COMPONENT_TYPE componentType, int32 uid);
+	void send(COMPONENT_TYPE componentType, int32 uid, bool again = false);
 
 private:
 	Network::EndPoint epListen_, epBroadcast_;

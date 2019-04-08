@@ -70,56 +70,47 @@ void IDComponentQuerier::close()
 COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 {
 	COMPONENT_ID cid = 0;
-		
-	bool hasContinue = true;
-	while (hasContinue)
+
+	send(componentType, uid);
+
+	int32 timeout = 500000;
+	MachineInterface::queryComponentIDArgs5 args;
+
+	while (!receive(&args, 0, timeout, false))
 	{
-		send(componentType, uid);
+		send(componentType, uid, true);
+	}
 
-		int32 timeout = 500000;
-		MachineInterface::queryComponentIDArgs5 args;
-
-		if (receive(&args, 0, timeout, false))
+	bool hasContinue = false;
+	do
+	{
+		if (hasContinue)
 		{
-			do
+			try
 			{
-				if (hasContinue)
-				{
-					try
-					{
-						args.createFromStream(*pCurrPacket());
-					}
-					catch (MemoryStreamException &)
-					{
-						hasContinue = false;
-					}
-				}
-
-				// 如果是未知类型则继续一次
-				if (args.componentType == UNKNOWN_COMPONENT_TYPE)
-					continue;
-
-
-				if (args.componentID == 0)
-				{
-					hasContinue = true;
-					break;
-				}
-				else
-				{
-					cid = args.componentID;
-					hasContinue = false;
-					break;
-				}
-			} while (pCurrPacket()->length() > 0);
+				args.createFromStream(*pCurrPacket());
+			}
+			catch (MemoryStreamException &)
+			{
+				break;
+			}
 		}
 
-	}
+		hasContinue = true;
+
+		// 如果是未知类型则继续一次
+		if (args.componentType == UNKNOWN_COMPONENT_TYPE)
+			continue;
+
+		cid = args.componentID;
+
+	} while (pCurrPacket()->length() > 0);
 	
+
 	return cid;
 }
 
-bool IDComponentQuerier::broadcast(uint16 port /*= 0*/)
+bool IDComponentQuerier::broadcast(uint16 port /*= 0*/, bool again /* = false*/)
 {
 	if (!epBroadcast_.good())
 		return false;
@@ -127,7 +118,7 @@ bool IDComponentQuerier::broadcast(uint16 port /*= 0*/)
 	if (port == 0)
 		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
-	epBroadcast_.addr(port, Network::BROADCAST);
+	epBroadcast_.addr(port, Network::LOCALHOST);
 
 	if (epBroadcast_.setbroadcast(true) != 0)
 	{
@@ -137,7 +128,7 @@ bool IDComponentQuerier::broadcast(uint16 port /*= 0*/)
 		return false;
 	}
 
-	this->finiMessage();
+	this->finiMessage(!again);
 	KBE_ASSERT(packets().size() == 1);
 
 	epBroadcast_.sendto(packets()[0]->data(), packets()[0]->length(), htons(port), Network::BROADCAST);
@@ -238,7 +229,7 @@ bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* ps
 	return true;
 }
 
-void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid)
+void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid, bool again /*= false*/)
 {
 	pCurrPacket()->clear(false);
 	COMPONENT_ID cid = 0;
@@ -248,7 +239,7 @@ void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid)
 
 	newMessage(MachineInterface::queryComponentID);
 	MachineInterface::queryComponentIDArgs5::staticAddToBundle(*this, componentType, cid, uid, port, macMD5);
-	broadcast();
+	broadcast(0, again);
 }
 
 }
