@@ -73,7 +73,7 @@ public:
 		uint16 finderRecvPort);
 
 	void queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID,
-		int32 uid, uint16 finderRecvPort, std::string machineInfo);
+		int32 uid, uint16 finderRecvPort, int macMD5);
 
 	void handleTimeout(TimerHandle handle, void * arg);
 

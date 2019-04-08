@@ -211,6 +211,8 @@ uint16 datatype2id(std::string datatype);
 std::string datatype2nativetype(std::string datatype);
 std::string datatype2nativetype(uint16 datatype);
 
+int getMacMD5();
+
 }
 
 #endif // KBE_SERVER_COMMON_H

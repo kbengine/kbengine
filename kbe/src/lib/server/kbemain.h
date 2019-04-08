@@ -110,13 +110,14 @@ inline void checkComponentID(COMPONENT_TYPE componentType)
 	}
 
 	int32 uid = getUserUID();
-	if (componentType == MACHINE_TYPE && g_componentID == -1)
+	if ((componentType == MACHINE_TYPE || componentType == LOGGER_TYPE) && g_componentID == -1)
 	{
-		g_componentID = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE * 100 + 1;
-	}
-	else if (componentType == LOGGER_TYPE && g_componentID == -1)
-	{
-		g_componentID = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE * 100 + (COMPONENT_ID)componentType * COMPONENT_ID_MULTIPLE + 1;
+		int macMD5 = getMacMD5();
+
+		COMPONENT_ID cid1 = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE;
+		COMPONENT_ID cid2 = (COMPONENT_ID)macMD5 * 10000;
+		COMPONENT_ID cid3 = (COMPONENT_ID)componentType * 100;
+		g_componentID = cid1 + cid2 + cid3 + 1;
 	}
 	else
 	{

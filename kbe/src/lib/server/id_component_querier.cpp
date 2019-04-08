@@ -1,5 +1,6 @@
 #include "id_component_querier.h"
 #include "helper/sys_info.h"
+#include "common.h"
 #include "../../server/machine/machine_interface.h"
 
 namespace KBEngine
@@ -230,18 +231,10 @@ void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid)
 	COMPONENT_ID cid = 0;
 	uint16 port = epListen_.addr().port;
 
-	std::string machineInfo;
-	std::vector< std::string > macAddresses = SystemInfo::getSingleton().getMacAddresses();
-	std::vector< std::string >::iterator iter = macAddresses.begin();
-	for (; iter != macAddresses.end(); ++iter)
-	{
-		machineInfo += (*iter);
-	}
-
-	machineInfo += getUsername();
+	int macMD5 = getMacMD5();
 
 	newMessage(MachineInterface::queryComponentID);
-	MachineInterface::queryComponentIDArgs5::staticAddToBundle(*this, componentType, cid, uid, port, machineInfo);
+	MachineInterface::queryComponentIDArgs5::staticAddToBundle(*this, componentType, cid, uid, port, macMD5);
 	broadcast();
 }
 

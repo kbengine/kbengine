@@ -330,34 +330,18 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 }
 
 void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-	int32 uid, uint16 finderRecvPort, std::string machineInfo)
+	int32 uid, uint16 finderRecvPort, int macMD5)
 {
-	
-	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{}[{}] componentID:{} uid:{} finderRecvPort:{} macinfos={}.\n",
-		pChannel->c_str(), componentType, COMPONENT_NAME_EX(componentType), componentID, uid, finderRecvPort, machineInfo));
+	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{}[{}] componentID:{} uid:{} finderRecvPort:{} macMD5:{}.\n",
+		pChannel->c_str(), componentType, COMPONENT_NAME_EX(componentType), componentID, uid, finderRecvPort, macMD5));
 
 	uint32 ip = pChannel->addr().ip;
 	
 	if (this->networkInterface().intTcpAddr().ip == ip ||
 		this->networkInterface().extTcpAddr().ip == ip)
 	{
-		std::string md5_digest = KBE_MD5::getDigest(machineInfo.data(), (int)machineInfo.length());
-
-		INFO_MSG(fmt::format("md5_digest = {} \n", md5_digest));
-
-		int mod = 0;
-		int divider = 65535;
-
-		for (int i = 0; i < 32; i++)
-		{
-			int digit = md5_digest[i];
-			mod = (mod * 16 + digit) % divider;
-		}
-
-		INFO_MSG(fmt::format("mac md5 = {} \n", mod));
-
 		COMPONENT_ID cid1 = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE;
-		COMPONENT_ID cid2 = (COMPONENT_ID)mod * 10000;
+		COMPONENT_ID cid2 = (COMPONENT_ID)macMD5 * 10000;
 		COMPONENT_ID cid3 = (COMPONENT_ID)componentType * 100;
 
 		INFO_MSG(fmt::format("cid1={}, cid2={}, cid3={} \n", cid1, cid2, cid3));
@@ -400,7 +384,7 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 		ep.socket(SOCK_DGRAM);
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
-		MachineInterface::queryComponentIDArgs5::staticAddToBundle((*pBundle), componentType, cid, uid, finderRecvPort, machineInfo);
+		MachineInterface::queryComponentIDArgs5::staticAddToBundle((*pBundle), componentType, cid, uid, finderRecvPort, macMD5);
 		ep.sendto(pBundle, finderRecvPort, ip);
 		Network::Bundle::reclaimPoolObject(pBundle);
 	}
