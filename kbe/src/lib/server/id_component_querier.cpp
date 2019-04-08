@@ -103,7 +103,6 @@ COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 				if (args.componentID == 0)
 				{
 					hasContinue = true;
-					pCurrPacket()->clear(false);
 					break;
 				}
 				else
@@ -241,6 +240,7 @@ bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* ps
 
 void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid)
 {
+	pCurrPacket()->clear(false);
 	COMPONENT_ID cid = 0;
 	uint16 port = epListen_.addr().port;
 
