@@ -1967,6 +1967,11 @@ static bool loadAllScripts()
 }
 
 //-------------------------------------------------------------------------------------
+static bool sortFun(const DefContext* def1, const DefContext* def2)
+{
+	return def1->order < def2->order;
+}
+
 static bool registerDefTypes()
 {
 	std::vector< DefContext* > defContexts;
@@ -1978,22 +1983,10 @@ static bool registerDefTypes()
 		{
 			DefContext& defContext = iter->second;
 
-			if (defContext.type == DefContext::DC_TYPE_RENAME || defContext.type == DefContext::DC_TYPE_FIXED_ARRAY || defContext.type == DefContext::DC_TYPE_FIXED_DICT)
-			{
-				size_t size = defContexts.size();
-				for (int i = 0; i < (int)defContexts.size(); ++i)
-				{
-					if (defContexts[i]->order > defContext.order)
-					{
-						defContexts.insert(defContexts.begin() + KBE_MAX(0, (i - 1)), &defContext);
-						break;
-					}
-				}
-
-				if(size == defContexts.size())
-					defContexts.push_back(&defContext);
-			}
+			defContexts.push_back(&defContext);
 		}
+
+		std::sort(defContexts.begin(), defContexts.end(), sortFun);
 	}
 
 	{
@@ -2465,7 +2458,7 @@ bool initialize()
 		return false;
 	}
 	
-	APPEND_SCRIPT_MODULE_METHOD(entitydefModule, ARRAY, __py_array, METH_VARARGS, 0);
+	//APPEND_SCRIPT_MODULE_METHOD(entitydefModule, ARRAY, __py_array, METH_VARARGS, 0);
 
 	static char allBaseTypeNames[64][MAX_BUF];
 	std::vector< std::string > baseTypeNames = DataTypes::getBaseTypeNames();
