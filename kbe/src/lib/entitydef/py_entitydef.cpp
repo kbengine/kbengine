@@ -808,7 +808,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	defContext.pyObjectPtr = PyObjectPtr(pyFunc);
 	PYOBJECT_SOURCEFILE(defContext.pyObjectPtr.get(), defContext.pyObjectSourceFile);
 
-	if (defContext.optionName == "method")
+	if (defContext.optionName == "method" || defContext.optionName == "clientmethod")
 	{
 		static char * keywords[] =
 		{
