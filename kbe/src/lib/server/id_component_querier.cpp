@@ -73,7 +73,7 @@ COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 
 	send(componentType, uid);
 
-	int32 timeout = 500000;
+	int32 timeout = 2000000;
 	MachineInterface::queryComponentIDArgs5 args;
 
 	while (!receive(&args, 0, timeout, false))
@@ -236,6 +236,9 @@ void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid, bool agai
 	uint16 port = epListen_.addr().port;
 
 	int macMD5 = getMacMD5();
+
+	WARNING_MSG(fmt::format("IDComponentQuerier::send: {}[{}], uid={} again={} macMD5={}\n", 
+		componentType, COMPONENT_NAME_EX(componentType), uid, again, macMD5));
 
 	newMessage(MachineInterface::queryComponentID);
 	MachineInterface::queryComponentIDArgs5::staticAddToBundle(*this, componentType, cid, uid, port, macMD5);

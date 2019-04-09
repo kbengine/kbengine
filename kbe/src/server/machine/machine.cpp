@@ -371,10 +371,18 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 			}
 			else
 			{
+				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 111 addComponentID({}): cidLog.size={} \n", 
+					pChannel->c_str(), cid, iter->second.size()));
+
 				ID_LOGS cidLog = iter->second;
 				cid += cidLog.size();
 				cidLog.push_back(cid);
+
+				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 222 addComponentID({}): cidLog.size={} \n", 
+					pChannel->c_str(), cid, iter->second.size()));
 			}
+
+			
 		}
 
 		INFO_MSG(fmt::format("Machine::queryComponentID[{}], setComponentID: componentType={}[{}] uid={} cid={}.\n",
@@ -387,6 +395,65 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 		MachineInterface::queryComponentIDArgs5::staticAddToBundle((*pBundle), componentType, cid, uid, finderRecvPort, macMD5);
 		ep.sendto(pBundle, finderRecvPort, ip);
 		Network::Bundle::reclaimPoolObject(pBundle);
+	}
+}
+
+void Machine::removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID componentID, int32 uid)
+{
+	std::map<int32, CID_MAP>::iterator iter1 = cidMap_.find(uid);
+	INFO_MSG(fmt::format("Machine::removeComponentID: componentType={}[{}], componentID={}, uid={} \n", 
+		componentType, COMPONENT_NAME[componentType], componentID, uid));
+
+	if (iter1 != cidMap_.end())
+	{
+		CID_MAP cidMap = iter1->second;
+		INFO_MSG(fmt::format("Machine::removeComponentID: 11 CID_MAP({}) cidMap.size = {} \n", uid, cidMap.size()));
+		if (cidMap.size() > 0)
+		{
+			CID_MAP::iterator iter2 = cidMap.find(componentType);
+			if (iter2 != cidMap.end())
+			{
+				ID_LOGS cidLogs = iter2->second;
+				INFO_MSG(fmt::format("Machine::removeComponentID:22 CID_MAP({}, {}) cidLogs.size = {} \n", uid, COMPONENT_NAME[componentType], cidLogs.size()));
+				if (cidLogs.size() > 0)
+				{
+					ID_LOGS::iterator iter3 = cidLogs.begin();
+					for (; iter3 != cidLogs.end(); )
+					{
+						if (*iter3 == componentID)
+						{
+							INFO_MSG(fmt::format("Machine::removeComponentID: CID_MAD, remove cid = {} \n", *iter3));
+							iter3 = cidLogs.erase(iter3);
+						}
+						else
+						{
+							iter3++;
+						}
+					}
+					cidMap[componentType] = cidLogs;
+				}
+
+				INFO_MSG(fmt::format("Machine::removeComponentID:33 CID_MAP({}, {}) cidLogs.size = {} \n", uid, COMPONENT_NAME[componentType], cidMap[componentType].size()));
+				if (cidLogs.size() == 0)
+				{
+					WARNING_MSG(fmt::format("Machine::removeComponentID: clear CID_LOGS({}) \n", COMPONENT_NAME[componentType]));
+					cidMap.erase(iter2);
+				}
+			}
+		}
+		
+		INFO_MSG(fmt::format("Machine::removeComponentID: 44 CID_MAP({}) cidMap.size = {} \n", uid, cidMap.size()));
+		if (cidMap.size() == 0)
+		{
+			WARNING_MSG(fmt::format("Machine::removeComponentID, clear CID_MAP(uid)\n", uid));
+			cidMap_.erase(iter1);
+		}
+		else
+		{
+			cidMap_[uid] = cidMap;
+		}
+
+		
 	}
 }
 
@@ -865,6 +932,8 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		
 			if(!usable)
 			{
+				WARNING_MSG("removeComponentID --- \n");
+				removeComponentID(componentType, (*iter).cid, uid);
 				iter = components.erase(iter);
 				continue;
 			}
@@ -944,6 +1013,11 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			}
 
 			recvpacket >> success;
+			if (success)
+			{
+				removeComponentID(componentType, (*iter).cid, uid);
+			}
+			
 			iter++;
 		}
 	}
@@ -955,6 +1029,8 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle) << success;
+
+	INFO_MSG(fmt::format("Machine::stopserver: end, finderRecvPort={} \n", finderRecvPort));
 
 	if(finderRecvPort != 0)
 	{

@@ -75,6 +75,8 @@ public:
 	void queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID,
 		int32 uid, uint16 finderRecvPort, int macMD5);
 
+	void removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID componentID, int32 uid);
+
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	/* 初始化相关接口 */

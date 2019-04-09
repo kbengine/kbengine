@@ -25,7 +25,7 @@ public:
 	bool receive(Network::MessageArgs* recvArgs, sockaddr_in* psin = NULL, int32 timeout = 100000, bool showerr = true);
 
 	bool good() const {
-		return epListen_.good() && good_;
+		return epListen_.good() && good_; 
 	}
 
 private:

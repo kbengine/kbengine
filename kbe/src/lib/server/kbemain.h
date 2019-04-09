@@ -127,6 +127,14 @@ inline void checkComponentID(COMPONENT_TYPE componentType)
 			if (cidQuerier.good())
 			{
 				g_componentID = cidQuerier.query(componentType, uid);
+				if (g_componentID <= 0)
+				{
+
+				}
+			}
+			else
+			{
+
 			}
 		}
 	}
@@ -146,7 +154,6 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_componentType = componentType;
 	DebugHelper::initialize(componentType);
 
-	INFO_MSG(fmt::format("--=-=-=-  g_componentID = {} \n", g_componentID));
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
