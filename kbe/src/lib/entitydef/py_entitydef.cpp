@@ -145,7 +145,6 @@ DefContext::DefContext()
 
 	moduleName = "";
 	attrName = "";
-	methodArgs = "";
 	returnType = "";
 
 	isModuleScope = false;
@@ -178,7 +177,6 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) << optionName;
 	(*pMemoryStream) << moduleName;
 	(*pMemoryStream) << attrName;
-	(*pMemoryStream) << methodArgs;
 	(*pMemoryStream) << returnType;
 
 	(*pMemoryStream) << (int)argsvecs.size();
@@ -246,7 +244,6 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) >> optionName;
 	(*pMemoryStream) >> moduleName;
 	(*pMemoryStream) >> attrName;
-	(*pMemoryStream) >> methodArgs;
 	(*pMemoryStream) >> returnType;
 
 	int size = 0;
@@ -841,7 +838,20 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		defContext.exposed = pyExposed == Py_True;
 
 		if (pyUtype)
+		{
 			defContext.utype = (int)PyLong_AsLong(pyUtype);
+
+			if (defContext.utype > 0)
+			{
+				ENTITY_METHOD_UID muid = defContext.utype;
+
+				if (defContext.utype != int(muid))
+				{
+					PyErr_Format(PyExc_AssertionError, "EntityDef.%s: 'Utype' has overflowed({} > 65535), is {}.{}!\n", defContext.optionName.c_str(), defContext.utype);
+					PY_RETURN_ERROR;
+				}
+			}
+		}
 	}
 	else if (defContext.optionName == "property" || defContext.optionName == "fixed_item")
 	{
@@ -911,7 +921,20 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				defContext.databaseLength = (int)PyLong_AsLong(pyDatabaseLength);
 
 			if (pyUtype)
+			{
 				defContext.utype = (int)PyLong_AsLong(pyUtype);
+
+				if (defContext.utype > 0)
+				{
+					ENTITY_PROPERTY_UID muid = defContext.utype;
+
+					if (defContext.utype != int(muid))
+					{
+						PyErr_Format(PyExc_AssertionError, "EntityDef.%s: 'Utype' has overflowed({} > 65535), is {}.{}!\n", defContext.optionName.c_str(), defContext.utype);
+						PY_RETURN_ERROR;
+					}
+				}
+			}
 		}
 		else
 		{
@@ -1998,7 +2021,7 @@ static bool registerDefTypes()
 
 			if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY)
 			{
-				FixedArrayType* fixedArray = new FixedArrayType;
+				FixedArrayType* fixedArray = new FixedArrayType();
 
 				if (fixedArray->initialize(&defContext, defContext.moduleName))
 				{
@@ -2016,7 +2039,7 @@ static bool registerDefTypes()
 			}
 			else if (defContext.type == DefContext::DC_TYPE_FIXED_DICT)
 			{
-				FixedDictType* fixedDict = new FixedDictType;
+				FixedDictType* fixedDict = new FixedDictType();
 
 				if (fixedDict->initialize(&defContext, defContext.moduleName))
 				{
@@ -2066,6 +2089,119 @@ static bool registerDetailLevelInfo(ScriptDefModule* pScriptModule, DefContext& 
 //-------------------------------------------------------------------------------------
 static bool registerVolatileInfo(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defContext)
+{
+	DefContext::DEF_CONTEXTS& methods = defContext.methods;
+
+	DefContext::DEF_CONTEXTS::iterator iter = methods.begin();
+	for (; iter != methods.end(); ++iter)
+	{
+		DefContext& defMethodContext = (*iter);
+
+		MethodDescription* methodDescription = EntityDef::createMethodDescription(pScriptModule, defMethodContext.utype > 0 ? defMethodContext.utype : 0,
+			defMethodContext.componentType, defMethodContext.attrName, defMethodContext.exposed);
+
+		if (!methodDescription)
+			return false;
+
+		for (size_t argIdx = 0; argIdx < defMethodContext.argsvecs.size(); ++argIdx)
+		{
+			std::string argName = defMethodContext.argsvecs[argIdx];
+			std::string argType = defMethodContext.annotationsMaps[argName];
+
+			// 如果是exposed方法的callerID参数就忽略
+			if (argType == "CALLER_ID")
+			{
+				if (argIdx != 0)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: Def.CallerID must be the first parameter! is {}.{}(arg={}), file: \"{}\"!\n",
+						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+					return false;
+				}
+
+				if (!defMethodContext.exposed)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, but the method is not exposed! is {}.{}(arg={}), file: \"{}\"!\n",
+						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+					return false;
+				}
+
+				continue;
+			}
+
+			DataType* dataType = DataTypes::getDataType(argType, false);
+
+			if (!dataType)
+			{
+				DefContext* pDefMethodArgContext = DefContext::findDefContext(argType);
+				if (!pDefMethodArgContext)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: not fount type[{}], is {}.{}(arg={}), file: \"{}\"!\n",
+						argType, pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+					return false;
+				}
+
+				if (pDefMethodArgContext->type == DefContext::DC_TYPE_FIXED_ARRAY)
+				{
+					FixedArrayType* dataType1 = new FixedArrayType();
+					std::string parentName = defContext.moduleName + "_" + defMethodContext.attrName;
+
+					if (!dataType1->initialize(pDefMethodArgContext, parentName))
+					{
+						ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: parse ARRAY [{}.{}(arg={})] error! file: \"{}\"!\n",
+							pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+						delete dataType1;
+						return false;
+					}
+					
+					dataType = dataType1;
+				}
+			}
+
+			if (dataType == NULL)
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: dataType[{}] not found, in {}.{}(arg={}), file: \"{}\"!\n",
+					argType, pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+				return false;
+			}
+
+			methodDescription->pushArgType(dataType);
+		}
+
+		if (defContext.componentType == CELLAPP_TYPE)
+		{
+			if (!pScriptModule->addCellMethodDescription(defMethodContext.attrName.c_str(), methodDescription))
+				return false;
+		}
+		else if(defContext.componentType == BASEAPP_TYPE)
+		{
+			if (!pScriptModule->addBaseMethodDescription(defMethodContext.attrName.c_str(), methodDescription))
+				return false;
+		}
+		else
+		{
+			if (!pScriptModule->addClientMethodDescription(defMethodContext.attrName.c_str(), methodDescription))
+				return false;
+		}
+	}
+
+	if (!EntityDef::checkDefMethod(pScriptModule, defContext.pyObjectPtr.get(), defContext.moduleName))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: EntityClass[{}] checkDefMethod is failed!\n",
+			defContext.moduleName.c_str()));
+
+		return false;
+	}
+
 	return true;
 }
 
@@ -2284,10 +2420,19 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 			continue;
 		}
 
-		// 加载属性描述
+		// 注册属性描述
 		if (!registerDefPropertys(pScriptModule, defContext))
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to loadDefPropertys(), entity:{}\n",
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to registerDefPropertys(), entity:{}\n",
+				pScriptModule->getName()));
+
+			return false;
+		}
+
+		// 注册方法描述
+		if(!registerDefMethods(pScriptModule, defContext))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to registerDefMethods(), entity:{}\n",
 				pScriptModule->getName()));
 
 			return false;
@@ -2342,10 +2487,19 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 //-------------------------------------------------------------------------------------
 static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
-	// 加载属性描述
+	// 注册属性描述
 	if (!registerDefPropertys(pScriptModule, defContext))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefPropertys(), entity:{}\n",
+			pScriptModule->getName()));
+
+		return false;
+	}
+
+	// 注册方法描述
+	if (!registerDefMethods(pScriptModule, defContext))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to registerDefMethods(), entity:{}\n",
 			pScriptModule->getName()));
 
 		return false;
@@ -2463,6 +2617,15 @@ bool initialize()
 		return false;
 	}
 	
+	static const char* CALLER_ID = "CALLER_ID";
+	if (PyModule_AddStringConstant(entitydefModule, CALLER_ID, CALLER_ID))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
+			CALLER_ID, CALLER_ID));
+
+		return false;
+	}
+
 	//APPEND_SCRIPT_MODULE_METHOD(entitydefModule, ARRAY, __py_array, METH_VARARGS, 0);
 
 	static char allBaseTypeNames[64][MAX_BUF];

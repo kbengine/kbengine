@@ -20,7 +20,7 @@ methodDomain_(domain),
 name_(name),
 utype_(utype),
 argTypes_(),
-exposedType_(NO_EXPOSED),
+exposedType_(isExposed ? EXPOSED : NO_EXPOSED),
 aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;

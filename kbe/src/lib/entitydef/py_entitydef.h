@@ -57,7 +57,6 @@ public:
 
 	std::string moduleName;
 	std::string attrName;
-	std::string methodArgs;
 	std::string returnType;
 
 	std::vector< std::string > argsvecs;
