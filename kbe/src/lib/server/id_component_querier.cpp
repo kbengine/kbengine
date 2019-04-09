@@ -27,7 +27,7 @@ IDComponentQuerier::IDComponentQuerier():
 		while (true)
 		{
 			srand(KBEngine::getSystemTime());
-			uint16 bindPort = KBE_PORT_START + (rand() % 1000);
+			uint16 bindPort = KBE_PORT_START * 2 + (rand() % 1000);
 
 			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
 			{
@@ -47,7 +47,7 @@ IDComponentQuerier::IDComponentQuerier():
 			{
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
-
+				DEBUG_MSG(fmt::format("IDComponentQuerier::IDComponentQuerier: epListen {}\n", epListen_.c_str()));
 				break;
 			}
 		}

@@ -335,8 +335,15 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: componentType:{}[{}] componentID:{} uid:{} finderRecvPort:{} macMD5:{}.\n",
 		pChannel->c_str(), componentType, COMPONENT_NAME_EX(componentType), componentID, uid, finderRecvPort, macMD5));
 
+	std::vector<std::string>::iterator ipIter = std::find(ipLogs.begin(), ipLogs.end(), pChannel->c_str());
+	if (ipIter != ipLogs.end())
+	{
+		WARNING_MSG(fmt::format("Machine::queryComponentID[{}] has setComponentID \n", pChannel->c_str()));
+		return;
+	}
+
 	uint32 ip = pChannel->addr().ip;
-	
+
 	if (this->networkInterface().intTcpAddr().ip == ip ||
 		this->networkInterface().extTcpAddr().ip == ip)
 	{
@@ -360,28 +367,28 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 		else
 		{
 			CID_MAP cidMap = iter->second;
-			CID_MAP::iterator iter = cidMap.find(componentType);
+			CID_MAP::iterator iter1 = cidMap.find(componentType);
 
-			if (iter == cidMap.end())
+			if (iter1 == cidMap.end())
 			{
 				ID_LOGS cidLog;
 				cidLog.push_back(cid);
 				cidMap.insert(std::make_pair(componentType, cidLog));
-				cidMap_[uid] = cidMap;
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 111 addComponentID({}): cidLog.size={} \n", 
-					pChannel->c_str(), cid, iter->second.size()));
+				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 111 addComponentID: cidLog.size={} \n", 
+					pChannel->c_str(),  iter1->second.size()));
 
-				ID_LOGS cidLog = iter->second;
+				ID_LOGS cidLog = iter1->second;
 				cid += cidLog.size();
 				cidLog.push_back(cid);
-
-				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 222 addComponentID({}): cidLog.size={} \n", 
-					pChannel->c_str(), cid, iter->second.size()));
+				cidMap[componentType] = cidLog;
+				WARNING_MSG(fmt::format("Machine::queryComponentID[{}], 222 addComponentID({}): cidLog.size={}, {} \n", 
+					pChannel->c_str(), cid, iter1->second.size(), cidMap[componentType].size()));
 			}
 
+			cidMap_[uid] = cidMap;
 			
 		}
 
@@ -395,10 +402,12 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 		MachineInterface::queryComponentIDArgs5::staticAddToBundle((*pBundle), componentType, cid, uid, finderRecvPort, macMD5);
 		ep.sendto(pBundle, finderRecvPort, ip);
 		Network::Bundle::reclaimPoolObject(pBundle);
+
+		ipLogs.push_back(pChannel->c_str());
 	}
 }
 
-void Machine::removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID componentID, int32 uid)
+void Machine::removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID componentID, int32 uid, const char* address)
 {
 	std::map<int32, CID_MAP>::iterator iter1 = cidMap_.find(uid);
 	INFO_MSG(fmt::format("Machine::removeComponentID: componentType={}[{}], componentID={}, uid={} \n", 
@@ -424,11 +433,14 @@ void Machine::removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID compo
 						{
 							INFO_MSG(fmt::format("Machine::removeComponentID: CID_MAD, remove cid = {} \n", *iter3));
 							iter3 = cidLogs.erase(iter3);
+							std::vector<std::string>::iterator ipIter = std::find(ipLogs.begin(), ipLogs.end(), address);
+							if (ipIter != ipLogs.end())
+							{
+								ipLogs.erase(ipIter);
+							}
+							break;
 						}
-						else
-						{
-							iter3++;
-						}
+						
 					}
 					cidMap[componentType] = cidLogs;
 				}
@@ -445,7 +457,7 @@ void Machine::removeComponentID(COMPONENT_TYPE componentType, COMPONENT_ID compo
 		INFO_MSG(fmt::format("Machine::removeComponentID: 44 CID_MAP({}) cidMap.size = {} \n", uid, cidMap.size()));
 		if (cidMap.size() == 0)
 		{
-			WARNING_MSG(fmt::format("Machine::removeComponentID, clear CID_MAP(uid)\n", uid));
+			WARNING_MSG(fmt::format("Machine::removeComponentID, clear CID_MAP({})\n", uid));
 			cidMap_.erase(iter1);
 		}
 		else
@@ -933,7 +945,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			if(!usable)
 			{
 				WARNING_MSG("removeComponentID --- \n");
-				removeComponentID(componentType, (*iter).cid, uid);
+				removeComponentID(componentType, (*iter).cid, uid, pChannel->c_str());
 				iter = components.erase(iter);
 				continue;
 			}
@@ -1015,7 +1027,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			recvpacket >> success;
 			if (success)
 			{
-				removeComponentID(componentType, (*iter).cid, uid);
+				removeComponentID(componentType, (*iter).cid, uid, pChannel->c_str());
 			}
 			
 			iter++;
