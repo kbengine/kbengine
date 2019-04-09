@@ -38,7 +38,7 @@ methodDomain_(domain),
 name_(name),
 utype_(utype),
 argTypes_(),
-exposedType_(NO_EXPOSED),
+exposedType_(isExposed ? EXPOSED : NO_EXPOSED),
 currCallerID_(0),
 aliasID_(-1)
 {
