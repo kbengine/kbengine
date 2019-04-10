@@ -159,7 +159,12 @@ int getMacMD5()
 
 	machineInfo += getUsername();
 
-	std::string md5_digest = KBE_MD5::getDigest(machineInfo.data(), (int)machineInfo.length());
+	return getMD5(machineInfo);
+}
+
+int getMD5(std::string data)
+{
+	std::string md5_digest = KBE_MD5::getDigest(data.data(), (int)data.length());
 
 	int mod = 0;
 	int divider = 65535;

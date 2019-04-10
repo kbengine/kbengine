@@ -47,7 +47,7 @@ IDComponentQuerier::IDComponentQuerier():
 			{
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
-				DEBUG_MSG(fmt::format("IDComponentQuerier::IDComponentQuerier: epListen {}\n", epListen_.c_str()));
+				//DEBUG_MSG(fmt::format("IDComponentQuerier::IDComponentQuerier: epListen {}\n", epListen_.c_str()));
 				break;
 			}
 		}
@@ -74,7 +74,7 @@ COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 	send(componentType, uid);
 
 	int32 timeout = 2000000;
-	MachineInterface::queryComponentIDArgs5 args;
+	MachineInterface::queryComponentIDArgs6 args;
 
 	while (!receive(&args, 0, timeout, false))
 	{
@@ -106,7 +106,6 @@ COMPONENT_ID IDComponentQuerier::query(COMPONENT_TYPE componentType, int32 uid)
 
 	} while (pCurrPacket()->length() > 0);
 	
-
 	return cid;
 }
 
@@ -118,7 +117,7 @@ bool IDComponentQuerier::broadcast(uint16 port /*= 0*/, bool again /* = false*/)
 	if (port == 0)
 		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
-	epBroadcast_.addr(port, Network::LOCALHOST);
+	epBroadcast_.addr(port, Network::BROADCAST);
 
 	if (epBroadcast_.setbroadcast(true) != 0)
 	{
@@ -169,7 +168,6 @@ bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* ps
 				return false;
 			}
 				
-
 			icount++;
 			continue;
 		}
@@ -231,17 +229,15 @@ bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* ps
 
 void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid, bool again /*= false*/)
 {
-	pCurrPacket()->clear(false);
-	COMPONENT_ID cid = 0;
 	uint16 port = epListen_.addr().port;
-
 	int macMD5 = getMacMD5();
+	int32 pid = getProcessPID();
 
-	WARNING_MSG(fmt::format("IDComponentQuerier::send: {}[{}], uid={} again={} macMD5={}\n", 
-		componentType, COMPONENT_NAME_EX(componentType), uid, again, macMD5));
+	WARNING_MSG(fmt::format("IDComponentQuerier::send: {}[{}], uid={} again={} macMD5={} cid={}\n", 
+		componentType, COMPONENT_NAME_EX(componentType), uid, again, macMD5, g_componentID));
 
 	newMessage(MachineInterface::queryComponentID);
-	MachineInterface::queryComponentIDArgs5::staticAddToBundle(*this, componentType, cid, uid, port, macMD5);
+	MachineInterface::queryComponentIDArgs6::staticAddToBundle(*this, componentType, g_componentID, uid, port, macMD5, pid);
 	broadcast(0, again);
 }
 

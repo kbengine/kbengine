@@ -113,7 +113,7 @@ inline void checkComponentID(COMPONENT_TYPE componentType)
 	if ((componentType == MACHINE_TYPE || componentType == LOGGER_TYPE) && g_componentID == -1)
 	{
 		int macMD5 = getMacMD5();
-
+		
 		COMPONENT_ID cid1 = (COMPONENT_ID)uid * COMPONENT_ID_MULTIPLE;
 		COMPONENT_ID cid2 = (COMPONENT_ID)macMD5 * 10000;
 		COMPONENT_ID cid3 = (COMPONENT_ID)componentType * 100;
@@ -231,6 +231,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		return;
 	}
 
+	bool isSetCided = false;
 	for(int argIdx=1; argIdx<argc; ++argIdx)
 	{
 		std::string cmd = argv[argIdx];
@@ -247,6 +248,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				{
 					StringConv::str2value(cid, cmd.c_str());
 					g_componentID = cid;
+					isSetCided = true;
 				}
 				catch(...)
 				{
@@ -258,7 +260,8 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		}
 		else
 		{
-			g_componentID = -1;
+			if (!isSetCided)
+				g_componentID = -1;
 		}
 
 		findcmd = "--gus=";

@@ -212,6 +212,7 @@ std::string datatype2nativetype(std::string datatype);
 std::string datatype2nativetype(uint16 datatype);
 
 int getMacMD5();
+int getMD5(std::string data);
 
 }
 
