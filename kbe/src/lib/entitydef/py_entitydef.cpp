@@ -35,6 +35,7 @@ static bool g_inited = false;
 static int g_order = 1;
 
 //-------------------------------------------------------------------------------------
+/*
 static PyObject* __py_array(PyObject* self, PyObject* args)
 {
 	if (PyTuple_GET_SIZE(args) == 0)
@@ -55,6 +56,7 @@ static PyObject* __py_array(PyObject* self, PyObject* args)
 
 	return ret;
 }
+*/
 
 //-------------------------------------------------------------------------------------
 class Entity : public script::ScriptObject
