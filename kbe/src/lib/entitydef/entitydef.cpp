@@ -265,6 +265,77 @@ ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& module
 }
 
 //-------------------------------------------------------------------------------------
+MethodDescription* EntityDef::createMethodDescription(ScriptDefModule* pScriptModule, ENTITY_METHOD_UID utype, COMPONENT_ID domain, const std::string& name, MethodDescription::EXPOSED_TYPE exposedType)
+{
+	if(utype > 0)
+		g_methodCusUtypes.push_back(utype);
+
+	// 如果配置中没有设置过utype, 则产生
+	if (utype == 0)
+	{
+		ENTITY_METHOD_UID muid = 0;
+		while (true)
+		{
+			muid = g_methodUtypeAuto++;
+			std::vector<ENTITY_METHOD_UID>::iterator iterutype =
+				std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+			if (iterutype == g_methodCusUtypes.end())
+			{
+				break;
+			}
+		}
+
+		utype = muid;
+		g_methodCusUtypes.push_back(muid);
+	}
+	else
+	{
+		// 检查是否有重复的Utype
+		ENTITY_METHOD_UID muid = utype;
+		std::vector<ENTITY_METHOD_UID>::iterator iter =
+			std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+		if (iter != g_methodCusUtypes.end())
+		{
+			bool foundConflict = false;
+
+			MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+			if (pConflictMethodDescription)
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})! componentType={}\n",
+					pScriptModule->getName(), name.c_str(), muid, pScriptModule->getName(), pConflictMethodDescription->getName(), muid, COMPONENT_NAME_EX((COMPONENT_TYPE)domain)));
+
+				foundConflict = true;
+			}
+
+			pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+			if (pConflictMethodDescription)
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})! componentType={}\n",
+					pScriptModule->getName(), name.c_str(), muid, pScriptModule->getName(), pConflictMethodDescription->getName(), muid, COMPONENT_NAME_EX((COMPONENT_TYPE)domain)));
+
+				foundConflict = true;
+			}
+
+			pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+			if (pConflictMethodDescription)
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})! componentType={}\n",
+					pScriptModule->getName(), name.c_str(), muid, pScriptModule->getName(), pConflictMethodDescription->getName(), muid, COMPONENT_NAME_EX((COMPONENT_TYPE)domain)));
+
+				foundConflict = true;
+			}
+
+			if (foundConflict)
+				return NULL;
+		}
+	}
+
+	return new MethodDescription(utype, domain, name, exposedType);
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityDef::loadDefInfo(const std::string& defFilePath, 
 							const std::string& moduleName, 
 							XML* defxml, 
@@ -1829,10 +1900,15 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}], defined in {}.def!\n",
-				moduleName.c_str(), iter->first.c_str(), moduleName));
-
 			PyErr_Clear();
+
+			PyObject* pyClassStr = PyObject_Str(moduleObj);
+			const char* classStr = PyUnicode_AsUTF8AndSize(pyClassStr, NULL);
+			
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: {} does not have method[{}], defined in {}.def!\n",
+				classStr, iter->first.c_str(), moduleName));
+
+			Py_DECREF(pyClassStr);
 			Py_XDECREF(pyGetfullargspec);
 			return false;
 		}

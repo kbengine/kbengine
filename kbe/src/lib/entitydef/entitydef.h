@@ -230,6 +230,7 @@ public:
 	}
 
 	static ScriptDefModule* registerNewScriptDefModule(const std::string& moduleName);
+	static MethodDescription* createMethodDescription(ScriptDefModule* pScriptModule, ENTITY_METHOD_UID utype, COMPONENT_ID domain, const std::string& name, MethodDescription::EXPOSED_TYPE exposedType);
 
 	static bool isReload();
 
