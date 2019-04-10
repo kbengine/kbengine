@@ -265,7 +265,7 @@ ScriptDefModule* EntityDef::registerNewScriptDefModule(const std::string& module
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* EntityDef::createMethodDescription(ScriptDefModule* pScriptModule, ENTITY_METHOD_UID utype, COMPONENT_ID domain, const std::string& name, bool isExposed)
+MethodDescription* EntityDef::createMethodDescription(ScriptDefModule* pScriptModule, ENTITY_METHOD_UID utype, COMPONENT_ID domain, const std::string& name, MethodDescription::EXPOSED_TYPE exposedType)
 {
 	if(utype > 0)
 		g_methodCusUtypes.push_back(utype);
@@ -332,7 +332,7 @@ MethodDescription* EntityDef::createMethodDescription(ScriptDefModule* pScriptMo
 		}
 	}
 
-	return new MethodDescription(utype, domain, name, isExposed);
+	return new MethodDescription(utype, domain, name, exposedType);
 }
 
 //-------------------------------------------------------------------------------------
