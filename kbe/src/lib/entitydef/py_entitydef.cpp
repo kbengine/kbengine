@@ -2177,12 +2177,12 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 			methodDescription->pushArgType(dataType);
 		}
 
-		if (defContext.componentType == CELLAPP_TYPE)
+		if (defMethodContext.componentType == CELLAPP_TYPE)
 		{
 			if (!pScriptModule->addCellMethodDescription(defMethodContext.attrName.c_str(), methodDescription))
 				return false;
 		}
-		else if(defContext.componentType == BASEAPP_TYPE)
+		else if(defMethodContext.componentType == BASEAPP_TYPE)
 		{
 			if (!pScriptModule->addBaseMethodDescription(defMethodContext.attrName.c_str(), methodDescription))
 				return false;
