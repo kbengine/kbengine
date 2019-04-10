@@ -93,7 +93,8 @@ public:
 
 	typedef std::vector< DefContext > DEF_CONTEXTS;
 
-	DEF_CONTEXTS methods;
+	DEF_CONTEXTS base_methods;
+	DEF_CONTEXTS cell_methods;
 	DEF_CONTEXTS client_methods;
 	DEF_CONTEXTS propertys;
 	std::vector< std::string > components;

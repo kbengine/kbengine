@@ -216,10 +216,15 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) << (int)inheritEngineModuleType;
 	(*pMemoryStream) << (int)type;
 
-	(*pMemoryStream) << (int)methods.size();
-	std::vector< DefContext >::iterator methodsIter = methods.begin();
-	for (; methodsIter != methods.end(); ++methodsIter)
-		(*methodsIter).addToStream(pMemoryStream);
+	(*pMemoryStream) << (int)base_methods.size();
+	std::vector< DefContext >::iterator base_methodsIter = base_methods.begin();
+	for (; base_methodsIter != base_methods.end(); ++base_methodsIter)
+		(*base_methodsIter).addToStream(pMemoryStream);
+
+	(*pMemoryStream) << (int)cell_methods.size();
+	std::vector< DefContext >::iterator cell_methodsIter = cell_methods.begin();
+	for (; cell_methodsIter != cell_methods.end(); ++cell_methodsIter)
+		(*cell_methodsIter).addToStream(pMemoryStream);
 
 	(*pMemoryStream) << (int)client_methods.size();
 	std::vector< DefContext >::iterator client_methodsIter = client_methods.begin();
@@ -308,7 +313,16 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 		DefContext dc;
 		dc.createFromStream(pMemoryStream);
 
-		methods.push_back(dc);
+		base_methods.push_back(dc);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
+
+		cell_methods.push_back(dc);
 	}
 
 	(*pMemoryStream) >> size;
@@ -347,15 +361,28 @@ bool DefContext::addChildContext(DefContext& defContext)
 	std::vector< DefContext >* pContexts = NULL;
 
 	if (defContext.type == DefContext::DC_TYPE_PROPERTY)
+	{
 		pContexts = &propertys;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_METHOD)
-		pContexts = &methods;
+	{
+		if(defContext.componentType == BASEAPP_TYPE)
+			pContexts = &base_methods;
+		else
+			pContexts = &cell_methods;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+	{
 		pContexts = &client_methods;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+	{
 		pContexts = &propertys;
+	}
 	else
+	{
 		KBE_ASSERT(false);
+	}
 
 	std::vector< DefContext >::iterator iter = pContexts->begin();
 	for (; iter != pContexts->end(); ++iter)
@@ -445,7 +472,8 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 				DefContext& parentDefContext = fiter->second;
 				std::vector< DefContext > childContexts;
 
-				childContexts.insert(childContexts.end(), parentDefContext.methods.begin(), parentDefContext.methods.end());
+				childContexts.insert(childContexts.end(), parentDefContext.base_methods.begin(), parentDefContext.base_methods.end());
+				childContexts.insert(childContexts.end(), parentDefContext.cell_methods.begin(), parentDefContext.cell_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.client_methods.begin(), parentDefContext.client_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.propertys.begin(), parentDefContext.propertys.end());
 
@@ -544,10 +572,14 @@ static bool registerDefContext(DefContext& defContext)
 						iter->second.baseClasses.push_back((*bciter));
 					}
 
-					KBE_ASSERT(defContext.methods.size() == 0 && defContext.client_methods.size() == 0 && defContext.components.size() == 0 && defContext.propertys.size() == 0);
+					KBE_ASSERT(defContext.base_methods.size() == 0 && 
+						defContext.cell_methods.size() == 0 &&  
+						defContext.client_methods.size() == 0 && 
+						defContext.components.size() == 0 && 
+						defContext.propertys.size() == 0);
+
 					if (defContext.hasClient)
 						iter->second.hasClient = true;
-
 				}
 
 				// 脚本对象强制设置为当前进程的对象
@@ -2097,7 +2129,10 @@ static bool registerVolatileInfo(ScriptDefModule* pScriptModule, DefContext& def
 //-------------------------------------------------------------------------------------
 static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
-	DefContext::DEF_CONTEXTS& methods = defContext.methods;
+	DefContext::DEF_CONTEXTS methods;
+	methods.insert(methods.end(), defContext.base_methods.begin(), defContext.base_methods.end());
+	methods.insert(methods.end(), defContext.cell_methods.begin(), defContext.cell_methods.end());
+	methods.insert(methods.end(), defContext.client_methods.begin(), defContext.client_methods.end());
 
 	DefContext::DEF_CONTEXTS::iterator iter = methods.begin();
 	for (; iter != methods.end(); ++iter)
@@ -2120,6 +2155,14 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 				if (!defMethodContext.exposed)
 				{
 					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, but the method is not exposed! is {}.{}(arg={}), file: \"{}\"!\n",
+						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+					return false;
+				}
+
+				if (!defMethodContext.componentType == CELLAPP_TYPE)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, only the cell method supports this parameter.! is {}.{}(arg={}), file: \"{}\"!\n",
 						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
 
 					return false;
