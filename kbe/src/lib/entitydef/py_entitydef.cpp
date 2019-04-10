@@ -2194,12 +2194,16 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 		}
 	}
 
-	if (!EntityDef::checkDefMethod(pScriptModule, defContext.pyObjectPtr.get(), defContext.moduleName))
+	// 除了这几个进程以外，其他进程不需要根据方法检测脚本的正确性
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
 	{
-		ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: EntityClass[{}] checkDefMethod is failed!\n",
-			defContext.moduleName.c_str()));
+		if (!EntityDef::checkDefMethod(pScriptModule, defContext.pyObjectPtr.get(), defContext.moduleName))
+		{
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: EntityClass[{}] checkDefMethod is failed!\n",
+				defContext.moduleName.c_str()));
 
-		return false;
+			return false;
+		}
 	}
 
 	return true;
@@ -2532,10 +2536,23 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
-	if (defContext.pyObjectPtr.get())
+	// 除了这几个进程以外，其他进程不需要访问脚本
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
 	{
-		Py_INCREF((PyTypeObject *)defContext.pyObjectPtr.get());
-		pScriptModule->setScriptType((PyTypeObject *)defContext.pyObjectPtr.get());
+		PyObject* pyClass = defContext.pyObjectPtr.get();
+		if (pyClass)
+		{
+			if (!PyType_Check(pyClass))
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: EntityClass[{}] is valid!\n",
+					defContext.moduleName.c_str()));
+
+				return false;
+			}
+
+			Py_INCREF((PyTypeObject *)pyClass);
+			pScriptModule->setScriptType((PyTypeObject *)pyClass);
+		}
 	}
 
 	pScriptModule->autoMatchCompOwn();
