@@ -2104,28 +2104,19 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 	{
 		DefContext& defMethodContext = (*iter);
 
-		MethodDescription* methodDescription = EntityDef::createMethodDescription(pScriptModule, defMethodContext.utype > 0 ? defMethodContext.utype : 0,
-			defMethodContext.componentType, defMethodContext.attrName, defMethodContext.exposed);
+		MethodDescription::EXPOSED_TYPE exposedType = MethodDescription::NO_EXPOSED;
 
-		if (!methodDescription)
-			return false;
+		size_t argIdx = 0;
 
-		for (size_t argIdx = 0; argIdx < defMethodContext.argsvecs.size(); ++argIdx)
+		// 检查第一个参数是否是exposed callerID
+		if (defMethodContext.argsvecs.size() > 0)
 		{
-			std::string argName = defMethodContext.argsvecs[argIdx];
+			std::string argName = defMethodContext.argsvecs[0];
 			std::string argType = defMethodContext.annotationsMaps[argName];
 
 			// 如果是exposed方法的callerID参数就忽略
 			if (argType == "CALLER_ID")
 			{
-				if (argIdx != 0)
-				{
-					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: Def.CallerID must be the first parameter! is {}.{}(arg={}), file: \"{}\"!\n",
-						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
-
-					return false;
-				}
-
 				if (!defMethodContext.exposed)
 				{
 					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, but the method is not exposed! is {}.{}(arg={}), file: \"{}\"!\n",
@@ -2134,7 +2125,32 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 					return false;
 				}
 
-				continue;
+				exposedType = MethodDescription::EXPOSED_AND_CALLER_CHECK;
+				argIdx = 1;
+			}
+		}
+
+		if (defMethodContext.exposed && exposedType == MethodDescription::NO_EXPOSED)
+			exposedType = MethodDescription::EXPOSED;
+
+		MethodDescription* methodDescription = EntityDef::createMethodDescription(pScriptModule, defMethodContext.utype > 0 ? defMethodContext.utype : 0,
+			defMethodContext.componentType, defMethodContext.attrName, exposedType);
+
+		if (!methodDescription)
+			return false;
+
+		for (; argIdx < defMethodContext.argsvecs.size(); ++argIdx)
+		{
+			std::string argName = defMethodContext.argsvecs[argIdx];
+			std::string argType = defMethodContext.annotationsMaps[argName];
+
+			// 如果是exposed方法的callerID参数就忽略
+			if (argType == "CALLER_ID")
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: Def.CallerID must be the first parameter! is {}.{}(arg={}), file: \"{}\"!\n",
+					pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+				return false;
 			}
 
 			DataType* dataType = DataTypes::getDataType(argType, false);
