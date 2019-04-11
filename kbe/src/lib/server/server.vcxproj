@@ -185,6 +185,7 @@
     <ClCompile Include="globaldata_client.cpp" />
     <ClCompile Include="globaldata_server.cpp" />
     <ClCompile Include="idallocate.cpp" />
+    <ClCompile Include="id_component_querier.cpp" />
     <ClCompile Include="machine_infos.cpp" />
     <ClCompile Include="pendingLoginmgr.cpp" />
     <ClCompile Include="python_app.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="globaldata_client.h" />
     <ClInclude Include="globaldata_server.h" />
     <ClInclude Include="idallocate.h" />
+    <ClInclude Include="id_component_querier.h" />
     <ClInclude Include="kbemain.h" />
     <ClInclude Include="machine_infos.h" />
     <ClInclude Include="pendingLoginmgr.h" />
