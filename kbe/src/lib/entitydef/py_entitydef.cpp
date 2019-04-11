@@ -2137,7 +2137,7 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 					return false;
 				}
 
-				if (!defMethodContext.componentType == CELLAPP_TYPE)
+				if (defMethodContext.componentType != CELLAPP_TYPE)
 				{
 					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, only the cell method supports this parameter.! is {}.{}(arg={}), file: \"{}\"!\n",
 						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
@@ -2659,15 +2659,6 @@ bool initialize()
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 			INDEX, INDEX));
-
-		return false;
-	}
-
-	static const char* COMPONENT = "COMPONENT";
-	if (PyModule_AddStringConstant(entitydefModule, COMPONENT, COMPONENT))
-	{
-		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
-			COMPONENT, COMPONENT));
 
 		return false;
 	}
