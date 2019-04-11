@@ -359,7 +359,7 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 		return false;
 	}
 	
-	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
+	// 遍历所有的component， 并将组件属性加入到模块中
 	if (!loadComponents(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
 		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} component.\n",

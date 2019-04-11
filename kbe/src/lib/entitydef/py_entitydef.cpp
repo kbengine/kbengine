@@ -515,6 +515,7 @@ static bool registerDefContext(DefContext& defContext)
 
 		// 检查作用域是否属于该进程
 		bool flagsGood = true;
+
 		if (defContext.componentType == BASEAPP_TYPE)
 			flagsGood = (stringToEntityDataFlags(defContext.propertyFlags) & ENTITY_BASE_DATA_FLAGS) != 0;
 		else if (defContext.componentType == CELLAPP_TYPE)
@@ -2304,7 +2305,7 @@ static bool registerDefPropertys(ScriptDefModule* pScriptModule, DefContext& def
 		if (hasBaseFlags <= 0 && hasCellFlags <= 0)
 		{
 			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: not fount flags[{}], is {}.{}, file: \"{}\"!\n",
-				defPropContext.propertyFlags, pScriptModule->getName(), defPropContext.pyObjectSourceFile));
+				defPropContext.propertyFlags, pScriptModule->getName(), name.c_str(), defPropContext.pyObjectSourceFile));
 
 			return false;
 		}
