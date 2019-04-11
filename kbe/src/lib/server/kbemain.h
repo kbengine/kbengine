@@ -108,7 +108,7 @@ inline bool checkComponentID(COMPONENT_TYPE componentType)
 		autoFixUserDigestUID();
 
 	int32 uid = getUserUID();
-	if ((componentType == MACHINE_TYPE || componentType == LOGGER_TYPE) && g_componentID == -1)
+	if ((componentType == MACHINE_TYPE || componentType == LOGGER_TYPE) && g_componentID == (COMPONENT_ID)-1)
 	{
 		int macMD5 = getMacMD5();
 		
@@ -119,7 +119,7 @@ inline bool checkComponentID(COMPONENT_TYPE componentType)
 	}
 	else
 	{
-		if (g_componentID == -1)
+		if (g_componentID == (COMPONENT_ID)-1)
 		{
 			IDComponentQuerier cidQuerier;
 			if (cidQuerier.good())
@@ -263,7 +263,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		else
 		{
 			if (!isSetComponentIDed)
-				g_componentID = -1;
+				g_componentID = (COMPONENT_ID)-1;
 		}
 
 		findcmd = "--gus=";
