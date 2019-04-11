@@ -148,6 +148,39 @@ std::string datatype2nativetype(uint16 datatype)
 }
 
 //-------------------------------------------------------------------------------------
+int getMacMD5()
+{
+	std::string machineInfo;
+	std::vector< std::string > macAddresses = SystemInfo::getSingleton().getMacAddresses();
+	std::vector< std::string >::iterator iter = macAddresses.begin();
+	for (; iter != macAddresses.end(); ++iter)
+	{
+		machineInfo += (*iter);
+	}
+
+	machineInfo += getUsername();
+
+	return getMD5(machineInfo);
+}
+
+//-------------------------------------------------------------------------------------
+int getMD5(std::string data)
+{
+	std::string md5_digest = KBE_MD5::getDigest(data.data(), (int)data.length());
+
+	int mod = 0;
+	int divider = 65535;
+
+	for (int i = 0; i < 32; i++)
+	{
+		int digit = md5_digest[i];
+		mod = (mod * 16 + digit) % divider;
+	}
+
+	return mod;
+}
+
+//-------------------------------------------------------------------------------------
 void autoFixUserDigestUID()
 {
 	MachineInfos machineInfo;

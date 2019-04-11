@@ -451,5 +451,8 @@ inline bool email_isvalid(const char *address)
 	return (count >= 1);
 }
 
+//组件ID的扩展倍数
+#define COMPONENT_ID_MULTIPLE	1000000000 
+
 }
 #endif // KBE_COMMON_H
