@@ -399,7 +399,7 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 							strutil::kbe_split(pidIter->first, ':', vec);
 							if (vec.size() == 2)
 							{
-								uint32 oldPid = std::stoi(vec[0]);
+								int32 oldPid = std::stoi(vec[0]);
 								std::string oldMD5 = vec[1];
 								SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(oldPid);
 
