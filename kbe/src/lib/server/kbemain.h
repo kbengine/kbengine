@@ -233,7 +233,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		return;
 	}
 
-	bool isSetComponentIDed = false;
+	bool isSeted = false;
 	for(int argIdx=1; argIdx<argc; ++argIdx)
 	{
 		std::string cmd = argv[argIdx];
@@ -250,7 +250,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				{
 					StringConv::str2value(cid, cmd.c_str());
 					g_componentID = cid;
-					isSetComponentIDed = true;
+					isSeted = true;
 				}
 				catch(...)
 				{
@@ -262,7 +262,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		}
 		else
 		{
-			if (!isSetComponentIDed)
+			if (!isSeted)
 				g_componentID = (COMPONENT_ID)-1;
 		}
 
