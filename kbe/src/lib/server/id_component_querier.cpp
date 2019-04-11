@@ -239,7 +239,7 @@ bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* ps
 }
 #else
 #include <sys/poll.h>
-bool IDComponentQuerier::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 timeout, bool showerr)
+bool IDComponentQuerier::receive(Network::MessageArgs* recvArgs, sockaddr_in* psin, int32 timeout, bool showerr)
 {
 	if (!epListen_.good())
 		return false;
