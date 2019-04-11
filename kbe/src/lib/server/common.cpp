@@ -147,6 +147,7 @@ std::string datatype2nativetype(uint16 datatype)
 	return "";
 }
 
+//-------------------------------------------------------------------------------------
 int getMacMD5()
 {
 	std::string machineInfo;
@@ -162,6 +163,7 @@ int getMacMD5()
 	return getMD5(machineInfo);
 }
 
+//-------------------------------------------------------------------------------------
 int getMD5(std::string data)
 {
 	std::string md5_digest = KBE_MD5::getDigest(data.data(), (int)data.length());
