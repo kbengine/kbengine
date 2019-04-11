@@ -148,7 +148,7 @@ protected:
 	typedef std::map<COMPONENT_TYPE, ID_LOGS> CID_MAP;
 
 	std::map<int32, CID_MAP>		cidMap_;
-	std::map<int, COMPONENT_ID>		pidMD5Map_;
+	std::map<std::string, COMPONENT_ID>		pidMD5Map_;
 };
 
 }

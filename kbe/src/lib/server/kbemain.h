@@ -102,12 +102,10 @@ inline void setEvns()
 	setenv("KBE_BOOTIDX_GROUP", scomponentGroupOrder.c_str(), 1);
 }
 
-inline void checkComponentID(COMPONENT_TYPE componentType)
+inline bool checkComponentID(COMPONENT_TYPE componentType)
 {
 	if (getUserUID() <= 0)
-	{
 		autoFixUserDigestUID();
-	}
 
 	int32 uid = getUserUID();
 	if ((componentType == MACHINE_TYPE || componentType == LOGGER_TYPE) && g_componentID == -1)
@@ -128,16 +126,16 @@ inline void checkComponentID(COMPONENT_TYPE componentType)
 			{
 				g_componentID = cidQuerier.query(componentType, uid);
 				if (g_componentID <= 0)
-				{
-
-				}
+					return false;
 			}
 			else
 			{
-
+				return false;
 			}
 		}
 	}
+
+	return true;
 }
 
 template <class SERVER_APP>
@@ -147,7 +145,11 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
 	int getuid = getUserUID();
-	checkComponentID(componentType);
+
+	bool success = checkComponentID(componentType);
+	if (!success)
+		return -1;
+
 	setEvns();
 	startLeakDetection(componentType, g_componentID);
 
@@ -231,7 +233,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		return;
 	}
 
-	bool isSetCided = false;
+	bool isSetComponentIDed = false;
 	for(int argIdx=1; argIdx<argc; ++argIdx)
 	{
 		std::string cmd = argv[argIdx];
@@ -248,7 +250,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				{
 					StringConv::str2value(cid, cmd.c_str());
 					g_componentID = cid;
-					isSetCided = true;
+					isSetComponentIDed = true;
 				}
 				catch(...)
 				{
@@ -260,7 +262,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		}
 		else
 		{
-			if (!isSetCided)
+			if (!isSetComponentIDed)
 				g_componentID = -1;
 		}
 
