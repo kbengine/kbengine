@@ -358,7 +358,7 @@ void IDComponentQuerier::send(COMPONENT_TYPE componentType, int32 uid)
 	int32 pid = getProcessPID();
 
 	newMessage(MachineInterface::queryComponentID);
-	MachineInterface::queryComponentIDArgs6::staticAddToBundle(*this, componentType, g_componentID, uid, port, macMD5, pid);
+	MachineInterface::queryComponentIDArgs6::staticAddToBundle(*this, componentType, 0, uid, port, macMD5, pid);
 	broadcast();
 }
 

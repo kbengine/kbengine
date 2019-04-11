@@ -334,13 +334,13 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
 	int32 uid, uint16 finderRecvPort, int macMD5, int32 pid)
 {
-	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: component:[{}] componentID:{} uid:{} finderRecvPort:{} macMD5:{} pid:{}.\n",
+	INFO_MSG(fmt::format("Machine::queryComponentID[{}]: component:{}({}) uid:{} finderRecvPort:{} macMD5:{} pid:{}.\n",
 		pChannel->c_str(), COMPONENT_NAME_EX(componentType), componentID, uid, finderRecvPort, macMD5, pid));
 
 	uint32 ip = pChannel->addr().ip;
 	std::string data = std::to_string(ip) + std::to_string(pid) + std::to_string(finderRecvPort);
 	std::string md5 = std::to_string(getMD5(data));
-	std::string pidMD5 = std::to_string(pid) + ":" + md5;
+	std::string pidMD5 = std::to_string(pid) + "-" + md5;
 
 	std::map<std::string, COMPONENT_ID>::iterator pidIter = pidMD5Map_.find(pidMD5);
 	if (pidIter != pidMD5Map_.end())
@@ -396,7 +396,7 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 						if (pidIter->second == *idIter)
 						{
 							std::vector<std::string> vec;
-							strutil::kbe_split(pidIter->first, ':', vec);
+							strutil::kbe_split(pidIter->first, '-', vec);
 							if (vec.size() == 2)
 							{
 								int32 oldPid = std::stoi(vec[0]);
@@ -440,8 +440,8 @@ void Machine::queryComponentID(Network::Channel* pChannel, COMPONENT_TYPE compon
 
 		pidMD5Map_.insert(std::make_pair(pidMD5, cid));
 
-		INFO_MSG(fmt::format("Machine::queryComponentID[{}], set componentID ok: component({}) uid({}) cid({}) pidMD5(mod).\n",
-			pChannel->c_str(), COMPONENT_NAME_EX(componentType), uid, cid));
+		INFO_MSG(fmt::format("Machine::queryComponentID[{}], set componentID success: component:{}({}) uid:{} pidMD5:{}.\n",
+			pChannel->c_str(), COMPONENT_NAME_EX(componentType), cid, uid, pidMD5));
 	}
 }
 
