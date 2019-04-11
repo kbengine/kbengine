@@ -1081,33 +1081,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	{
 		defContext.isModuleScope = true;
 
-		static char * keywords[] =
+		if (PyObject_HasAttrString(pyFunc, "createObjFromDict") && PyObject_HasAttrString(pyFunc, "getDictFromObj") && PyObject_HasAttrString(pyFunc, "isSameType"))
 		{
-			const_cast<char *> ("implementedBy"),
-			NULL
-		};
-
-		PyObject* pImplementedBy = NULL;
-
-		if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
-			keywords, &pImplementedBy))
-		{
-			PY_RETURN_ERROR;
-		}
-
-		if (pImplementedBy)
-		{
-			if (isRefEntityDefModule(pImplementedBy))
-			{
-				if (std::string(PyUnicode_AsUTF8AndSize(pImplementedBy, NULL)) == "thisClass")
-				{
-					defContext.implementedBy = pyFunc;
-				}
-			}
-			else
-			{
-				defContext.implementedBy = pImplementedBy;
-			}
+			defContext.implementedBy = pyFunc;
 
 			PyObject* pyQualname = PyObject_GetAttrString(defContext.implementedBy.get(), "__qualname__");
 			if (!pyQualname)
@@ -2686,11 +2662,11 @@ bool initialize()
 		return false;
 	}
 
-	static const char* thisClass = "thisClass";
-	if (PyModule_AddStringConstant(entitydefModule, thisClass, thisClass))
+	static const char* COMPONENT = "COMPONENT";
+	if (PyModule_AddStringConstant(entitydefModule, COMPONENT, COMPONENT))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
-			thisClass, thisClass));
+			COMPONENT, COMPONENT));
 
 		return false;
 	}
