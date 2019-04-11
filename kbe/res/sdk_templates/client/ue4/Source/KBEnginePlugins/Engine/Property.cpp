@@ -2,6 +2,9 @@
 #include "Property.h"
 #include "KBDebug.h"
 
+namespace KBEngine
+{
+
 Property::Property():
 	name(TEXT("")),
 	pUtype(NULL),
@@ -16,4 +19,6 @@ Property::Property():
 Property::~Property()
 {
 	KBE_SAFE_RELEASE(pDefaultVal);
+}
+
 }

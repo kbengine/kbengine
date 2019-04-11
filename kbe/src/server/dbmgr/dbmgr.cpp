@@ -344,6 +344,18 @@ bool Dbmgr::initializeEnd()
 	return ret && initInterfacesHandler() && initDB();
 }
 
+//-------------------------------------------------------------------------------------
+bool Dbmgr::installPyModules()
+{
+	return PythonApp::installPyModules();
+}
+
+//-------------------------------------------------------------------------------------
+bool Dbmgr::uninstallPyModules()
+{
+	return PythonApp::uninstallPyModules();
+}
+
 //-------------------------------------------------------------------------------------		
 void Dbmgr::onInstallPyModules()
 {

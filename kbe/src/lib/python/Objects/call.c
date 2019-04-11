@@ -46,6 +46,7 @@ _Py_CheckFunctionResult(PyObject *callable, PyObject *result, const char *where)
                 PyErr_Format(PyExc_SystemError,
                              "%s returned NULL without setting an error",
                              where);
+
             return NULL;
         }
     }

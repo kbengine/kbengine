@@ -7,6 +7,9 @@
 #include "KBDebug.h"
 #include "KBEngine.h"
 
+namespace KBEngine
+{
+
 NetworkInterface::NetworkInterface():
 	socket_(NULL),
 	pPacketSender_(NULL),
@@ -188,4 +191,6 @@ void NetworkInterface::tickConnecting()
 			KBENGINE_EVENT_FIRE(KBEventTypes::onConnectionState, pEventData);
 		}
 	}
+}
+
 }

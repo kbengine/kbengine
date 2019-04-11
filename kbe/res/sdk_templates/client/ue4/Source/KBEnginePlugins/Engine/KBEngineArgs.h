@@ -8,6 +8,9 @@
 /*
 初始化KBEngine的参数类
 */
+namespace KBEngine
+{
+
 class KBENGINEPLUGINS_API KBEngineArgs
 {
 public:
@@ -41,3 +44,5 @@ public:
 	MessageLengthEx RECV_BUFFER_MAX;
 
 };
+
+}

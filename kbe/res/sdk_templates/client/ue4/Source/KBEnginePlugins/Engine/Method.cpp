@@ -3,6 +3,9 @@
 #include "DataTypes.h"
 #include "KBDebug.h"
 
+namespace KBEngine
+{
+
 Method::Method():
 	name(TEXT("")),
 	methodUtype(0),
@@ -13,4 +16,6 @@ Method::Method():
 
 Method::~Method()
 {
+}
+
 }

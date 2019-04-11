@@ -9,8 +9,8 @@
 #include "FileHelper.h"
 #include "OutPutDeviceDebug.h"
 
-using namespace std;
-
+namespace KBEngine
+{
 
 ClientSDKUpdater::ClientSDKUpdater()
 {
@@ -87,7 +87,7 @@ void ClientSDKUpdater::onImportClientSDK(const UKBEventData* eventData)
 
 		MemoryStream::reclaimObject(pSdkFileStream);
 		pSdkFileStream = nullptr;
-
+		
 		free(fileData);
 		fileData = nullptr;
 		downloadFiles += 1;
@@ -128,7 +128,7 @@ void ClientSDKUpdater::downloadSDKFromServer()
 		FString tool_options = "ue4";
 		FString callbackIP = "";
 		uint16 callbackPort = 0;
-		int clientWindowSize = (int)KBEngineApp::getSingleton().getInitArgs()->TCP_RECV_BUFFER_MAX;
+		int clientWindowSize = (int)KBEngineApp::getSingleton().getInitArgs()->RECV_BUFFER_MAX;
 
 		Bundle* bundle = Bundle::createObject();
 		bundle->newMessage(Messages::messages["Loginapp_importClientSDK"]);
@@ -246,7 +246,7 @@ void ClientSDKUpdater::moveToFile(FString fromFileName, FString toFileName)
 	PlatformFile.MoveFile(*toFileName, *fromFileName);
 }
 
-void  ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
+void ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
 {
 	FPaths::NormalizeDirectoryName(fromDicPath);
 	FPaths::NormalizeDirectoryName(toDicPath);
@@ -254,3 +254,4 @@ void  ClientSDKUpdater::copyDirectory(FString fromDicPath, FString toDicPath)
 	PlatformFile.CopyDirectoryTree(*toDicPath, *fromDicPath, true);
 }
 
+}

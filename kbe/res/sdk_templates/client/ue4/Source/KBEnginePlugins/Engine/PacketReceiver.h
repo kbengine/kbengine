@@ -4,6 +4,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class NetworkInterface;
 class MessageReader;
 class MemoryStream;
@@ -25,3 +28,5 @@ protected:
 	MessageReader* pMessageReader_;
 	MemoryStream* pBuffer_;
 };
+
+}

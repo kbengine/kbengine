@@ -17,6 +17,9 @@
 #include "KBEvent.h"
 #include "EncryptionFilter.h"
 
+namespace KBEngine
+{
+
 ServerErrorDescrs KBEngineApp::serverErrs_;
 
 KBEngineApp::KBEngineApp() :
@@ -267,6 +270,7 @@ void KBEngineApp::uninstallUKBETicker()
 	if (pUKBETicker_)
 	{
 		pUKBETicker_->RemoveFromRoot();
+		pUKBETicker_->ConditionalBeginDestroy();
 		pUKBETicker_ = nullptr;
 	}
 }
@@ -1325,7 +1329,6 @@ void KBEngineApp::newPassword(const FString& old_password, const FString& new_pa
 	Bundle* pBundle = Bundle::createObject();
 	pBundle->newMessage(Messages::messages[TEXT("Baseapp_reqAccountNewPassword"]));
 	(*pBundle) << entity_id_;
-	(*pBundle) << password_;
 	(*pBundle) << old_password;
 	(*pBundle) << new_password;
 	pBundle->send(pNetworkInterface_);
@@ -2365,4 +2368,6 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 
 	if (done)
 		entity.onUpdateVolatileData();
+}
+
 }

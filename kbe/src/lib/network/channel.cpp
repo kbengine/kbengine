@@ -468,6 +468,7 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 			{
 				this->networkInterface().onChannelTimeOut(this);
 			}
+
 			break;
 		}
 		default:

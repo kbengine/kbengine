@@ -1,5 +1,8 @@
 #include "KBEventTypes.h"
 
+namespace KBEngine
+{
+
 const FString KBEventTypes::createAccount = "createAccount";
 const FString KBEventTypes::login = "login";
 const FString KBEventTypes::logout = "logout";
@@ -45,3 +48,6 @@ const FString KBEventTypes::onStreamDataCompleted = "onStreamDataCompleted";
 
 // ------------------------------------SDK更新相关-------------------------------------
 const FString KBEventTypes::onImportClientSDKSuccessfully = "onImportClientSDKSuccessfully";
+const FString KBEventTypes::onDownloadSDK = "onDownloadSDK";
+
+}

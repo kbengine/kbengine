@@ -7,6 +7,9 @@
 #include "Interfaces.h"
 #include "KBETicker.h"
 
+namespace KBEngine
+{
+
 class KBEngineArgs;
 class Entity;
 class NetworkInterface;
@@ -517,3 +520,4 @@ protected:
 
 };
 
+}

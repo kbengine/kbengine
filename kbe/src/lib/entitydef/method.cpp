@@ -28,17 +28,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-uint32	MethodDescription::methodDescriptionCount_ = 0;
+uint32 MethodDescription::methodDescriptionCount_ = 0;
 	
 //-------------------------------------------------------------------------------------
 MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, COMPONENT_ID domain,
-									 std::string name, 
-									 bool isExposed):
+	std::string name,
+	EXPOSED_TYPE exposedType) :
 methodDomain_(domain),
 name_(name),
 utype_(utype),
 argTypes_(),
-exposedType_(NO_EXPOSED),
+exposedType_(exposedType),
 currCallerID_(0),
 aliasID_(-1)
 {
@@ -62,8 +62,8 @@ MethodDescription::~MethodDescription()
 //-------------------------------------------------------------------------------------
 void MethodDescription::setExposed(EXPOSED_TYPE type)
 {
-	// 只可能被设置为一次EXPOSED_AND_CALLER_CHECK
-	KBE_ASSERT(exposedType_ != EXPOSED_AND_CALLER_CHECK);
+	if (exposedType_ == EXPOSED_AND_CALLER_CHECK)
+		return;
 
 	exposedType_ = type;
 	EntityDef::md5().append((void*)&exposedType_, sizeof(EXPOSED_TYPE));

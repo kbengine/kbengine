@@ -1,5 +1,6 @@
 #include "test/jemalloc_test.h"
 
+#include "jemalloc/internal/hook.h"
 #include "jemalloc/internal/util.h"
 
 TEST_BEGIN(test_mallctl_errors) {
@@ -157,10 +158,13 @@ TEST_BEGIN(test_mallctl_opt) {
 } while (0)
 
 	TEST_MALLCTL_OPT(bool, abort, always);
+	TEST_MALLCTL_OPT(bool, abort_conf, always);
+	TEST_MALLCTL_OPT(const char *, metadata_thp, always);
 	TEST_MALLCTL_OPT(bool, retain, always);
 	TEST_MALLCTL_OPT(const char *, dss, always);
 	TEST_MALLCTL_OPT(unsigned, narenas, always);
 	TEST_MALLCTL_OPT(const char *, percpu_arena, always);
+	TEST_MALLCTL_OPT(size_t, oversize_threshold, always);
 	TEST_MALLCTL_OPT(bool, background_thread, always);
 	TEST_MALLCTL_OPT(ssize_t, dirty_decay_ms, always);
 	TEST_MALLCTL_OPT(ssize_t, muzzy_decay_ms, always);
@@ -170,7 +174,9 @@ TEST_BEGIN(test_mallctl_opt) {
 	TEST_MALLCTL_OPT(bool, utrace, utrace);
 	TEST_MALLCTL_OPT(bool, xmalloc, xmalloc);
 	TEST_MALLCTL_OPT(bool, tcache, always);
+	TEST_MALLCTL_OPT(size_t, lg_extent_max_active_fit, always);
 	TEST_MALLCTL_OPT(size_t, lg_tcache_max, always);
+	TEST_MALLCTL_OPT(const char *, thp, always);
 	TEST_MALLCTL_OPT(bool, prof, prof);
 	TEST_MALLCTL_OPT(const char *, prof_prefix, prof);
 	TEST_MALLCTL_OPT(bool, prof_active, prof);
@@ -330,12 +336,15 @@ TEST_BEGIN(test_thread_arena) {
 
 	const char *opa;
 	size_t sz = sizeof(opa);
-	assert_d_eq(mallctl("opt.percpu_arena", &opa, &sz, NULL, 0), 0,
+	assert_d_eq(mallctl("opt.percpu_arena", (void *)&opa, &sz, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
 
 	sz = sizeof(unsigned);
 	assert_d_eq(mallctl("arenas.narenas", (void *)&narenas, &sz, NULL, 0),
 	    0, "Unexpected mallctl() failure");
+	if (opt_oversize_threshold != 0) {
+		narenas--;
+	}
 	assert_u_eq(narenas, opt_narenas, "Number of arenas incorrect");
 
 	if (strcmp(opa, "disabled") == 0) {
@@ -554,6 +563,54 @@ TEST_BEGIN(test_arena_i_dss) {
 }
 TEST_END
 
+TEST_BEGIN(test_arena_i_retain_grow_limit) {
+	size_t old_limit, new_limit, default_limit;
+	size_t mib[3];
+	size_t miblen;
+
+	bool retain_enabled;
+	size_t sz = sizeof(retain_enabled);
+	assert_d_eq(mallctl("opt.retain", &retain_enabled, &sz, NULL, 0),
+	    0, "Unexpected mallctl() failure");
+	test_skip_if(!retain_enabled);
+
+	sz = sizeof(default_limit);
+	miblen = sizeof(mib)/sizeof(size_t);
+	assert_d_eq(mallctlnametomib("arena.0.retain_grow_limit", mib, &miblen),
+	    0, "Unexpected mallctlnametomib() error");
+
+	assert_d_eq(mallctlbymib(mib, miblen, &default_limit, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_zu_eq(default_limit, SC_LARGE_MAXCLASS,
+	    "Unexpected default for retain_grow_limit");
+
+	new_limit = PAGE - 1;
+	assert_d_eq(mallctlbymib(mib, miblen, NULL, NULL, &new_limit,
+	    sizeof(new_limit)), EFAULT, "Unexpected mallctl() success");
+
+	new_limit = PAGE + 1;
+	assert_d_eq(mallctlbymib(mib, miblen, NULL, NULL, &new_limit,
+	    sizeof(new_limit)), 0, "Unexpected mallctl() failure");
+	assert_d_eq(mallctlbymib(mib, miblen, &old_limit, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_zu_eq(old_limit, PAGE,
+	    "Unexpected value for retain_grow_limit");
+
+	/* Expect grow less than psize class 10. */
+	new_limit = sz_pind2sz(10) - 1;
+	assert_d_eq(mallctlbymib(mib, miblen, NULL, NULL, &new_limit,
+	    sizeof(new_limit)), 0, "Unexpected mallctl() failure");
+	assert_d_eq(mallctlbymib(mib, miblen, &old_limit, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	assert_zu_eq(old_limit, sz_pind2sz(9),
+	    "Unexpected value for retain_grow_limit");
+
+	/* Restore to default. */
+	assert_d_eq(mallctlbymib(mib, miblen, NULL, NULL, &default_limit,
+	    sizeof(default_limit)), 0, "Unexpected mallctl() failure");
+}
+TEST_END
+
 TEST_BEGIN(test_arenas_dirty_decay_ms) {
 	ssize_t dirty_decay_ms, orig_dirty_decay_ms, prev_dirty_decay_ms;
 	size_t sz = sizeof(ssize_t);
@@ -629,8 +686,8 @@ TEST_BEGIN(test_arenas_constants) {
 
 	TEST_ARENAS_CONSTANT(size_t, quantum, QUANTUM);
 	TEST_ARENAS_CONSTANT(size_t, page, PAGE);
-	TEST_ARENAS_CONSTANT(unsigned, nbins, NBINS);
-	TEST_ARENAS_CONSTANT(unsigned, nlextents, NSIZES - NBINS);
+	TEST_ARENAS_CONSTANT(unsigned, nbins, SC_NBINS);
+	TEST_ARENAS_CONSTANT(unsigned, nlextents, SC_NSIZES - SC_NBINS);
 
 #undef TEST_ARENAS_CONSTANT
 }
@@ -645,10 +702,11 @@ TEST_BEGIN(test_arenas_bin_constants) {
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
 
-	TEST_ARENAS_BIN_CONSTANT(size_t, size, arena_bin_info[0].reg_size);
-	TEST_ARENAS_BIN_CONSTANT(uint32_t, nregs, arena_bin_info[0].nregs);
+	TEST_ARENAS_BIN_CONSTANT(size_t, size, bin_infos[0].reg_size);
+	TEST_ARENAS_BIN_CONSTANT(uint32_t, nregs, bin_infos[0].nregs);
 	TEST_ARENAS_BIN_CONSTANT(size_t, slab_size,
-	    arena_bin_info[0].slab_size);
+	    bin_infos[0].slab_size);
+	TEST_ARENAS_BIN_CONSTANT(uint32_t, nshards, bin_infos[0].n_shards);
 
 #undef TEST_ARENAS_BIN_CONSTANT
 }
@@ -663,7 +721,8 @@ TEST_BEGIN(test_arenas_lextent_constants) {
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
 
-	TEST_ARENAS_LEXTENT_CONSTANT(size_t, size, LARGE_MINCLASS);
+	TEST_ARENAS_LEXTENT_CONSTANT(size_t, size,
+	    SC_LARGE_MINCLASS);
 
 #undef TEST_ARENAS_LEXTENT_CONSTANT
 }
@@ -686,6 +745,22 @@ TEST_BEGIN(test_arenas_create) {
 }
 TEST_END
 
+TEST_BEGIN(test_arenas_lookup) {
+	unsigned arena, arena1;
+	void *ptr;
+	size_t sz = sizeof(unsigned);
+
+	assert_d_eq(mallctl("arenas.create", (void *)&arena, &sz, NULL, 0), 0,
+	    "Unexpected mallctl() failure");
+	ptr = mallocx(42, MALLOCX_ARENA(arena) | MALLOCX_TCACHE_NONE);
+	assert_ptr_not_null(ptr, "Unexpected mallocx() failure");
+	assert_d_eq(mallctl("arenas.lookup", &arena1, &sz, &ptr, sizeof(ptr)),
+	    0, "Unexpected mallctl() failure");
+	assert_u_eq(arena, arena1, "Unexpected arena index");
+	dallocx(ptr, 0);
+}
+TEST_END
+
 TEST_BEGIN(test_stats_arenas) {
 #define TEST_STATS_ARENAS(t, name) do {					\
 	t name;								\
@@ -702,6 +777,79 @@ TEST_BEGIN(test_stats_arenas) {
 	TEST_STATS_ARENAS(size_t, pdirty);
 
 #undef TEST_STATS_ARENAS
+}
+TEST_END
+
+static void
+alloc_hook(void *extra, UNUSED hook_alloc_t type, UNUSED void *result,
+    UNUSED uintptr_t result_raw, UNUSED uintptr_t args_raw[3]) {
+	*(bool *)extra = true;
+}
+
+static void
+dalloc_hook(void *extra, UNUSED hook_dalloc_t type,
+    UNUSED void *address, UNUSED uintptr_t args_raw[3]) {
+	*(bool *)extra = true;
+}
+
+TEST_BEGIN(test_hooks) {
+	bool hook_called = false;
+	hooks_t hooks = {&alloc_hook, &dalloc_hook, NULL, &hook_called};
+	void *handle = NULL;
+	size_t sz = sizeof(handle);
+	int err = mallctl("experimental.hooks.install", &handle, &sz, &hooks,
+	    sizeof(hooks));
+	assert_d_eq(err, 0, "Hook installation failed");
+	assert_ptr_ne(handle, NULL, "Hook installation gave null handle");
+	void *ptr = mallocx(1, 0);
+	assert_true(hook_called, "Alloc hook not called");
+	hook_called = false;
+	free(ptr);
+	assert_true(hook_called, "Free hook not called");
+
+	err = mallctl("experimental.hooks.remove", NULL, NULL, &handle,
+	    sizeof(handle));
+	assert_d_eq(err, 0, "Hook removal failed");
+	hook_called = false;
+	ptr = mallocx(1, 0);
+	free(ptr);
+	assert_false(hook_called, "Hook called after removal");
+}
+TEST_END
+
+TEST_BEGIN(test_hooks_exhaustion) {
+	bool hook_called = false;
+	hooks_t hooks = {&alloc_hook, &dalloc_hook, NULL, &hook_called};
+
+	void *handle;
+	void *handles[HOOK_MAX];
+	size_t sz = sizeof(handle);
+	int err;
+	for (int i = 0; i < HOOK_MAX; i++) {
+		handle = NULL;
+		err = mallctl("experimental.hooks.install", &handle, &sz,
+		    &hooks, sizeof(hooks));
+		assert_d_eq(err, 0, "Error installation hooks");
+		assert_ptr_ne(handle, NULL, "Got NULL handle");
+		handles[i] = handle;
+	}
+	err = mallctl("experimental.hooks.install", &handle, &sz, &hooks,
+	    sizeof(hooks));
+	assert_d_eq(err, EAGAIN, "Should have failed hook installation");
+	for (int i = 0; i < HOOK_MAX; i++) {
+		err = mallctl("experimental.hooks.remove", NULL, NULL,
+		    &handles[i], sizeof(handles[i]));
+		assert_d_eq(err, 0, "Hook removal failed");
+	}
+	/* Insertion failed, but then we removed some; it should work now. */
+	handle = NULL;
+	err = mallctl("experimental.hooks.install", &handle, &sz, &hooks,
+	    sizeof(hooks));
+	assert_d_eq(err, 0, "Hook insertion failed");
+	assert_ptr_ne(handle, NULL, "Got NULL handle");
+	err = mallctl("experimental.hooks.remove", NULL, NULL, &handle,
+	    sizeof(handle));
+	assert_d_eq(err, 0, "Hook removal failed");
 }
 TEST_END
 
@@ -725,11 +873,15 @@ main(void) {
 	    test_arena_i_purge,
 	    test_arena_i_decay,
 	    test_arena_i_dss,
+	    test_arena_i_retain_grow_limit,
 	    test_arenas_dirty_decay_ms,
 	    test_arenas_muzzy_decay_ms,
 	    test_arenas_constants,
 	    test_arenas_bin_constants,
 	    test_arenas_lextent_constants,
 	    test_arenas_create,
-	    test_stats_arenas);
+	    test_arenas_lookup,
+	    test_stats_arenas,
+	    test_hooks,
+	    test_hooks_exhaustion);
 }

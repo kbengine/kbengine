@@ -1516,10 +1516,15 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}], defined in {}.def!\n",
-				moduleName.c_str(), iter->first.c_str(), moduleName));
-
 			PyErr_Clear();
+
+			PyObject* pyClassStr = PyObject_Str(moduleObj);
+			const char* classStr = PyUnicode_AsUTF8AndSize(pyClassStr, NULL);
+
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: {} does not have method[{}], defined in {}.def!\n",
+				classStr, iter->first.c_str(), moduleName));
+
+			Py_DECREF(pyClassStr);
 			Py_XDECREF(pyGetfullargspec);
 			return false;
 		}

@@ -6,6 +6,9 @@
 #include "EntityDef.h"
 #include "KBDebug.h"
 
+namespace KBEngine
+{
+
 ScriptModule::ScriptModule(const FString& moduleName, int type):
 	name(moduleName),
 	usePropertyDescrAlias(false),
@@ -29,4 +32,6 @@ ScriptModule::~ScriptModule()
 Entity* ScriptModule::createEntity()
 {
 	return EntityDef::createEntity(utype);
+}
+
 }
