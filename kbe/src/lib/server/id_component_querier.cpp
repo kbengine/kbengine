@@ -1,3 +1,5 @@
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
+
 #include "id_component_querier.h"
 #include "helper/sys_info.h"
 #include "common.h"

@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
+Ôªø// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "navigation_mesh_handle.h"	
 #include "navigation/navigation.h"
@@ -116,18 +116,18 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos, 
+int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
 	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
-	if(iter == navmeshLayer.end())
+	if (iter == navmeshLayer.end())
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n",  layer));
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n", layer));
 		return NAV_ERROR;
 	}
 
 	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
-	
+
 	dtQueryFilter filter;
 	filter.setIncludeFlags(0xffff);
 	filter.setExcludeFlags(0);
@@ -135,12 +135,13 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	if (maxRadius <= 0.0001f)
 	{
 		Position3D currpos;
-		
+
 		for (uint32 i = 0; i < max_points; i++)
 		{
 			float pt[3];
 			dtPolyRef ref;
 			dtStatus status = navmeshQuery->findRandomPoint(&filter, frand, &ref, pt);
+
 			if (dtStatusSucceed(status))
 			{
 				currpos.x = pt[0];
@@ -153,8 +154,8 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 
 		return (int)points.size();
 	}
-	
-	const float extents[3] = {2.f, 4.f, 2.f};
+
+	const float extents[3] = { 2.f, 4.f, 2.f };
 
 	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
 
@@ -171,40 +172,161 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle({1}): Could not find any nearby poly's ({0})\n", startRef, resPath));
 		return NAV_ERROR_NEARESTPOLY;
 	}
-	
-	Position3D currpos;
-	bool done = false;
-	int itry = 0;
 
-	while (itry++ < 3 && points.size() == 0)
+	const float squareSize = (float)maxRadius;
+	float squareVerts[12] = {
+		spos[0] - squareSize, spos[1], spos[2] + squareSize,\
+		spos[0] + squareSize, spos[1], spos[2] + squareSize,\
+		spos[0] + squareSize, spos[1], spos[2] - squareSize,\
+		spos[0] - squareSize, spos[1], spos[2] - squareSize,\
+	};
+
+	static const int maxResult = 32;
+	dtPolyRef polyRefs[maxResult];
+	dtPolyRef parentPolyRefs[maxResult];
+	int polyCount = 0;
+	float cost[maxResult];
+
+	navmeshQuery->findPolysAroundShape(startRef, squareVerts, 4, &filter, polyRefs, parentPolyRefs, cost, &polyCount, maxResult);
+
+	if (polyCount == 0)
 	{
-		max_points -= points.size();
+		return (int)points.size();
+	}
 
-		for (uint32 i = 0; i < max_points; i++)
+	float* allPolyAreas = new float[polyCount];
+	Position3D currpos;
+	for (uint32 time = 0; time < max_points; time++)
+	{
+		const dtMeshTile* randomTile = 0;
+		const dtPoly* randomPoly = 0;
+		dtPolyRef randomPolyRef = 0;
+		float areaSum = 0.0f;
+
+		for (int i = 0; i < polyCount; i++)
 		{
-			float pt[3];
-			dtPolyRef ref;
-			dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
+			float polyArea = 0.0f;
 
-			if (dtStatusSucceed(status))
+			if (time == 0)
 			{
-				done = true;
-				currpos.x = pt[0];
-				currpos.y = pt[1];
-				currpos.z = pt[2];
+				const dtMeshTile* tile = 0;
+				const dtPoly* poly = 0;
+				dtPolyRef ref = polyRefs[i];
+				navmeshQuery->getAttachedNavMesh()->getTileAndPolyByRefUnsafe(ref, &tile, &poly);
 
-				Position3D v = centerPos - currpos;
-				float dist_len = KBEVec3Length(&v);
-				if (dist_len > maxRadius)
-					continue;
+				if (poly->getType() != DT_POLYTYPE_GROUND) continue;
 
-				points.push_back(currpos);
+				// Place random locations on on ground.
+				if (poly->getType() == DT_POLYTYPE_GROUND)
+				{
+					// Calc area of the polygon.
+					for (int j = 2; j < poly->vertCount; ++j)
+					{
+						const float* va = &tile->verts[poly->verts[0] * 3];
+						const float* vb = &tile->verts[poly->verts[j - 1] * 3];
+						const float* vc = &tile->verts[poly->verts[j] * 3];
+						polyArea += dtTriArea2D(va, vb, vc);
+					}
+
+					allPolyAreas[i] = polyArea;
+					areaSum += polyArea;
+					const float u = frand();
+
+					if (u*areaSum <= polyArea)
+					{
+						randomTile = tile;
+						randomPoly = poly;
+						randomPolyRef = ref;
+					}
+				}
+			}
+			else
+			{
+				// Choose random polygon weighted by area, using reservoi sampling.
+				areaSum += allPolyAreas[i];
+				const float u = frand();
+
+				if (u*areaSum <= allPolyAreas[i])
+				{
+					const dtMeshTile* tile = 0;
+					const dtPoly* poly = 0;
+					dtPolyRef ref = polyRefs[i];
+					navmeshQuery->getAttachedNavMesh()->getTileAndPolyByRefUnsafe(ref, &tile, &poly);
+
+					if (poly->getType() != DT_POLYTYPE_GROUND) continue;
+
+					randomTile = tile;
+					randomPoly = poly;
+					randomPolyRef = ref;
+				}
 			}
 		}
 
-		if (!done)
-			break;
+		// Randomly pick point on polygon.
+		dtPolyRef randomRef = INVALID_NAVMESH_POLYREF;
+		const float* v = &randomTile->verts[randomPoly->verts[0] * 3];
+		float verts[3 * DT_VERTS_PER_POLYGON];
+		float areas[DT_VERTS_PER_POLYGON + 4];
+		dtVcopy(&verts[0 * 3], v);
+
+		for (int j = 1; j < randomPoly->vertCount; ++j)
+		{
+			v = &randomTile->verts[randomPoly->verts[j] * 3];
+			dtVcopy(&verts[j * 3], v);
+		}
+
+		float overlapPolyVerts[(DT_VERTS_PER_POLYGON + 4) * 3];
+		int nOverlapPolyVerts = 0;
+
+		getOverlapPolyPoly2D(squareVerts, 4, verts, randomPoly->vertCount, overlapPolyVerts, &nOverlapPolyVerts);
+
+		if (nOverlapPolyVerts <= 0)
+		{
+			delete[] allPolyAreas;
+			return (int)points.size();
+		}
+
+		const float s = frand();
+		const float t = frand();
+		float pt[3];
+		dtRandomPointInConvexPoly(overlapPolyVerts, nOverlapPolyVerts, areas, s, t, pt);
+
+		float h = 0.0f;
+		dtStatus status = navmeshQuery->getPolyHeight(randomPolyRef, pt, &h);
+
+		if (dtStatusFailed(status))
+		{
+			delete[] allPolyAreas;
+			return (int)points.size();
+		}
+
+		pt[1] = h;
+		randomRef = randomPolyRef;
+
+		if (randomRef)
+		{
+			currpos.x = pt[0];
+			currpos.y = pt[1];
+			currpos.z = pt[2];
+
+			float src_len = sqrt(2) * squareSize;
+			float xx = centerPos.x - currpos.x;
+			float yy = centerPos.y - currpos.y;
+			float dist_len = sqrt(xx * xx + yy * yy);
+
+			if (dist_len > src_len)
+			{
+				ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle::(Out of range)::centerPos({},{},{}), currpos({},{},{}), errLen({}), {}, {}\n", 
+					centerPos.x, centerPos.y, centerPos.z, currpos.x, currpos.y, currpos.z, (dist_len - src_len), dist_len, src_len));
+
+				continue;
+			}
+
+			points.push_back(currpos);
+		}
 	}
+
+	delete[] allPolyAreas;
 
 	return (int)points.size();
 }
@@ -495,7 +617,7 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 
 	dtNavMesh* mesh = tryReadNavmesh<NavMeshSetHeader>(data, readsize, res, false);
 	
-	// »Áπ˚º”‘ÿ ß∞‹‘Ú≥¢ ‘º”‘ÿ¿©’π∏Ò Ω
+	// Â¶ÇÊûúÂä†ËΩΩÂ§±Ë¥•ÂàôÂ∞ùËØïÂä†ËΩΩÊâ©Â±ïÊ†ºÂºè
 	if(!mesh)
 		mesh = tryReadNavmesh<NavMeshSetHeaderEx>(data, readsize, res, true);
 
@@ -553,5 +675,161 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 }
 
 //-------------------------------------------------------------------------------------
+inline float calAtan(float* srcPoint, float* point)
+{
+	return atan2(point[2] - srcPoint[2], point[0] - srcPoint[0]);
 }
+
+inline void swapPoint(float* a, float* b)
+{
+	float tmp[3] = { a[0],a[1],a[2] };
+	a[0] = b[0];
+	a[1] = b[1];
+	a[2] = b[2];
+	b[0] = tmp[0];
+	b[1] = tmp[1];
+	b[2] = tmp[2];
+}
+
+void NavMeshHandle::getOverlapPolyPoly2D(const float* polyVertsA, const int nPolyVertsA, const float* polyVertsB, const int nPolyVertsB, float* intsectPt, int* intsectPtCount)
+{
+	*intsectPtCount = 0;
+
+	///Find polyA's verts which in polyB.
+	for (int i = 0; i < nPolyVertsA; ++i)
+	{
+		const float* va = &polyVertsA[i * 3];
+		if (dtPointInPolygon(va, polyVertsB, nPolyVertsB))
+		{
+			intsectPt[*intsectPtCount * 3] = va[0];
+			intsectPt[*intsectPtCount * 3 + 1] = va[1];
+			intsectPt[*intsectPtCount * 3 + 2] = va[2];
+			*intsectPtCount += 1;
+		}
+	}
+
+	///Find polyB's verts which in polyA.
+	for (int i = 0; i < nPolyVertsB; ++i)
+	{
+		const float* va = &polyVertsB[i * 3];
+		if (dtPointInPolygon(va, polyVertsA, nPolyVertsA))
+		{
+			intsectPt[*intsectPtCount * 3] = va[0];
+			intsectPt[*intsectPtCount * 3 + 1] = va[1];
+			intsectPt[*intsectPtCount * 3 + 2] = va[2];
+			*intsectPtCount += 1;
+		}
+	}
+
+	///Find edge intersection of polyA and polyB.
+	for (int i = 0; i < nPolyVertsA; ++i)
+	{
+		const float* p1 = &polyVertsA[i * 3];
+		int p2_idx = (i + 1) % nPolyVertsA;
+		const float* p2 = &polyVertsA[p2_idx * 3];
+
+		for (int j = 0; j < nPolyVertsB; ++j)
+		{
+			const float* q1 = &polyVertsB[j * 3];
+			int q2_idx = (j + 1) % nPolyVertsB;
+			const float* q2 = &polyVertsB[q2_idx * 3];
+
+			if (isSegSegCross2D(p1, p2, q1, q2))				 ///If two segment is cross
+			{
+				float s, t;
+				if (dtIntersectSegSeg2D(p1, p2, q1, q2, s, t))	///Caculate intersection point
+				{
+					float pt[3];
+					dtVlerp(pt, q1, q2, t);
+					intsectPt[*intsectPtCount * 3] = pt[0];
+					intsectPt[*intsectPtCount * 3 + 1] = pt[1];
+					intsectPt[*intsectPtCount * 3 + 2] = pt[2];
+					*intsectPtCount += 1;
+				}
+			}
+		}
+	}
+
+	///sort intersection to clockwise.
+	if (*intsectPtCount > 0)
+	{
+		clockwiseSortPoints(intsectPt, *intsectPtCount);
+	}
+
+}
+
+void NavMeshHandle::clockwiseSortPoints(float* verts, const int nVerts)
+{
+	float x = 0.0;
+	float z = 0.0;
+	for (int i = 0; i < nVerts; ++i)
+	{
+		x += verts[i * 3];
+		z += verts[i * 3 + 2];
+	}
+
+	//Put most left point in first position.
+	for (int i = 0; i < nVerts; i++)
+	{
+		if (verts[i * 3] < verts[0])
+		{
+			swapPoint(&verts[i * 3], &verts[0]);
+		}
+		else if (verts[i * 3] == verts[0] && verts[i * 3 + 2] < verts[2])
+		{
+			swapPoint(&verts[i * 3], &verts[0]);
+		}
+	}
+
+	//Sort points by slope.
+	for (int i = 1; i < nVerts; i++)
+	{
+		for (int j = 1; j < nVerts - i; j++)
+		{
+			int index = j * 3;
+			int n_index = (j + 1) * 3;
+			float angle = calAtan(&verts[0], &verts[index]);
+			float n_angle = calAtan(&verts[0], &verts[n_index]);
+			if (angle < n_angle)
+			{
+				swapPoint(&verts[index], &verts[n_index]);
+			}
+		}
+	}
+}
+
+bool NavMeshHandle::isSegSegCross2D(const float* p1, const float *p2, const float* q1, const float* q2)
+{
+	bool ret = dtMin(p1[0], p2[0]) <= dtMax(q1[0], q2[0]) &&
+		dtMin(q1[0], q2[0]) <= dtMax(p1[0], p2[0]) &&
+		dtMin(p1[2], p2[2]) <= dtMax(q1[2], q2[2]) &&
+		dtMin(q1[2], q2[2]) <= dtMax(p1[2], p2[2]);
+
+	if (!ret)
+	{
+		return false;
+	}
+
+	long line1, line2;
+	line1 = (long)(p1[0] * (q1[2] - p2[2]) + p2[0] * (p1[2] - q1[2]) + q1[0] * (p2[2] - p1[2]));
+	line2 = (long)(p1[0] * (q2[2] - p2[2]) + p2[0] * (p1[2] - q2[2]) + q2[0] * (p2[2] - p1[2]));
+	if (((line1 ^ line2) >= 0) && !(line1 == 0 && line2 == 0))
+	{
+		return false;
+	}
+
+	line1 = (long)(q1[0] * (p1[2] - q2[2]) + q2[0] * (q1[2] - p1[2]) + p1[0] * (q2[2] - q1[2]));
+	line2 = (long)(q1[0] * (p2[2] - q2[2]) + q2[0] * (q1[2] - p2[2]) + p2[0] * (q2[2] - q1[2]));
+	if (((line1 ^ line2) >= 0) && !(line1 == 0 && line2 == 0))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+
+}
+
 

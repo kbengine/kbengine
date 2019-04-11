@@ -155,15 +155,17 @@ public:
 	ChannelID id() const	{ return id_; }
 	void id(ChannelID v) { id_ = v; }
 
-	uint32	numPacketsSent() const		{ return numPacketsSent_; }
-	uint32	numPacketsReceived() const	{ return numPacketsReceived_; }
-	uint32	numBytesSent() const		{ return numBytesSent_; }
-	uint32	numBytesReceived() const	{ return numBytesReceived_; }
-		
-	uint64 lastReceivedTime() const		{ return lastReceivedTime_; }
-	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
-		
+	uint32	numPacketsSent() const { return numPacketsSent_; }
+	uint32	numPacketsReceived() const { return numPacketsReceived_; }
+	uint32	numBytesSent() const { return numBytesSent_; }
+	uint32	numBytesReceived() const { return numBytesReceived_; }
+
+	uint64 lastReceivedTime() const { return lastReceivedTime_; }
+	void updateLastReceivedTime() { lastReceivedTime_ = timestamp(); }
+
 	void addReceiveWindow(Packet* pPacket);
+
+	uint64 inactivityExceptionPeriod() const { return inactivityExceptionPeriod_; }
 
 	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);

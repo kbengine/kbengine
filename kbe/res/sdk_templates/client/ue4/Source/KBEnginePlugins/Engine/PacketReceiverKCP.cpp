@@ -6,6 +6,9 @@
 #include "KBDebug.h"
 #include "MemoryStream.h"
 
+namespace KBEngine
+{
+
 PacketReceiverKCP::PacketReceiverKCP(NetworkInterfaceBase* pNetworkInterface):
 	PacketReceiverBase(pNetworkInterface),
 	remoteAddr_(ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr())
@@ -67,4 +70,6 @@ void PacketReceiverKCP::process()
 			}
 		}
 	}
+}
+
 }

@@ -4,6 +4,9 @@
 #include "KBDebug.h"
 #include "NetworkInterfaceKCP.h"
 
+namespace KBEngine
+{
+
 PacketSenderKCP::PacketSenderKCP(NetworkInterfaceBase* pNetworkInterface) :
 	PacketSenderBase(pNetworkInterface)
 {
@@ -28,4 +31,6 @@ bool PacketSenderKCP::send(MemoryStream* pMemoryStream)
 	}
 
 	return true;
+}
+
 }

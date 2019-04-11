@@ -441,7 +441,7 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		cinfos->pChannel->updateLastReceivedTime();
 	}
 
-	//DEBUG_MSG(fmt::format("ServerApp::onAppActiveTick[:p]: {}:{} lastReceivedTime:{} at {}.\n",
+	//DEBUG_MSG(fmt::format("ServerApp::onAppActiveTick[{:p}]: {}:{} lastReceivedTime:{} at {}.\n",
 	//	(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pChannel->c_str()));
 }
 

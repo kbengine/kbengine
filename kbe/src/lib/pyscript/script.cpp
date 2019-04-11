@@ -193,8 +193,10 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	ScriptStdErr::installScript(NULL);
 
 	// 将模块对象加入main
-	PyObject_SetAttrString(m, moduleName, module_);	
-	PyObject_SetAttrString(module_, "__doc__", PyUnicode_FromString("This module is created by KBEngine!"));
+	PyObject_SetAttrString(m, moduleName, module_);
+	PyObject* pyDoc = PyUnicode_FromString("This module is created by KBEngine!");
+	PyObject_SetAttrString(module_, "__doc__", pyDoc);
+	Py_DECREF(pyDoc);
 
 	// 重定向python输出
 	pyStdouterr_ = new ScriptStdOutErr();

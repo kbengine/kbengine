@@ -5,6 +5,9 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class Method;
 class Property;
 class EntityCall;
@@ -213,6 +216,7 @@ public:
 	//EntityCall* cellEntityCall = null;
 };
 
+}
 
 
 

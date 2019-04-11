@@ -4,6 +4,9 @@
 #include "KBDebug.h"
 #include "MemoryStream.h"
 
+namespace KBEngine
+{
+
 EntityComponent::EntityComponent():
 entityComponentPropertyID(0),
 componentType(0),
@@ -30,3 +33,4 @@ void EntityComponent::createFromStream(MemoryStream& stream)
 		onUpdatePropertys(0, stream, count);
 }
 
+}

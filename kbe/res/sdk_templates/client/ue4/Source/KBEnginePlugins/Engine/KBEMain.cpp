@@ -51,8 +51,7 @@ void UKBEMain::UninitializeComponent()
 void UKBEMain::BeginPlay()
 {
 	Super::BeginPlay();
-
-	KBEngineArgs* pArgs = new KBEngineArgs();
+	KBEngine::KBEngineArgs* pArgs = new KBEngine::KBEngineArgs();
 	pArgs->ip = ip;
 	pArgs->port = port;
 	pArgs->syncPlayerMS = syncPlayerMS;
@@ -67,19 +66,10 @@ void UKBEMain::BeginPlay()
 	pArgs->UDP_SEND_BUFFER_MAX = UDP_SEND_BUFFER_MAX;
 	pArgs->UDP_RECV_BUFFER_MAX = UDP_RECV_BUFFER_MAX;
 
-	KBEngineApp::destroyKBEngineApp();
-	if (!KBEngineApp::getSingleton().initialize(pArgs))
+	if(!KBEngine::KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
 
 	installEvents();
-	
-#ifdef KBENGINE_NO_CRYPTO
-	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
-	{
-		pArgs->networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
-		ERROR_MSG("No module CryptoPP! Please use unreal engine source code to install");
-	}
-#endif
 }
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -90,6 +80,7 @@ void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		pUpdaterObj = nullptr;
 	}
 
+	ClientSDKUpdateUI.Reset();
 	deregisterEvents();
 	Super::EndPlay(EndPlayReason);
 }
@@ -102,16 +93,18 @@ void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UKBEMain::installEvents()
 {
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onVersionNotMatch, onVersionNotMatch);
-	KBENGINE_REGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onScriptVersionNotMatch, onScriptVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onVersionNotMatch, onVersionNotMatch);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onImportClientSDKSuccessfully, onImportClientSDKSuccessfully);
+	KBENGINE_REGISTER_EVENT(KBEngine::KBEventTypes::onDownloadSDK, onDownloadSDK);
 }
 
 void UKBEMain::deregisterEvents()
 {
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onScriptVersionNotMatch);
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onVersionNotMatch);
-	KBENGINE_DEREGISTER_EVENT(KBEventTypes::onImportClientSDKSuccessfully);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onScriptVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onVersionNotMatch);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onImportClientSDKSuccessfully);
+	KBENGINE_DEREGISTER_EVENT(KBEngine::KBEventTypes::onDownloadSDK);
 }
 
 void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
@@ -126,30 +119,34 @@ void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
 
 bool UKBEMain::isUpdateSDK()
 {
-	#if WITH_EDITOR
-		return automaticallyUpdateSDK;
-	#endif
-		return false;
+#if WITH_EDITOR
+	return automaticallyUpdateSDK;
+#endif
+
+	return false;
 }
 
 void UKBEMain::downloadSDKFromServer()
 {
+	if (GEngine->IsValidLowLevel())
+	{
+		GEngine->GameViewport->RemoveAllViewportWidgets();
+	}
+
 	if (isUpdateSDK())
 	{
-		if (pUpdaterObj == nullptr)
+		ClientSDKUpdateUI = SNew(SClientSDKUpdateUI);
+
+		if (GEngine->IsValidLowLevel())
 		{
-			pUpdaterObj = new ClientSDKUpdater();
+			GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(ClientSDKUpdateUI.ToSharedRef()));
 		}
 
-		pUpdaterObj->downloadSDKFromServer();
-	}
-	else
-	{
-		if(pUpdaterObj != nullptr)
+		if (ClientSDKUpdateUI.IsValid())
 		{
-			delete pUpdaterObj;
-			pUpdaterObj = nullptr;
+			ClientSDKUpdateUI->SetVisibility(EVisibility::Visible);
 		}
+	
 	}
 }
 
@@ -158,86 +155,114 @@ void UKBEMain::onImportClientSDKSuccessfully(const UKBEventData* pEventData)
 	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, true);
 }
 
+void UKBEMain::onDownloadSDK(const UKBEventData* pEventData)
+{
+	ClientSDKUpdateUI.Reset();
+	if (GEngine->IsValidLowLevel())
+	{
+		GEngine->GameViewport->RemoveAllViewportWidgets();
+	}
+
+	const UKBEventData_onDownloadSDK* pData = Cast<UKBEventData_onDownloadSDK>(pEventData);
+	if(pData->isDownload)
+	{
+		if (pUpdaterObj == nullptr)
+		{
+			pUpdaterObj = new KBEngine::ClientSDKUpdater();
+		}
+
+		pUpdaterObj->downloadSDKFromServer();
+	}
+	else
+	{
+		if (pUpdaterObj != nullptr)
+		{
+			delete pUpdaterObj;
+			pUpdaterObj = nullptr;
+		}
+	}
+}
+
 FString UKBEMain::getClientVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().clientVersion();
+	return KBEngine::KBEngineApp::getSingleton().clientVersion();
 }
 
 FString UKBEMain::getClientScriptVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().clientScriptVersion();
+	return KBEngine::KBEngineApp::getSingleton().clientScriptVersion();
 }
 
 FString UKBEMain::getServerVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().serverVersion();
+	return KBEngine::KBEngineApp::getSingleton().serverVersion();
 }
 
 FString UKBEMain::getServerScriptVersion()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().serverScriptVersion();
+	return KBEngine::KBEngineApp::getSingleton().serverScriptVersion();
 }
 
 FString UKBEMain::getComponentName()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return TEXT("");
 
-	return KBEngineApp::getSingleton().component();
+	return KBEngine::KBEngineApp::getSingleton().component();
 }
 
 bool UKBEMain::destroyKBEngine()
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 		return false;
 
-	KBEngineApp::getSingleton().destroy();
+	KBEngine::KBEngineApp::getSingleton().destroy();
 	KBENGINE_EVENT_CLEAR();
 	return true;
 }
 
 bool UKBEMain::login(FString username, FString password, TArray<uint8> datas)
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 	{
 		return false;
 	}
 
-	KBEngineApp::getSingleton().reset();
+	KBEngine::KBEngineApp::getSingleton().reset();
 
 	UKBEventData_login* pEventData = NewObject<UKBEventData_login>();
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE(KBEventTypes::login, pEventData);
+	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::login, pEventData);
 	return true;
 }
 
 bool UKBEMain::createAccount(FString username, FString password, const TArray<uint8>& datas)
 {
-	if (!KBEngineApp::getSingleton().isInitialized())
+	if (!KBEngine::KBEngineApp::getSingleton().isInitialized())
 	{
 		return false;
 	}
 
-	KBEngineApp::getSingleton().reset();
+	KBEngine::KBEngineApp::getSingleton().reset();
 
 	UKBEventData_createAccount* pEventData = NewObject<UKBEventData_createAccount>();
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE(KBEventTypes::createAccount, pEventData);
+	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::createAccount, pEventData);
 	return true;
 }

@@ -57,6 +57,9 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+
+	bool installPyModules();
+	bool uninstallPyModules();
 	void onInstallPyModules();
 	
 	bool initInterfacesHandler();

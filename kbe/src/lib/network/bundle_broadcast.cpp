@@ -61,7 +61,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
 
-				DEBUG_MSG(fmt::format("BundleBroadcast::BundleBroadcast: epListen {}\n", epListen_.c_str()));
+				// DEBUG_MSG(fmt::format("BundleBroadcast::BundleBroadcast: epListen {}\n", epListen_.c_str()));
 				break;
 			}
 		}

@@ -38,8 +38,8 @@ public:
 
 public:	
 	MethodDescription(ENTITY_METHOD_UID utype, COMPONENT_ID domain,
-		std::string name, 
-		bool isExposed = false);
+		std::string name,
+		EXPOSED_TYPE exposedType = NO_EXPOSED);
 
 	virtual ~MethodDescription();
 	

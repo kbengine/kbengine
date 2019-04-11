@@ -19,6 +19,7 @@
 #include "db_interface/db_interface.h"
 #include "db_mysql/db_interface_mysql.h"
 #include "entitydef/scriptdef_module.h"
+#include "entitydef/py_entitydef.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
@@ -324,6 +325,18 @@ bool Dbmgr::initializeEnd()
 	Components::getSingleton().extraData4(pTelnetServer_->port());
 	
 	return ret && initInterfacesHandler() && initDB();
+}
+
+//-------------------------------------------------------------------------------------
+bool Dbmgr::installPyModules()
+{
+	return PythonApp::installPyModules() && script::entitydef::installModule("EntityDef");
+}
+
+//-------------------------------------------------------------------------------------
+bool Dbmgr::uninstallPyModules()
+{
+	return script::entitydef::uninstallModule() && PythonApp::uninstallPyModules();
 }
 
 //-------------------------------------------------------------------------------------		
