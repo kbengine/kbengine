@@ -234,6 +234,13 @@ public:
 
 	static bool isReload();
 
+	static std::vector<PyTypeObject*> getScriptBaseTypes() { return __scriptBaseTypes;  }
+
+	/**
+		是否是继承引擎底层允许的基础类的派生类
+	*/
+	static std::string isSubClass(PyObject* pyClass);
+
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 	static SCRIPT_MODULES __oldScriptModules;									// reload时旧的模块会放到这里用于判断

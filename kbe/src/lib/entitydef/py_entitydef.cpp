@@ -1449,12 +1449,10 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 	static PyObject* __py_def_##NAME(PyObject* self, PyObject* args, PyObject* kwargs)	\
 	{	\
 		CallContext cc;	\
-		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));	\
-		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);	\
+		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);	\
+		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);	\
 		cc.optionName = #NAME;	\
 		g_callContexts.push(cc);	\
-		Py_XDECREF(cc.pyArgs.get());	\
-		Py_XDECREF(cc.pyKwargs.get());	\
 		\
 		return PyCFunction_New(&__call_def_parse, self);	\
 	}
@@ -1462,12 +1460,9 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	CallContext cc;
-	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
-	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);
+	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);
 	cc.optionName = "rename";
-		
-	Py_XDECREF(cc.pyArgs.get());
-	Py_XDECREF(cc.pyKwargs.get());
 
 	// 类似这种定义方式 EntityDef.rename(ENTITY_ID=EntityDef.INT32)
 	if (kwargs)
@@ -1561,12 +1556,9 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 static PyObject* __py_def_fixed_array(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	CallContext cc;
-	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
-	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);
+	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);
 	cc.optionName = "fixed_array";
-
-	Py_XDECREF(cc.pyArgs.get());
-	Py_XDECREF(cc.pyKwargs.get());
 
 	// 类似这种定义方式 EntityDef.fixed_array(XXArray=EntityDef.INT32)
 	if (kwargs)
@@ -2234,7 +2226,7 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 	}
 
 	// 除了这几个进程以外，其他进程不需要根据方法检测脚本的正确性
-	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 	{
 		if (!EntityDef::checkDefMethod(pScriptModule, defContext.pyObjectPtr.get(), defContext.moduleName))
 		{
@@ -2549,13 +2541,13 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 	}
 
 	// 加载组件描述， 并将他们的方法和属性加入到模块中
-	if (!registerDefComponents(pScriptModule, defContext))
-	{
-		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
-			pScriptModule->getName()));
+	//if (!registerDefComponents(pScriptModule, defContext))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
+	//		pScriptModule->getName()));
 
-		return false;
-	}
+	//	return false;
+	//}
 
 	// 尝试加载detailLevelInfo数据
 	if (!registerDetailLevelInfo(pScriptModule, defContext))
@@ -2576,7 +2568,7 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 	}
 
 	// 除了这几个进程以外，其他进程不需要访问脚本
-	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 	{
 		PyObject* pyClass = defContext.pyObjectPtr.get();
 		if (pyClass)
@@ -2611,6 +2603,53 @@ static bool registerEntityDefs()
 
 		if (defContext.type != DefContext::DC_TYPE_ENTITY)
 			continue;
+
+		// 如果是bots类型，需要将脚本类设置为程序环境的类
+		// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
+		if ((g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE) && defContext.hasClient)
+		{
+			PyObject* pyModule = EntityDef::loadScriptModule(defContext.moduleName);
+
+			if (!pyModule)
+			{
+				SCRIPT_ERROR_CHECK();
+				return false;
+			}
+
+			PyObject* pyClass =
+				PyObject_GetAttrString(pyModule, const_cast<char *>(defContext.moduleName.c_str()));
+
+			if (pyClass == NULL)
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: Could not find EntityClass[{}]\n",
+					defContext.moduleName.c_str()));
+
+				return false;
+			}
+			else
+			{
+				std::string typeNames = EntityDef::isSubClass(pyClass);
+
+				if (typeNames.size() > 0)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: registerEntityDefs {} is not derived from KBEngine.[{}]\n",
+						defContext.moduleName.c_str(), typeNames.c_str()));
+
+					return false;
+				}
+			}
+
+			if (!PyType_Check(pyClass))
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: EntityClass[{}] is valid!\n",
+					defContext.moduleName.c_str()));
+
+				return false;
+			}
+
+			defContext.pyObjectPtr = PyObjectPtr(pyClass, PyObjectPtr::STEAL_REF);
+			Py_DECREF(pyModule);
+		}
 
 		ScriptDefModule* pScriptModule = EntityDef::registerNewScriptDefModule(defContext.moduleName);
 
