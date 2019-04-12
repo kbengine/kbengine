@@ -11,10 +11,10 @@ import time
 
 from . import Define
 
-Logger_onAppActiveTick         = 701
-Logger_registerLogWatcher      = 702
-Logger_deregisterLogWatcher    = 703
-Logger_writeLog                = 704
+Logger_onAppActiveTick			= 701
+Logger_registerLogWatcher		= 702
+Logger_deregisterLogWatcher		= 703
+Logger_writeLog					= 704
 
 CONSOLE_LOG_MSGID = 65501 # log 消息
 
