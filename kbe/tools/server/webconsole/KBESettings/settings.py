@@ -33,57 +33,57 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
-    'WebConsole',
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
+
+	'WebConsole',
 )
 
 if django.VERSION < (1, 7):
 	MIDDLEWARE_CLASSES = (
-	    'django.contrib.sessions.middleware.SessionMiddleware',
-	    'django.middleware.common.CommonMiddleware',
-	    #'django.middleware.csrf.CsrfViewMiddleware',
-	    'django.contrib.auth.middleware.AuthenticationMiddleware',
-	    'django.contrib.messages.middleware.MessageMiddleware',
-	    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+		'django.contrib.sessions.middleware.SessionMiddleware',
+		'django.middleware.common.CommonMiddleware',
+		#'django.middleware.csrf.CsrfViewMiddleware',
+		'django.contrib.auth.middleware.AuthenticationMiddleware',
+		'django.contrib.messages.middleware.MessageMiddleware',
+		'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	)
 
 if django.VERSION >= (1, 8):
 	MIDDLEWARE_CLASSES = (
-	    'django.contrib.sessions.middleware.SessionMiddleware',
-	    'django.middleware.common.CommonMiddleware',
-	    #'django.middleware.csrf.CsrfViewMiddleware',
-	    'django.contrib.auth.middleware.AuthenticationMiddleware',
-	    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-	    'django.contrib.messages.middleware.MessageMiddleware',
-	    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	    'django.middleware.security.SecurityMiddleware',
+		'django.contrib.sessions.middleware.SessionMiddleware',
+		'django.middleware.common.CommonMiddleware',
+		#'django.middleware.csrf.CsrfViewMiddleware',
+		'django.contrib.auth.middleware.AuthenticationMiddleware',
+		'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+		'django.contrib.messages.middleware.MessageMiddleware',
+		'django.middleware.clickjacking.XFrameOptionsMiddleware',
+		'django.middleware.security.SecurityMiddleware',
 	)
 
 ROOT_URLCONF = 'KBESettings.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # 模版文件的存放路径，可以有多个
-        'DIRS': [
-            BASE_DIR + "/templates"
-            ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+	{
+		'BACKEND': 'django.template.backends.django.DjangoTemplates',
+		# 模版文件的存放路径，可以有多个
+		'DIRS': [
+			BASE_DIR + "/templates"
+			],
+		'APP_DIRS': True,
+		'OPTIONS': {
+			'context_processors': [
+				'django.template.context_processors.debug',
+				'django.template.context_processors.request',
+				'django.contrib.auth.context_processors.auth',
+				'django.contrib.messages.context_processors.messages',
+			],
+		},
+	},
 ]
 
 WSGI_APPLICATION = 'KBESettings.wsgi.application'
@@ -93,10 +93,10 @@ WSGI_APPLICATION = 'KBESettings.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+	'default': {
+		'ENGINE': 'django.db.backends.sqlite3',
+		'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+	}
 }
 
 
@@ -133,7 +133,7 @@ if django.VERSION < (1, 7):
 	TEMPLATE_DIRS = ( BASE_DIR + "/templates", )
 	TEMPLATE_DEBUG = True
 	TEMPLATE_CONTEXT_PROCESSORS = (
-	    'django.core.context_processors.request',
+		'django.core.context_processors.request',
 	)
 
 # BOOL
@@ -141,8 +141,8 @@ if django.VERSION < (1, 7):
 # 使用些机制可以减缓页面打开时的卡顿现象，
 # 但对于实时性来说，会有些偏差
 # 注意：此机制只能在独立运行时设置成true，
-#       如果部署到apache等http服务器上以后此参数仍然为True，
-#       有可能会造成大量的udp广播包
+#		如果部署到apache等http服务器上以后此参数仍然为True，
+#		有可能会造成大量的udp广播包
 USE_MACHINES_BUFFER = True
 
 # FLOAT；单位：秒

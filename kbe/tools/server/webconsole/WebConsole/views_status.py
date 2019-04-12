@@ -102,11 +102,11 @@ from dwebsocket import accept_websocket
 
 class CSData(object):
 	def __init__(self, wInst, cp, host, port):
-	    self.wInst = wInst
-	    self.cp = cp
-	    self.port = port
-	    self.host = host
-	    self.Component_Status = Component_Status.ComponentStatus(cp)
+		self.wInst = wInst
+		self.cp = cp
+		self.port = port
+		self.host = host
+		self.Component_Status = Component_Status.ComponentStatus(cp)
 
 	def do(self):
 		self.Component_Status.connect(self.host,self.port)
