@@ -71,10 +71,10 @@ from dwebsocket import accept_websocket
 
 class spaceviewerDate(object):
 	def __init__(self, wInst, cp, host, port):
-	    self.wInst = wInst
-	    self.cp = cp
-	    self.port = port
-	    self.host = host
+		self.wInst = wInst
+		self.cp = cp
+		self.port = port
+		self.host = host
 
 	def do(self):
 		self.SpaceViews = SpaceViews.SpaceViewer(self.cp)
@@ -96,12 +96,12 @@ class spaceviewerDate(object):
 
 class CellSpace(object):
 	def __init__(self, wInst, cp, host, port, spaceID):
-	    self.wInst = wInst
-	    self.cp = cp
-	    self.port = port
-	    self.host = host
-	    self.spaceID = spaceID
-	    self.test = ""
+		self.wInst = wInst
+		self.cp = cp
+		self.port = port
+		self.host = host
+		self.spaceID = spaceID
+		self.test = ""
 	def do(self):
 		self.CellSpaceViewer = SpaceViews.CellViewer(self.cp, self.spaceID)
 		self.CellSpaceViewer.connect(self.host,self.port)
