@@ -374,6 +374,7 @@ bool DefContext::addChildContext(DefContext& defContext)
 	else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
 	{
 		pContexts = &client_methods;
+		defContext.componentType = CLIENT_TYPE;
 	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 	{
