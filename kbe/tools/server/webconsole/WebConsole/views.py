@@ -34,21 +34,21 @@ def components_query( request ):
 		kbeComps.append( dl )
 		for comp in comps:
 			d = {
-				"ip"            : comp.intaddr,
-				"componentType" : comp.componentType,
-				"componentName" : comp.componentName,
-				"fullname"      : comp.fullname,
-				"uid"           : comp.uid,
-				"pid"           : comp.pid,
-				"componentID"   : comp.componentID,
-				"globalOrderID" : comp.globalOrderID,
-				"cpu"           : comp.cpu,
-				"mem"           : comp.mem,
-				"usedmem"       : comp.usedmem,
-				"entities"      : comp.entities,
-				"proxies"       : comp.proxies,
-				"clients"       : comp.clients,
-				"consolePort"   : comp.consolePort,
+				"ip"			: comp.intaddr,
+				"componentType"	: comp.componentType,
+				"componentName"	: comp.componentName,
+				"fullname"		: comp.fullname,
+				"uid"			: comp.uid,
+				"pid"			: comp.pid,
+				"componentID"	: comp.componentID,
+				"globalOrderID"	: comp.globalOrderID,
+				"cpu"			: comp.cpu,
+				"mem"			: comp.mem,
+				"usedmem"		: comp.usedmem,
+				"entities"		: comp.entities,
+				"proxies"		: comp.proxies,
+				"clients"		: comp.clients,
+				"consolePort"	: comp.consolePort,
 			}
 			dl.append( d )
 	
@@ -72,21 +72,21 @@ def components_group_query( request , ct ):
 		for comp in comps:
 			if comp.componentType == ct or comp.componentType == 8:
 				d = {
-					"ip"            : comp.intaddr,
-					"componentType" : comp.componentType,
-					"componentName" : comp.componentName,
-					"fullname"      : comp.fullname,
-					"uid"           : comp.uid,
-					"pid"           : comp.pid,
-					"componentID"   : comp.componentID,
-					"globalOrderID" : comp.globalOrderID,
-					"cpu"           : comp.cpu,
-					"mem"           : comp.mem,
-					"usedmem"       : comp.usedmem,
-					"entities"      : comp.entities,
-					"proxies"       : comp.proxies,
-					"clients"       : comp.clients,
-					"consolePort"   : comp.consolePort,
+					"ip"			: comp.intaddr,
+					"componentType"	: comp.componentType,
+					"componentName"	: comp.componentName,
+					"fullname"		: comp.fullname,
+					"uid"			: comp.uid,
+					"pid"			: comp.pid,
+					"componentID"	: comp.componentID,
+					"globalOrderID"	: comp.globalOrderID,
+					"cpu"			: comp.cpu,
+					"mem"			: comp.mem,
+					"usedmem"		: comp.usedmem,
+					"entities"		: comp.entities,
+					"proxies"		: comp.proxies,
+					"clients"		: comp.clients,
+					"consolePort"	: comp.consolePort,
 				}
 				dl.append( d )
 		
@@ -111,83 +111,83 @@ def components_one_query( request , ct, cid ):
 		for comp in comps:
 			if comp.componentType == 8:
 				d = {
-					"ip"            : comp.intaddr,
-					"componentType" : comp.componentType,
-					"componentName" : comp.componentName,
-					"fullname"      : comp.fullname,
-					"uid"           : comp.uid,
-					"pid"           : comp.pid,
-					"componentID"   : comp.componentID,
-					"globalOrderID" : comp.globalOrderID,
-					"cpu"           : comp.cpu,
-					"mem"           : comp.mem,
-					"usedmem"       : comp.usedmem,
-					"entities"      : comp.entities,
-					"proxies"       : comp.proxies,
-					"clients"       : comp.clients,
-					"consolePort"   : comp.consolePort,
+					"ip"			: comp.intaddr,
+					"componentType"	: comp.componentType,
+					"componentName"	: comp.componentName,
+					"fullname"		: comp.fullname,
+					"uid"			: comp.uid,
+					"pid"			: comp.pid,
+					"componentID"	: comp.componentID,
+					"globalOrderID"	: comp.globalOrderID,
+					"cpu"			: comp.cpu,
+					"mem"			: comp.mem,
+					"usedmem"		: comp.usedmem,
+					"entities"		: comp.entities,
+					"proxies"		: comp.proxies,
+					"clients"		: comp.clients,
+					"consolePort"	: comp.consolePort,
 				}
 				dl.append( d )
 
 			if comp.componentID == cid:
 				d = {
-					"ip"            : comp.intaddr,
-					"componentType" : comp.componentType,
-					"componentName" : comp.componentName,
-					"fullname"      : comp.fullname,
-					"uid"           : comp.uid,
-					"pid"           : comp.pid,
-					"componentID"   : comp.componentID,
-					"globalOrderID" : comp.globalOrderID,
-					"cpu"           : comp.cpu,
-					"mem"           : comp.mem,
-					"usedmem"       : comp.usedmem,
-					"entities"      : comp.entities,
-					"proxies"       : comp.proxies,
-					"clients"       : comp.clients,
-					"consolePort"   : comp.consolePort,
+					"ip"			: comp.intaddr,
+					"componentType"	: comp.componentType,
+					"componentName"	: comp.componentName,
+					"fullname"		: comp.fullname,
+					"uid"			: comp.uid,
+					"pid"			: comp.pid,
+					"componentID"	: comp.componentID,
+					"globalOrderID"	: comp.globalOrderID,
+					"cpu"			: comp.cpu,
+					"mem"			: comp.mem,
+					"usedmem"		: comp.usedmem,
+					"entities"		: comp.entities,
+					"proxies"		: comp.proxies,
+					"clients"		: comp.clients,
+					"consolePort"	: comp.consolePort,
 				}
 				dl.append( d )
 			
 			if ct == 3:
 				if comp.componentType == 6 or comp.componentType == 3:
 					d = {
-						"ip"            : comp.intaddr,
-						"componentType" : comp.componentType,
-						"componentName" : comp.componentName,
-						"fullname"      : comp.fullname,
-						"uid"           : comp.uid,
-						"pid"           : comp.pid,
-						"componentID"   : comp.componentID,
-						"globalOrderID" : comp.globalOrderID,
-						"cpu"           : comp.cpu,
-						"mem"           : comp.mem,
-						"usedmem"       : comp.usedmem,
-						"entities"      : comp.entities,
-						"proxies"       : comp.proxies,
-						"clients"       : comp.clients,
-						"consolePort"   : comp.consolePort,
+						"ip"			: comp.intaddr,
+						"componentType"	: comp.componentType,
+						"componentName"	: comp.componentName,
+						"fullname"		: comp.fullname,
+						"uid"			: comp.uid,
+						"pid"			: comp.pid,
+						"componentID"	: comp.componentID,
+						"globalOrderID"	: comp.globalOrderID,
+						"cpu"			: comp.cpu,
+						"mem"			: comp.mem,
+						"usedmem"		: comp.usedmem,
+						"entities"		: comp.entities,
+						"proxies"		: comp.proxies,
+						"clients"		: comp.clients,
+						"consolePort"	: comp.consolePort,
 					}
 					dl.append( d )
 					
 			if ct == 4:
 				if comp.componentType == 5 or comp.componentType == 4:
 					d = {
-						"ip"            : comp.intaddr,
-						"componentType" : comp.componentType,
-						"componentName" : comp.componentName,
-						"fullname"      : comp.fullname,
-						"uid"           : comp.uid,
-						"pid"           : comp.pid,
-						"componentID"   : comp.componentID,
-						"globalOrderID" : comp.globalOrderID,
-						"cpu"           : comp.cpu,
-						"mem"           : comp.mem,
-						"usedmem"       : comp.usedmem,
-						"entities"      : comp.entities,
-						"proxies"       : comp.proxies,
-						"clients"       : comp.clients,
-						"consolePort"   : comp.consolePort,
+						"ip"			: comp.intaddr,
+						"componentType"	: comp.componentType,
+						"componentName"	: comp.componentName,
+						"fullname"		: comp.fullname,
+						"uid"			: comp.uid,
+						"pid"			: comp.pid,
+						"componentID"	: comp.componentID,
+						"globalOrderID"	: comp.globalOrderID,
+						"cpu"			: comp.cpu,
+						"mem"			: comp.mem,
+						"usedmem"		: comp.usedmem,
+						"entities"		: comp.entities,
+						"proxies"		: comp.proxies,
+						"clients"		: comp.clients,
+						"consolePort"	: comp.consolePort,
 					}
 					dl.append( d )
 				
@@ -204,9 +204,9 @@ def components_query_machines( request ):
 	kbeComps = []
 	for machine in components.machines:
 		d = {
-			"ip"   : machine.intaddr,
-			"uid"  : machine.uid,
-			"pid"  : machine.pid,
+			"ip"	: machine.intaddr,
+			"uid"	: machine.uid,
+			"pid"	: machine.pid,
 		}
 		kbeComps.append( d )
 	
@@ -472,10 +472,10 @@ def components_load_layout( request ):
 			return render( request, "WebConsole/components_load_layout.html", { "error" : "服务器正在运行，不允许加载" } )
 
 	# 计数器
-	t2c            = [0,] * len(Define.COMPONENT_NAME)
-	components_ct  = [0,] * len(Define.COMPONENT_NAME)
-	components_cid = [0,] * len(Define.COMPONENT_NAME)
-	components_gus = [0,] * len(Define.COMPONENT_NAME)
+	t2c				= [0,] * len(Define.COMPONENT_NAME)
+	components_ct	= [0,] * len(Define.COMPONENT_NAME)
+	components_cid	= [0,] * len(Define.COMPONENT_NAME)
+	components_gus	= [0,] * len(Define.COMPONENT_NAME)
 	ly = ServerLayout.objects.get(pk = id)
 	layoutData = json.loads( ly.config )
 	for ct in VALID_CT:
@@ -496,11 +496,11 @@ def components_load_layout( request ):
 			components.startServer( ct, cid, gus, comp["ip"], kbe_root, kbe_res_path, kbe_bin_path, 0 )
 
 	context = {
-		"run_counter"    : str(t2c),
-		"components_ct"  : json.dumps(components_ct),
-		"components_cid" : json.dumps(components_cid),
-		"components_gus" : json.dumps(components_gus),
-		"components_ip"  : comp["ip"]
+		"run_counter"		: str(t2c),
+		"components_ct"		: json.dumps(components_ct),
+		"components_cid"	: json.dumps(components_cid),
+		"components_gus"	: json.dumps(components_gus),
+		"components_ip"		: comp["ip"]
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
 

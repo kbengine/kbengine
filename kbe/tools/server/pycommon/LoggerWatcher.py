@@ -11,19 +11,19 @@ import time
 
 from . import Define
 
-Logger_onAppActiveTick         = 701
-Logger_registerLogWatcher      = 702
-Logger_deregisterLogWatcher    = 703
-Logger_writeLog                = 704
+Logger_onAppActiveTick			= 701
+Logger_registerLogWatcher		= 702
+Logger_deregisterLogWatcher		= 703
+Logger_writeLog					= 704
 
 CONSOLE_LOG_MSGID = 65501 # log 消息
 
 
 KBELOG_UNKNOWN			= 0x00000000
 KBELOG_PRINT			= 0x00000001
-KBELOG_ERROR 			= 0x00000002
-KBELOG_WARNING 			= 0x00000004
-KBELOG_DEBUG 			= 0x00000008
+KBELOG_ERROR			= 0x00000002
+KBELOG_WARNING			= 0x00000004
+KBELOG_DEBUG			= 0x00000008
 KBELOG_INFO				= 0x00000010
 KBELOG_CRITICAL			= 0x00000020
 KBELOG_SCRIPT_INFO		= 0x00000040
@@ -37,13 +37,13 @@ logName2type = {
 	"ERROR"		:	KBELOG_ERROR,
 	"WARNING"	:	KBELOG_WARNING,
 	"DEBUG"		:	KBELOG_DEBUG,
-	"INFO"		:	KBELOG_INFO,	
+	"INFO"		:	KBELOG_INFO,
 	"CRITICAL"	:	KBELOG_CRITICAL,
-	"S_NORM"  	:	KBELOG_SCRIPT_NORMAL,
-	"S_INFO"  	: 	KBELOG_SCRIPT_INFO,
-	"S_ERR"   	: 	KBELOG_SCRIPT_ERROR,
-	"S_DBG"   	: 	KBELOG_SCRIPT_DEBUG,
-	"S_WARN" 	: 	KBELOG_SCRIPT_WARNING,
+	"S_NORM"	:	KBELOG_SCRIPT_NORMAL,
+	"S_INFO"	:	KBELOG_SCRIPT_INFO,
+	"S_ERR"		:	KBELOG_SCRIPT_ERROR,
+	"S_DBG"		:	KBELOG_SCRIPT_DEBUG,
+	"S_WARN"	:	KBELOG_SCRIPT_WARNING,
 }
 
 class LoggerWatcher:
