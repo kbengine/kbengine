@@ -237,9 +237,9 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 		(*propertysIter).addToStream(pMemoryStream);
 
 	(*pMemoryStream) << (int)components.size();
-	std::vector< std::string >::iterator componentsIter = components.begin();
+	std::vector< DefContext >::iterator componentsIter = components.begin();
 	for (; componentsIter != components.end(); ++componentsIter)
-		(*pMemoryStream) << (*componentsIter);
+		(*componentsIter).addToStream(pMemoryStream);
 
 	return true;
 }
@@ -346,10 +346,10 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) >> size;
 	for (int i = 0; i < size; ++i)
 	{
-		std::string str;
-		(*pMemoryStream) >> str;
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
 
-		components.push_back(str);
+		components.push_back(dc);
 	}
 
 	return true;
@@ -476,6 +476,7 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 				childContexts.insert(childContexts.end(), parentDefContext.cell_methods.begin(), parentDefContext.cell_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.client_methods.begin(), parentDefContext.client_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.propertys.begin(), parentDefContext.propertys.end());
+				childContexts.insert(childContexts.end(), parentDefContext.components.begin(), parentDefContext.components.end());
 
 				std::vector< DefContext >::iterator itemIter = childContexts.begin();
 				for (; itemIter != childContexts.end(); ++itemIter)
