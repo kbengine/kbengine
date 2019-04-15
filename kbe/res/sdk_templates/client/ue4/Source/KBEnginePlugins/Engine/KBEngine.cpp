@@ -475,7 +475,6 @@ void KBEngineApp::updatePlayerToServer()
 			pBundle->send(pNetworkInterface_);
 		}
 	}
-
 }
 
 void KBEngineApp::Client_onAppActiveTickCB()
