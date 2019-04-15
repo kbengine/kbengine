@@ -116,18 +116,18 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos, 
+int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
 	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
-	if(iter == navmeshLayer.end())
+	if (iter == navmeshLayer.end())
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n",  layer));
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n", layer));
 		return NAV_ERROR;
 	}
 
 	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
-	
+
 	dtQueryFilter filter;
 	filter.setIncludeFlags(0xffff);
 	filter.setExcludeFlags(0);
@@ -135,13 +135,13 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	if (maxRadius <= 0.0001f)
 	{
 		Position3D currpos;
-		
+
 		for (uint32 i = 0; i < max_points; i++)
 		{
 			float pt[3];
 			dtPolyRef ref;
 			dtStatus status = navmeshQuery->findRandomPoint(&filter, frand, &ref, pt);
-			
+
 			if (dtStatusSucceed(status))
 			{
 				currpos.x = pt[0];
@@ -154,8 +154,8 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 
 		return (int)points.size();
 	}
-	
-	const float extents[3] = {2.f, 4.f, 2.f};
+
+	const float extents[3] = { 2.f, 4.f, 2.f };
 
 	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
 
@@ -172,6 +172,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle({1}): Could not find any nearby poly's ({0})\n", startRef, resPath));
 		return NAV_ERROR_NEARESTPOLY;
 	}
+
 	const float squareSize = (float)maxRadius;
 	float squareVerts[12] = {
 		spos[0] - squareSize, spos[1], spos[2] + squareSize,\
@@ -185,8 +186,9 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	dtPolyRef parentPolyRefs[maxResult];
 	int polyCount = 0;
 	float cost[maxResult];
+
 	navmeshQuery->findPolysAroundShape(startRef, squareVerts, 4, &filter, polyRefs, parentPolyRefs, cost, &polyCount, maxResult);
-	
+
 	if (polyCount == 0)
 	{
 		return (int)points.size();
@@ -200,7 +202,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 		const dtPoly* randomPoly = 0;
 		dtPolyRef randomPolyRef = 0;
 		float areaSum = 0.0f;
-		
+
 		for (int i = 0; i < polyCount; i++)
 		{
 			float polyArea = 0.0f;
@@ -211,9 +213,9 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 				const dtPoly* poly = 0;
 				dtPolyRef ref = polyRefs[i];
 				navmeshQuery->getAttachedNavMesh()->getTileAndPolyByRefUnsafe(ref, &tile, &poly);
-				
+
 				if (poly->getType() != DT_POLYTYPE_GROUND) continue;
-				
+
 				// Place random locations on on ground.
 				if (poly->getType() == DT_POLYTYPE_GROUND)
 				{
@@ -225,11 +227,11 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 						const float* vc = &tile->verts[poly->verts[j] * 3];
 						polyArea += dtTriArea2D(va, vb, vc);
 					}
-					
+
 					allPolyAreas[i] = polyArea;
 					areaSum += polyArea;
 					const float u = frand();
-					
+
 					if (u*areaSum <= polyArea)
 					{
 						randomTile = tile;
@@ -238,7 +240,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 					}
 				}
 			}
-			else 
+			else
 			{
 				// Choose random polygon weighted by area, using reservoi sampling.
 				areaSum += allPolyAreas[i];
@@ -250,33 +252,39 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 					const dtPoly* poly = 0;
 					dtPolyRef ref = polyRefs[i];
 					navmeshQuery->getAttachedNavMesh()->getTileAndPolyByRefUnsafe(ref, &tile, &poly);
-					
+
 					if (poly->getType() != DT_POLYTYPE_GROUND) continue;
-					
+
 					randomTile = tile;
 					randomPoly = poly;
 					randomPolyRef = ref;
 				}
 			}
 		}
-		
+
 		// Randomly pick point on polygon.
 		dtPolyRef randomRef = INVALID_NAVMESH_POLYREF;
 		const float* v = &randomTile->verts[randomPoly->verts[0] * 3];
 		float verts[3 * DT_VERTS_PER_POLYGON];
 		float areas[DT_VERTS_PER_POLYGON + 4];
 		dtVcopy(&verts[0 * 3], v);
-		
+
 		for (int j = 1; j < randomPoly->vertCount; ++j)
 		{
 			v = &randomTile->verts[randomPoly->verts[j] * 3];
 			dtVcopy(&verts[j * 3], v);
 		}
-		
+
 		float overlapPolyVerts[(DT_VERTS_PER_POLYGON + 4) * 3];
-		int nOverlapPolyVerts;
+		int nOverlapPolyVerts = 0;
+
 		getOverlapPolyPoly2D(squareVerts, 4, verts, randomPoly->vertCount, overlapPolyVerts, &nOverlapPolyVerts);
-		if (nOverlapPolyVerts <= 0) return (int)points.size();
+
+		if (nOverlapPolyVerts <= 0)
+		{
+			delete[] allPolyAreas;
+			return (int)points.size();
+		}
 
 		const float s = frand();
 		const float t = frand();
@@ -285,13 +293,13 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 
 		float h = 0.0f;
 		dtStatus status = navmeshQuery->getPolyHeight(randomPolyRef, pt, &h);
-		
+
 		if (dtStatusFailed(status))
 		{
 			delete[] allPolyAreas;
 			return (int)points.size();
 		}
-		
+
 		pt[1] = h;
 		randomRef = randomPolyRef;
 
@@ -305,17 +313,19 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 			float xx = centerPos.x - currpos.x;
 			float yy = centerPos.y - currpos.y;
 			float dist_len = sqrt(xx * xx + yy * yy);
-			
+
 			if (dist_len > src_len)
 			{
-				ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle::(Out of range)::centerPos({},{},{}), currpos({},{},{}), errLen({}), {}, {}\n", centerPos.x, centerPos.y, centerPos.z, currpos.x, currpos.y, currpos.z, (dist_len - src_len), dist_len, src_len));
-				continue;	
+				ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle::(Out of range)::centerPos({},{},{}), currpos({},{},{}), errLen({}), {}, {}\n", 
+					centerPos.x, centerPos.y, centerPos.z, currpos.x, currpos.y, currpos.z, (dist_len - src_len), dist_len, src_len));
+
+				continue;
 			}
-			
+
 			points.push_back(currpos);
 		}
 	}
-	
+
 	delete[] allPolyAreas;
 
 	return (int)points.size();
@@ -665,7 +675,6 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 }
 
 //-------------------------------------------------------------------------------------
-
 inline float calAtan(float* srcPoint, float* point)
 {
 	return atan2(point[2] - srcPoint[2], point[0] - srcPoint[0]);
@@ -818,6 +827,8 @@ bool NavMeshHandle::isSegSegCross2D(const float* p1, const float *p2, const floa
 
 	return true;
 }
+
+//-------------------------------------------------------------------------------------
 
 }
 

@@ -216,10 +216,15 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) << (int)inheritEngineModuleType;
 	(*pMemoryStream) << (int)type;
 
-	(*pMemoryStream) << (int)methods.size();
-	std::vector< DefContext >::iterator methodsIter = methods.begin();
-	for (; methodsIter != methods.end(); ++methodsIter)
-		(*methodsIter).addToStream(pMemoryStream);
+	(*pMemoryStream) << (int)base_methods.size();
+	std::vector< DefContext >::iterator base_methodsIter = base_methods.begin();
+	for (; base_methodsIter != base_methods.end(); ++base_methodsIter)
+		(*base_methodsIter).addToStream(pMemoryStream);
+
+	(*pMemoryStream) << (int)cell_methods.size();
+	std::vector< DefContext >::iterator cell_methodsIter = cell_methods.begin();
+	for (; cell_methodsIter != cell_methods.end(); ++cell_methodsIter)
+		(*cell_methodsIter).addToStream(pMemoryStream);
 
 	(*pMemoryStream) << (int)client_methods.size();
 	std::vector< DefContext >::iterator client_methodsIter = client_methods.begin();
@@ -232,9 +237,9 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 		(*propertysIter).addToStream(pMemoryStream);
 
 	(*pMemoryStream) << (int)components.size();
-	std::vector< std::string >::iterator componentsIter = components.begin();
+	std::vector< DefContext >::iterator componentsIter = components.begin();
 	for (; componentsIter != components.end(); ++componentsIter)
-		(*pMemoryStream) << (*componentsIter);
+		(*componentsIter).addToStream(pMemoryStream);
 
 	return true;
 }
@@ -308,7 +313,16 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 		DefContext dc;
 		dc.createFromStream(pMemoryStream);
 
-		methods.push_back(dc);
+		base_methods.push_back(dc);
+	}
+
+	(*pMemoryStream) >> size;
+	for (int i = 0; i < size; ++i)
+	{
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
+
+		cell_methods.push_back(dc);
 	}
 
 	(*pMemoryStream) >> size;
@@ -332,10 +346,10 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) >> size;
 	for (int i = 0; i < size; ++i)
 	{
-		std::string str;
-		(*pMemoryStream) >> str;
+		DefContext dc;
+		dc.createFromStream(pMemoryStream);
 
-		components.push_back(str);
+		components.push_back(dc);
 	}
 
 	return true;
@@ -347,15 +361,29 @@ bool DefContext::addChildContext(DefContext& defContext)
 	std::vector< DefContext >* pContexts = NULL;
 
 	if (defContext.type == DefContext::DC_TYPE_PROPERTY)
+	{
 		pContexts = &propertys;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_METHOD)
-		pContexts = &methods;
+	{
+		if(defContext.componentType == BASEAPP_TYPE)
+			pContexts = &base_methods;
+		else
+			pContexts = &cell_methods;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
+	{
 		pContexts = &client_methods;
+		defContext.componentType = CLIENT_TYPE;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
+	{
 		pContexts = &propertys;
+	}
 	else
+	{
 		KBE_ASSERT(false);
+	}
 
 	std::vector< DefContext >::iterator iter = pContexts->begin();
 	for (; iter != pContexts->end(); ++iter)
@@ -445,9 +473,11 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 				DefContext& parentDefContext = fiter->second;
 				std::vector< DefContext > childContexts;
 
-				childContexts.insert(childContexts.end(), parentDefContext.methods.begin(), parentDefContext.methods.end());
+				childContexts.insert(childContexts.end(), parentDefContext.base_methods.begin(), parentDefContext.base_methods.end());
+				childContexts.insert(childContexts.end(), parentDefContext.cell_methods.begin(), parentDefContext.cell_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.client_methods.begin(), parentDefContext.client_methods.end());
 				childContexts.insert(childContexts.end(), parentDefContext.propertys.begin(), parentDefContext.propertys.end());
+				childContexts.insert(childContexts.end(), parentDefContext.components.begin(), parentDefContext.components.end());
 
 				std::vector< DefContext >::iterator itemIter = childContexts.begin();
 				for (; itemIter != childContexts.end(); ++itemIter)
@@ -487,6 +517,7 @@ static bool registerDefContext(DefContext& defContext)
 
 		// 检查作用域是否属于该进程
 		bool flagsGood = true;
+
 		if (defContext.componentType == BASEAPP_TYPE)
 			flagsGood = (stringToEntityDataFlags(defContext.propertyFlags) & ENTITY_BASE_DATA_FLAGS) != 0;
 		else if (defContext.componentType == CELLAPP_TYPE)
@@ -544,10 +575,14 @@ static bool registerDefContext(DefContext& defContext)
 						iter->second.baseClasses.push_back((*bciter));
 					}
 
-					KBE_ASSERT(defContext.methods.size() == 0 && defContext.client_methods.size() == 0 && defContext.components.size() == 0 && defContext.propertys.size() == 0);
+					KBE_ASSERT(defContext.base_methods.size() == 0 && 
+						defContext.cell_methods.size() == 0 &&  
+						defContext.client_methods.size() == 0 && 
+						defContext.components.size() == 0 && 
+						defContext.propertys.size() == 0);
+
 					if (defContext.hasClient)
 						iter->second.hasClient = true;
-
 				}
 
 				// 脚本对象强制设置为当前进程的对象
@@ -1049,33 +1084,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	{
 		defContext.isModuleScope = true;
 
-		static char * keywords[] =
+		if (PyObject_HasAttrString(pyFunc, "createObjFromDict") && PyObject_HasAttrString(pyFunc, "getDictFromObj") && PyObject_HasAttrString(pyFunc, "isSameType"))
 		{
-			const_cast<char *> ("implementedBy"),
-			NULL
-		};
-
-		PyObject* pImplementedBy = NULL;
-
-		if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
-			keywords, &pImplementedBy))
-		{
-			PY_RETURN_ERROR;
-		}
-
-		if (pImplementedBy)
-		{
-			if (isRefEntityDefModule(pImplementedBy))
-			{
-				if (std::string(PyUnicode_AsUTF8AndSize(pImplementedBy, NULL)) == "thisClass")
-				{
-					defContext.implementedBy = pyFunc;
-				}
-			}
-			else
-			{
-				defContext.implementedBy = pImplementedBy;
-			}
+			defContext.implementedBy = pyFunc;
 
 			PyObject* pyQualname = PyObject_GetAttrString(defContext.implementedBy.get(), "__qualname__");
 			if (!pyQualname)
@@ -1439,12 +1450,10 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 	static PyObject* __py_def_##NAME(PyObject* self, PyObject* args, PyObject* kwargs)	\
 	{	\
 		CallContext cc;	\
-		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));	\
-		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);	\
+		cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);	\
+		cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);	\
 		cc.optionName = #NAME;	\
 		g_callContexts.push(cc);	\
-		Py_XDECREF(cc.pyArgs.get());	\
-		Py_XDECREF(cc.pyKwargs.get());	\
 		\
 		return PyCFunction_New(&__call_def_parse, self);	\
 	}
@@ -1452,12 +1461,9 @@ static PyMethodDef __call_def_parse = { "_PyEntityDefParse", (PyCFunction)&__py_
 static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	CallContext cc;
-	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
-	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);
+	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);
 	cc.optionName = "rename";
-		
-	Py_XDECREF(cc.pyArgs.get());
-	Py_XDECREF(cc.pyKwargs.get());
 
 	// 类似这种定义方式 EntityDef.rename(ENTITY_ID=EntityDef.INT32)
 	if (kwargs)
@@ -1551,12 +1557,9 @@ static PyObject* __py_def_rename(PyObject* self, PyObject* args, PyObject* kwarg
 static PyObject* __py_def_fixed_array(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	CallContext cc;
-	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args));
-	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs)) : PyObjectPtr(NULL);
+	cc.pyArgs = PyObjectPtr(Copy::deepcopy(args), PyObjectPtr::STEAL_REF);
+	cc.pyKwargs = kwargs ? PyObjectPtr(Copy::deepcopy(kwargs), PyObjectPtr::STEAL_REF) : PyObjectPtr(NULL);
 	cc.optionName = "fixed_array";
-
-	Py_XDECREF(cc.pyArgs.get());
-	Py_XDECREF(cc.pyKwargs.get());
 
 	// 类似这种定义方式 EntityDef.fixed_array(XXArray=EntityDef.INT32)
 	if (kwargs)
@@ -2097,7 +2100,10 @@ static bool registerVolatileInfo(ScriptDefModule* pScriptModule, DefContext& def
 //-------------------------------------------------------------------------------------
 static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
-	DefContext::DEF_CONTEXTS& methods = defContext.methods;
+	DefContext::DEF_CONTEXTS methods;
+	methods.insert(methods.end(), defContext.base_methods.begin(), defContext.base_methods.end());
+	methods.insert(methods.end(), defContext.cell_methods.begin(), defContext.cell_methods.end());
+	methods.insert(methods.end(), defContext.client_methods.begin(), defContext.client_methods.end());
 
 	DefContext::DEF_CONTEXTS::iterator iter = methods.begin();
 	for (; iter != methods.end(); ++iter)
@@ -2120,6 +2126,14 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 				if (!defMethodContext.exposed)
 				{
 					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, but the method is not exposed! is {}.{}(arg={}), file: \"{}\"!\n",
+						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
+
+					return false;
+				}
+
+				if (defMethodContext.componentType != CELLAPP_TYPE)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerDefMethods: arg1 is Def.CallerID, only the cell method supports this parameter.! is {}.{}(arg={}), file: \"{}\"!\n",
 						pScriptModule->getName(), defMethodContext.attrName.c_str(), argName, defMethodContext.pyObjectSourceFile));
 
 					return false;
@@ -2213,7 +2227,7 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 	}
 
 	// 除了这几个进程以外，其他进程不需要根据方法检测脚本的正确性
-	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 	{
 		if (!EntityDef::checkDefMethod(pScriptModule, defContext.pyObjectPtr.get(), defContext.moduleName))
 		{
@@ -2285,7 +2299,7 @@ static bool registerDefPropertys(ScriptDefModule* pScriptModule, DefContext& def
 		if (hasBaseFlags <= 0 && hasCellFlags <= 0)
 		{
 			ERROR_MSG(fmt::format("PyEntityDef::registerDefPropertys: not fount flags[{}], is {}.{}, file: \"{}\"!\n",
-				defPropContext.propertyFlags, pScriptModule->getName(), defPropContext.pyObjectSourceFile));
+				defPropContext.propertyFlags, pScriptModule->getName(), name.c_str(), defPropContext.pyObjectSourceFile));
 
 			return false;
 		}
@@ -2528,13 +2542,13 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 	}
 
 	// 加载组件描述， 并将他们的方法和属性加入到模块中
-	if (!registerDefComponents(pScriptModule, defContext))
-	{
-		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
-			pScriptModule->getName()));
+	//if (!registerDefComponents(pScriptModule, defContext))
+	//{
+	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
+	//		pScriptModule->getName()));
 
-		return false;
-	}
+	//	return false;
+	//}
 
 	// 尝试加载detailLevelInfo数据
 	if (!registerDetailLevelInfo(pScriptModule, defContext))
@@ -2555,7 +2569,7 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 	}
 
 	// 除了这几个进程以外，其他进程不需要访问脚本
-	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == CLIENT_TYPE)
+	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 	{
 		PyObject* pyClass = defContext.pyObjectPtr.get();
 		if (pyClass)
@@ -2590,6 +2604,53 @@ static bool registerEntityDefs()
 
 		if (defContext.type != DefContext::DC_TYPE_ENTITY)
 			continue;
+
+		// 如果是bots类型，需要将脚本类设置为程序环境的类
+		// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
+		if ((g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE) && defContext.hasClient)
+		{
+			PyObject* pyModule = EntityDef::loadScriptModule(defContext.moduleName);
+
+			if (!pyModule)
+			{
+				SCRIPT_ERROR_CHECK();
+				return false;
+			}
+
+			PyObject* pyClass =
+				PyObject_GetAttrString(pyModule, const_cast<char *>(defContext.moduleName.c_str()));
+
+			if (pyClass == NULL)
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: Could not find EntityClass[{}]\n",
+					defContext.moduleName.c_str()));
+
+				return false;
+			}
+			else
+			{
+				std::string typeNames = EntityDef::isSubClass(pyClass);
+
+				if (typeNames.size() > 0)
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: registerEntityDefs {} is not derived from KBEngine.[{}]\n",
+						defContext.moduleName.c_str(), typeNames.c_str()));
+
+					return false;
+				}
+			}
+
+			if (!PyType_Check(pyClass))
+			{
+				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDefs: EntityClass[{}] is valid!\n",
+					defContext.moduleName.c_str()));
+
+				return false;
+			}
+
+			defContext.pyObjectPtr = PyObjectPtr(pyClass, PyObjectPtr::STEAL_REF);
+			Py_DECREF(pyModule);
+		}
 
 		ScriptDefModule* pScriptModule = EntityDef::registerNewScriptDefModule(defContext.moduleName);
 
@@ -2639,15 +2700,6 @@ bool initialize()
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
 			INDEX, INDEX));
-
-		return false;
-	}
-
-	static const char* thisClass = "thisClass";
-	if (PyModule_AddStringConstant(entitydefModule, thisClass, thisClass))
-	{
-		ERROR_MSG(fmt::format("PyEntityDef::initialize(): Unable to set EntityDef.{} to {}\n",
-			thisClass, thisClass));
 
 		return false;
 	}

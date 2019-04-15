@@ -67,21 +67,23 @@ namespace KBEngine {
 		std::map<int, NavmeshLayer> navmeshLayer;
 
 	private:
-		/// Derives overlap polygon of two polygon on the xz-plane.
-	/// @param[in]		polyVertsA		Vertices of polygon A.
-	/// @param[in]		nPolyVertsA		Vertices number of polygon A.
-	/// @param[in]		polyVertsB		Vertices of polygon B.
-	/// @param[in]		nPolyVertsB		Vertices number of polygon B.
-	/// @param[out]		intsectPt		Vertices of overlap polygon.
-	///	@param[out]		intsectPtCount	Vertices number of overlap polygon.
+		/* Derives overlap polygon of two polygon on the xz-plane.
+			@param[in]		polyVertsA		Vertices of polygon A.
+			@param[in]		nPolyVertsA		Vertices number of polygon A.
+			@param[in]		polyVertsB		Vertices of polygon B.
+			@param[in]		nPolyVertsB		Vertices number of polygon B.
+			@param[out]		intsectPt		Vertices of overlap polygon.
+			@param[out]		intsectPtCount	Vertices number of overlap polygon.
+		*/
 		void getOverlapPolyPoly2D(const float* polyVertsA, const int nPolyVertsA, const float* polyVertsB, const int nPolyVertsB, float* intsectPt, int* intsectPtCount);
 
-		/// Sort vertices to clockwise.
+		/* Sort vertices to clockwise. */
 		void clockwiseSortPoints(float* verts, const int nVerts);
 
-		///Determines if two segment cross on xz-plane.
+		/* Determines if two segment cross on xz-plane. */
 		bool isSegSegCross2D(const float* p1, const float *p2, const float* q1, const float* q2);
-	};
+};
 
 }
+
 #endif // KBE_NAVIGATEMESHHANDLE_H

@@ -359,7 +359,7 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 		return false;
 	}
 	
-	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
+	// 遍历所有的component， 并将组件属性加入到模块中
 	if (!loadComponents(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
 		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} component.\n",
@@ -2224,6 +2224,34 @@ ERASE_PROPERTYS:
 }
 
 //-------------------------------------------------------------------------------------
+std::string EntityDef::isSubClass(PyObject* pyClass)
+{
+	std::string typeNames = "";
+	bool valid = false;
+
+	std::vector<PyTypeObject*>::iterator iter = __scriptBaseTypes.begin();
+	for (; iter != __scriptBaseTypes.end(); ++iter)
+	{
+		if (!PyObject_IsSubclass(pyClass, (PyObject *)(*iter)))
+		{
+			typeNames += "'";
+			typeNames += (*iter)->tp_name;
+			typeNames += "'";
+		}
+		else
+		{
+			valid = true;
+			break;
+		}
+	}
+
+	if (!valid)
+		return typeNames;
+
+	return "";
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityDef::loadAllEntityScriptModules(std::string entitiesPath,
 									std::vector<PyTypeObject*>& scriptBaseTypes)
 {
@@ -2286,25 +2314,9 @@ bool EntityDef::loadAllEntityScriptModules(std::string entitiesPath,
 		}
 		else 
 		{
-			std::string typeNames = "";
-			bool valid = false;
-			std::vector<PyTypeObject*>::iterator iter = scriptBaseTypes.begin();
-			for(; iter != scriptBaseTypes.end(); ++iter)
-			{
-				if(!PyObject_IsSubclass(pyClass, (PyObject *)(*iter)))
-				{
-					typeNames += "'";
-					typeNames += (*iter)->tp_name;
-					typeNames += "'";
-				}
-				else
-				{
-					valid = true;
-					break;
-				}
-			}
-			
-			if(!valid)
+			std::string typeNames = isSubClass(pyClass);
+
+			if(typeNames.size() > 0)
 			{
 				ERROR_MSG(fmt::format("EntityDef::initialize: EntityClass {} is not derived from KBEngine.[{}]\n",
 					moduleName.c_str(), typeNames.c_str()));

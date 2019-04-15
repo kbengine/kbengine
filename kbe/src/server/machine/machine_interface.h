@@ -77,6 +77,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									int32,							uid, 
 									std::string,					username,
 									uint16,							finderRecvPort)
+
+	MACHINE_MESSAGE_DECLARE_ARGS6(queryComponentID,					NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_TYPE,					componentType,
+									COMPONENT_ID,					componentID,
+									int32,							uid,
+									uint16,							finderRecvPort,
+									int,							macMD5,
+									int32,							pid)
 	// Ä³appÖ÷¶¯ÇëÇólook¡£
 	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							NETWORK_FIXED_MESSAGE)
 

@@ -13,21 +13,21 @@ from . import Define, MessageStream, ServerApp
 CONSOLE_PROFILECB_MSGID = 65503
 
 # ComponentStatus数据类型定义
-ComponentStatus_VALUE_TYPE_UNKNOWN        = 0
-ComponentStatus_VALUE_TYPE_UINT8          = 1
-ComponentStatus_VALUE_TYPE_UINT16         = 2
-ComponentStatus_VALUE_TYPE_UINT32         = 3
-ComponentStatus_VALUE_TYPE_UINT64         = 4
-ComponentStatus_VALUE_TYPE_INT8           = 5
-ComponentStatus_VALUE_TYPE_INT16          = 6
-ComponentStatus_VALUE_TYPE_INT32          = 7
-ComponentStatus_VALUE_TYPE_INT64          = 8
-ComponentStatus_VALUE_TYPE_FLOAT          = 9
-ComponentStatus_VALUE_TYPE_DOUBLE         = 10
-ComponentStatus_VALUE_TYPE_CHAR           = 11
-ComponentStatus_VALUE_TYPE_STRING         = 12
-ComponentStatus_VALUE_TYPE_BOOL           = 13
-ComponentStatus_VALUE_TYPE_COMPONENT_TYPE = 14
+ComponentStatus_VALUE_TYPE_UNKNOWN			= 0
+ComponentStatus_VALUE_TYPE_UINT8			= 1
+ComponentStatus_VALUE_TYPE_UINT16			= 2
+ComponentStatus_VALUE_TYPE_UINT32			= 3
+ComponentStatus_VALUE_TYPE_UINT64			= 4
+ComponentStatus_VALUE_TYPE_INT8				= 5
+ComponentStatus_VALUE_TYPE_INT16			= 6
+ComponentStatus_VALUE_TYPE_INT32			= 7
+ComponentStatus_VALUE_TYPE_INT64			= 8
+ComponentStatus_VALUE_TYPE_FLOAT			= 9
+ComponentStatus_VALUE_TYPE_DOUBLE			= 10
+ComponentStatus_VALUE_TYPE_CHAR				= 11
+ComponentStatus_VALUE_TYPE_STRING			= 12
+ComponentStatus_VALUE_TYPE_BOOL				= 13
+ComponentStatus_VALUE_TYPE_COMPONENT_TYPE	= 14
 
 CMD_ID_queryAppsLoads = {
 	Define.BASEAPPMGR_TYPE : 50001,

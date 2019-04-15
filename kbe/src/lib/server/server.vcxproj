@@ -182,6 +182,7 @@
     <ClCompile Include="components.cpp" />
     <ClCompile Include="entity_app.cpp" />
     <ClCompile Include="forward_messagebuffer.cpp" />
+    <ClCompile Include="id_component_querier.cpp" />
     <ClCompile Include="globaldata_client.cpp" />
     <ClCompile Include="globaldata_server.cpp" />
     <ClCompile Include="idallocate.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="components.h" />
     <ClInclude Include="entity_app.h" />
     <ClInclude Include="forward_messagebuffer.h" />
+    <ClInclude Include="id_component_querier.h" />
     <ClInclude Include="globaldata_client.h" />
     <ClInclude Include="globaldata_server.h" />
     <ClInclude Include="idallocate.h" />
