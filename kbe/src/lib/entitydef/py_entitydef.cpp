@@ -364,6 +364,10 @@ bool DefContext::addChildContext(DefContext& defContext)
 	{
 		pContexts = &propertys;
 	}
+	else if (defContext.type == DefContext::DC_TYPE_COMPONENT_PROPERTY)
+	{
+		pContexts = &components;
+	}
 	else if (defContext.type == DefContext::DC_TYPE_METHOD)
 	{
 		if(defContext.componentType == BASEAPP_TYPE)
@@ -414,6 +418,7 @@ static bool assemblyContexts(bool notfoundModuleError = false)
 		DefContext& defContext = iter->second;
 
 		if (defContext.type == DefContext::DC_TYPE_PROPERTY ||
+			defContext.type == DefContext::DC_TYPE_COMPONENT_PROPERTY ||
 			defContext.type == DefContext::DC_TYPE_METHOD ||
 			defContext.type == DefContext::DC_TYPE_CLIENT_METHOD ||
 			defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
@@ -507,10 +512,10 @@ static bool registerDefContext(DefContext& defContext)
 
 	if (defContext.type == DefContext::DC_TYPE_PROPERTY)
 	{
-		if(!EntityDef::validDefPropertyName(name))
+		if(!EntityDef::validDefPropertyName(defContext.attrName))
 		{
-			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s' is limited!\n\n",
-				defContext.optionName.c_str(), name.c_str());
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
 
 			return false;
 		}
@@ -535,13 +540,41 @@ static bool registerDefContext(DefContext& defContext)
 			return false;
 		}
 	}
+	else if (defContext.type == DefContext::DC_TYPE_COMPONENT_PROPERTY)
+	{
+		if (!EntityDef::validDefPropertyName(defContext.attrName))
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
+
+			return false;
+		}
+
+		name += "." + defContext.attrName;
+	}
 	else if(defContext.type == DefContext::DC_TYPE_METHOD ||
 		defContext.type == DefContext::DC_TYPE_CLIENT_METHOD)
 	{
+		if (!EntityDef::validDefPropertyName(defContext.attrName))
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
+
+			return false;
+		}
+
 		name += "." + defContext.attrName;
 	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 	{
+		if (!EntityDef::validDefPropertyName(defContext.attrName))
+		{
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
+
+			return false;
+		}
+
 		name += "." + defContext.attrName;
 	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ARRAY ||
@@ -675,7 +708,11 @@ static bool onDefInterface(DefContext& defContext)
 //-------------------------------------------------------------------------------------
 static bool onDefComponent(DefContext& defContext)
 {
-	defContext.type = DefContext::DC_TYPE_COMPONENT;
+	if (defContext.isModuleScope)
+		defContext.type = DefContext::DC_TYPE_COMPONENT;
+	else
+		defContext.type = DefContext::DC_TYPE_COMPONENT_PROPERTY;
+
 	return registerDefContext(defContext);
 }
 
@@ -1078,7 +1115,40 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else if (defContext.optionName == "component")
 	{
-		defContext.isModuleScope = true;
+		if (PyFunction_Check(pyFunc))
+		{
+			defContext.isModuleScope = false;
+
+			static char * keywords[] =
+			{
+				const_cast<char *> ("persistent"),
+				NULL
+			};
+
+			PyObject* pyPersistent = NULL;
+
+			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
+				keywords, &pyPersistent))
+			{
+				PY_RETURN_ERROR;
+			}
+
+			if (pyPersistent && !PyBool_Check(pyPersistent))
+			{
+				PyErr_Format(PyExc_AssertionError, "EntityDef.%s: \'persistent\' error! not a bool type.\n", defContext.optionName.c_str());
+				PY_RETURN_ERROR;
+			}
+
+			// 如果是组件属性，默认应该是不存储的
+			defContext.persistent = false;
+
+			if (pyPersistent)
+				defContext.persistent = pyPersistent == Py_True;
+		}
+		else
+		{
+			defContext.isModuleScope = true;
+		}
 	}
 	else if (defContext.optionName == "fixed_dict")
 	{
@@ -2380,10 +2450,10 @@ static bool registerDefPropertys(ScriptDefModule* pScriptModule, DefContext& def
 //-------------------------------------------------------------------------------------
 static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& defContext)
 {
-	DefContext::DEF_CONTEXTS& propertys = defContext.propertys;
+	DefContext::DEF_CONTEXTS& components = defContext.components;
 
-	DefContext::DEF_CONTEXTS::iterator iter = propertys.begin();
-	for (; iter != propertys.end(); ++iter)
+	DefContext::DEF_CONTEXTS::iterator iter = components.begin();
+	for (; iter != components.end(); ++iter)
 	{
 		DefContext& defPropContext = (*iter);
 
@@ -2457,7 +2527,7 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		}
 
 		// 注册属性描述
-		if (!registerDefPropertys(pScriptModule, defContext))
+		if (!registerDefPropertys(pCompScriptDefModule, defContext))
 		{
 			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to registerDefPropertys(), entity:{}\n",
 				pScriptModule->getName()));
@@ -2466,7 +2536,7 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		}
 
 		// 注册方法描述
-		if(!registerDefMethods(pScriptModule, defContext))
+		if(!registerDefMethods(pCompScriptDefModule, defContext))
 		{
 			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to registerDefMethods(), entity:{}\n",
 				pScriptModule->getName()));
@@ -2475,18 +2545,9 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		}
 
 		// 尝试加载detailLevelInfo数据
-		if (!registerDetailLevelInfo(pScriptModule, defContext))
+		if (!registerDetailLevelInfo(pCompScriptDefModule, defContext))
 		{
 			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to register component:{} detailLevelInfo.\n",
-				pScriptModule->getName()));
-
-			return false;
-		}
-
-		// 尝试加载volatileInfo数据
-		if (!registerVolatileInfo(pScriptModule, defContext))
-		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: failed to register component:{} volatileInfo.\n",
 				pScriptModule->getName()));
 
 			return false;
@@ -2541,16 +2602,16 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
-	// 加载组件描述， 并将他们的方法和属性加入到模块中
-	//if (!registerDefComponents(pScriptModule, defContext))
-	//{
-	//	ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
-	//		pScriptModule->getName()));
+	// 注册组件描述， 并将他们的方法和属性加入到模块中
+	if (!registerDefComponents(pScriptModule, defContext))
+	{
+		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to registerDefComponents(), component:{}\n",
+			pScriptModule->getName()));
 
-	//	return false;
-	//}
+		return false;
+	}
 
-	// 尝试加载detailLevelInfo数据
+	// 尝试注册detailLevelInfo数据
 	if (!registerDetailLevelInfo(pScriptModule, defContext))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to register entity:{} detailLevelInfo.\n",
@@ -2559,7 +2620,7 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 		return false;
 	}
 
-	// 尝试加载volatileInfo数据
+	// 尝试注册volatileInfo数据
 	if (!registerVolatileInfo(pScriptModule, defContext))
 	{
 		ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: failed to register entity:{} volatileInfo.\n",
