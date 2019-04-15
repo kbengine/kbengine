@@ -111,12 +111,12 @@ void UKBEMain::deregisterEvents()
 
 void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
 {
-	dealVersionNotMatch();
+	handVersionNotMatch();
 }
 
 void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
 {
-	dealVersionNotMatch();
+	handVersionNotMatch();
 }
 
 bool UKBEMain::isUpdateSDK()
