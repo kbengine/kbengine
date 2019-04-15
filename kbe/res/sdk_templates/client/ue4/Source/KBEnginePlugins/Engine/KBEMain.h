@@ -63,7 +63,7 @@ public:
 	void onDownloadSDK(const UKBEventData* pEventData);
 	void onImportClientSDKSuccessfully(const UKBEventData* pEventData);
 
-	void dealVersionNotMatch();
+	void handVersionNotMatch();
 	void showPromptMessageOfCompile();
 
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
@@ -146,6 +146,6 @@ public:
 	static bool hasUpdateSDK;
 	
 	TSharedPtr<class SClientSDKUpdateUI> ClientSDKUpdateUI;
-	TSharedPtr<class SShowPromptMessageUI>ShowPromptMessageUI;
+	TSharedPtr<class SShowPromptMessageUI> ShowPromptMessageUI;
 
 };

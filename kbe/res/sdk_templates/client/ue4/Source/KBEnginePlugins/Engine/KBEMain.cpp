@@ -148,6 +148,7 @@ void UKBEMain::downloadSDKFromServer()
 		{
 			ClientSDKUpdateUI->SetVisibility(EVisibility::Visible);
 		}
+
 		hasUpdateSDK = true;
 	}
 }
@@ -269,7 +270,7 @@ bool UKBEMain::createAccount(FString username, FString password, const TArray<ui
 	return true;
 }
 
-void UKBEMain::dealVersionNotMatch()
+void UKBEMain::handVersionNotMatch()
 {
 	if (hasUpdateSDK) 
 	{
