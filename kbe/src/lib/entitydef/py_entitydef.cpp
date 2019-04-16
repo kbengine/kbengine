@@ -1164,6 +1164,24 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 		else
 		{
 			defContext.isModuleScope = true;
+
+			PyObject* pyHasClient = NULL;
+
+			static char * keywords[] =
+			{
+				const_cast<char *> ("hasClient"),
+				NULL
+			};
+
+			PyObject* pyPersistent = NULL;
+
+			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
+				keywords, &pyHasClient))
+			{
+				PY_RETURN_ERROR;
+			}
+
+			defContext.hasClient = pyHasClient == Py_True;
 		}
 	}
 	else if (defContext.optionName == "fixed_dict")
@@ -2087,6 +2105,7 @@ static bool sortFun(const DefContext* def1, const DefContext* def2)
 	return def1->order < def2->order;
 }
 
+//-------------------------------------------------------------------------------------
 static bool updateScript(DefContext& defContext)
 {
 	PyObject* pyModule = EntityDef::loadScriptModule(defContext.moduleName);
@@ -2134,6 +2153,33 @@ static bool updateScript(DefContext& defContext)
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
+static void autosetHasClient(DefContext& defContext)
+{
+	if (!defContext.hasClient)
+	{
+		if (defContext.client_methods.size() > 0)
+		{
+			defContext.hasClient = true;
+		}
+		else
+		{
+			DefContext::DEF_CONTEXTS propertys = defContext.propertys;
+			DefContext::DEF_CONTEXTS::iterator clientpropIter = propertys.begin();
+
+			for (; clientpropIter != propertys.end(); ++clientpropIter)
+			{
+				if (((uint32)stringToEntityDataFlags(((*clientpropIter).propertyFlags)) & ENTITY_CLIENT_DATA_FLAGS) > 0)
+				{
+					defContext.hasClient = true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 static bool registerDefTypes()
 {
 	std::vector< DefContext* > defContexts;
@@ -2589,33 +2635,13 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 			continue;
 		}
 
+		autosetHasClient(*pDefPropTypeContext);
+
 		// 除了这几个进程以外，其他进程不需要访问脚本
 		if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 		{
 			// 如果是bots类型，需要将脚本类设置为程序环境的类
 			// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
-			if (!pDefPropTypeContext->hasClient)
-			{
-				if (pDefPropTypeContext->client_methods.size() > 0)
-				{
-					pDefPropTypeContext->hasClient = true;
-				}
-				else
-				{
-					DefContext::DEF_CONTEXTS propertys = pDefPropTypeContext->propertys;
-					DefContext::DEF_CONTEXTS::iterator clientpropIter = propertys.begin();
-
-					for (; clientpropIter != propertys.end(); ++clientpropIter)
-					{
-						if (((uint32)stringToEntityDataFlags(((*clientpropIter).propertyFlags)) & ENTITY_CLIENT_DATA_FLAGS) > 0)
-						{
-							pDefPropTypeContext->hasClient = true;
-							break;
-						}
-					}
-				}
-			}
-
 			if ((g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE) && pDefPropTypeContext->hasClient)
 			{
 				if (!updateScript(*pDefPropTypeContext))
@@ -2777,6 +2803,10 @@ static bool registerEntityDefs()
 
 		if (defContext.type != DefContext::DC_TYPE_ENTITY)
 			continue;
+
+		// 根据是否包含客户端属性或者方法决定是否这个实体拥有客户端部分
+		// hasClient=True也可以强制指定拥有客户端部分
+		// autosetHasClient(defContext);
 
 		// 如果是bots类型，需要将脚本类设置为程序环境的类
 		// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
