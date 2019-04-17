@@ -837,7 +837,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		buf.set(new Uint8Array(stream.buffer, offset, size), 0);
 		this.wpos += size;
 	}
-	
+
 	//---------------------------------------------------------------------------------
 	this.readSkip = function(v)
 	{
@@ -910,7 +910,7 @@ KBEngine.MemoryStream.createObject = function()
 {
 	if(KBEngine.MemoryStream._objects == undefined)
 		KBEngine.MemoryStream._objects = [];
-
+  
 	return KBEngine.MemoryStream._objects.length > 0 ? KBEngine.MemoryStream._objects.pop() : new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
 }
 
@@ -3241,19 +3241,11 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				else
 				{
 					var wpos = stream.wpos;
-					var frpos = stream.rpos + msglen;
-					stream.wpos = frpos;
-
+					var rpos = stream.rpos + msglen;
+					stream.wpos = rpos;
 					msgHandler.handleMessage(stream);
-
-					if(msglen > 0 && frpos != stream.rpos)
-					{
-						KBEngine.WARNING_MSG("KBEngineApp::onmessage(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
-						+ frpos + ". msgID=" + app.currMsgID + ", msglen=" + app.currMsgLen);
-					}
-				
 					stream.wpos = wpos;
-					stream.rpos = frpos;
+					stream.rpos = rpos;
 				}
 
 				app.currMsgID = 0;
@@ -4005,7 +3997,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		bundle.writeInt32(KBEngine.app.entity_id);
 		bundle.send(KBEngine.app);
 	}
-
+	
 	this.login_loginapp = function(noconnect)
 	{  
 		if(noconnect)
