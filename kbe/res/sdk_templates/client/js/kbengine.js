@@ -5491,9 +5491,18 @@ KBEngine.KBEngineApp = function(kbengineArgs)
         
 		if(positionChanged)
 		{
-			entity.position.x = isOptimized ? (x + KBEngine.app.entityServerPos.x) : x;
-			entity.position.y = isOptimized ? (y + KBEngine.app.entityServerPos.y) : y;
-			entity.position.z = isOptimized ? (z + KBEngine.app.entityServerPos.z) : z;
+			if(isOptimized)
+			{
+				entity.position.x = x + KBEngine.app.entityServerPos.x;
+				entity.position.y = y + KBEngine.app.entityServerPos.y;
+				entity.position.z = z + KBEngine.app.entityServerPos.z;
+			}
+			else
+			{
+				entity.position.x = x;
+				entity.position.y = y;
+				entity.position.z = z;
+			}
 			
 			done = true;
 			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
