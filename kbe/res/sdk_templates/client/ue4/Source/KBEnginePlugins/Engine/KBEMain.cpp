@@ -9,6 +9,8 @@
 #include "KBDebug.h"
 #include "Entity.h"
 
+bool UKBEMain::hasUpdateSDK = false;
+
 // Sets default values for this component's properties
 UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -104,12 +106,12 @@ void UKBEMain::deregisterEvents()
 
 void UKBEMain::onVersionNotMatch(const UKBEventData* pEventData)
 {
-	downloadSDKFromServer();
+	handVersionNotMatch();
 }
 
 void UKBEMain::onScriptVersionNotMatch(const UKBEventData* pEventData)
 {
-	downloadSDKFromServer();
+	handVersionNotMatch();
 }
 
 bool UKBEMain::isUpdateSDK()
@@ -141,7 +143,8 @@ void UKBEMain::downloadSDKFromServer()
 		{
 			ClientSDKUpdateUI->SetVisibility(EVisibility::Visible);
 		}
-	
+
+		hasUpdateSDK = true;
 	}
 }
 
@@ -260,4 +263,39 @@ bool UKBEMain::createAccount(FString username, FString password, const TArray<ui
 	pEventData->datas = datas;
 	KBENGINE_EVENT_FIRE(KBEngine::KBEventTypes::createAccount, pEventData);
 	return true;
+}
+
+void UKBEMain::handVersionNotMatch()
+{
+	if (hasUpdateSDK) 
+	{
+		showPromptMessageOfCompile();
+	}
+	else
+	{
+		downloadSDKFromServer();
+	}
+}
+
+void UKBEMain::showPromptMessageOfCompile()
+{
+	if (GEngine->IsValidLowLevel())
+	{
+		GEngine->GameViewport->RemoveAllViewportWidgets();
+	}
+	
+	if (hasUpdateSDK) 
+	{
+		ShowPromptMessageUI = SNew(SShowPromptMessageUI);
+
+		if (GEngine->IsValidLowLevel())
+		{
+			GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(ShowPromptMessageUI.ToSharedRef()));
+		}
+
+		if (ShowPromptMessageUI.IsValid())
+		{
+			ShowPromptMessageUI->SetVisibility(EVisibility::Visible);
+		}
+	}
 }

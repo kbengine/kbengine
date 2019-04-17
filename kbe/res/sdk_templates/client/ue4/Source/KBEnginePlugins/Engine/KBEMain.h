@@ -6,6 +6,7 @@
 #include "KBEvent.h"
 #include "ClientSDKUpdater.h"
 #include "ClientSDKUpdateUI.h"
+#include "ShowPromptMessageUI.h"
 #include "Components/ActorComponent.h"
 #include "KBEMain.generated.h"
 
@@ -62,6 +63,8 @@ public:
 	void onDownloadSDK(const UKBEventData* pEventData);
 	void onImportClientSDKSuccessfully(const UKBEventData* pEventData);
 
+	void handVersionNotMatch();
+	void showPromptMessageOfCompile();
 
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
 	static FString getClientVersion();
@@ -131,6 +134,9 @@ public:
 
 	KBEngine::ClientSDKUpdater* pUpdaterObj;
 
+	static bool hasUpdateSDK;
+	
 	TSharedPtr<class SClientSDKUpdateUI> ClientSDKUpdateUI;
+	TSharedPtr<class SShowPromptMessageUI> ShowPromptMessageUI;
 
 };
