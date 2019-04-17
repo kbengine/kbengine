@@ -3241,11 +3241,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				else
 				{
 					var wpos = stream.wpos;
-					var rpos = stream.rpos + msglen;
-					stream.wpos = rpos;
+					var frpos = stream.rpos + msglen;
+					stream.wpos = frpos;
+
 					msgHandler.handleMessage(stream);
+
+					if(msglen > 0 && frpos != stream.rpos)
+					{
+						KBEngine.WARNING_MSG("KBEngineApp::onmessage(" + msgHandler.name + "): rpos(" + stream.rpos + ") invalid, expect="
+						+ frpos + ". msgID=" + app.currMsgID + ", msglen=" + app.currMsgLen);
+					}
+				
 					stream.wpos = wpos;
-					stream.rpos = rpos;
+					stream.rpos = frpos;
 				}
 
 				app.currMsgID = 0;
@@ -5453,19 +5461,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(roll != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.x = KBEngine.int82angle(roll, false);
+			entity.direction.x = isOptimized ? KBEngine.int82angle(roll, false) : roll;
 		}
 
 		if(pitch != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.y = KBEngine.int82angle(pitch, false);
+			entity.direction.y = isOptimized ? KBEngine.int82angle(pitch, false) : pitch;
 		}
 		
 		if(yaw != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.z = KBEngine.int82angle(yaw, false);
+			entity.direction.z = isOptimized ? KBEngine.int82angle(yaw, false) : yaw;
 		}
 		
 		var done = false;
@@ -5479,9 +5487,9 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(x != KBEngine.KBE_FLT_MAX || y != KBEngine.KBE_FLT_MAX || z != KBEngine.KBE_FLT_MAX)
 			positionChanged = true;
 
-		if (x == KBEngine.KBE_FLT_MAX) x = 0.0;
-		if (y == KBEngine.KBE_FLT_MAX) y = 0.0;
-		if (z == KBEngine.KBE_FLT_MAX) z = 0.0;
+		if (x == KBEngine.KBE_FLT_MAX) x = isOptimized ? 0.0 : entity.position.x;
+		if (y == KBEngine.KBE_FLT_MAX) y = isOptimized ? 0.0 : entity.position.y;
+		if (z == KBEngine.KBE_FLT_MAX) z = isOptimized ? 0.0 : entity.position.z;
         
 		if(positionChanged)
 		{
@@ -5497,7 +5505,6 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				entity.position.y = y;
 				entity.position.z = z;
 			}
-			
 			
 			done = true;
 			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
