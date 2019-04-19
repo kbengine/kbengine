@@ -92,6 +92,8 @@ public:
 
 		// ÓÉË­¼ÇÂ¼
 		COMPONENT_ID serverGroupID;
+
+		uint8 isShareDB;
 	};
 
 	KBEServerLogTable(EntityTables* pEntityTables) :

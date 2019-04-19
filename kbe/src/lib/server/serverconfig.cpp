@@ -1079,6 +1079,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
 		}
 
+		node = xml->enterNode(rootNode, "shareDB");
+		if (node != NULL) {
+			_dbmgrInfo.isShareDB = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "account_system");
 		if(node != NULL)
 		{
