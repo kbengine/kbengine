@@ -1448,7 +1448,7 @@ std::vector<EntityComponent*> EntityComponent::getComponents(const std::string& 
 	ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
 	for (; comps_iter != componentDescrs.end(); ++comps_iter)
 	{
-		if (name != comps_iter->second->getName())
+		if (name.size() > 0 && name != comps_iter->second->getName())
 			continue;
 
 		if (g_componentType == BASEAPP_TYPE)
