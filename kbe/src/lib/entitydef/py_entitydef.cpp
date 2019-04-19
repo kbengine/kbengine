@@ -1173,8 +1173,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 				NULL
 			};
 
-			PyObject* pyPersistent = NULL;
-
 			if (!PyArg_ParseTupleAndKeywords(cc.pyArgs.get(), cc.pyKwargs.get(), "|O",
 				keywords, &pyHasClient))
 			{
