@@ -460,7 +460,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 			if(serverlog.serverGroupID == (uint64)getUserUID())
 				continue;
 			
-			if (time(NULL) > serverlog.heartbeatTime + uint64(KBEServerLogTable::TIMEOUT * 2))
+			if ((uint64)time(NULL) > serverlog.heartbeatTime + KBEServerLogTable::TIMEOUT * 2)
 				cids.push_back(serverlog.serverGroupID);
 		}
 
