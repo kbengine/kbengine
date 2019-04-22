@@ -460,7 +460,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 			if(serverlog.serverGroupID == (uint64)getUserUID())
 				continue;
 			
-			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
+			if (time(NULL) > serverlog.heartbeatTime + KBEServerLogTable::TIMEOUT * 2)
 				cids.push_back(serverlog.serverGroupID);
 		}
 
@@ -553,8 +553,8 @@ int KBEServerLogTableMysql::isShareDB(DBInterface * pdbi)
 			bool isOtherServerShareDB = citer->second;
 			if (!isOtherServerShareDB || (isOtherServerShareDB && !isShareDB))
 			{
-				ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface() is{} shared.({})\n", pdbi->name(),
-					isOtherServerShareDB ? "" : " not"));
+				ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}.\n", pdbi->name(),
+					isOtherServerShareDB ? "" : " not", citer->first));
 
 				return -1;
 			}

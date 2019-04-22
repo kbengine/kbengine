@@ -281,7 +281,7 @@
 		<!-- 是否共享数据库
 		    (Whether to share the database)
 		 -->
-		<shareDB> true </shareDB>
+		<shareDB> false </shareDB>
 		
 		<!-- 是否检查defs-MD5
 			(Check whether the defs-MD5) 
