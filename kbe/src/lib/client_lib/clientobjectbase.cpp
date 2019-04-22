@@ -25,6 +25,7 @@ SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			METH_VARARGS,			
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("kbassert",			__py_assert,				METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("player",				__py_getPlayer,				METH_VARARGS,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -1152,6 +1153,21 @@ void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
 client::Entity* ClientObjectBase::pPlayer()
 {
 	return pEntities_->find(entityID_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_getPlayer(PyObject *self, void *args) {
+
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+
+	client::Entity* pEntity = pClientObjectBase->pPlayer();
+	if (pEntity)
+	{
+		Py_INCREF(pEntity);
+		return pEntity;
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

@@ -102,6 +102,8 @@ public:
 		ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
 		return PyLong_FromLong(pClientObjectBase->appID());	
 	}
+
+	static PyObject* __py_getPlayer(PyObject *self, void *args);
 	
 	static PyObject* __py_callback(PyObject* self, PyObject* args);
 	static PyObject* __py_cancelCallback(PyObject* self, PyObject* args);
