@@ -2314,23 +2314,17 @@ PyObject* Entity::pyGetWitnesses()
 		entities.push_back(pEntity);
 	}
 
-	size_t len = entities.size();
-	if (len > 0)
+	int i = 0;
+	PyObject * pTuple = PyTuple_New(entities.size());
+
+	std::vector<Entity*>::const_iterator iter = entities.begin();
+	for (; iter != entities.end(); iter++, i++)
 	{
-		int i = 0;
-
-		PyObject * pTuple = PyTuple_New(len);
-		std::vector<Entity*>::const_iterator iter = entities.begin();
-		for (; iter != entities.end(); iter++, i++)
-		{
-			Py_INCREF(*iter);
-			PyTuple_SET_ITEM(pTuple, i, *iter);
-		}
-
-		return pTuple;
+		Py_INCREF(*iter);
+		PyTuple_SET_ITEM(pTuple, i, *iter);
 	}
 
-	Py_RETURN_NONE;
+	return pTuple;
 }
 
 //-------------------------------------------------------------------------------------
