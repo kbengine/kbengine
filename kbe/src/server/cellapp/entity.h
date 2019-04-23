@@ -252,6 +252,11 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyGetViewRadius);
 	DECLARE_PY_MOTHOD_ARG0(pyGetViewHystArea);
 
+	/**
+		返回观察该实体的所有观察者
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyGetWitnesses);
+
 	/** 
 		当前entity是否为real 
 	*/
