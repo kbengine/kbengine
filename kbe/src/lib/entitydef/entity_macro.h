@@ -1412,7 +1412,7 @@ public:																										\
 		if (currargsSize != 1)																				\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
-				"%s::delTimer: args require 1 args(id|int or \"All\"|str), gived %d! is script[%s].\n",		\
+				"%s::delTimer: args require 1 args(id|int or \"All\"|str), gived %d!\n",					\
 				pobj->scriptName(), currargsSize);															\
 																											\
 			PyErr_PrintEx(0);																				\

@@ -1690,7 +1690,7 @@ PyObject* EntityComponent::pyAddTimer(float interval, float repeat, int32 userAr
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityComponent::pyDelTimer(ScriptID timerID)
+PyObject* EntityComponent::pyDelTimer(PyObject_ptr args)
 {
 	PyObject* pEntity = owner();
 
@@ -1702,6 +1702,52 @@ PyObject* EntityComponent::pyDelTimer(ScriptID timerID)
 		return 0;
 	}
 
+	ScriptID timerID = 0;
+
+	if (args == NULL)
+	{																									
+		PyErr_Format(PyExc_TypeError, 
+			"%s::delTimer: args(id|int or \"All\"|str) error!", 
+			scriptName());																		
+		
+		PyErr_PrintEx(0);																				
+		return PyLong_FromLong(-1);																		
+	}	
+
+	if (PyUnicode_Check(args))
+	{																									
+		if (strcmp(PyUnicode_AsUTF8AndSize(args, NULL), "All") == 0)
+		{																								
+			return PyObject_CallMethod(pEntity, const_cast<char*>("delTimer"),
+				const_cast<char*>("s"), "All");
+		}																								
+		else																							
+		{																								
+			PyErr_Format(PyExc_TypeError, 
+				"%s::delTimer: args not is \"All\"!", 
+				scriptName());																	
+			
+			PyErr_PrintEx(0);																			
+			return PyLong_FromLong(-1);																	
+		}																								
+			
+		return PyLong_FromLong(0);																		
+	}																									
+	else                                                                                                
+	{																								
+		if (!PyLong_Check(args))
+		{																								
+			PyErr_Format(PyExc_TypeError, 
+				"%s::delTimer: args(id|int) error!", 
+				scriptName());																	
+			
+			PyErr_PrintEx(0);																			
+			return PyLong_FromLong(-1);																	
+		}																								
+			
+		timerID = PyLong_AsLong(args);
+	}																									
+		
 	return PyObject_CallMethod(pEntity, const_cast<char*>("delTimer"),
 		const_cast<char*>("I"), timerID);
 }
