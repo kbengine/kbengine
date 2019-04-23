@@ -64,6 +64,7 @@ SCRIPT_METHOD_DECLARE("entitiesInView",				pyEntitiesInView,				METH_VARARGS,			
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugView",					pyDebugView,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getWitnesses",				pyGetWitnesses,					METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -2458,6 +2459,53 @@ float Entity::getViewRadius(void) const
 PyObject* Entity::pyGetViewRadius()
 {
 	return PyFloat_FromDouble(getViewRadius());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetWitnesses()
+{
+	std::vector<Entity*> entities;
+
+	std::list<ENTITY_ID>::iterator witer = witnesses_.begin();
+	for (; witer != witnesses_.end(); ++witer)
+	{
+		Entity* pEntity = Cellapp::getSingleton().findEntity((*witer));
+		if (pEntity == NULL || pEntity->pWitness() == NULL)
+			continue;
+
+		EntityCall* clientEntityCall = pEntity->clientEntityCall();
+		if (clientEntityCall == NULL)
+			continue;
+
+		Network::Channel* pChannel = clientEntityCall->getChannel();
+		if (pChannel == NULL)
+			continue;
+
+		// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+		// 又如自己的entity还未在目标客户端上创建
+		if (!pEntity->pWitness()->entityInView(id()))
+			continue;
+
+		entities.push_back(pEntity);
+	}
+
+	size_t len = entities.size();
+	if (len > 0)
+	{
+		int i = 0;
+
+		PyObject * pTuple = PyTuple_New(len);
+		std::vector<Entity*>::const_iterator iter = entities.begin();
+		for (; iter != entities.end(); iter++, i++)
+		{
+			Py_INCREF(*iter);
+			PyTuple_SET_ITEM(pTuple, i, *iter);
+		}
+
+		return pTuple;
+	}
+
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
