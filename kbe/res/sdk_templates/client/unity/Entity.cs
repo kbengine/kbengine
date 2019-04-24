@@ -390,6 +390,12 @@
 		{
 		
 		}
+
+		public virtual List<EntityComponent> getComponents(string componentName, bool all)
+		{
+			List<EntityComponent> founds = new List<EntityComponent>();
+			return founds;
+		}
     }
     
 }
