@@ -1856,7 +1856,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			sourcefileBody_ += fmt::format("\t\t\t\t\t{} = ({}{})Activator.CreateInstance(entityComponentScript);\n", pPropertyDescription->getName(), pEntityComponentType->pScriptDefModule()->getName(), moduleSuffix);
 			sourcefileBody_ += fmt::format("\t\t\t\t\t{}.owner = this;\n", pPropertyDescription->getName());
 			sourcefileBody_ += fmt::format("\t\t\t\t\t{}.entityComponentPropertyID = {};\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
-			sourcefileBody_ += fmt::format("\t\t\t\t\t{}._name = \"{}\";\n", pPropertyDescription->getName(), pEntityComponentType->pScriptDefModule()->getName());
+			sourcefileBody_ += fmt::format("\t\t\t\t\t{}.name_ = \"{}\";\n", pPropertyDescription->getName(), pEntityComponentType->pScriptDefModule()->getName());
 			sourcefileBody_ += fmt::format("\t\t\t\t}}\n\t\t\t}}\n\n");
 
 			sourcefileBody_ += fmt::format("\t\t\tif({} == null)\n", pPropertyDescription->getName());
@@ -1911,7 +1911,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			for (; iter != components.end(); ++iter)
 			{
 				PropertyDescription* pPropertyDescription = *iter;
-				sourcefileBody_ += fmt::format("\t\t\tif ({}._name == componentName)\n\t\t\t{{\n", pPropertyDescription->getName());
+				sourcefileBody_ += fmt::format("\t\t\tif ({}.name_ == componentName)\n\t\t\t{{\n", pPropertyDescription->getName());
 				sourcefileBody_ += fmt::format("\t\t\t\tfounds.Add({});\n", pPropertyDescription->getName());
 				sourcefileBody_ += fmt::format("\t\t\t\tif (!all)\n");
 				sourcefileBody_ += fmt::format("\t\t\t\t\treturn founds;\n\t\t\t}}\n\n");

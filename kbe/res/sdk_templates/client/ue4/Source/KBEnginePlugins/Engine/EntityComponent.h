@@ -61,6 +61,7 @@ public:
 	uint16 componentType;
 	ENTITY_ID ownerID;
 	Entity* pOwner;
+	FString name_;
 };
 
 }
