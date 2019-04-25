@@ -2364,7 +2364,7 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 			PropertyDescription* pPropertyDescription = *iter;
 			fileBody() += fmt::format("\tif({}->name_ == componentName)\n\t{{\n", pPropertyDescription->getName());
 			fileBody() += fmt::format("\t\tfounds.Add({});\n", pPropertyDescription->getName());
-			fileBody() += fmt::format("\t\t\if(!all)\n");
+			fileBody() += fmt::format("\t\tif(!all)\n");
 			fileBody() += fmt::format("\t\t\treturn founds;\n\t}}\n\n");
 		}
 
