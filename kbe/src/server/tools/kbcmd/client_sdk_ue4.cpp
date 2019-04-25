@@ -2251,10 +2251,11 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
 				continue;
 
-			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 			fileBody() += fmt::format("\t{}->pOwner = this;\n", pPropertyDescription->getName());
 			fileBody() += fmt::format("\t{}->ownerID = id_;\n", pPropertyDescription->getName());
-			fileBody() += fmt::format("\t{}->entityComponentPropertyID = {};\n\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
+			fileBody() += fmt::format("\t{}->entityComponentPropertyID = {};\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
+			fileBody() += fmt::format("\t{}->name_ = \"{}\";\n\n", pPropertyDescription->getName(), pEntityComponentType->pScriptDefModule()->getName());
 		}
 	}
 
@@ -2333,6 +2334,42 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 		}
 
 		fileBody() += fmt::format("}}\n");
+	}
+
+	std::vector<PropertyDescription*> components;
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+	for (; propIter != clientPropertys.end(); ++propIter)
+	{
+		PropertyDescription* pPropertyDescription = propIter->second;
+
+		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+			components.push_back(pPropertyDescription);
+	}
+
+	if (!components.empty())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\tTArray<EntityComponent*> getComponents(FString componentName, bool all) override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nTArray<EntityComponent*> {}::getComponents(FString componentName, bool all)\n{{\n", newModuleName);
+	
+		fileBody() += fmt::format("\tTArray<EntityComponent*> founds;\n\n");
+
+		std::vector<PropertyDescription*>::const_iterator iter = components.begin();
+		for (; iter != components.end(); ++iter)
+		{
+			PropertyDescription* pPropertyDescription = *iter;
+			fileBody() += fmt::format("\tif({}->name_ == componentName)\n\t{{\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t\tfounds.Add({});\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t\t\if(!all)\n");
+			fileBody() += fmt::format("\t\t\treturn founds;\n\t}}\n\n");
+		}
+
+		fileBody() += "\treturn founds;\n";
+		fileBody() += "}\n";
 	}
 
 	fileBody() += namespaceNameEnd;

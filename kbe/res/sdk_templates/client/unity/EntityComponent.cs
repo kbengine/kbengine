@@ -15,6 +15,7 @@ namespace KBEngine
 		public UInt16 componentType = 0;
 		public Int32 ownerID = 0;
 		public Entity owner = null;
+		public string name_ = "";
 
 		public virtual void onAttached(Entity ownerEntity)
 		{
