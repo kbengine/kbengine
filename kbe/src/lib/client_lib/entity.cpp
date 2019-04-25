@@ -26,11 +26,12 @@ namespace client
 
 //-------------------------------------------------------------------------------------
 CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
-SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("isPlayer",					pyIsPlayer,						METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,				0)	
-SCRIPT_METHOD_DECLARE("delTimer",					pyDelTimer,						METH_VARARGS,				0)	
+SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,					0)
+SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,					0)
+SCRIPT_METHOD_DECLARE("isPlayer",					pyIsPlayer,						METH_VARARGS,					0)
+SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,					0)	
+SCRIPT_METHOD_DECLARE("delTimer",					pyDelTimer,						METH_VARARGS,					0)	
+SCRIPT_METHOD_DECLARE("getComponent",				pyGetComponent,					METH_VARARGS | METH_KEYWORDS,	0)
 CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
