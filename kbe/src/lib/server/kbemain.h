@@ -175,8 +175,17 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
-	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
-		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
+	std::string publicKeyPath = Resmgr::getSingleton().getPyUserResPath() + "key/" + "kbengine_public.key";
+	std::string privateKeyPath = Resmgr::getSingleton().getPyUserResPath() + "key/" + "kbengine_private.key";
+
+	bool isExsit = access(publicKeyPath.c_str(), 0) == 0 && access(privateKeyPath.c_str(), 0) == 0;
+	if (!isExsit)
+	{
+		publicKeyPath = Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key";
+		privateKeyPath = Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key";
+	}
+
+	KBEKey kbekey(publicKeyPath, privateKeyPath);
 
 	Resmgr::getSingleton().print();
 
