@@ -2297,8 +2297,11 @@ int Entity::pySetVolatileinfo(PyObject *value)
 PyObject* Entity::pyGetVolatileinfo()
 {
 	if (pCustomVolatileinfo_ == NULL)
-		pCustomVolatileinfo_ = new VolatileInfo();
-
+	{
+		VolatileInfo* pVolatileInfo = const_cast<ScriptDefModule*>(pScriptModule())->getPVolatileInfo();
+		pCustomVolatileinfo_ = new VolatileInfo(*pVolatileInfo);
+	}
+		
 	Py_INCREF(pCustomVolatileinfo_);
 	return pCustomVolatileinfo_;
 }
