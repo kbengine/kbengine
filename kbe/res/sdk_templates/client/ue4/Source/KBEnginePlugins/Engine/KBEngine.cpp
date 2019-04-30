@@ -740,6 +740,7 @@ void KBEngineApp::Client_onLoginFailed(MemoryStream& stream)
 	UKBEventData_onLoginFailed* pEventData = NewObject<UKBEventData_onLoginFailed>();
 	pEventData->failedcode = failedcode;
 	pEventData->errorStr = serverErr(failedcode);
+	pEventData->serverdatas = serverdatas_;
 	KBENGINE_EVENT_FIRE(KBEventTypes::onLoginFailed, pEventData);
 }
 
