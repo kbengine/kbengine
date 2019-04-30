@@ -4167,7 +4167,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var failedcode = args.readUint16();
 		KBEngine.app.serverdatas = args.readBlob();
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginFailed: failedcode=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + "), datas(" + KBEngine.app.serverdatas.length + ")!");
-		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode);
+		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode, KBEngine.app.serverdatas);
 	}
 	
 	this.Client_onLoginSuccessfully = function(args)
