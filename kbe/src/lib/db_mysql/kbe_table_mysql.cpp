@@ -562,21 +562,27 @@ int KBEServerLogTableMysql::isShareDB(DBInterface * pdbi)
 	bool isShareDB = g_kbeSrvConfig.getDBMgr().isShareDB;
 	uint64 uid = getUserUID();
 
-	std::map<COMPONENT_ID, bool> cidMap = queryAllServerShareDBState(pdbi);
-	std::map<COMPONENT_ID, bool>::const_iterator citer = cidMap.begin();
-	for (; citer != cidMap.end(); ++citer)
+	try
 	{
-		if (citer->first != uid)
+		std::map<COMPONENT_ID, bool> cidMap = queryAllServerShareDBState(pdbi);
+		std::map<COMPONENT_ID, bool>::const_iterator citer = cidMap.begin();
+		for (; citer != cidMap.end(); ++citer)
 		{
-			bool isOtherServerShareDB = citer->second;
-			if (!isOtherServerShareDB || (isOtherServerShareDB && !isShareDB))
+			if (citer->first != uid)
 			{
-				ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}.\n", pdbi->name(),
-					isOtherServerShareDB ? "" : " not", citer->first));
+				bool isOtherServerShareDB = citer->second;
+				if (!isOtherServerShareDB || (isOtherServerShareDB && !isShareDB))
+				{
+					ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}.\n", pdbi->name(),
+						isOtherServerShareDB ? "" : " not", citer->first));
 
-				return -1;
+					return -1;
+				}
 			}
 		}
+	}
+	catch (...)
+	{
 	}
 
 	return isShareDB;
