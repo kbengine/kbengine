@@ -87,6 +87,9 @@ void KBE_MD5::final()
 void KBE_MD5::clear()
 {
 	memset(this, 0, sizeof(*this));
+
+	MD5_Init(&state_);
+	isFinal_ = false;
 }
 
 //-------------------------------------------------------------------------------------
