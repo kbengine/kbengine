@@ -23,11 +23,6 @@
 		protected NetworkInterfaceBase _networkInterface = null;
 		AsyncCallback _asyncCallback = null;
 		AsyncSendMethod _asyncSendMethod;
-
-        public class SendState
-        {
-            public AsyncSendMethod caller = null;
-        }
 		
         public PacketSenderBase(NetworkInterfaceBase networkInterface)
         {
@@ -51,18 +46,16 @@
 		{
             // 由于socket用的是非阻塞式，因此在这里不能直接使用socket.send()方法
             // 必须放到另一个线程中去做
-            SendState state = new SendState();
-            state.caller = _asyncSendMethod;
 
-            _asyncSendMethod.BeginInvoke(_asyncCallback, state);
+            _asyncSendMethod.BeginInvoke(_asyncCallback, _asyncSendMethod);
 		}
 
 		protected abstract void _asyncSend();
 		
 		protected static void _onSent(IAsyncResult ar)
 		{
-            SendState state = (SendState)ar.AsyncState;
-            state.caller.EndInvoke(ar);
+            AsyncSendMethod caller = (AsyncSendMethod)ar.AsyncState;
+            caller.EndInvoke(ar);
 		}
 	}
 } 

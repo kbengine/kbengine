@@ -22,12 +22,7 @@
 		protected MessageReaderBase _messageReader = null;
 		protected NetworkInterfaceBase _networkInterface = null;
 
-        public class ReceiveState
-        {
-            public AsyncReceiveMethod caller = null;
-        }
-
-		public PacketReceiverBase(NetworkInterfaceBase networkInterface)
+        public PacketReceiverBase(NetworkInterfaceBase networkInterface)
 		{
 			_networkInterface = networkInterface;
 		}
@@ -47,18 +42,15 @@
 		{
 			var v = new AsyncReceiveMethod(this._asyncReceive);
 
-            ReceiveState state = new ReceiveState();
-            state.caller = v;
-
-            v.BeginInvoke(new AsyncCallback(_onRecv), state);
+            v.BeginInvoke(new AsyncCallback(_onRecv), v);
 		}
 
 		protected abstract void _asyncReceive();
 
 		private void _onRecv(IAsyncResult ar)
 		{
-            ReceiveState state = (ReceiveState)ar.AsyncState; ;
-            state.caller.EndInvoke(ar);
+            AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState; ;
+            caller.EndInvoke(ar);
 		}
 	}
 } 
