@@ -30,7 +30,7 @@
 		protected Socket _socket = null;
 		protected PacketReceiverBase _packetReceiver = null;
 		protected PacketSenderBase _packetSender = null;
-        protected EncryptionFilter _filter = null;
+		protected EncryptionFilter _filter = null;
 
 		public bool connected = false;
 		
@@ -40,8 +40,8 @@
 			public string connectIP = "";
 			public int connectPort = 0;
 			public ConnectCallback connectCB = null;
-            public AsyncConnectMethod caller = null;
-            public object userData = null;
+			public AsyncConnectMethod caller = null;
+			public object userData = null;
 			public Socket socket = null;
 			public NetworkInterfaceBase networkInterface = null;
 			public string error = "";
@@ -88,18 +88,18 @@
 		}
 		
 
-        public virtual void close()
-        {
-           if(_socket != null)
+		public virtual void close()
+		{
+			if(_socket != null)
 			{
 				_socket.Close(0);
 				_socket = null;
 				Event.fireAll(EventOutTypes.onDisconnected);
-            }
+			}
 
-            _socket = null;
-            connected = false;
-        }
+			_socket = null;
+			connected = false;
+		}
 
 		protected abstract PacketReceiverBase createPacketReceiver();
 		protected abstract PacketSenderBase createPacketSender();
@@ -209,16 +209,16 @@
 
 			_socket = createSocket();
 
-            AsyncConnectMethod asyncConnectMethod = new AsyncConnectMethod(this._asyncConnect);
+			AsyncConnectMethod asyncConnectMethod = new AsyncConnectMethod(this._asyncConnect);
 
-            ConnectState state = new ConnectState();
+			ConnectState state = new ConnectState();
 			state.connectIP = ip;
 			state.connectPort = port;
 			state.connectCB = callback;
 			state.userData = userData;
 			state.socket = _socket;
 			state.networkInterface = this;
-            state.caller = asyncConnectMethod;
+			state.caller = asyncConnectMethod;
 
 			Dbg.DEBUG_MSG("connect to " + ip + ":" + port + " ...");
 			connected = false;
