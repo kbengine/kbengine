@@ -209,7 +209,7 @@
 
 			_socket = createSocket();
 
-            var v = new AsyncConnectMethod(this._asyncConnect);
+            AsyncConnectMethod asyncConnectMethod = new AsyncConnectMethod(this._asyncConnect);
 
             ConnectState state = new ConnectState();
 			state.connectIP = ip;
@@ -218,14 +218,14 @@
 			state.userData = userData;
 			state.socket = _socket;
 			state.networkInterface = this;
-            state.caller = v;
+            state.caller = asyncConnectMethod;
 
 			Dbg.DEBUG_MSG("connect to " + ip + ":" + port + " ...");
 			connected = false;
 			
 			// 先注册一个事件回调，该事件在当前线程触发
 			Event.registerIn("_onConnectionState", this, "_onConnectionState");
-			v.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
+            asyncConnectMethod.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
 		}
 
 		public virtual bool send(MemoryStream stream)

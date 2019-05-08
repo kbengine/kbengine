@@ -40,9 +40,9 @@
 
 		public virtual void startRecv()
 		{
-			var v = new AsyncReceiveMethod(this._asyncReceive);
+            AsyncReceiveMethod asyncReceiveMethod = new AsyncReceiveMethod(this._asyncReceive);
 
-            v.BeginInvoke(new AsyncCallback(_onRecv), v);
+            asyncReceiveMethod.BeginInvoke(new AsyncCallback(_onRecv), asyncReceiveMethod);
 		}
 
 		protected abstract void _asyncReceive();
