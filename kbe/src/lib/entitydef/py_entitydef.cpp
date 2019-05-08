@@ -2015,6 +2015,18 @@ static bool execPython(COMPONENT_TYPE componentType)
 		}
 	}
 
+	// 重定向python输出
+	ScriptStdOutErr* pyStdouterr = new ScriptStdOutErr();
+
+	// 安装py重定向脚本模块
+	if (!pyStdouterr->install()) 
+	{
+		ERROR_MSG("PyEntityDef::execPython(): pyStdouterr->install() is failed!\n");
+		delete pyStdouterr;
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+
 	PyObject *m = PyImport_AddModule("__main__");
 
 	// 添加一个脚本基础模块
@@ -2058,6 +2070,15 @@ static bool execPython(COMPONENT_TYPE componentType)
 
 	if (componentType == BASEAPP_TYPE)
 		Proxy::unregisterScript();
+
+	if (pyStdouterr)
+	{
+		if (pyStdouterr->isInstall() && !pyStdouterr->uninstall()) {
+			ERROR_MSG("PyEntityDef::execPython(): pyStdouterr->uninstall() is failed!\n");
+		}
+
+		delete pyStdouterr;
+	}
 
 	if (pNewInterpreter != PyThreadState_Swap(pCurInterpreter))
 	{

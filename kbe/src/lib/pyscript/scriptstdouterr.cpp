@@ -7,9 +7,7 @@
 #include "scriptstdouterr.inl"
 #endif
 
-namespace KBEngine{ namespace script{
-
-							
+namespace KBEngine{ namespace script {
 
 //-------------------------------------------------------------------------------------
 ScriptStdOutErr::ScriptStdOutErr():
