@@ -8,7 +8,6 @@
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
-	using System.Runtime.Remoting.Messaging;
 
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;
@@ -128,7 +127,7 @@
 		{
 			// 由于socket用的是非阻塞式，因此在这里不能直接使用socket.send()方法
 			// 必须放到另一个线程中去做
-			_asyncSendMethod.BeginInvoke(_asyncCallback, null);
+			_asyncSendMethod.BeginInvoke(_asyncCallback, _asyncSendMethod);
 		}
 
 		void _asyncSend()
@@ -183,8 +182,7 @@
 		
 		private static void _onSent(IAsyncResult ar)
 		{
-			AsyncResult result = (AsyncResult)ar;
-			AsyncSendMethod caller = (AsyncSendMethod)result.AsyncDelegate;
+			AsyncSendMethod caller = (AsyncSendMethod)ar.AsyncState;
 			caller.EndInvoke(ar);
 		}
 	}
