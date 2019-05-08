@@ -24,12 +24,12 @@
 		AsyncCallback _asyncCallback = null;
 		AsyncSendMethod _asyncSendMethod;
 		
-        public PacketSenderBase(NetworkInterfaceBase networkInterface)
-        {
-        	_networkInterface = networkInterface;
+		public PacketSenderBase(NetworkInterfaceBase networkInterface)
+		{
+			_networkInterface = networkInterface;
 			_asyncSendMethod = new AsyncSendMethod(this._asyncSend);
 			_asyncCallback = new AsyncCallback(_onSent);
-        }
+		}
 
 		~PacketSenderBase()
 		{
@@ -44,18 +44,18 @@
 
 		protected void _startSend()
 		{
-            // 由于socket用的是非阻塞式，因此在这里不能直接使用socket.send()方法
-            // 必须放到另一个线程中去做
+			// 由于socket用的是非阻塞式，因此在这里不能直接使用socket.send()方法
+			// 必须放到另一个线程中去做
 
-            _asyncSendMethod.BeginInvoke(_asyncCallback, _asyncSendMethod);
+			_asyncSendMethod.BeginInvoke(_asyncCallback, _asyncSendMethod);
 		}
 
 		protected abstract void _asyncSend();
 		
 		protected static void _onSent(IAsyncResult ar)
 		{
-            AsyncSendMethod caller = (AsyncSendMethod)ar.AsyncState;
-            caller.EndInvoke(ar);
+			AsyncSendMethod caller = (AsyncSendMethod)ar.AsyncState;
+			caller.EndInvoke(ar);
 		}
 	}
 } 

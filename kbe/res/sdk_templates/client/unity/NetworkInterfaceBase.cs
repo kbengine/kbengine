@@ -225,7 +225,8 @@
 			
 			// 先注册一个事件回调，该事件在当前线程触发
 			Event.registerIn("_onConnectionState", this, "_onConnectionState");
-            asyncConnectMethod.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
+
+			asyncConnectMethod.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
 		}
 
 		public virtual bool send(MemoryStream stream)
@@ -238,10 +239,10 @@
 			if (_packetSender == null)
 				_packetSender = createPacketSender();
 
-            if (_filter != null)
-                return _filter.send(_packetSender, stream);
+			if (_filter != null)
+				return _filter.send(_packetSender, stream);
 
-            return _packetSender.send(stream);
+			return _packetSender.send(stream);
 		}
 
 		public virtual void process()
@@ -254,14 +255,14 @@
 		}
 
 
-        public EncryptionFilter fileter()
-        {
-            return _filter;
-        }
+		public EncryptionFilter fileter()
+		{
+			return _filter;
+		}
 
-        public void setFilter(EncryptionFilter filter)
-        {
-            _filter = filter;
-        }
-    }
+		public void setFilter(EncryptionFilter filter)
+		{
+			_filter = filter;
+		}
+	}
 }
