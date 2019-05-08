@@ -27,7 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptstdout.h"
 #include "scriptstderr.h"
 
-namespace KBEngine{ namespace script{
+namespace KBEngine{ namespace script {
+
 class ScriptStdOutErr
 {					
 public:	
@@ -54,7 +55,7 @@ protected:
 	PyObject* pyPrint_;
 	bool isInstall_;
 	std::string sbuffer_;
-} ;
+};
 
 }
 }

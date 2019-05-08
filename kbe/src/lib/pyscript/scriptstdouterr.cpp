@@ -25,9 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptstdouterr.inl"
 #endif
 
-namespace KBEngine{ namespace script{
-
-							
+namespace KBEngine{ namespace script {
 
 //-------------------------------------------------------------------------------------
 ScriptStdOutErr::ScriptStdOutErr():
