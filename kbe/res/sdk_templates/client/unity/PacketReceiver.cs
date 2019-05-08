@@ -8,7 +8,6 @@
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
-	using System.Runtime.Remoting.Messaging;
 
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;
@@ -61,31 +60,31 @@
 
 			if (_rpos < t_wpos)
 			{
-                if (_networkInterface.fileter() != null)
-                {
-                    _networkInterface.fileter().recv(messageReader, _buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
-                }
-                else
-                {
-                    messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
-                }
+				if (_networkInterface.fileter() != null)
+				{
+					_networkInterface.fileter().recv(messageReader, _buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+				}
+				else
+				{
+					messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+				}
 
-                Interlocked.Exchange(ref _rpos, t_wpos);
+				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else if (t_wpos < _rpos)
 			{
-                if (_networkInterface.fileter() != null)
-                {
-                    _networkInterface.fileter().recv(messageReader, _buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
-                    _networkInterface.fileter().recv(messageReader, _buffer, (UInt32)0, (UInt32)t_wpos);
-                }
-                else
-                {
-                    messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
-                    messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
-                }
+				if (_networkInterface.fileter() != null)
+				{
+					_networkInterface.fileter().recv(messageReader, _buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
+					_networkInterface.fileter().recv(messageReader, _buffer, (UInt32)0, (UInt32)t_wpos);
+				}
+				else
+				{
+					messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
+					messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
+				}
 
-                Interlocked.Exchange(ref _rpos, t_wpos);
+				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else
 			{
@@ -118,8 +117,8 @@
 		public void startRecv()
 		{
 
-			var v = new AsyncReceiveMethod(this._asyncReceive);
-			v.BeginInvoke(new AsyncCallback(_onRecv), null);
+			AsyncReceiveMethod asyncReceiveMethod = new AsyncReceiveMethod(this._asyncReceive);
+			asyncReceiveMethod.BeginInvoke(new AsyncCallback(_onRecv), asyncReceiveMethod);
 		}
 
 		private void _asyncReceive()
@@ -185,8 +184,7 @@
 
 		private void _onRecv(IAsyncResult ar)
 		{
-			AsyncResult result = (AsyncResult)ar;
-			AsyncReceiveMethod caller = (AsyncReceiveMethod)result.AsyncDelegate;
+			AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState;
 			caller.EndInvoke(ar);
 		}
 	}
