@@ -184,7 +184,7 @@
 
 		private void _onRecv(IAsyncResult ar)
 		{
-			AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState; ;
+			AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState;
 			caller.EndInvoke(ar);
 		}
 	}
