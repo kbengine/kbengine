@@ -9,7 +9,6 @@
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
-	using System.Runtime.Remoting.Messaging;
 
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;
@@ -41,7 +40,8 @@
 			public string connectIP = "";
 			public int connectPort = 0;
 			public ConnectCallback connectCB = null;
-			public object userData = null;
+            public AsyncConnectMethod caller = null;
+            public object userData = null;
 			public Socket socket = null;
 			public NetworkInterfaceBase networkInterface = null;
 			public string error = "";
@@ -186,14 +186,13 @@
 		private void _asyncConnectCB(IAsyncResult ar)
 		{
 			ConnectState state = (ConnectState)ar.AsyncState;
-			AsyncResult result = (AsyncResult)ar;
-			AsyncConnectMethod caller = (AsyncConnectMethod)result.AsyncDelegate;
+			
 			onAsyncConnectCB(state);
 
 			Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_asyncConnectCB(), connect to '{0}:{1}' finish. error = '{2}'", state.connectIP, state.connectPort, state.error));
 
 			// Call EndInvoke to retrieve the results.
-			caller.EndInvoke(ar);
+			state.caller.EndInvoke(ar);
 			Event.fireIn("_onConnectionState", new object[] { state });
 		}
 
@@ -210,21 +209,22 @@
 
 			_socket = createSocket();
 
-			ConnectState state = new ConnectState();
+            var v = new AsyncConnectMethod(this._asyncConnect);
+
+            ConnectState state = new ConnectState();
 			state.connectIP = ip;
 			state.connectPort = port;
 			state.connectCB = callback;
 			state.userData = userData;
 			state.socket = _socket;
 			state.networkInterface = this;
+            state.caller = v;
 
 			Dbg.DEBUG_MSG("connect to " + ip + ":" + port + " ...");
 			connected = false;
 			
 			// 先注册一个事件回调，该事件在当前线程触发
 			Event.registerIn("_onConnectionState", this, "_onConnectionState");
-
-			var v = new AsyncConnectMethod(this._asyncConnect);
 			v.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
 		}
 
