@@ -105,6 +105,7 @@ class Proxy : public script::ScriptObject
 public:
 	Proxy(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
 		ScriptObject(pyType, isInitialised) {}
+
 	~Proxy() {}
 };
 
@@ -125,6 +126,7 @@ class EntityComponent : public script::ScriptObject
 public:
 	EntityComponent(PyTypeObject* pyType = getScriptType(), bool isInitialised = true) :
 		ScriptObject(pyType, isInitialised) {}
+
 	~EntityComponent() {}
 };
 
