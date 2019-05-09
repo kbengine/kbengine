@@ -10,6 +10,8 @@
 #include "Property.h"
 #include "KBDebug.h"
 
+namespace KBEngine
+{
 
 Entity::Entity():
 	id_(0),
@@ -177,4 +179,6 @@ void Entity::onDirectionChanged(const FVector& oldValue)
 		pEventData->entityID = id();
 		KBENGINE_EVENT_FIRE(KBEventTypes::set_direction, pEventData);
 	}
+}
+
 }

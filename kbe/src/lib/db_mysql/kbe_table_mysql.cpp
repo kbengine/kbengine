@@ -16,6 +16,28 @@ namespace KBEngine {
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 {
+	KBEServerLogTableMysql serverLogTable(NULL);
+
+	int ret = serverLogTable.isShareDB(pdbi);
+	if (ret == -1)
+		return false;
+
+	if (ret == 0)
+	{
+		std::string sqlstr = "DROP TABLE IF EXISTS kbe_entitylog;";
+		try
+		{
+			pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
+		}
+		catch (...)
+		{
+			ERROR_MSG(fmt::format("KBEEntityLogTableMysql::syncToDB(): error({}: {})\n lastQuery: {}.\n",
+				pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
+
+			return false;
+		}
+	}
+
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_entitylog "
 		"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
 		"entityType int unsigned not null DEFAULT 0,"
@@ -31,7 +53,6 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 		return false;
 
 	// 清除过期的日志
-	KBEServerLogTableMysql serverLogTable(NULL);
 	std::vector<COMPONENT_ID> cids;
 
 	{
@@ -282,6 +303,7 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 
 	sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_serverlog "
 			"(heartbeatTime bigint(20) unsigned not null DEFAULT 0,"
+			"isShareDB bool not null DEFAULT 0,"
 			"serverGroupID bigint unsigned not null DEFAULT 0,"
 			"PRIMARY KEY (serverGroupID))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
@@ -294,11 +316,19 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 //-------------------------------------------------------------------------------------
 bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 {
-	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, serverGroupID) values(";
+	int ret = isShareDB(pdbi);
+	if (ret == -1)
+		return false;
+
+	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, isShareDB, serverGroupID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRTime, time(NULL));
+	sqlstr += tbuf;
+	sqlstr += ",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%d", ret);
 	sqlstr += tbuf;
 	sqlstr += ",";
 
@@ -307,6 +337,10 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 	sqlstr += ") ON DUPLICATE KEY UPDATE heartbeatTime=";
 
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRTime, time(NULL));
+	sqlstr += tbuf;
+	sqlstr += ",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "isShareDB=%d", ret);
 	sqlstr += tbuf;
 	
 	SAFE_RELEASE_ARRAY(tbuf);
@@ -426,7 +460,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 			if(serverlog.serverGroupID == (uint64)getUserUID())
 				continue;
 			
-			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
+			if ((uint64)time(NULL) > serverlog.heartbeatTime + KBEServerLogTable::TIMEOUT * 2)
 				cids.push_back(serverlog.serverGroupID);
 		}
 
@@ -468,6 +502,72 @@ bool KBEServerLogTableMysql::clearServers(DBInterface * pdbi, const std::vector<
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+std::map<KBEngine::COMPONENT_ID, bool> KBEServerLogTableMysql::queryAllServerShareDBState(DBInterface * pdbi)
+{
+	std::vector<COMPONENT_ID> cids = queryTimeOutServers(pdbi);
+	clearServers(pdbi, cids);
+
+	std::map<KBEngine::COMPONENT_ID, bool> cidMap;
+
+	std::string sqlstr = "select isShareDB, serverGroupID from " KBE_TABLE_PERFIX "_serverlog";
+
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return cidMap;
+	}
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
+	if (pResult)
+	{
+		MYSQL_ROW arow;
+		while ((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			ServerLog serverlog;
+			KBEngine::StringConv::str2value(serverlog.isShareDB, arow[0]);
+			KBEngine::StringConv::str2value(serverlog.serverGroupID, arow[1]);
+
+			cidMap.insert(std::make_pair(serverlog.serverGroupID, serverlog.isShareDB));
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return cidMap;
+}
+
+//-------------------------------------------------------------------------------------
+int KBEServerLogTableMysql::isShareDB(DBInterface * pdbi)
+{
+	bool isShareDB = g_kbeSrvConfig.getDBMgr().isShareDB;
+	uint64 uid = getUserUID();
+
+	try
+	{
+		std::map<COMPONENT_ID, bool> cidMap = queryAllServerShareDBState(pdbi);
+		std::map<COMPONENT_ID, bool>::const_iterator citer = cidMap.begin();
+		for (; citer != cidMap.end(); ++citer)
+		{
+			if (citer->first != uid)
+			{
+				bool isOtherServerShareDB = citer->second;
+				if (!isOtherServerShareDB || (isOtherServerShareDB && !isShareDB))
+				{
+					ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}.\n", pdbi->name(),
+						isOtherServerShareDB ? "" : " not", citer->first));
+
+					return -1;
+				}
+			}
+		}
+	}
+	catch (...)
+	{
+	}
+
+	return isShareDB;
 }
 
 //-------------------------------------------------------------------------------------

@@ -1,6 +1,9 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 #pragma once
 
+namespace KBEngine
+{
+
 #define INFO_MSG(Format, ...) \
 { \
 	SET_WARN_COLOR(COLOR_CYAN); \
@@ -57,4 +60,6 @@
 { \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
 	GEngine->AddOnScreenDebugMessage(-1, 10000.f, FColor::White, Msg); \
+}
+
 }

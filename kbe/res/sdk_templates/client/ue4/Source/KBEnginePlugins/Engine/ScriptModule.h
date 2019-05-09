@@ -3,6 +3,10 @@
 #pragma once
 #include "KBECommon.h"
 
+
+namespace KBEngine
+{
+
 class Property;
 class Method;
 class Entity;
@@ -37,3 +41,5 @@ public:
 
 	uint16 utype;
 };
+
+}

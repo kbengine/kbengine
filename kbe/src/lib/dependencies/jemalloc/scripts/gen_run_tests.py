@@ -1,12 +1,23 @@
 #!/usr/bin/env python
 
+import sys
 from itertools import combinations
 from os import uname
 from multiprocessing import cpu_count
+from subprocess import call
+
+# Later, we want to test extended vaddr support.  Apparently, the "real" way of
+# checking this is flaky on OS X.
+bits_64 = sys.maxsize > 2**32
 
 nparallel = cpu_count() * 2
 
 uname = uname()[0]
+
+if "BSD" in uname:
+    make_cmd = 'gmake'
+else:
+    make_cmd = 'make'
 
 def powerset(items):
     result = []
@@ -14,7 +25,14 @@ def powerset(items):
         result += combinations(items, i)
     return result
 
-possible_compilers = [('gcc', 'g++'), ('clang', 'clang++')]
+possible_compilers = []
+for cc, cxx in (['gcc', 'g++'], ['clang', 'clang++']):
+    try:
+        cmd_ret = call([cc, "-v"])
+        if cmd_ret == 0:
+            possible_compilers.append((cc, cxx))
+    except:
+        pass
 possible_compiler_opts = [
     '-m32',
 ]
@@ -22,8 +40,10 @@ possible_config_opts = [
     '--enable-debug',
     '--enable-prof',
     '--disable-stats',
-    '--with-malloc-conf=tcache:false',
 ]
+if bits_64:
+    possible_config_opts.append('--with-lg-vaddr=56')
+
 possible_malloc_conf_opts = [
     'tcache:false',
     'dss:primary',
@@ -32,7 +52,7 @@ possible_malloc_conf_opts = [
 ]
 
 print 'set -e'
-print 'if [ -f Makefile ] ; then make relclean ; fi'
+print 'if [ -f Makefile ] ; then %(make_cmd)s relclean ; fi' % {'make_cmd': make_cmd}
 print 'autoconf'
 print 'rm -rf run_tests.out'
 print 'mkdir run_tests.out'
@@ -56,6 +76,11 @@ for cc, cxx in possible_compilers:
                     ",".join(malloc_conf_opts) if len(malloc_conf_opts) > 0
                     else '')
                 )
+
+                # We don't want to test large vaddr spaces in 32-bit mode.
+		if ('-m32' in compiler_opts and '--with-lg-vaddr=56' in
+                  config_opts):
+		    continue
 
                 # Per CPU arenas are only supported on Linux.
                 linux_supported = ('percpu_arena:percpu' in malloc_conf_opts \
@@ -90,11 +115,11 @@ cd run_test_%(ind)d.out
 echo "==> %(config_line)s" >> run_test.log
 %(config_line)s >> run_test.log 2>&1 || abort
 
-run_cmd make all tests
-run_cmd make check
-run_cmd make distclean
+run_cmd %(make_cmd)s all tests
+run_cmd %(make_cmd)s check
+run_cmd %(make_cmd)s distclean
 EOF
-chmod 755 run_test_%(ind)d.sh""" % {'ind': ind, 'config_line': config_line}
+chmod 755 run_test_%(ind)d.sh""" % {'ind': ind, 'config_line': config_line, 'make_cmd': make_cmd}
                     ind += 1
 
 print 'for i in `seq 0 %(last_ind)d` ; do echo run_test_${i}.sh ; done | xargs -P %(nparallel)d -n 1 sh' % {'last_ind': ind-1, 'nparallel': nparallel}

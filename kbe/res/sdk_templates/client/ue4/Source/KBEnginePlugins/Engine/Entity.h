@@ -5,10 +5,14 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class Method;
 class Property;
 class EntityCall;
 class MemoryStream;
+class EntityComponent;
 
 /*
 	KBEngine逻辑层的实体基础类
@@ -182,6 +186,13 @@ public:
 		// 动态生成
 	}
 
+	virtual TArray<EntityComponent*> getComponents(FString componentName, bool all)
+	{
+		TArray<EntityComponent*> founds;
+
+		return founds;
+	}
+
 protected:
 	ENTITY_ID id_;
 	FString className_;
@@ -213,6 +224,7 @@ public:
 	//EntityCall* cellEntityCall = null;
 };
 
+}
 
 
 

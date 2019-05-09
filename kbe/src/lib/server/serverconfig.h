@@ -177,6 +177,7 @@ typedef struct EngineComponentInfo
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
 	bool account_reset_password_enable;						// 是否开放重设密码功能
+	bool isShareDB;											// 是否共享数据库
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期

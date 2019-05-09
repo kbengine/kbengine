@@ -956,6 +956,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 
 				datas = "";
 				_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
+				s.done();
 				return;
 			}
 		}

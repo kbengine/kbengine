@@ -3875,6 +3875,23 @@ AC_CHECK_FUNCS(gettimeofday,
     ])
 )
 
+# We search for both crypt and crypt_r as one or the other may be defined
+# This gets us our -lcrypt in LIBS when required on the target platform.
+AC_SEARCH_LIBS(crypt, crypt)
+AC_SEARCH_LIBS(crypt_r, crypt)
+
+AC_CHECK_FUNC(crypt_r,
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#define _GNU_SOURCE  /* Required for crypt_r()'s prototype in glibc. */
+#include <crypt.h>
+]], [[
+struct crypt_data d;
+char *r = crypt_r("", "", &d);
+]])],
+    [AC_DEFINE(HAVE_CRYPT_R, 1, [Define if you have the crypt_r() function.])],
+    [])
+)
+
 AC_CHECK_FUNCS(clock_gettime, [], [
     AC_CHECK_LIB(rt, clock_gettime, [
         LIBS="$LIBS -lrt"
@@ -4873,6 +4890,8 @@ LIBS=$LIBS_no_readline
 AC_MSG_CHECKING(for broken nice())
 AC_CACHE_VAL(ac_cv_broken_nice, [
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <stdlib.h>
+#include <unistd.h>
 int main()
 {
 	int val1 = nice(1);

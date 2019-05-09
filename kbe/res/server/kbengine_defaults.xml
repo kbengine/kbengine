@@ -277,6 +277,11 @@
 		    (Debug mode can output the read and write informations)
 		 -->
 		<debug> false </debug>
+
+		<!-- 是否共享数据库
+		    (Whether to share the database)
+		 -->
+		<shareDB> false </shareDB>
 		
 		<!-- 是否检查defs-MD5
 			(Check whether the defs-MD5) 

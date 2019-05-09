@@ -9,7 +9,6 @@
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
-	using System.Runtime.Remoting.Messaging;
 
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;

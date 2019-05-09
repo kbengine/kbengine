@@ -8,9 +8,9 @@ dnl ============================================================================
 dnl Custom macro definitions.
 
 dnl JE_CONCAT_VVV(r, a, b)
-dnl 
+dnl
 dnl Set $r to the concatenation of $a and $b, with a space separating them iff
-dnl both $a and $b are non-emty.
+dnl both $a and $b are non-empty.
 AC_DEFUN([JE_CONCAT_VVV],
 if test "x[$]{$2}" = "x" -o "x[$]{$3}" = "x" ; then
   $1="[$]{$2}[$]{$3}"
@@ -20,7 +20,7 @@ fi
 )
 
 dnl JE_APPEND_VS(a, b)
-dnl 
+dnl
 dnl Set $a to the concatenation of $a and b, with a space separating them iff
 dnl both $a and b are non-empty.
 AC_DEFUN([JE_APPEND_VS],
@@ -31,7 +31,7 @@ AC_DEFUN([JE_APPEND_VS],
 CONFIGURE_CFLAGS=
 SPECIFIED_CFLAGS="${CFLAGS}"
 dnl JE_CFLAGS_ADD(cflag)
-dnl 
+dnl
 dnl CFLAGS is the concatenation of CONFIGURE_CFLAGS and SPECIFIED_CFLAGS
 dnl (ignoring EXTRA_CFLAGS, which does not impact configure tests.  This macro
 dnl appends to CONFIGURE_CFLAGS and regenerates CFLAGS.
@@ -57,7 +57,7 @@ JE_CONCAT_VVV(CFLAGS, CONFIGURE_CFLAGS, SPECIFIED_CFLAGS)
 
 dnl JE_CFLAGS_SAVE()
 dnl JE_CFLAGS_RESTORE()
-dnl 
+dnl
 dnl Save/restore CFLAGS.  Nesting is not supported.
 AC_DEFUN([JE_CFLAGS_SAVE],
 SAVED_CONFIGURE_CFLAGS="${CONFIGURE_CFLAGS}"
@@ -76,6 +76,7 @@ AC_MSG_CHECKING([whether compiler supports $1])
 T_CONFIGURE_CXXFLAGS="${CONFIGURE_CXXFLAGS}"
 JE_APPEND_VS(CONFIGURE_CXXFLAGS, $1)
 JE_CONCAT_VVV(CXXFLAGS, CONFIGURE_CXXFLAGS, SPECIFIED_CXXFLAGS)
+AC_LANG_PUSH([C++])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[
 ]], [[
@@ -87,11 +88,12 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
               AC_MSG_RESULT([no])
               [CONFIGURE_CXXFLAGS="${T_CONFIGURE_CXXFLAGS}"]
 )
+AC_LANG_POP([C++])
 JE_CONCAT_VVV(CXXFLAGS, CONFIGURE_CXXFLAGS, SPECIFIED_CXXFLAGS)
 ])
 
 dnl JE_COMPILABLE(label, hcode, mcode, rvar)
-dnl 
+dnl
 dnl Use AC_LINK_IFELSE() rather than AC_COMPILE_IFELSE() so that linker errors
 dnl cause failure.
 AC_DEFUN([JE_COMPILABLE],
@@ -173,6 +175,9 @@ fi
 ],
   XSLROOT="${DEFAULT_XSLROOT}"
 )
+if test "x$XSLTPROC" = "xfalse" ; then
+  XSLROOT=""
+fi
 AC_SUBST([XSLROOT])
 
 dnl If CFLAGS isn't defined, set CFLAGS to something reasonable.  Otherwise,
@@ -240,9 +245,11 @@ if test "x$GCC" = "xyes" ; then
     fi
   fi
   JE_CFLAGS_ADD([-Wall])
+  JE_CFLAGS_ADD([-Wextra])
   JE_CFLAGS_ADD([-Wshorten-64-to-32])
   JE_CFLAGS_ADD([-Wsign-compare])
   JE_CFLAGS_ADD([-Wundef])
+  JE_CFLAGS_ADD([-Wno-format-zero-length])
   JE_CFLAGS_ADD([-pipe])
   JE_CFLAGS_ADD([-g3])
 elif test "x$je_cv_msvc" = "xyes" ; then
@@ -286,6 +293,7 @@ if test "x$enable_cxx" = "x1" ; then
   AX_CXX_COMPILE_STDCXX([14], [noext], [optional])
   if test "x${HAVE_CXX14}" = "x1" ; then
     JE_CXXFLAGS_ADD([-Wall])
+    JE_CXXFLAGS_ADD([-Wextra])
     JE_CXXFLAGS_ADD([-g3])
 
     SAVED_LIBS="${LIBS}"
@@ -380,6 +388,7 @@ dnl CPU-specific settings.
 CPU_SPINWAIT=""
 case "${host_cpu}" in
   i686|x86_64)
+	HAVE_CPU_SPINWAIT=1
 	if test "x${je_cv_msvc}" = "xyes" ; then
 	    AC_CACHE_VAL([je_cv_pause_msvc],
 	      [JE_COMPILABLE([pause instruction MSVC], [],
@@ -398,25 +407,36 @@ case "${host_cpu}" in
 	    fi
 	fi
 	;;
-  powerpc*)
-	AC_DEFINE_UNQUOTED([HAVE_ALTIVEC], [ ])
-	CPU_SPINWAIT='__asm__ volatile("or 31,31,31")'
-	;;
   *)
+	HAVE_CPU_SPINWAIT=0
 	;;
 esac
+AC_DEFINE_UNQUOTED([HAVE_CPU_SPINWAIT], [$HAVE_CPU_SPINWAIT])
 AC_DEFINE_UNQUOTED([CPU_SPINWAIT], [$CPU_SPINWAIT])
+
+AC_ARG_WITH([lg_vaddr],
+  [AS_HELP_STRING([--with-lg-vaddr=<lg-vaddr>], [Number of significant virtual address bits])],
+  [LG_VADDR="$with_lg_vaddr"], [LG_VADDR="detect"])
 
 case "${host_cpu}" in
   aarch64)
-    AC_MSG_CHECKING([number of significant virtual address bits])
-    LG_VADDR=48
-    AC_MSG_RESULT([$LG_VADDR])
+    if test "x$LG_VADDR" = "xdetect"; then
+      AC_MSG_CHECKING([number of significant virtual address bits])
+      if test "x${LG_SIZEOF_PTR}" = "x2" ; then
+        #aarch64 ILP32
+        LG_VADDR=32
+      else
+        #aarch64 LP64
+        LG_VADDR=48
+      fi
+      AC_MSG_RESULT([$LG_VADDR])
+    fi
     ;;
   x86_64)
-    AC_CACHE_CHECK([number of significant virtual address bits],
-                   [je_cv_lg_vaddr],
-                   AC_RUN_IFELSE([AC_LANG_PROGRAM(
+    if test "x$LG_VADDR" = "xdetect"; then
+      AC_CACHE_CHECK([number of significant virtual address bits],
+                     [je_cv_lg_vaddr],
+                     AC_RUN_IFELSE([AC_LANG_PROGRAM(
 [[
 #include <stdio.h>
 #ifdef _WIN32
@@ -453,27 +473,30 @@ typedef unsigned __int32 uint32_t;
                    [je_cv_lg_vaddr=`cat conftest.out`],
                    [je_cv_lg_vaddr=error],
                    [je_cv_lg_vaddr=57]))
-    if test "x${je_cv_lg_vaddr}" != "x" ; then
-      LG_VADDR="${je_cv_lg_vaddr}"
-    fi
-    if test "x${LG_VADDR}" != "xerror" ; then
-      AC_DEFINE_UNQUOTED([LG_VADDR], [$LG_VADDR])
-    else
-      AC_MSG_ERROR([cannot determine number of significant virtual address bits])
+      if test "x${je_cv_lg_vaddr}" != "x" ; then
+        LG_VADDR="${je_cv_lg_vaddr}"
+      fi
+      if test "x${LG_VADDR}" != "xerror" ; then
+        AC_DEFINE_UNQUOTED([LG_VADDR], [$LG_VADDR])
+      else
+        AC_MSG_ERROR([cannot determine number of significant virtual address bits])
+      fi
     fi
     ;;
   *)
-    AC_MSG_CHECKING([number of significant virtual address bits])
-    if test "x${LG_SIZEOF_PTR}" = "x3" ; then
-      LG_VADDR=64
-    elif test "x${LG_SIZEOF_PTR}" = "x2" ; then
-      LG_VADDR=32
-    elif test "x${LG_SIZEOF_PTR}" = "xLG_SIZEOF_PTR_WIN" ; then
-      LG_VADDR="(1U << (LG_SIZEOF_PTR_WIN+3))"
-    else
-      AC_MSG_ERROR([Unsupported lg(pointer size): ${LG_SIZEOF_PTR}])
+    if test "x$LG_VADDR" = "xdetect"; then
+      AC_MSG_CHECKING([number of significant virtual address bits])
+      if test "x${LG_SIZEOF_PTR}" = "x3" ; then
+        LG_VADDR=64
+      elif test "x${LG_SIZEOF_PTR}" = "x2" ; then
+        LG_VADDR=32
+      elif test "x${LG_SIZEOF_PTR}" = "xLG_SIZEOF_PTR_WIN" ; then
+        LG_VADDR="(1U << (LG_SIZEOF_PTR_WIN+3))"
+      else
+        AC_MSG_ERROR([Unsupported lg(pointer size): ${LG_SIZEOF_PTR}])
+      fi
+      AC_MSG_RESULT([$LG_VADDR])
     fi
-    AC_MSG_RESULT([$LG_VADDR])
     ;;
 esac
 AC_DEFINE_UNQUOTED([LG_VADDR], [$LG_VADDR])
@@ -511,18 +534,83 @@ AN_PROGRAM([ar], [AC_PROG_AR])
 AC_DEFUN([AC_PROG_AR], [AC_CHECK_TOOL(AR, ar, :)])
 AC_PROG_AR
 
+AN_MAKEVAR([NM], [AC_PROG_NM])
+AN_PROGRAM([nm], [AC_PROG_NM])
+AC_DEFUN([AC_PROG_NM], [AC_CHECK_TOOL(NM, nm, :)])
+AC_PROG_NM
+
 AC_PROG_AWK
+
+dnl ============================================================================
+dnl jemalloc version.
+dnl
+
+AC_ARG_WITH([version],
+  [AS_HELP_STRING([--with-version=<major>.<minor>.<bugfix>-<nrev>-g<gid>],
+   [Version string])],
+  [
+    echo "${with_version}" | grep ['^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+-g[0-9a-f]\+$'] 2>&1 1>/dev/null
+    if test $? -eq 0 ; then
+      echo "$with_version" > "${objroot}VERSION"
+    else
+      echo "${with_version}" | grep ['^VERSION$'] 2>&1 1>/dev/null
+      if test $? -ne 0 ; then
+        AC_MSG_ERROR([${with_version} does not match <major>.<minor>.<bugfix>-<nrev>-g<gid> or VERSION])
+      fi
+    fi
+  ], [
+    dnl Set VERSION if source directory is inside a git repository.
+    if test "x`test ! \"${srcroot}\" && cd \"${srcroot}\"; git rev-parse --is-inside-work-tree 2>/dev/null`" = "xtrue" ; then
+      dnl Pattern globs aren't powerful enough to match both single- and
+      dnl double-digit version numbers, so iterate over patterns to support up
+      dnl to version 99.99.99 without any accidental matches.
+      for pattern in ['[0-9].[0-9].[0-9]' '[0-9].[0-9].[0-9][0-9]' \
+                     '[0-9].[0-9][0-9].[0-9]' '[0-9].[0-9][0-9].[0-9][0-9]' \
+                     '[0-9][0-9].[0-9].[0-9]' '[0-9][0-9].[0-9].[0-9][0-9]' \
+                     '[0-9][0-9].[0-9][0-9].[0-9]' \
+                     '[0-9][0-9].[0-9][0-9].[0-9][0-9]']; do
+        (test ! "${srcroot}" && cd "${srcroot}"; git describe --long --abbrev=40 --match="${pattern}") > "${objroot}VERSION.tmp" 2>/dev/null
+        if test $? -eq 0 ; then
+          mv "${objroot}VERSION.tmp" "${objroot}VERSION"
+          break
+        fi
+      done
+    fi
+    rm -f "${objroot}VERSION.tmp"
+  ])
+
+if test ! -e "${objroot}VERSION" ; then
+  if test ! -e "${srcroot}VERSION" ; then
+    AC_MSG_RESULT(
+      [Missing VERSION file, and unable to generate it; creating bogus VERSION])
+    echo "0.0.0-0-g0000000000000000000000000000000000000000" > "${objroot}VERSION"
+  else
+    cp ${srcroot}VERSION ${objroot}VERSION
+  fi
+fi
+jemalloc_version=`cat "${objroot}VERSION"`
+jemalloc_version_major=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]1}'`
+jemalloc_version_minor=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]2}'`
+jemalloc_version_bugfix=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]3}'`
+jemalloc_version_nrev=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]4}'`
+jemalloc_version_gid=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]5}'`
+AC_SUBST([jemalloc_version])
+AC_SUBST([jemalloc_version_major])
+AC_SUBST([jemalloc_version_minor])
+AC_SUBST([jemalloc_version_bugfix])
+AC_SUBST([jemalloc_version_nrev])
+AC_SUBST([jemalloc_version_gid])
 
 dnl Platform-specific settings.  abi and RPATH can probably be determined
 dnl programmatically, but doing so is error-prone, which makes it generally
 dnl not worth the trouble.
-dnl 
+dnl
 dnl Define cpp macros in CPPFLAGS, rather than doing AC_DEFINE(macro), since the
 dnl definitions need to be seen before any headers are included, which is a pain
 dnl to make happen otherwise.
 default_retain="0"
 maps_coalesce="1"
-DUMP_SYMS="nm -a"
+DUMP_SYMS="${NM} -a"
 SYM_PREFIX=""
 case "${host}" in
   *-*-darwin* | *-*-ios*)
@@ -556,7 +644,7 @@ case "${host}" in
 	dnl syscall(2) and secure_getenv(3) are exposed by _GNU_SOURCE.
 	JE_APPEND_VS(CPPFLAGS, -D_GNU_SOURCE)
 	abi="elf"
-	AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED_ZEROS])
+	AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED_ZEROS], [ ])
 	AC_DEFINE([JEMALLOC_HAS_ALLOCA_H])
 	AC_DEFINE([JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY], [ ])
 	AC_DEFINE([JEMALLOC_THREADED_INIT], [ ])
@@ -566,11 +654,11 @@ case "${host}" in
 	  default_retain="1"
 	fi
 	;;
-  *-*-linux* | *-*-kfreebsd*)
+  *-*-linux*)
 	dnl syscall(2) and secure_getenv(3) are exposed by _GNU_SOURCE.
 	JE_APPEND_VS(CPPFLAGS, -D_GNU_SOURCE)
 	abi="elf"
-	AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED_ZEROS])
+	AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED_ZEROS], [ ])
 	AC_DEFINE([JEMALLOC_HAS_ALLOCA_H])
 	AC_DEFINE([JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY], [ ])
 	AC_DEFINE([JEMALLOC_THREADED_INIT], [ ])
@@ -578,6 +666,15 @@ case "${host}" in
 	if test "${LG_SIZEOF_PTR}" = "3"; then
 	  default_retain="1"
 	fi
+	;;
+  *-*-kfreebsd*)
+	dnl syscall(2) and secure_getenv(3) are exposed by _GNU_SOURCE.
+	JE_APPEND_VS(CPPFLAGS, -D_GNU_SOURCE)
+	abi="elf"
+	AC_DEFINE([JEMALLOC_HAS_ALLOCA_H])
+	AC_DEFINE([JEMALLOC_SYSCTL_VM_OVERCOMMIT], [ ])
+	AC_DEFINE([JEMALLOC_THREADED_INIT], [ ])
+	AC_DEFINE([JEMALLOC_USE_CXX_THROW], [ ])
 	;;
   *-*-netbsd*)
 	AC_MSG_CHECKING([ABI])
@@ -630,7 +727,13 @@ case "${host}" in
 	  DSO_LDFLAGS="-shared"
 	  link_whole_archive="1"
 	fi
-	DUMP_SYMS="dumpbin /SYMBOLS"
+	case "${host}" in
+	  *-*-cygwin*)
+	    DUMP_SYMS="dumpbin /SYMBOLS"
+	    ;;
+	  *)
+	    ;;
+	esac
 	a="lib"
 	libprefix=""
 	SOREV="${so}"
@@ -711,12 +814,9 @@ JE_COMPILABLE([tls_model attribute], [],
                foo = 0;],
               [je_cv_tls_model])
 JE_CFLAGS_RESTORE()
-if test "x${je_cv_tls_model}" = "xyes" ; then
-  AC_DEFINE([JEMALLOC_TLS_MODEL],
-            [__attribute__((tls_model("initial-exec")))])
-else
-  AC_DEFINE([JEMALLOC_TLS_MODEL], [ ])
-fi
+dnl (Setting of JEMALLOC_TLS_MODEL is done later, after we've checked for
+dnl --disable-initial-exec-tls)
+
 dnl Check for alloc_size attribute support.
 JE_CFLAGS_SAVE()
 JE_CFLAGS_ADD([-Werror])
@@ -781,6 +881,36 @@ AC_PROG_RANLIB
 AC_PATH_PROG([LD], [ld], [false], [$PATH])
 AC_PATH_PROG([AUTOCONF], [autoconf], [false], [$PATH])
 
+dnl Enable shared libs
+AC_ARG_ENABLE([shared],
+  [AS_HELP_STRING([--enable-shared], [Build shared libaries])],
+if test "x$enable_shared" = "xno" ; then
+  enable_shared="0"
+else
+  enable_shared="1"
+fi
+,
+enable_shared="1"
+)
+AC_SUBST([enable_shared])
+
+dnl Enable static libs
+AC_ARG_ENABLE([static],
+  [AS_HELP_STRING([--enable-static], [Build static libaries])],
+if test "x$enable_static" = "xno" ; then
+  enable_static="0"
+else
+  enable_static="1"
+fi
+,
+enable_static="1"
+)
+AC_SUBST([enable_static])
+
+if test "$enable_shared$enable_static" = "00" ; then
+  AC_MSG_ERROR([Please enable one of shared or static builds])
+fi
+
 dnl Perform no name mangling by default.
 AC_ARG_WITH([mangling],
   [AS_HELP_STRING([--with-mangling=<map>], [Mangle symbols in <map>])],
@@ -813,7 +943,7 @@ AC_ARG_WITH([export],
 fi]
 )
 
-public_syms="aligned_alloc calloc dallocx free mallctl mallctlbymib mallctlnametomib malloc malloc_conf malloc_message malloc_stats_print malloc_usable_size mallocx nallocx posix_memalign rallocx realloc sallocx sdallocx xallocx"
+public_syms="aligned_alloc calloc dallocx free mallctl mallctlbymib mallctlnametomib malloc malloc_conf malloc_message malloc_stats_print malloc_usable_size mallocx smallocx_${jemalloc_version_gid} nallocx posix_memalign rallocx realloc sallocx sdallocx xallocx"
 dnl Check for additional platform-specific public API functions.
 AC_CHECK_FUNC([memalign],
 	      [AC_DEFINE([JEMALLOC_OVERRIDE_MEMALIGN], [ ])
@@ -931,7 +1061,6 @@ cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/private_symbols.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/private_namespace.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/public_namespace.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/public_unnamespace.sh"
-cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/size_classes.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc_rename.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc_mangle.sh"
 cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc.sh"
@@ -944,7 +1073,6 @@ cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/private_symbols_jet.awk"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_symbols.txt"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_namespace.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_unnamespace.h"
-cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/size_classes.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_protos_jet.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_rename.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_mangle.h"
@@ -955,6 +1083,10 @@ cfghdrs_out="${cfghdrs_out} test/include/test/jemalloc_test_defs.h"
 cfghdrs_tup="include/jemalloc/jemalloc_defs.h:include/jemalloc/jemalloc_defs.h.in"
 cfghdrs_tup="${cfghdrs_tup} include/jemalloc/internal/jemalloc_internal_defs.h:include/jemalloc/internal/jemalloc_internal_defs.h.in"
 cfghdrs_tup="${cfghdrs_tup} test/include/test/jemalloc_test_defs.h:test/include/test/jemalloc_test_defs.h.in"
+
+dnl ============================================================================
+dnl jemalloc build options.
+dnl
 
 dnl Do not compile with debugging by default.
 AC_ARG_ENABLE([debug],
@@ -1007,6 +1139,22 @@ if test "x$enable_stats" = "x1" ; then
   AC_DEFINE([JEMALLOC_STATS], [ ])
 fi
 AC_SUBST([enable_stats])
+
+dnl Do not enable smallocx by default.
+AC_ARG_ENABLE([experimental_smallocx],
+  [AS_HELP_STRING([--enable-experimental-smallocx], [Enable experimental smallocx API])],
+[if test "x$enable_experimental_smallocx" = "xno" ; then
+enable_experimental_smallocx="0"
+else
+enable_experimental_smallocx="1"
+fi
+],
+[enable_experimental_smallocx="0"]
+)
+if test "x$enable_experimental_smallocx" = "x1" ; then
+  AC_DEFINE([JEMALLOC_EXPERIMENTAL_SMALLOCX_API])
+fi
+AC_SUBST([enable_experimental_smallocx])
 
 dnl Do not enable profiling by default.
 AC_ARG_ENABLE([prof],
@@ -1226,7 +1374,54 @@ if test "x$enable_cache_oblivious" = "x1" ; then
 fi
 AC_SUBST([enable_cache_oblivious])
 
+dnl Do not log by default.
+AC_ARG_ENABLE([log],
+  [AS_HELP_STRING([--enable-log], [Support debug logging])],
+[if test "x$enable_log" = "xno" ; then
+  enable_log="0"
+else
+  enable_log="1"
+fi
+],
+[enable_log="0"]
+)
+if test "x$enable_log" = "x1" ; then
+  AC_DEFINE([JEMALLOC_LOG], [ ])
+fi
+AC_SUBST([enable_log])
 
+dnl Do not use readlinkat by default
+AC_ARG_ENABLE([readlinkat],
+  [AS_HELP_STRING([--enable-readlinkat], [Use readlinkat over readlink])],
+[if test "x$enable_readlinkat" = "xno" ; then
+  enable_readlinkat="0"
+else
+  enable_readlinkat="1"
+fi
+],
+[enable_readlinkat="0"]
+)
+if test "x$enable_readlinkat" = "x1" ; then
+  AC_DEFINE([JEMALLOC_READLINKAT], [ ])
+fi
+AC_SUBST([enable_readlinkat])
+
+dnl Avoid the extra size checking by default
+AC_ARG_ENABLE([extra-size-check],
+  [AS_HELP_STRING([--enable-extra-size-check],
+  [Perform additonal size related sanity checks])],
+[if test "x$enable_extra_size_check" = "xno" ; then
+  enable_extra_size_check="0"
+else
+  enable_extra_size_check="1"
+fi
+],
+[enable_extra_size_check="0"]
+)
+if test "x$enable_extra_size_check" = "x1" ; then
+  AC_DEFINE([JEMALLOC_EXTRA_SIZE_CHECK], [ ])
+fi
+AC_SUBST([enable_extra_size_check])
 
 JE_COMPILABLE([a program using __builtin_unreachable], [
 void foo (void) {
@@ -1281,6 +1476,21 @@ else
   else
     AC_MSG_ERROR([Cannot build without ffsl(3) or __builtin_ffsl()])
   fi
+fi
+
+JE_COMPILABLE([a program using __builtin_popcountl], [
+#include <stdio.h>
+#include <strings.h>
+#include <string.h>
+], [
+	{
+		int rv = __builtin_popcountl(0x08);
+		printf("%d\n", rv);
+	}
+], [je_cv_gcc_builtin_popcountl])
+if test "x${je_cv_gcc_builtin_popcountl}" = "xyes" ; then
+  AC_DEFINE([JEMALLOC_INTERNAL_POPCOUNT], [__builtin_popcount])
+  AC_DEFINE([JEMALLOC_INTERNAL_POPCOUNTL], [__builtin_popcountl])
 fi
 
 AC_ARG_WITH([lg_quantum],
@@ -1380,70 +1590,20 @@ if test "x${LG_PAGE}" != "xundefined" -a \
 fi
 AC_DEFINE_UNQUOTED([LG_HUGEPAGE], [${je_cv_lg_hugepage}])
 
-AC_ARG_WITH([lg_page_sizes],
-  [AS_HELP_STRING([--with-lg-page-sizes=<lg-page-sizes>],
-   [Base 2 logs of system page sizes to support])],
-  [LG_PAGE_SIZES="$with_lg_page_sizes"], [LG_PAGE_SIZES="$LG_PAGE"])
-
 dnl ============================================================================
-dnl jemalloc configuration.
-dnl 
-
-AC_ARG_WITH([version],
-  [AS_HELP_STRING([--with-version=<major>.<minor>.<bugfix>-<nrev>-g<gid>],
-   [Version string])],
-  [
-    echo "${with_version}" | grep ['^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+-g[0-9a-f]\+$'] 2>&1 1>/dev/null
-    if test $? -eq 0 ; then
-      echo "$with_version" > "${objroot}VERSION"
-    else
-      echo "${with_version}" | grep ['^VERSION$'] 2>&1 1>/dev/null
-      if test $? -ne 0 ; then
-        AC_MSG_ERROR([${with_version} does not match <major>.<minor>.<bugfix>-<nrev>-g<gid> or VERSION])
-      fi
-    fi
-  ], [
-    dnl Set VERSION if source directory is inside a git repository.
-    if test "x`test ! \"${srcroot}\" && cd \"${srcroot}\"; git rev-parse --is-inside-work-tree 2>/dev/null`" = "xtrue" ; then
-      dnl Pattern globs aren't powerful enough to match both single- and
-      dnl double-digit version numbers, so iterate over patterns to support up
-      dnl to version 99.99.99 without any accidental matches.
-      for pattern in ['[0-9].[0-9].[0-9]' '[0-9].[0-9].[0-9][0-9]' \
-                     '[0-9].[0-9][0-9].[0-9]' '[0-9].[0-9][0-9].[0-9][0-9]' \
-                     '[0-9][0-9].[0-9].[0-9]' '[0-9][0-9].[0-9].[0-9][0-9]' \
-                     '[0-9][0-9].[0-9][0-9].[0-9]' \
-                     '[0-9][0-9].[0-9][0-9].[0-9][0-9]']; do
-        (test ! "${srcroot}" && cd "${srcroot}"; git describe --long --abbrev=40 --match="${pattern}") > "${objroot}VERSION.tmp" 2>/dev/null
-        if test $? -eq 0 ; then
-          mv "${objroot}VERSION.tmp" "${objroot}VERSION"
-          break
-        fi
-      done
-    fi
-    rm -f "${objroot}VERSION.tmp"
-  ])
-
-if test ! -e "${objroot}VERSION" ; then
-  if test ! -e "${srcroot}VERSION" ; then
-    AC_MSG_RESULT(
-      [Missing VERSION file, and unable to generate it; creating bogus VERSION])
-    echo "0.0.0-0-g0000000000000000000000000000000000000000" > "${objroot}VERSION"
-  else
-    cp ${srcroot}VERSION ${objroot}VERSION
-  fi
+dnl Enable libdl by default.
+AC_ARG_ENABLE([libdl],
+  [AS_HELP_STRING([--disable-libdl],
+  [Do not use libdl])],
+[if test "x$enable_libdl" = "xno" ; then
+  enable_libdl="0"
+else
+  enable_libdl="1"
 fi
-jemalloc_version=`cat "${objroot}VERSION"`
-jemalloc_version_major=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]1}'`
-jemalloc_version_minor=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]2}'`
-jemalloc_version_bugfix=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]3}'`
-jemalloc_version_nrev=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]4}'`
-jemalloc_version_gid=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]5}'`
-AC_SUBST([jemalloc_version])
-AC_SUBST([jemalloc_version_major])
-AC_SUBST([jemalloc_version_minor])
-AC_SUBST([jemalloc_version_bugfix])
-AC_SUBST([jemalloc_version_nrev])
-AC_SUBST([jemalloc_version_gid])
+],
+[enable_libdl="1"]
+)
+AC_SUBST([libdl])
 
 dnl ============================================================================
 dnl Configure pthreads.
@@ -1453,20 +1613,26 @@ if test "x$abi" != "xpecoff" ; then
   AC_CHECK_HEADERS([pthread.h], , [AC_MSG_ERROR([pthread.h is missing])])
   dnl Some systems may embed pthreads functionality in libc; check for libpthread
   dnl first, but try libc too before failing.
-  AC_CHECK_LIB([pthread], [pthread_create], [JE_APPEND_VS(LIBS, -lpthread)],
+  AC_CHECK_LIB([pthread], [pthread_create], [JE_APPEND_VS(LIBS, -pthread)],
                [AC_SEARCH_LIBS([pthread_create], , ,
                                AC_MSG_ERROR([libpthread is missing]))])
   wrap_syms="${wrap_syms} pthread_create"
   have_pthread="1"
-  dnl Check if we have dlsym support.
-  have_dlsym="1"
-  AC_CHECK_HEADERS([dlfcn.h],
-    AC_CHECK_FUNC([dlsym], [],
-      [AC_CHECK_LIB([dl], [dlsym], [LIBS="$LIBS -ldl"], [have_dlsym="0"])]),
-    [have_dlsym="0"])
-  if test "x$have_dlsym" = "x1" ; then
-    AC_DEFINE([JEMALLOC_HAVE_DLSYM], [ ])
+
+dnl Check if we have dlsym support.
+  if test "x$enable_libdl" = "x1" ; then
+    have_dlsym="1"
+    AC_CHECK_HEADERS([dlfcn.h],
+      AC_CHECK_FUNC([dlsym], [],
+        [AC_CHECK_LIB([dl], [dlsym], [LIBS="$LIBS -ldl"], [have_dlsym="0"])]),
+      [have_dlsym="0"])
+    if test "x$have_dlsym" = "x1" ; then
+      AC_DEFINE([JEMALLOC_HAVE_DLSYM], [ ])
+    fi
+  else
+    have_dlsym="0"
   fi
+
   JE_COMPILABLE([pthread_atfork(3)], [
 #include <pthread.h>
 ], [
@@ -1730,6 +1896,19 @@ JE_COMPILABLE([GCC __atomic atomics], [
 ], [je_cv_gcc_atomic_atomics])
 if test "x${je_cv_gcc_atomic_atomics}" = "xyes" ; then
   AC_DEFINE([JEMALLOC_GCC_ATOMIC_ATOMICS])
+
+  dnl check for 8-bit atomic support
+  JE_COMPILABLE([GCC 8-bit __atomic atomics], [
+  ], [
+      unsigned char x = 0;
+      int val = 1;
+      int y = __atomic_fetch_add(&x, val, __ATOMIC_RELAXED);
+      int after_add = (int)x;
+      return after_add == 1;
+  ], [je_cv_gcc_u8_atomic_atomics])
+  if test "x${je_cv_gcc_u8_atomic_atomics}" = "xyes" ; then
+    AC_DEFINE([JEMALLOC_GCC_U8_ATOMIC_ATOMICS])
+  fi
 fi
 
 dnl ============================================================================
@@ -1744,12 +1923,24 @@ JE_COMPILABLE([GCC __sync atomics], [
 ], [je_cv_gcc_sync_atomics])
 if test "x${je_cv_gcc_sync_atomics}" = "xyes" ; then
   AC_DEFINE([JEMALLOC_GCC_SYNC_ATOMICS])
+
+  dnl check for 8-bit atomic support
+  JE_COMPILABLE([GCC 8-bit __sync atomics], [
+  ], [
+      unsigned char x = 0;
+      int before_add = __sync_fetch_and_add(&x, 1);
+      int after_add = (int)x;
+      return (before_add == 0) && (after_add == 1);
+  ], [je_cv_gcc_u8_sync_atomics])
+  if test "x${je_cv_gcc_u8_sync_atomics}" = "xyes" ; then
+    AC_DEFINE([JEMALLOC_GCC_U8_SYNC_ATOMICS])
+  fi
 fi
 
 dnl ============================================================================
 dnl Check for atomic(3) operations as provided on Darwin.
 dnl We need this not for the atomic operations (which are provided above), but
-dnl rather for the OSSpinLock type it exposes.
+dnl rather for the OS_unfair_lock type it exposes.
 
 JE_COMPILABLE([Darwin OSAtomic*()], [
 #include <libkern/OSAtomic.h>
@@ -1789,6 +1980,15 @@ if test "x${je_cv_madvise}" = "xyes" ; then
 ], [je_cv_madv_free])
   if test "x${je_cv_madv_free}" = "xyes" ; then
     AC_DEFINE([JEMALLOC_PURGE_MADVISE_FREE], [ ])
+  elif test "x${je_cv_madvise}" = "xyes" ; then
+    case "${host_cpu}" in i686|x86_64)
+        case "${host}" in *-*-linux*)
+            AC_DEFINE([JEMALLOC_PURGE_MADVISE_FREE], [ ])
+            AC_DEFINE([JEMALLOC_DEFINE_MADVISE_FREE], [ ])
+	    ;;
+        esac
+        ;;
+    esac
   fi
 
   dnl Check for madvise(..., MADV_DONTNEED).
@@ -1801,6 +2001,17 @@ if test "x${je_cv_madvise}" = "xyes" ; then
     AC_DEFINE([JEMALLOC_PURGE_MADVISE_DONTNEED], [ ])
   fi
 
+  dnl Check for madvise(..., MADV_DO[NT]DUMP).
+  JE_COMPILABLE([madvise(..., MADV_DO[[NT]]DUMP)], [
+#include <sys/mman.h>
+], [
+	madvise((void *)0, 0, MADV_DONTDUMP);
+	madvise((void *)0, 0, MADV_DODUMP);
+], [je_cv_madv_dontdump])
+  if test "x${je_cv_madv_dontdump}" = "xyes" ; then
+    AC_DEFINE([JEMALLOC_MADVISE_DONTDUMP], [ ])
+  fi
+
   dnl Check for madvise(..., MADV_[NO]HUGEPAGE).
   JE_COMPILABLE([madvise(..., MADV_[[NO]]HUGEPAGE)], [
 #include <sys/mman.h>
@@ -1808,61 +2019,15 @@ if test "x${je_cv_madvise}" = "xyes" ; then
 	madvise((void *)0, 0, MADV_HUGEPAGE);
 	madvise((void *)0, 0, MADV_NOHUGEPAGE);
 ], [je_cv_thp])
-fi
-
-dnl Enable transparent huge page support by default.
-AC_ARG_ENABLE([thp],
-  [AS_HELP_STRING([--disable-thp],
-                  [Disable transparent huge page support])],
-[if test "x$enable_thp" = "xno" -o "x${je_cv_thp}" != "xyes" ; then
-  enable_thp="0"
-else
-  enable_thp="1"
-fi
-],
-[if test "x${je_cv_thp}" = "xyes" ; then
-  enable_thp="1"
-else
-  enable_thp="0"
-fi
-])
-if test "x$enable_thp" = "x1" ; then
-  AC_DEFINE([JEMALLOC_THP], [ ])
-fi
-AC_SUBST([enable_thp])
-
-dnl ============================================================================
-dnl Check whether __sync_{add,sub}_and_fetch() are available despite
-dnl __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n macros being undefined.
-
-AC_DEFUN([JE_SYNC_COMPARE_AND_SWAP_CHECK],[
-  AC_CACHE_CHECK([whether to force $1-bit __sync_{add,sub}_and_fetch()],
-               [je_cv_sync_compare_and_swap_$2],
-               [AC_LINK_IFELSE([AC_LANG_PROGRAM([
-                                                 #include <stdint.h>
-                                                ],
-                                                [
-                                                 #ifndef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_$2
-                                                 {
-                                                    uint$1_t x$1 = 0;
-                                                    __sync_add_and_fetch(&x$1, 42);
-                                                    __sync_sub_and_fetch(&x$1, 1);
-                                                 }
-                                                 #else
-                                                 #error __GCC_HAVE_SYNC_COMPARE_AND_SWAP_$2 is defined, no need to force
-                                                 #endif
-                                                ])],
-                               [je_cv_sync_compare_and_swap_$2=yes],
-                               [je_cv_sync_compare_and_swap_$2=no])])
-
-  if test "x${je_cv_sync_compare_and_swap_$2}" = "xyes" ; then
-    AC_DEFINE([JE_FORCE_SYNC_COMPARE_AND_SWAP_$2], [ ])
+case "${host_cpu}" in
+  arm*)
+    ;;
+  *)
+  if test "x${je_cv_thp}" = "xyes" ; then
+    AC_DEFINE([JEMALLOC_HAVE_MADVISE_HUGE], [ ])
   fi
-])
-
-if test "x${je_cv_atomic9}" != "xyes" -a "x${je_cv_osatomic}" != "xyes" ; then
-  JE_SYNC_COMPARE_AND_SWAP_CHECK(32, 4)
-  JE_SYNC_COMPARE_AND_SWAP_CHECK(64, 8)
+  ;;
+esac
 fi
 
 dnl ============================================================================
@@ -1908,21 +2073,6 @@ if test "x${je_cv_os_unfair_lock}" = "xyes" ; then
 fi
 
 dnl ============================================================================
-dnl Check for spinlock(3) operations as provided on Darwin.
-
-JE_COMPILABLE([Darwin OSSpin*()], [
-#include <libkern/OSAtomic.h>
-#include <inttypes.h>
-], [
-	OSSpinLock lock = 0;
-	OSSpinLockLock(&lock);
-	OSSpinLockUnlock(&lock);
-], [je_cv_osspin])
-if test "x${je_cv_osspin}" = "xyes" ; then
-  AC_DEFINE([JEMALLOC_OSSPIN], [ ])
-fi
-
-dnl ============================================================================
 dnl Darwin-related configuration.
 
 AC_ARG_ENABLE([zone-allocator],
@@ -1949,11 +2099,32 @@ if test "x${enable_zone_allocator}" = "x1" ; then
 fi
 
 dnl ============================================================================
+dnl Use initial-exec TLS by default.
+AC_ARG_ENABLE([initial-exec-tls],
+  [AS_HELP_STRING([--disable-initial-exec-tls],
+                  [Disable the initial-exec tls model])],
+[if test "x$enable_initial_exec_tls" = "xno" ; then
+  enable_initial_exec_tls="0"
+else
+  enable_initial_exec_tls="1"
+fi
+],
+[enable_initial_exec_tls="1"]
+)
+AC_SUBST([enable_initial_exec_tls])
+
+if test "x${je_cv_tls_model}" = "xyes" -a \
+       "x${enable_initial_exec_tls}" = "x1" ; then
+  AC_DEFINE([JEMALLOC_TLS_MODEL],
+            [__attribute__((tls_model("initial-exec")))])
+else
+  AC_DEFINE([JEMALLOC_TLS_MODEL], [ ])
+fi
+
+dnl ============================================================================
 dnl Enable background threads if possible.
 
-if test "x${have_pthread}" = "x1" -a "x${have_dlsym}" = "x1" \
-    -a "x${je_cv_os_unfair_lock}" != "xyes" \
-    -a "x${je_cv_osspin}" != "xyes" ; then
+if test "x${have_pthread}" = "x1" -a "x${je_cv_os_unfair_lock}" != "xyes" ; then
   AC_DEFINE([JEMALLOC_BACKGROUND_THREAD])
 fi
 
@@ -2004,6 +2175,25 @@ JE_COMPILABLE([pthreads adaptive mutexes], [
 ], [je_cv_pthread_mutex_adaptive_np])
 if test "x${je_cv_pthread_mutex_adaptive_np}" = "xyes" ; then
   AC_DEFINE([JEMALLOC_HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], [ ])
+fi
+
+JE_CFLAGS_SAVE()
+JE_CFLAGS_ADD([-D_GNU_SOURCE])
+JE_CFLAGS_ADD([-Werror])
+JE_CFLAGS_ADD([-herror_on_warning])
+JE_COMPILABLE([strerror_r returns char with gnu source], [
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+], [
+  char *buffer = (char *) malloc(100);
+  char *error = strerror_r(EINVAL, buffer, 100);
+  printf("%s\n", error);
+], [je_cv_strerror_r_returns_char_with_gnu_source])
+JE_CFLAGS_RESTORE()
+if test "x${je_cv_strerror_r_returns_char_with_gnu_source}" = "xyes" ; then
+  AC_DEFINE([JEMALLOC_STRERROR_R_RETURNS_CHAR_WITH_GNU_SOURCE], [ ])
 fi
 
 dnl ============================================================================
@@ -2074,16 +2264,6 @@ AC_CONFIG_COMMANDS([include/jemalloc/internal/public_unnamespace.h], [
 ], [
   srcdir="${srcdir}"
   objroot="${objroot}"
-])
-AC_CONFIG_COMMANDS([include/jemalloc/internal/size_classes.h], [
-  mkdir -p "${objroot}include/jemalloc/internal"
-  "${SHELL}" "${srcdir}/include/jemalloc/internal/size_classes.sh" "${LG_QUANTA}" 3 "${LG_PAGE_SIZES}" 2 > "${objroot}include/jemalloc/internal/size_classes.h"
-], [
-  SHELL="${SHELL}"
-  srcdir="${srcdir}"
-  objroot="${objroot}"
-  LG_QUANTA="${LG_QUANTA}"
-  LG_PAGE_SIZES="${LG_PAGE_SIZES}"
 ])
 AC_CONFIG_COMMANDS([include/jemalloc/jemalloc_protos_jet.h], [
   mkdir -p "${objroot}include/jemalloc"
@@ -2177,17 +2357,20 @@ AC_MSG_RESULT([JEMALLOC_PRIVATE_NAMESPACE])
 AC_MSG_RESULT([                   : ${JEMALLOC_PRIVATE_NAMESPACE}])
 AC_MSG_RESULT([install_suffix     : ${install_suffix}])
 AC_MSG_RESULT([malloc_conf        : ${config_malloc_conf}])
+AC_MSG_RESULT([shared libs        : ${enable_shared}])
+AC_MSG_RESULT([static libs        : ${enable_static}])
 AC_MSG_RESULT([autogen            : ${enable_autogen}])
 AC_MSG_RESULT([debug              : ${enable_debug}])
 AC_MSG_RESULT([stats              : ${enable_stats}])
+AC_MSG_RESULT([experimetal_smallocx : ${enable_experimental_smallocx}])
 AC_MSG_RESULT([prof               : ${enable_prof}])
 AC_MSG_RESULT([prof-libunwind     : ${enable_prof_libunwind}])
 AC_MSG_RESULT([prof-libgcc        : ${enable_prof_libgcc}])
 AC_MSG_RESULT([prof-gcc           : ${enable_prof_gcc}])
-AC_MSG_RESULT([thp                : ${enable_thp}])
 AC_MSG_RESULT([fill               : ${enable_fill}])
 AC_MSG_RESULT([utrace             : ${enable_utrace}])
 AC_MSG_RESULT([xmalloc            : ${enable_xmalloc}])
+AC_MSG_RESULT([log                : ${enable_log}])
 AC_MSG_RESULT([lazy_lock          : ${enable_lazy_lock}])
 AC_MSG_RESULT([cache-oblivious    : ${enable_cache_oblivious}])
 AC_MSG_RESULT([cxx                : ${enable_cxx}])

@@ -1726,18 +1726,7 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 	dataType_ = NULL;
 	std::string strType;
 
-	if (pDefContext->propertys.size() != 1)
-	{
-		ERROR_MSG(fmt::format("PyEntityDef::FixedArrayType::initialize: parse {} error, not found item type! file: \"{}\"\n",
-			pDefContext->moduleName.c_str(), pDefContext->pyObjectSourceFile));
-
-		return false;
-	}
-
-	script::entitydef::DefContext& defContextItemType = pDefContext->propertys[0];
-	KBE_ASSERT(defContextItemType.type == script::entitydef::DefContext::DC_TYPE_FIXED_ITEM);
-
-	script::entitydef::DefContext* pDefContextItem = script::entitydef::DefContext::findDefContext(defContextItemType.returnType);
+	script::entitydef::DefContext* pDefContextItem = script::entitydef::DefContext::findDefContext(pDefContext->returnType);
 	if (pDefContextItem)
 	{
 		if (pDefContextItem->type == script::entitydef::DefContext::DC_TYPE_FIXED_ARRAY)
@@ -1768,15 +1757,15 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 	else
 	{
 	FIND_IN_DATATYPES:
-		dataType_ = DataTypes::getDataType(defContextItemType.returnType, false);
+		dataType_ = DataTypes::getDataType(pDefContext->returnType, false);
 		if (dataType_ != NULL)
 		{
 			dataType_->incRef();
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse {} error, item({}={}), not a legal data type, file: \"{}\"\n",
-				pDefContext->moduleName.c_str(), defContextItemType.attrName, defContextItemType.returnType, defContextItemType.pyObjectSourceFile));
+			ERROR_MSG(fmt::format("PyEntityDef::registerDefTypes: parse {} error, item({}), not a legal data type, file: \"{}\"\n",
+				pDefContext->moduleName.c_str(), pDefContext->returnType, pDefContext->pyObjectSourceFile));
 
 			return false;
 		}
@@ -1788,7 +1777,7 @@ bool FixedArrayType::initialize(script::entitydef::DefContext* pDefContext, cons
 		return false;
 	}
 
-	strType += defContextItemType.returnType;
+	strType += pDefContext->returnType;
 	DATATYPE_UID uid = dataType_->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
 	EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());

@@ -23,14 +23,15 @@ public:
 		DC_TYPE_INTERFACE = 3,
 
 		DC_TYPE_PROPERTY = 4,
-		DC_TYPE_METHOD = 5,
-		DC_TYPE_CLIENT_METHOD = 6,
+		DC_TYPE_COMPONENT_PROPERTY = 5,
+		DC_TYPE_METHOD = 6,
+		DC_TYPE_CLIENT_METHOD = 7,
 
-		DC_TYPE_FIXED_DICT = 7,
-		DC_TYPE_FIXED_ARRAY = 8,
-		DC_TYPE_FIXED_ITEM = 9,
+		DC_TYPE_FIXED_DICT = 8,
+		DC_TYPE_FIXED_ARRAY = 9,
+		DC_TYPE_FIXED_ITEM = 10,
 
-		DC_TYPE_RENAME = 10,
+		DC_TYPE_RENAME = 11,
 	};
 
 	DefContext();
@@ -51,11 +52,12 @@ public:
 		return NULL;
 	}
 
+	int order;
+
 	std::string optionName;
 
 	std::string moduleName;
 	std::string attrName;
-	std::string methodArgs;
 	std::string returnType;
 
 	std::vector< std::string > argsvecs;
@@ -92,10 +94,11 @@ public:
 
 	typedef std::vector< DefContext > DEF_CONTEXTS;
 
-	DEF_CONTEXTS methods;
+	DEF_CONTEXTS base_methods;
+	DEF_CONTEXTS cell_methods;
 	DEF_CONTEXTS client_methods;
 	DEF_CONTEXTS propertys;
-	std::vector< std::string > components;
+	DEF_CONTEXTS components;
 
 	COMPONENT_TYPE componentType;
 

@@ -955,6 +955,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 				{
 					if (TiXmlNode::TINYXML_COMMENT == databaseInterfacesNode->Type())
 						continue;
+					
+					std::vector<std::string> missingFields;
+					missingFields.clear();
 
 					std::string name = databaseInterfacesNode->Value();
 
@@ -970,6 +973,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 					node = xml->enterNode(interfaceNode, "pure");
 					if (node)
 						pDBInfo->isPure = xml->getValStr(node) == "true";
+					else
+						missingFields.push_back("pure");
 
 					// 默认库不允许是纯净库，引擎需要创建实体表
 					if (name == "default")
@@ -978,14 +983,21 @@ bool ServerConfig::loadConfig(std::string fileName)
 					node = xml->enterNode(interfaceNode, "type");
 					if(node != NULL)
 						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME);
+					else
+						missingFields.push_back("type");
+
 					
 					node = xml->enterNode(interfaceNode, "host");
 					if(node != NULL)
 						strncpy((char*)&pDBInfo->db_ip, xml->getValStr(node).c_str(), MAX_IP);
+					else
+						missingFields.push_back("host");
 
 					node = xml->enterNode(interfaceNode, "port");
 					if(node != NULL)
 						pDBInfo->db_port = xml->getValInt(node);
+					else
+						missingFields.push_back("port");
 
 					node = xml->enterNode(interfaceNode, "auth");
 					if(node != NULL)
@@ -995,11 +1007,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 						{
 							strncpy((char*)&pDBInfo->db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
 						}
+						else
+						{
+							missingFields.push_back("auth->password");
+						}
 
 						childnode = xml->enterNode(node, "username");
 						if(childnode)
 						{
 							strncpy((char*)&pDBInfo->db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
+						}
+						else
+						{
+							missingFields.push_back("auth->username");
 						}
 
 						childnode = xml->enterNode(node, "encrypt");
@@ -1007,15 +1027,27 @@ bool ServerConfig::loadConfig(std::string fileName)
 						{
 							pDBInfo->db_passwordEncrypt = xml->getValStr(childnode) == "true";
 						}
+						else
+						{
+							missingFields.push_back("auth->encrypt");
+						}
+					}
+					else
+					{
+						missingFields.push_back("auth");
 					}
 						
 					node = xml->enterNode(interfaceNode, "databaseName");
 					if(node != NULL)
 						strncpy((char*)&pDBInfo->db_name, xml->getValStr(node).c_str(), MAX_NAME);
+					else
+						missingFields.push_back("databaseName");
 
 					node = xml->enterNode(interfaceNode, "numConnections");
 					if(node != NULL)
 						pDBInfo->db_numConnections = xml->getValInt(node);
+					else
+						missingFields.push_back("numConnections");
 						
 					node = xml->enterNode(interfaceNode, "unicodeString");
 					if(node != NULL)
@@ -1025,12 +1057,24 @@ bool ServerConfig::loadConfig(std::string fileName)
 						{
 							pDBInfo->db_unicodeString_characterSet = xml->getValStr(childnode);
 						}
+						else
+						{
+							missingFields.push_back("unicodeString->characterSet");
+						}
 
 						childnode = xml->enterNode(node, "collation");
 						if(childnode)
 						{
 							pDBInfo->db_unicodeString_collation = xml->getValStr(childnode);
 						}
+						else
+						{
+							missingFields.push_back("unicodeString->collation");
+						}
+					}
+					else
+					{
+						missingFields.push_back("unicodeString");
 					}
 
 					if (pDBInfo->db_unicodeString_characterSet.size() == 0)
@@ -1057,6 +1101,17 @@ bool ServerConfig::loadConfig(std::string fileName)
 							}
 						}
 
+						if (fileName == "server/kbengine_defaults.xml" && !missingFields.empty())
+						{
+							std::vector<std::string>::const_iterator iter = missingFields.begin();
+							for (; iter != missingFields.end(); iter++)
+							{
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: kbengine_defaults.xml error, databaseInterface({}) missing filed:{}.\n", name, *iter));
+							}
+
+							return false;
+						}
+
 						_dbmgrInfo.dbInterfaceInfos.push_back(dbinfo);
 					}
 
@@ -1077,6 +1132,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "allowEmptyDigest");
 		if(node != NULL){
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
+		}
+
+		node = xml->enterNode(rootNode, "shareDB");
+		if (node != NULL) {
+			_dbmgrInfo.isShareDB = (xml->getValStr(node) == "true");
 		}
 
 		node = xml->enterNode(rootNode, "account_system");

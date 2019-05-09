@@ -10,19 +10,23 @@
 #include "Runtime/Sockets/Public/Sockets.h"
 #include "EncryptionFilter.h"
 
-class PacketSenderBase;
-class PacketReceiverBase;
-class MemoryStream;
-class InterfaceConnect;
+
 
 /*
 	网络模块
 	处理连接、收发数据
 */
+namespace KBEngine
+{
+
+class PacketSenderBase;
+class PacketReceiverBase;
+class MemoryStream;
+class InterfaceConnect;
 class KBENGINEPLUGINS_API NetworkInterfaceBase
 {
 public:
-	NetworkInterfaceBase();
+    NetworkInterfaceBase();
 	virtual ~NetworkInterfaceBase();
 
 	const FString UDP_HELLO = TEXT("62a559f3fa7748bc22f8e0766019d498");
@@ -79,3 +83,5 @@ protected:
 	EncryptionFilter *pFilter_;
 
 };
+
+}

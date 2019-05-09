@@ -5,35 +5,40 @@
 #include "PacketSenderKCP.h"
 #include "Engine/KBDebug.h"
 
-#ifndef KBENGINE_NO_CRYPTO
-#include "cryptlib.h"
-#include "rdrand.h"
-#include "secblock.h"
-#endif
-
-BlowfishFilter::BlowfishFilter(int keySize):
-	isGood_(false),
-	pPacket_(new MemoryStream()),
-	pEncryptStream_(new MemoryStream()),
-	packetLen_(0),
-	padSize_(0)
+namespace KBEngine
 {
-#ifndef KBENGINE_NO_CRYPTO
-	key_.Init(0, keySize);
 
-	CryptoPP::RDRAND rng;
-	rng.GenerateBlock(key_.GetData(), key_.Num());
-	init();
-#endif
+EncryptionFilter::~EncryptionFilter()
+{
 }
 
-BlowfishFilter::BlowfishFilter(const TArray<uint8>& key):
+BlowfishFilter::BlowfishFilter(int keySize) :
 	isGood_(false),
-	key_(key),
 	pPacket_(new MemoryStream()),
 	pEncryptStream_(new MemoryStream()),
 	packetLen_(0),
-	padSize_(0)
+	padSize_(0),
+	key_(),
+	keySize_(0),
+	pBlowFishKey_(NULL)
+{
+	unsigned char buf[20] = "";
+	RAND_bytes(buf, 20);
+	key_ = (char *)buf;
+	keySize_ = key_.Len();
+
+	init();
+}
+
+BlowfishFilter::BlowfishFilter(const FString & key) :
+	isGood_(false),
+	pPacket_(new MemoryStream()),
+	pEncryptStream_(new MemoryStream()),
+	packetLen_(0),
+	padSize_(0),
+	key_(key),
+	keySize_(key_.Len()),
+	pBlowFishKey_(NULL)
 {
 	init();
 }
@@ -42,23 +47,25 @@ BlowfishFilter::~BlowfishFilter()
 {
 	KBE_SAFE_RELEASE(pPacket_);
 	KBE_SAFE_RELEASE(pEncryptStream_);
+	KBE_SAFE_RELEASE(pBlowFishKey_);
 }
 
 bool BlowfishFilter::init()
 {
-#ifndef KBENGINE_NO_CRYPTO
-	if (key_.Num() >= encripter.MinKeyLength() && key_.Num() <= encripter.MaxKeyLength())
+	pBlowFishKey_ = new BF_KEY;
+
+	if (MIN_KEY_SIZE <= keySize_ && keySize_ <= MAX_KEY_SIZE)
 	{
-		encripter.SetKey(key_.GetData(), key_.Num());
-		decripter.SetKey(key_.GetData(), key_.Num());
+
+		BF_set_key(this->pBlowFishKey(), key_.Len(), reinterpret_cast<const unsigned char*>(TCHAR_TO_ANSI(*key_)));
 		isGood_ = true;
 	}
 	else
 	{
-		ERROR_MSG("BlowfishFilter::init: invalid length %d", key_.Num());
+		ERROR_MSG("BlowfishFilter::init: invalid length %d", key_.Len());
 		isGood_ = false;
 	}
-#endif
+
 	return isGood_;
 }
 
@@ -66,7 +73,6 @@ void BlowfishFilter::encrypt(MemoryStream *pMemoryStream)
 {
 	// BlowFish 每次只能加密和解密8字节数据
 	// 不足8字节则填充0
-#ifndef KBENGINE_NO_CRYPTO
 	uint8 padSize = 0;
 
 	if (pMemoryStream->length() % BLOCK_SIZE != 0)
@@ -86,12 +92,10 @@ void BlowfishFilter::encrypt(MemoryStream *pMemoryStream)
 
 	pMemoryStream->swap(*pEncryptStream_);
 	pEncryptStream_->clear(false);
-#endif
 }
 
 void BlowfishFilter::encrypt(uint8 *buf, MessageLengthEx len)
 {
-#ifndef KBENGINE_NO_CRYPTO
 	if (len % BLOCK_SIZE != 0)
 	{
 		ERROR_MSG("BlowfishFilter::encrypt: Input length (%d) is not a multiple of block size ", len);
@@ -113,9 +117,8 @@ void BlowfishFilter::encrypt(uint8 *buf, MessageLengthEx len)
 			prevBlock = *(uint64*)(data + i);
 		}
 
-		encripter.ProcessData(data + i, data + i, BLOCK_SIZE);
+		BF_ecb_encrypt(data + i, data + i, this->pBlowFishKey(), BF_ENCRYPT);
 	}
-#endif
 }
 
 void BlowfishFilter::encrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len)
@@ -130,7 +133,6 @@ void BlowfishFilter::decrypt(MemoryStream *pMemoryStream)
 
 void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx len)
 {
-#ifndef KBENGINE_NO_CRYPTO
 	if (len % BLOCK_SIZE != 0)
 	{
 		ERROR_MSG("BlowfishFilter::decrypt: Input length (%d) is not a multiple of block size ", len);
@@ -141,16 +143,15 @@ void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx len)
 	uint64 prevBlock = 0;
 	for (uint32 i = 0; i < len; i += BLOCK_SIZE)
 	{
-		decripter.ProcessData(data + i, data + i, BLOCK_SIZE);
+		BF_ecb_encrypt(data + i, data + i, this->pBlowFishKey(), BF_DECRYPT);
 
 		if (prevBlock != 0)
 		{
 			*(uint64*)(data + i) = *(uint64*)(data + i) ^ (prevBlock);
 		}
-		
+
 		prevBlock = *(uint64*)(data + i);
 	}
-#endif
 }
 
 void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len)
@@ -160,7 +161,6 @@ void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx
 
 bool BlowfishFilter::send(PacketSenderBase* pPacketSender, MemoryStream *pPacket)
 {
-#ifndef KBENGINE_NO_CRYPTO
 	if (!isGood_)
 	{
 		ERROR_MSG("BlowfishFilter::send: Dropping packet due to invalid filter");
@@ -168,13 +168,11 @@ bool BlowfishFilter::send(PacketSenderBase* pPacketSender, MemoryStream *pPacket
 	}
 
 	encrypt(pPacket);
-#endif
 	return pPacketSender->send(pPacket);;
 }
 
 bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 {
-#ifndef KBENGINE_NO_CRYPTO
 	if (!isGood_)
 	{
 		ERROR_MSG("BlowfishFilter::recv: Dropping packet due to invalid filter");
@@ -185,7 +183,7 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 	uint32 len = pPacket->length();
 	uint16 packeLen = pPacket->readUint16();
 
-	if ( 0 == pPacket_->length() && len > MIN_PACKET_SIZE && packeLen - 1 == len - 3)
+	if (0 == pPacket_->length() && len > MIN_PACKET_SIZE && packeLen - 1 == len - 3)
 	{
 		int padSize = pPacket->readUint8();
 		decrypt(pPacket);
@@ -267,12 +265,7 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 		packetLen_ = 0;
 		padSize_ = 0;
 	}
-#else
-	if (pMessageReader)
-	{
-		pMessageReader->process(pPacket->data() + pPacket->rpos(), 0, pPacket->length());
-	}
-#endif
-	
 	return true;
+}
+
 }

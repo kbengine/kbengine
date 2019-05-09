@@ -837,7 +837,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		buf.set(new Uint8Array(stream.buffer, offset, size), 0);
 		this.wpos += size;
 	}
-	
+
 	//---------------------------------------------------------------------------------
 	this.readSkip = function(v)
 	{
@@ -910,7 +910,7 @@ KBEngine.MemoryStream.createObject = function()
 {
 	if(KBEngine.MemoryStream._objects == undefined)
 		KBEngine.MemoryStream._objects = [];
-
+  
 	return KBEngine.MemoryStream._objects.length > 0 ? KBEngine.MemoryStream._objects.pop() : new KBEngine.MemoryStream(KBEngine.PACKET_MAX_SIZE_TCP);
 }
 
@@ -3997,7 +3997,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		bundle.writeInt32(KBEngine.app.entity_id);
 		bundle.send(KBEngine.app);
 	}
-
+	
 	this.login_loginapp = function(noconnect)
 	{  
 		if(noconnect)
@@ -4168,7 +4168,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var failedcode = args.readUint16();
 		KBEngine.app.serverdatas = args.readBlob();
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginFailed: failedcode=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + "), datas(" + KBEngine.app.serverdatas.length + ")!");
-		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode);
+		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode, KBEngine.app.serverdatas);
 	}
 	
 	this.Client_onLoginSuccessfully = function(args)
@@ -5453,19 +5453,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(roll != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.x = KBEngine.int82angle(roll, false);
+			entity.direction.x = isOptimized ? KBEngine.int82angle(roll, false) : roll;
 		}
 
 		if(pitch != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.y = KBEngine.int82angle(pitch, false);
+			entity.direction.y = isOptimized ? KBEngine.int82angle(pitch, false) : pitch;
 		}
 		
 		if(yaw != KBEngine.KBE_FLT_MAX)
 		{
 			changeDirection = true;
-			entity.direction.z = KBEngine.int82angle(yaw, false);
+			entity.direction.z = isOptimized ? KBEngine.int82angle(yaw, false) : yaw;
 		}
 		
 		var done = false;
@@ -5479,9 +5479,9 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(x != KBEngine.KBE_FLT_MAX || y != KBEngine.KBE_FLT_MAX || z != KBEngine.KBE_FLT_MAX)
 			positionChanged = true;
 
-		if (x == KBEngine.KBE_FLT_MAX) x = 0.0;
-		if (y == KBEngine.KBE_FLT_MAX) y = 0.0;
-		if (z == KBEngine.KBE_FLT_MAX) z = 0.0;
+		if (x == KBEngine.KBE_FLT_MAX) x = isOptimized ? 0.0 : entity.position.x;
+		if (y == KBEngine.KBE_FLT_MAX) y = isOptimized ? 0.0 : entity.position.y;
+		if (z == KBEngine.KBE_FLT_MAX) z = isOptimized ? 0.0 : entity.position.z;
         
 		if(positionChanged)
 		{
@@ -5497,7 +5497,6 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				entity.position.y = y;
 				entity.position.z = z;
 			}
-			
 			
 			done = true;
 			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);

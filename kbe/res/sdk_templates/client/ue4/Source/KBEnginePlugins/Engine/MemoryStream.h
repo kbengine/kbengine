@@ -39,6 +39,9 @@ namespace MemoryStreamConverter
 	}
 }
 
+namespace KBEngine
+{
+
 template<typename T> inline void EndianConvert(T& val) 
 { 
 	if(!FGenericPlatformProperties::IsLittleEndian())
@@ -915,4 +918,6 @@ template<>
 inline void MemoryStream::read_skip<FString>()
 {
 	read_skip<char*>();
+}
+
 }

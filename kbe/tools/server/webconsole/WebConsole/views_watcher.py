@@ -74,12 +74,12 @@ from dwebsocket import accept_websocket
 
 class WatcherData(object):
 	def __init__(self, wInst, cp, port, host, key):
-	    self.wInst = wInst
-	    self.cp = cp
-	    self.port = port
-	    self.host = host
-	    self.key = key
-	    self.watcher = Watcher.Watcher(cp)
+		self.wInst = wInst
+		self.cp = cp
+		self.port = port
+		self.host = host
+		self.key = key
+		self.watcher = Watcher.Watcher(cp)
 
 	def do(self):
 		self.watcher.connect(self.host,self.port)

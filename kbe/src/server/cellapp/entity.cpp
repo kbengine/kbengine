@@ -64,6 +64,7 @@ SCRIPT_METHOD_DECLARE("entitiesInView",				pyEntitiesInView,				METH_VARARGS,			
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugView",					pyDebugView,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getWitnesses",				pyGetWitnesses,					METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -1487,7 +1488,13 @@ void Entity::addWitnessed(Entity* entity)
 //-------------------------------------------------------------------------------------
 void Entity::delWitnessed(Entity* entity)
 {
-	KBE_ASSERT(witnesses_count_ > 0);
+	if (witnesses_count_ == 0)
+	{
+		ERROR_MSG(fmt::format("{}::delWitnessed({}): witness is empty!\n",
+			scriptName(), id()));
+
+		return;
+	}
 
 	witnesses_.remove(entity->id());
 	--witnesses_count_;
@@ -2100,6 +2107,39 @@ void Entity::onGetWitness(bool fromBase)
 			clientEntityCall(client);
 		}
 
+		// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
+
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+		MemoryStream* s1 = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+		(*pSendBundle) << id();
+
+		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
+		Network::FixedMessages::MSGInfo* msgInfo =
+			Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+
+		if (msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+
+		if (pScriptModule()->usePropertyDescrAlias())
+		{
+			uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+			(*s1) << (uint8)0 << aliasID << this->spaceID();
+		}
+		else
+		{
+			(*s1) << (ENTITY_PROPERTY_UID)0 << spaceuid << this->spaceID();
+		}
+
+		addClientDataToStream(s1);
+		(*pSendBundle).append(*s1);
+		MemoryStream::reclaimPoolObject(s1);
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+
+		clientEntityCall()->sendCall(pSendBundle);
+
 		if(pWitness_ == NULL)
 		{
 			setWitness(Witness::createPoolObject(OBJECTPOOL_POINT));
@@ -2135,42 +2175,6 @@ void Entity::onGetWitness(bool fromBase)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGetWitness"), GETERR));
-	}
-	
-	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
-	if(fromBase)
-	{
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
-		
-		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
-		MemoryStream* s1 = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
-		(*pSendBundle) << id();
-		
-		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
-
-		Network::FixedMessages::MSGInfo* msgInfo = 
-			Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
-
-		if(msgInfo != NULL)
-			spaceuid = msgInfo->msgid;
-		
-		if(pScriptModule()->usePropertyDescrAlias())
-		{
-			uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-			(*s1) << (uint8)0 << aliasID << this->spaceID();
-		}
-		else
-		{
-			(*s1) << (ENTITY_PROPERTY_UID)0 << spaceuid << this->spaceID();
-		}
-
-		addClientDataToStream(s1);
-		(*pSendBundle).append(*s1);
-		MemoryStream::reclaimPoolObject(s1);
-		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
-		
-		clientEntityCall()->sendCall(pSendBundle);
 	}
 
 	Py_DECREF(this);
@@ -2293,8 +2297,11 @@ int Entity::pySetVolatileinfo(PyObject *value)
 PyObject* Entity::pyGetVolatileinfo()
 {
 	if (pCustomVolatileinfo_ == NULL)
-		pCustomVolatileinfo_ = new VolatileInfo();
-
+	{
+		VolatileInfo* pVolatileInfo = const_cast<ScriptDefModule*>(pScriptModule())->getPVolatileInfo();
+		pCustomVolatileinfo_ = new VolatileInfo(*pVolatileInfo);
+	}
+		
 	Py_INCREF(pCustomVolatileinfo_);
 	return pCustomVolatileinfo_;
 }
@@ -2455,6 +2462,47 @@ float Entity::getViewRadius(void) const
 PyObject* Entity::pyGetViewRadius()
 {
 	return PyFloat_FromDouble(getViewRadius());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetWitnesses()
+{
+	std::vector<Entity*> entities;
+
+	std::list<ENTITY_ID>::iterator witer = witnesses_.begin();
+	for (; witer != witnesses_.end(); ++witer)
+	{
+		Entity* pEntity = Cellapp::getSingleton().findEntity((*witer));
+		if (pEntity == NULL || pEntity->pWitness() == NULL)
+			continue;
+
+		EntityCall* clientEntityCall = pEntity->clientEntityCall();
+		if (clientEntityCall == NULL)
+			continue;
+
+		Network::Channel* pChannel = clientEntityCall->getChannel();
+		if (pChannel == NULL)
+			continue;
+
+		// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+		// 又如自己的entity还未在目标客户端上创建
+		if (!pEntity->pWitness()->entityInView(id()))
+			continue;
+
+		entities.push_back(pEntity);
+	}
+
+	int i = 0;
+	PyObject * pTuple = PyTuple_New(entities.size());
+
+	std::vector<Entity*>::const_iterator iter = entities.begin();
+	for (; iter != entities.end(); iter++, i++)
+	{
+		Py_INCREF(*iter);
+		PyTuple_SET_ITEM(pTuple, i, *iter);
+	}
+
+	return pTuple;
 }
 
 //-------------------------------------------------------------------------------------

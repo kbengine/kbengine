@@ -14,6 +14,9 @@
 	网络模块
 	处理连接、收发数据
 */
+namespace KBEngine
+{
+
 class KBENGINEPLUGINS_API NetworkInterfaceTCP : public NetworkInterfaceBase
 {
 public:
@@ -25,3 +28,5 @@ protected:
 	PacketReceiverBase* createPacketReceiver() override;
 
 };
+
+}

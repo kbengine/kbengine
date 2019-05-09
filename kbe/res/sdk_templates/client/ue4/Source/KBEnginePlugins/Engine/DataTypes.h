@@ -5,13 +5,17 @@
 #include "KBECommon.h"
 #include "KBVar.h"
 
-class Bundle;
-class MemoryStream;
 
 /*
 	entitydef所支持的基本数据类型
 	改模块中的类抽象出了所有的支持类型并提供了这些类型的数据序列化成二进制数据与反序列化操作（主要用于网络通讯的打包与解包）
 */
+namespace KBEngine
+{
+
+class Bundle;
+class MemoryStream;
+
 class KBENGINEPLUGINS_API DATATYPE_BASE
 {
 public:
@@ -88,7 +92,7 @@ class KBENGINEPLUGINS_API DATATYPE_INT32 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
-	virtual void addToStream(Bundle& stream, KBVar& v) override;
+	virtual void addToStream(KBEngine::Bundle& stream, KBVar& v) override;
 
 	virtual KBVar* parseDefaultValStr(const FString& v) override;
 
@@ -382,15 +386,4 @@ public:
 	TMap<FString, uint16> dicttype_map;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
+}

@@ -4,6 +4,9 @@
 
 #include "KBECommon.h"
 
+namespace KBEngine
+{
+
 class Entity;
 class MemoryStream;
 class ScriptModule;
@@ -58,4 +61,7 @@ public:
 	uint16 componentType;
 	ENTITY_ID ownerID;
 	Entity* pOwner;
+	FString name_;
 };
+
+}

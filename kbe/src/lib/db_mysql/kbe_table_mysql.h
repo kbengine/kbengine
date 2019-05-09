@@ -59,6 +59,10 @@ public:
 	virtual std::vector<COMPONENT_ID> queryTimeOutServers(DBInterface * pdbi);
 	
 	virtual bool clearServers(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids);
+
+	virtual std::map<COMPONENT_ID, bool> queryAllServerShareDBState(DBInterface * pdbi);
+
+	virtual int isShareDB(DBInterface * pdbi);
 	
 protected:
 	

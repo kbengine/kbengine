@@ -6,9 +6,15 @@
 #include "Entity.h"
 #include "KBEngine.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 UKBETicker::UKBETicker()
 {
+#if WITH_EDITOR
+	FEditorDelegates::EndPIE.AddUObject(this, &UKBETicker::OnEndPIE);
+#endif
 }
 
 UKBETicker::~UKBETicker()
@@ -20,7 +26,7 @@ void UKBETicker::Tick(float DeltaTime)
 	KBEvent::processOutEvents();
 
 	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	Entity* kbe_player = KBEngineApp::getSingleton().player();
+	KBEngine::Entity* kbe_player = KBEngine::KBEngineApp::getSingleton().player();
 
 	// 每个tick将UE4的玩家坐标写入到KBE插件中的玩家实体坐标，插件会定期同步给服务器
 	if (kbe_player && ue4_player)
@@ -31,7 +37,7 @@ void UKBETicker::Tick(float DeltaTime)
 		kbe_player->isOnGround(ue4_player->GetMovementComponent() && ue4_player->GetMovementComponent()->IsMovingOnGround());
 	}
 
-	KBEngineApp::getSingleton().process();
+	KBEngine::KBEngineApp::getSingleton().process();
 }
 
 bool UKBETicker::IsTickable() const
@@ -47,11 +53,10 @@ TStatId UKBETicker::GetStatId() const
 UWorld* UKBETicker::GetWorld() const
 { 
 	UWorld* World = (GetOuter() != nullptr) ? GetOuter()->GetWorld() : GWorld;	
-	if (World == nullptr) 
+	if (World == nullptr)
 	{
-		World = GWorld; 
+		World = GWorld;
 	}
-
 	return World; 
 }
 
@@ -68,4 +73,11 @@ bool UKBETicker::IsTickableInEditor() const
 UWorld* UKBETicker::GetTickableGameObjectWorld() const
 {
 	return GetWorld();
+}
+
+void UKBETicker::OnEndPIE(const bool data)
+{
+#if WITH_EDITOR
+	KBEngine::KBEngineApp::destroyKBEngineApp();
+#endif
 }

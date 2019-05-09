@@ -1,6 +1,10 @@
 
 #include "KBVar.h"
 #include "KBDebug.h"
+#include "KBECommon.h"
+
+namespace KBEngine
+{
 
 void KBVar::ErrorLog(const FString& errstr) const
 {
@@ -11,5 +15,7 @@ void KBVar::ErrorLog(const FString& errstr) const
 	UE_LOG(LogKBEngine, Log, TEXT("%s"), *NewMsg); 
 	CLEAR_WARN_COLOR(); 
 	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, NewMsg); 
+}
+
 }
 

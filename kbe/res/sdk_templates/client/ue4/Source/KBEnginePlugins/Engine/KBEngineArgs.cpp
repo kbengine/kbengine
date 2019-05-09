@@ -2,6 +2,9 @@
 #include "KBEngineArgs.h"
 #include "KBDebug.h"
 
+namespace KBEngine
+{
+
 KBEngineArgs::KBEngineArgs():
 	ip(TEXT("127.0.0.1")),
 	port(20013),
@@ -41,4 +44,6 @@ int KBEngineArgs::getUDPRecvBufferSize()
 int KBEngineArgs::getUDPSendBufferSize()
 {
 	return (int)UDP_SEND_BUFFER_MAX;
+}
+
 }

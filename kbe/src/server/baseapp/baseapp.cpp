@@ -3821,15 +3821,6 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		return;
 	}
 
-	// 虽然接入第三方dbmgr不检查密码，但至少在loginapp时提交的password应该跟本次提交的能匹配上
-	// 否则容易被其他连接攻击式的试探登陆
-	if (!ptinfos->needCheckPassword && ptinfos->password != password)
-	{
-		loginBaseappFailed(pChannel, accountName, SERVER_ERR_NAME_PASSWORD);
-		pendingLoginMgr_.removeNextTick(accountName);
-		return;
-	}
-
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
