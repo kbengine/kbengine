@@ -55,8 +55,8 @@
 			}
 			catch(ObjectDisposedException)
 			{
-				
-			}
-		}
+                //通常出现这个错误, 是因为longin_baseapp时, networkInterface已经reset, _packetReceiver被置为null, 而之后刚好该回调被调用
+            }
+        }
 	}
 } 
