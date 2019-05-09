@@ -546,7 +546,7 @@ static bool registerDefContext(DefContext& defContext)
 	{
 		if (!EntityDef::validDefPropertyName(defContext.attrName))
 		{
-			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n", 
 				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
 
 			return false;
