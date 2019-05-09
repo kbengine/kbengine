@@ -48,8 +48,15 @@
 
 		private void _onRecv(IAsyncResult ar)
 		{
-			AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState; ;
-			caller.EndInvoke(ar);
+			try
+			{
+				AsyncReceiveMethod caller = (AsyncReceiveMethod)ar.AsyncState;
+				caller.EndInvoke(ar);
+			}
+			catch(ObjectDisposedException)
+			{
+				
+			}
 		}
 	}
 } 
