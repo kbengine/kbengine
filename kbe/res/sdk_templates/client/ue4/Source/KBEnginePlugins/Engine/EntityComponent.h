@@ -39,6 +39,21 @@ public:
 		return NULL;
 	}
 
+	virtual void onGetBase()
+	{
+		// 动态生成
+	}
+
+	virtual void onGetCell()
+	{
+		// 动态生成
+	}
+
+	virtual void onLoseCell()
+	{
+		// 动态生成
+	}
+
 	virtual void onRemoteMethodCall(uint16 methodUtype, MemoryStream& stream)
 	{
 		// 动态生成

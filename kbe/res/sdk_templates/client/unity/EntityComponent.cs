@@ -35,11 +35,26 @@ namespace KBEngine
 		{
 		}
 
-        public virtual ScriptModule getScriptModule()
-        {
+		public virtual void onGetBase()
+		{
 			// 动态生成
-            return null;
-        }
+		}
+
+		public virtual void onGetCell()
+		{
+			// 动态生成
+		}
+
+		public virtual void onLoseCell()
+		{
+			// 动态生成
+		}
+
+		public virtual ScriptModule getScriptModule()
+		{
+			// 动态生成
+			return null;
+		}
 
 		public virtual void onRemoteMethodCall(UInt16 methodUtype, MemoryStream stream)
 		{
