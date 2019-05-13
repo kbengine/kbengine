@@ -2493,7 +2493,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			fileBody() += fmt::format("\nvoid {}::onGetBase()\n{{\n", newModuleName);
 			fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
 			fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
-			fileBody() += fmt::format("\tpBaseEntityCall = new EntityBaseEntityCall_{}(id(), className());\n\n", newModuleName);
+			fileBody() += fmt::format("\tpBaseEntityCall = new EntityBaseEntityCall_{}(id(), className());\n", newModuleName);
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
@@ -2515,10 +2515,10 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			fileBody() += fmt::format("\tvoid onGetCell() override;\n");
 
 			changeContextToSource();
-			fileBody() += fmt::format("void {}::onGetCell()\n{{\n", newModuleName);
+			fileBody() += fmt::format("\nvoid {}::onGetCell()\n{{\n", newModuleName);
 			fileBody() += fmt::format("\tif(pCellEntityCall)\n");
 			fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
-			fileBody() += fmt::format("\tpCellEntityCall = new EntityCellEntityCall_{}(id(), className());\n\n", newModuleName);
+			fileBody() += fmt::format("\tpCellEntityCall = new EntityCellEntityCall_{}(id(), className());\n", newModuleName);
 
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
@@ -2543,7 +2543,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			changeContextToSource();
 			fileBody() += fmt::format("\nvoid {}::onLoseCell()\n{{\n", newModuleName);
 			fileBody() += fmt::format("\tdelete pCellEntityCall;\n");
-			fileBody() += fmt::format("\tpCellEntityCall = NULL;\n\n");
+			fileBody() += fmt::format("\tpCellEntityCall = NULL;\n");
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
