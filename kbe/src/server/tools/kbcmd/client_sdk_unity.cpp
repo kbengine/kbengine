@@ -1831,8 +1831,18 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	{
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void createFromStream(MemoryStream stream)\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tbase.createFromStream(stream);\n");
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = null;\n", newModuleName);
 		sourcefileBody_ += fmt::format("\t\t}}\n");
 	}
 
@@ -1923,14 +1933,44 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(id, className);\n", newModuleName);
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onGetBase();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(id, className);\n", newModuleName);
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onGetCell();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = null;\n");
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onLoseCell();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override EntityCall getBaseEntityCall()\n\t\t{{\n");
