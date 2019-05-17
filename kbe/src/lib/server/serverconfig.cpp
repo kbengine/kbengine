@@ -397,7 +397,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "entryScriptFile");	
 		if(childnode != NULL)
-			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME - 1);
 
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
@@ -458,11 +458,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_cellAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 		
 		TiXmlNode* viewNode = xml->enterNode(rootNode, "defaultViewRadius");
 		if(viewNode != NULL)
@@ -633,19 +633,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_baseAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalAddress");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_baseAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -798,7 +798,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "entryScriptFile");
 		if (node != NULL)
-			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 		
 		node = xml->enterNode(rootNode, "telnet_service");
 		if (node != NULL)
@@ -885,7 +885,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		TiXmlNode* databaseInterfacesNode = xml->enterNode(rootNode, "databaseInterfaces");	
 		if(databaseInterfacesNode != NULL)
@@ -907,7 +907,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if (!pDBInfo)
 						pDBInfo = &dbinfo;
 					
-					strncpy((char*)&pDBInfo->name, name.c_str(), MAX_NAME);
+					strncpy((char*)&pDBInfo->name, name.c_str(), MAX_NAME - 1);
 
 					TiXmlNode* interfaceNode = databaseInterfacesNode->FirstChild();
 					
@@ -923,13 +923,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 					node = xml->enterNode(interfaceNode, "type");
 					if(node != NULL)
-						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME);
+						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME - 1);
 					else
 						missingFields.push_back("type");
 
 					node = xml->enterNode(interfaceNode, "host");
 					if(node != NULL)
-						strncpy((char*)&pDBInfo->db_ip, xml->getValStr(node).c_str(), MAX_IP);
+						strncpy((char*)&pDBInfo->db_ip, xml->getValStr(node).c_str(), MAX_IP - 1);
 					else
 						missingFields.push_back("host");
 
@@ -945,7 +945,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 						TiXmlNode* childnode = xml->enterNode(node, "password");
 						if(childnode)
 						{
-							strncpy((char*)&pDBInfo->db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
+							strncpy((char*)&pDBInfo->db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10 - 1);
 						}
 						else
 						{
@@ -955,7 +955,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 						childnode = xml->enterNode(node, "username");
 						if(childnode)
 						{
-							strncpy((char*)&pDBInfo->db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
+							strncpy((char*)&pDBInfo->db_username, xml->getValStr(childnode).c_str(), MAX_NAME - 1);
 						}
 						else
 						{
@@ -979,7 +979,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 						
 					node = xml->enterNode(interfaceNode, "databaseName");
 					if(node != NULL)
-						strncpy((char*)&pDBInfo->db_name, xml->getValStr(node).c_str(), MAX_NAME);
+						strncpy((char*)&pDBInfo->db_name, xml->getValStr(node).c_str(), MAX_NAME - 1);
 					else
 						missingFields.push_back("databaseName");
 
@@ -1097,7 +1097,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "accountEntityScriptType");	
 			if(childnode != NULL)
 			{
-				strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(childnode).c_str(), MAX_NAME);
+				strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(childnode).c_str(), MAX_NAME - 1);
 			}
 
 			childnode = xml->enterNode(node, "account_registration");	
@@ -1132,7 +1132,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "entryScriptFile");
 		if (node != NULL)
-			strncpy((char*)&_loginAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loginAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 		
 		node = xml->enterNode(rootNode, "telnet_service");
 		if (node != NULL)
@@ -1158,15 +1158,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalAddress");	
 		if(node != NULL)
-			strncpy((char*)&_loginAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loginAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -1210,7 +1210,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_cellAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
@@ -1223,7 +1223,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_baseAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
@@ -1236,11 +1236,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_kbMachineInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_kbMachineInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_kbMachineInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_kbMachineInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -1286,15 +1286,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
-			strncpy((char*)&_botsInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_botsInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "host");	
 		if(node != NULL)
-			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP - 1);
 
 		node = xml->enterNode(rootNode, "port_min");	
 		if(node != NULL)
@@ -1398,11 +1398,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_loggerInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loggerInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "entryScriptFile");
 		if (node != NULL)
-			strncpy((char*)&_loggerInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loggerInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME - 1);
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
@@ -1606,7 +1606,7 @@ void ServerConfig::updateExternalAddress(char* buf)
 			host = gethostbyname(buf);
 			if(host)
 			{
-				strncpy(buf, inet_ntoa(*(struct in_addr*)host->h_addr_list[0]), MAX_BUF);
+				strncpy(buf, inet_ntoa(*(struct in_addr*)host->h_addr_list[0]), MAX_BUF - 1);
 			}	
 		}
 	}
