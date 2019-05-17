@@ -445,7 +445,7 @@ INLINE int EndPoint::getInterfaceFlags(char * name, int & flags)
 {
 	struct ifreq	request;
 
-	strncpy(request.ifr_name, name, IFNAMSIZ);
+	strncpy(request.ifr_name, name, IFNAMSIZ - 1);
 	if (ioctl(socket_, SIOCGIFFLAGS, &request) != 0)
 	{
 		return -1;
@@ -459,7 +459,7 @@ INLINE int EndPoint::getInterfaceAddress(const char * name, u_int32_t & address)
 {
 	struct ifreq	request;
 
-	strncpy(request.ifr_name, name, IFNAMSIZ);
+	strncpy(request.ifr_name, name, IFNAMSIZ - 1);
 	if (ioctl(socket_, SIOCGIFADDR, &request) != 0)
 	{
 		return -1;
@@ -480,7 +480,7 @@ INLINE int EndPoint::getInterfaceNetmask(const char * name,
 	u_int32_t & netmask)
 {
 	struct ifreq request;
-	strncpy(request.ifr_name, name, IFNAMSIZ);
+	strncpy(request.ifr_name, name, IFNAMSIZ - 1);
 
 	if (ioctl(socket_, SIOCGIFNETMASK, &request) != 0)
 	{
