@@ -2274,19 +2274,19 @@
 			if(roll != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
-				entity.direction.x = isOptimized ? KBEMath.int82angle((SByte)roll, false) * 360 / ((float)System.Math.PI * 2) : roll;
+				entity.direction.x = (isOptimized ? KBEMath.int82angle((SByte)roll, false) : roll) * 360 / ((float)System.Math.PI * 2);
 			}
 
 			if(pitch != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
-				entity.direction.y = isOptimized ? KBEMath.int82angle((SByte)pitch, false) * 360 / ((float)System.Math.PI * 2) : pitch;
+				entity.direction.y = (isOptimized ? KBEMath.int82angle((SByte)pitch, false) : pitch) * 360 / ((float)System.Math.PI * 2);
 			}
 			
 			if(yaw != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
-				entity.direction.z = isOptimized ? KBEMath.int82angle((SByte)yaw, false) * 360 / ((float)System.Math.PI * 2) : yaw;
+				entity.direction.z = (isOptimized ? KBEMath.int82angle((SByte)yaw, false) : yaw) * 360 / ((float)System.Math.PI * 2);
 			}
 			
 			bool done = false;
