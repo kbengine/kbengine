@@ -1074,7 +1074,9 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 			const_cast<char*>("(O)"), Py_None);
 
 		if (!pyRet)
-			return NULL;
+		{
+			PY_RETURN_ERROR;
+		}
 
 		if (pyRet != Py_None)
 		{
@@ -1083,23 +1085,6 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 			defContext.propertyDefaultVal = PyUnicode_AsUTF8AndSize(pyStrResult, NULL);
 			Py_DECREF(pyStrResult);
-
-			// 验证这个字符串是否可以还原成对象
-			if (defContext.propertyDefaultVal.size() > 0)
-			{
-				PyObject* module = PyImport_AddModule("__main__");
-				if (module == NULL)
-					return NULL;
-
-				PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
-				PyObject* result = PyRun_String(const_cast<char*>(defContext.propertyDefaultVal.c_str()),
-					Py_eval_input, mdict, mdict);
-
-				if (result == NULL)
-					return NULL;
-
-				Py_DECREF(result);
-			}
 		}
 		else
 		{
@@ -1481,6 +1466,30 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 	}
 	else if (defContext.optionName == "property")
 	{
+		// 验证这个字符串是否可以还原成对象
+		if (defContext.propertyDefaultVal.size() > 0)
+		{
+			PyObject* module = PyImport_AddModule("__main__");
+			if (module == NULL)
+			{
+				noerror = false;
+			}
+			else
+			{
+				if (defContext.returnType != "UNICODE" && defContext.returnType != "STRING")
+				{
+					PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
+					PyObject* result = PyRun_String(const_cast<char*>(defContext.propertyDefaultVal.c_str()),
+						Py_eval_input, mdict, mdict);
+
+					if (result == NULL)
+						noerror = false;
+					else
+						Py_DECREF(result);
+				}
+			}
+		}
+
 		noerror = onDefProperty(defContext);
 	}
 	else if (defContext.optionName == "entity")
