@@ -3230,6 +3230,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				if(app.fragmentStream != null && app.fragmentStream.length() >= app.currMsgLen)
 				{
 					msgHandler.handleMessage(app.fragmentStream);
+					app.fragmentStream.reclaimObject();
 					app.fragmentStream = null;
 				}
 				else if(stream.length() < app.currMsgLen && stream.length() > 0)
@@ -3249,7 +3250,6 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 				app.currMsgID = 0;
 				app.currMsgLen = 0;
-				app.fragmentStream = null;
 			}
 			else
 			{
@@ -3272,7 +3272,13 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		app.fragmentDatasRemain = datasize - opsize;
 		app.fragmentDatasFlag = FragmentDataType;
-		app.fragmentStream = stream;
+
+		if(opsize > 0)
+		{
+			KBEngine.app.fragmentStream = KBEngine.MemoryStream.createObject();
+			KBEngine.app.fragmentStream.append(stream, stream.rpos, opsize);
+			stream.done();
+		}
 	}
 
 	this.mergeFragmentMessage = function(stream)
@@ -3295,22 +3301,20 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		{
 			var FragmentDataTypes = KBEngine.FragmentDataTypes;
 			fragmentStream.append(stream, stream.rpos, app.fragmentDatasRemain);
+			stream.rpos += app.fragmentDatasRemain;
 
 			switch(app.fragmentDatasFlag)
 			{
 				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_ID:
 					app.currMsgID = fragmentStream.readUint16();
-					app.fragmentStream = null;
 					break;
 
 				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH:
 					app.currMsgLen = fragmentStream.readUint16();
-					app.fragmentStream = null;
 					break;
 
 				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH1:
 					app.currMsgLen = fragmentStream.readUint32();
-					app.fragmentStream = null;
 					break;
 
 				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_BODY:
@@ -3318,7 +3322,6 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 					break;
 			}
 
-			stream.rpos += app.fragmentDatasRemain;
 			app.fragmentDatasFlag = FragmentDataTypes.FRAGMENT_DATA_UNKNOW;
 			app.fragmentDatasRemain = 0;
 			return false;
