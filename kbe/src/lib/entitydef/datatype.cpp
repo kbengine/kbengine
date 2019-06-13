@@ -2066,6 +2066,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n",
 						typeName.c_str(), strType.c_str()));
 
+					dataType->decRef();
+					pDictItemDataType->dataType = NULL;
 					return false;
 				}
 			}
@@ -2100,6 +2102,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find type[{}]!\n", 
 						typeName.c_str(), strType.c_str()));
 					
+					dataType->decRef();
+					pDictItemDataType->dataType = NULL;
 					return false;
 				}
 			}
