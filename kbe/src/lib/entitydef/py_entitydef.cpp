@@ -2323,7 +2323,7 @@ static bool registerDefMethods(ScriptDefModule* pScriptModule, DefContext& defCo
 
 		size_t argIdx = 0;
 
-		// 检查第一个参数是否是exposed callerID
+		// 检查第一个参数是否是Exposed callerID
 		if (defMethodContext.argsvecs.size() > 0)
 		{
 			std::string argName = defMethodContext.argsvecs[0];
