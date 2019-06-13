@@ -4850,12 +4850,34 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.app.entityServerPos.x = x;
 		KBEngine.app.entityServerPos.y = y;
 		KBEngine.app.entityServerPos.z = z;
+
+        var entity = KBEngine.app.player();
+        if(entity != undefined && entity.isControlled)
+        {
+			entity.position.x = KBEngine.app.entityServerPos.x;
+			entity.position.y = KBEngine.app.entityServerPos.y;
+			entity.position.z = KBEngine.app.entityServerPos.z;
+
+			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
+			entity.onUpdateVolatileData();
+        }
 	}
 	
 	this.Client_onUpdateBasePosXZ = function(x, z)
 	{
 		KBEngine.app.entityServerPos.x = x;
 		KBEngine.app.entityServerPos.z = z;
+
+        var entity = KBEngine.app.player();
+        if(entity != undefined && entity.isControlled)
+        {
+			entity.position.x = KBEngine.app.entityServerPos.x;
+			entity.position.y = KBEngine.app.entityServerPos.y;
+			entity.position.z = KBEngine.app.entityServerPos.z;
+
+			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
+			entity.onUpdateVolatileData();
+        }
 	}
 	
 	this.Client_onUpdateData = function(stream)
