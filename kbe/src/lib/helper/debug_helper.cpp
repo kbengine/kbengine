@@ -99,7 +99,17 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			printf("IOException: %s\nFATAL=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
-    
+
+#define KBE_LOG4CXX_PRINT(logger, s) { \
+		try {	\
+			   ::log4cxx::helpers::MessageBuffer oss_; \
+			   logger->forcedLog(::log4cxx::Level::getOff(), oss_.str(oss_ << s), LOG4CXX_LOCATION); \
+		}	\
+		catch (const log4cxx::helpers::IOException& ioex) {	\
+			printf("IOException: %s\nLOG=%s\n", ioex.what(), s.c_str());	\
+		}	\
+	}
+
 #define KBE_LOG4CXX_LOG(logger, level, s)	\
 	{	\
 		try {	\
@@ -109,7 +119,8 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			printf("IOException: %s\nLOG=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
-    
+
+
 #endif
 
 #define DBG_PT_SIZE 1024 * 4
@@ -285,6 +296,58 @@ void DebugHelper::changeLogger(const std::string& name)
 {
 #ifndef NO_USE_LOG4CXX
 	g_logger = log4cxx::Logger::getLogger(name);
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+bool DebugHelper::canLog(int level)
+{
+#ifndef NO_USE_LOG4CXX
+	int log4level = 0;
+
+	switch (level)
+	{
+	case KBELOG_PRINT:
+		log4level = log4cxx::Level::TRACE_INT;
+		break;
+	case KBELOG_ERROR:
+		log4level = log4cxx::Level::ERROR_INT;
+		break;
+	case KBELOG_WARNING:
+		log4level = log4cxx::Level::WARN_INT;
+		break;
+	case KBELOG_DEBUG:
+		log4level = log4cxx::Level::DEBUG_INT;
+		break;
+	case KBELOG_INFO:
+		log4level = log4cxx::Level::INFO_INT;
+		break;
+	case KBELOG_CRITICAL:
+		log4level = log4cxx::Level::FATAL_INT;
+		break;
+	case KBELOG_SCRIPT_INFO:
+		log4level = log4cxx::Level::INFO_INT;
+		break;
+	case KBELOG_SCRIPT_ERROR:
+		log4level = log4cxx::Level::ERROR_INT;
+		break;
+	case KBELOG_SCRIPT_DEBUG:
+		log4level = log4cxx::Level::DEBUG_INT;
+		break;
+	case KBELOG_SCRIPT_WARNING:
+		log4level = log4cxx::Level::WARN_INT;
+		break;
+	case KBELOG_SCRIPT_NORMAL:
+		log4level = log4cxx::Level::TRACE_INT;
+		break;
+	default:
+		log4level = log4cxx::Level::ALL_INT;
+		break;
+	};
+
+	return log4level >= g_logger->getLevel()->toInt();
+#else
+	return true;
 #endif
 }
 
@@ -716,7 +779,7 @@ void DebugHelper::printBufferedLogs()
 
 #ifdef NO_USE_LOG4CXX
 #else
-	KBE_LOG4CXX_INFO(g_logger, std::string("The following logs sent to logger failed:\n"));
+	KBE_LOG4CXX_PRINT(g_logger, std::string("The following logs sent to logger failed:\n"));
 #endif
 
 	// 将子线程日志放入bufferedLogPackets_
@@ -863,7 +926,7 @@ void DebugHelper::print_msg(const std::string& s)
 #ifdef NO_USE_LOG4CXX
 #else
 	if(canLogFile_)
-		KBE_LOG4CXX_INFO(g_logger, s);
+		KBE_LOG4CXX_PRINT(g_logger, s);
 #endif
 
 	onMessage(KBELOG_PRINT, s.c_str(), (uint32)s.size());
