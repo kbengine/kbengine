@@ -189,6 +189,8 @@ public:
 
 	Network::Channel* pLoggerChannel();
 
+	bool canLog(int level);
+
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;

@@ -345,6 +345,14 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	if (pLogItem->persistent)
 	{
 		DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(pLogItem->componentType));
+
+		if (!DebugHelper::getSingleton().canLog(pLogItem->logtype))
+		{
+			DebugHelper::getSingleton().changeLogger("default");
+			delete pLogItem;
+			return;
+		}
+		 
 		PRINT_MSG(sLog);
 		DebugHelper::getSingleton().changeLogger("default");
 	}
