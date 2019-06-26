@@ -303,6 +303,9 @@ void DebugHelper::changeLogger(const std::string& name)
 bool DebugHelper::canLog(int level)
 {
 #ifndef NO_USE_LOG4CXX
+	if (!g_logger->getLevel())
+		return true;
+
 	int log4level = 0;
 
 	switch (level)
@@ -629,6 +632,9 @@ void DebugHelper::pNetworkInterface(Network::NetworkInterface* networkInterface)
 //-------------------------------------------------------------------------------------
 void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 {
+	if (!canLog(logType))
+		return;
+
 #if !defined( _WIN32 )
 	if (g_shouldWriteToSyslog)
 	{
