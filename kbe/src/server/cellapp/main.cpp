@@ -58,6 +58,6 @@ using namespace KBEngine;
 int KBENGINE_MAIN(int argc, char* argv[])
 {
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
-	int ret = kbeMainT<Cellapp>(argc, argv, CELLAPP_TYPE, -1, -1, -1, -1, "", 0, info.internalInterface);
+	int ret = kbeMainT<Cellapp>(argc, argv, CELLAPP_TYPE, -1, -1, -1, -1, "", 0, 0, info.internalInterface);
 	return ret; 
 }

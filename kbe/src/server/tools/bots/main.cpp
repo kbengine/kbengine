@@ -59,6 +59,6 @@ using namespace KBEngine;
 int KBENGINE_MAIN(int argc, char* argv[])
 {
 	g_componentType = BOTS_TYPE;
-	return kbeMainT<Bots>(argc, argv, g_componentType, -1, -1, -1, -1, "", 0, "");
+	return kbeMainT<Bots>(argc, argv, g_componentType, -1, -1, -1, -1, "", 0, 0, "");
 }
 

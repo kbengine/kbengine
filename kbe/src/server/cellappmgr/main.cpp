@@ -53,5 +53,5 @@ using namespace KBEngine;
 int KBENGINE_MAIN(int argc, char* argv[])
 {
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellAppMgr();
-	return kbeMainT<Cellappmgr>(argc, argv, CELLAPPMGR_TYPE, -1, -1, -1, -1, "", 0, info.internalInterface);
+	return kbeMainT<Cellappmgr>(argc, argv, CELLAPPMGR_TYPE, -1, -1, -1, -1, "", 0, 0, info.internalInterface);
 }

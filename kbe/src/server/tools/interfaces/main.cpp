@@ -57,5 +57,5 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Interfaces>(argc, argv, INTERFACES_TYPE, -1, -1, -1, -1, "", ntohs(g_kbeSrvConfig.interfacesAddr().port), "");
+	return kbeMainT<Interfaces>(argc, argv, INTERFACES_TYPE, -1, -1, -1, -1, "", g_kbeSrvConfig.interfacesPortMin(), g_kbeSrvConfig.interfacesPortMax(), "");
 }
