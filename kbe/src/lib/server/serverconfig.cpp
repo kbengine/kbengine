@@ -1720,7 +1720,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			//INFO_MSG((fmt::format("\texternalAddr : %s\n", externalAddr.c_str())));
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
@@ -1739,7 +1739,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			//INFO_MSG((fmt::format("\texternalAddr : %s\n", externalAddr.c_str())));
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
@@ -1765,7 +1765,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			//INFO_MSG((fmt::format("\texternalAddr : %s\n", externalAddr.c_str())));
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
@@ -1816,7 +1816,25 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			//INFO_MSG((fmt::format("\texternalAddr : %s\n", externalAddr.c_str())));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
+		}
+	}
+	else if (componentType == INTERFACES_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getInterfaces();
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if (isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			INFO_MSG((fmt::format("\texternalAddr : %s\n", externalAddr.c_str())));
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
