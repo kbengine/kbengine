@@ -79,6 +79,6 @@ int KBENGINE_MAIN(int argc, char* argv[])
 	
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getKBMachine();
 	int ret = kbeMainT<Machine>(argc, argv, MACHINE_TYPE, info.externalPorts_min, 
-		info.externalPorts_max, "", 0, info.internalInterface);
+		info.externalPorts_max, "", 0, 0, info.internalInterface);
 	return ret; 
 }

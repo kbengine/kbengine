@@ -213,13 +213,13 @@
 			(interfaces address, multiple gameserver can share a interfaces)
 		-->
 		<host> localhost </host>
-		<port> 30099 	</port>
+		<port_min> 30099 </port_min>
+		<port_max> 30199 </port_max>
 		
 		<!-- 订单超时(秒) 
 			(Orders timeout(seconds))
 		-->
 		<orders_timeout> 3600 	</orders_timeout>
-		
 		
 		<!-- listen监听队列最大值
 		    (listen: Maximum listen queue)

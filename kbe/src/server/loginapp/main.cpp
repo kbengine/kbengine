@@ -77,5 +77,5 @@ int KBENGINE_MAIN(int argc, char* argv[])
 {
 	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLoginApp();
 	return kbeMainT<Loginapp>(argc, argv, LOGINAPP_TYPE, info.externalPorts_min, 
-		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
+		info.externalPorts_max, info.externalInterface, 0, 0, info.internalInterface);
 }

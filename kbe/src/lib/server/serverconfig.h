@@ -277,7 +277,9 @@ public:
 
 	INLINE int16 gameUpdateHertz(void) const;
 
-	Network::Address interfacesAddr(void) const;
+	std::string interfacesAddress(void) const;
+	int32 interfacesPortMin(void) const;
+	int32 interfacesPortMax(void) const;
 	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
 	
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
@@ -321,7 +323,9 @@ public:
 	// 每个客户端每秒占用的最大带宽
 	uint32 bitsPerSecondToClient_;		
 
-	Network::Address interfacesAddr_;
+	std::string interfacesAddress_;
+	int32 interfacesPort_min_;
+	int32 interfacesPort_max_;
 	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 

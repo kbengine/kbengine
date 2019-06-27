@@ -248,8 +248,8 @@ inline void setEvns()
 
 template <class CLIENT_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
-			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
+			int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
+			int32 intlisteningPort_min = 0, int32 intlisteningPort_max = 0, const char * intlisteningInterface = "")
 {
 	g_componentID = genUUID64();
 	g_componentType = componentType;
@@ -270,7 +270,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	Network::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
-		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
+		intlisteningPort_min, intlisteningPort_max, intlisteningInterface, 0, 0);
 	
 	KBEngine::script::Script script;
 	if(!installPyScript(script, componentType))

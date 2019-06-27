@@ -50,7 +50,7 @@ public:
 	NetworkInterface(EventDispatcher * pDispatcher,
 		int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 		uint32 extrbuffer = 0, uint32 extwbuffer = 0, 
-		int32 intlisteningPort = 0, const char * intlisteningInterface = "",
+		int32 intlisteningPort_min = 0, int32 intlisteningPort_max = 0, const char * intlisteningInterface = "",
 		uint32 intrbuffer = 0, uint32 intwbuffer = 0);
 
 	~NetworkInterface();
