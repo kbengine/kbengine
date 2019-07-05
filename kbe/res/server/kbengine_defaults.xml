@@ -243,7 +243,7 @@
 		<host> localhost </host>
 		<port_min> 30099 </port_min>
 		<port_max> 30199 </port_max>
-
+		
 		<!-- 订单超时(秒) 
 			(Orders timeout(seconds))
 		-->
@@ -252,7 +252,7 @@
 		<!-- listen监听队列最大值
 		    (listen: Maximum listen queue)
 		 -->
-		<SOMAXCONN> 128 </SOMAXCONN>
+		<SOMAXCONN> 511 </SOMAXCONN>
 		
 		<!-- Telnet服务, 如果端口被占用则向后尝试33001.. 
 			(Telnet service, if the port is occupied backwards to try 33001)
@@ -437,6 +437,11 @@
 		<ids>
 			<increasing_range> 2000 </increasing_range>				<!-- Type: Integer -->
 		</ids>
+
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
+		<SOMAXCONN> 511 </SOMAXCONN>
 	</dbmgr>
 	
 	<cellapp>
@@ -573,6 +578,11 @@
 			-->
 			<timeout> 15 </timeout>										<!-- Type: Integer -->
 		</witness>
+
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
+		<SOMAXCONN> 511 </SOMAXCONN>
 	</cellapp>
 	
 	<baseapp>
@@ -662,7 +672,7 @@
 		<!-- listen监听队列最大值
 		    (listen: Maximum listen queue)
 		 -->
-		<SOMAXCONN> 128 </SOMAXCONN>
+		<SOMAXCONN> 511 </SOMAXCONN>
 		
 		<!-- Telnet服务, 如果端口被占用则向后尝试40001.. 
 			(Telnet service, if the port is occupied backwards to try 40001)
@@ -706,6 +716,11 @@
 	</baseapp>
 	
 	<cellappmgr>
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
+		<SOMAXCONN> 511 </SOMAXCONN>
+
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
@@ -713,6 +728,11 @@
 	</cellappmgr>
 	
 	<baseappmgr>
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
+		<SOMAXCONN> 511 </SOMAXCONN>
+
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
@@ -762,7 +782,7 @@
 		<!-- listen监听队列最大值
 		    (listen: Maximum listen queue)
 		 -->
-		<SOMAXCONN> 128 </SOMAXCONN>
+		<SOMAXCONN> 511 </SOMAXCONN>
 		
 		<!-- 账号的类型								(Account types)
 			1: 普通账号								(Normal Account)
@@ -833,7 +853,7 @@
 		-->
 		<host> localhost </host>										<!-- Type: String -->
 		<port_min> 20013 </port_min>									<!-- Type: Integer -->
-		<port_max> 0 </port_max>										<!-- Type: Integer -->
+		<port_max> 0 </port_max>									<!-- Type: Integer -->
 		
 		<!-- 在Entity初始化时是否触发属性的set_*事件 -->
 		<isOnInitCallPropertysSetMethods> true </isOnInitCallPropertysSetMethods>
@@ -913,5 +933,10 @@
 			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
+
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
+		<SOMAXCONN> 511 </SOMAXCONN>
 	</logger>
 </root>
