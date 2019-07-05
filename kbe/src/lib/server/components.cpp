@@ -770,6 +770,10 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 
 			return false;
 		}
+		else
+		{
+			break;
+		}
 	}
 	
 	epListen.setnodelay(true);

@@ -3916,7 +3916,8 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 			pMBChannel->proxyID(0);
 			pMBChannel->condemn("", true);
 			Py_INCREF(entityClientEntityCall);
-			proxy->onClientDeath();
+			// 不再调用onClientDeath，可能脚本会在此时立即销毁了实体导致后面无法继续流程
+			//proxy->onClientDeath();
 			proxy->clientEntityCall(entityClientEntityCall);
 		}
 
