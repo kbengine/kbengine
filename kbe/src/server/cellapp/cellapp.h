@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class TelnetServer;
+class InitProgressHandler;
 
 class Cellapp:	public EntityApp<Entity>, 
 				public Singleton<Cellapp>
@@ -287,6 +288,8 @@ protected:
 
 	// 通过工具查看space
 	SpaceViewers						spaceViewers_;
+
+	InitProgressHandler*				pInitProgressHandler_;
 };
 
 }
