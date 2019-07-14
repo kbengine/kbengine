@@ -419,6 +419,12 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 		appInfos.uid = uid;
 		appInfos.count = 0;
 		pInitProgressHandler_->addPendingConnectEntityApps(appInfos);
+
+		ERROR_MSG(fmt::format("Cellapp::onGetEntityAppFromDbmgr: Add to the pending list and try connecting later! uid:{}, componentType:{}, componentID:{}\n",
+			uid,
+			COMPONENT_NAME_EX((COMPONENT_TYPE)tcomponentType),
+			componentID));
+
 		return;
 	}
 

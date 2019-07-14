@@ -95,15 +95,15 @@ bool InitProgressHandler::sendRegisterNewApps()
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle),
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			networkInterface_.intTcpAddr().ip, networkInterface_.intTcpAddr().port,
-			networkInterface_.extTcpAddr().ip, networkInterface_.extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle),
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			networkInterface_.intTcpAddr().ip, networkInterface_.intTcpAddr().port,
-			networkInterface_.extTcpAddr().ip, networkInterface_.extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
