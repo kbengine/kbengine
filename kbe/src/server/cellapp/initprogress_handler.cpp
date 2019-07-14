@@ -61,6 +61,7 @@ bool InitProgressHandler::sendRegisterNewApps()
 		if (++appInfos.count > 10)
 		{
 			ERROR_MSG(fmt::format("InitProgressHandler::sendRegisterNewApps(): connect to {}({}) error!\n"));
+			Cellapp::getSingleton().dispatcher().breakProcessing();
 			return false;
 		}
 		else
