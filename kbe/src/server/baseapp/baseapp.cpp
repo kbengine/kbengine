@@ -891,7 +891,28 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 	cinfos->pChannel = NULL;
 
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
-	KBE_ASSERT(ret != -1);
+
+	if (ret == -1)
+	{
+		if (!pInitProgressHandler_)
+			pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
+
+		pInitProgressHandler_->updateInfos(componentID_, startGlobalOrder_, startGroupOrder_);
+
+		InitProgressHandler::PendingConnectEntityApp appInfos;
+		appInfos.componentID = componentID;
+		appInfos.componentType = tcomponentType;
+		appInfos.uid = uid;
+		appInfos.count = 0;
+		pInitProgressHandler_->addPendingConnectEntityApps(appInfos);
+
+		ERROR_MSG(fmt::format("Baseapp::onGetEntityAppFromDbmgr: Add to the pending list and try connecting later! uid:{}, componentType:{}, componentID:{}\n",
+			uid,
+			COMPONENT_NAME_EX((COMPONENT_TYPE)tcomponentType),
+			componentID));
+
+		return;
+	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
@@ -3587,7 +3608,10 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	else
 		SCRIPT_ERROR_CHECK();
 
-	pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
+	if (!pInitProgressHandler_)
+		pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
+
+	pInitProgressHandler_->start();
 }
 
 //-------------------------------------------------------------------------------------
