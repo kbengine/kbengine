@@ -2407,6 +2407,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 		changeContextToSource();
 		fileBody() += fmt::format("\nvoid {}::onGetBase()\n{{\n", newModuleName);
+		sourcefileBody_ += fmt::format("\townerID = pOwner->id();\n\n");
 		fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
 		fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
 		fileBody() += fmt::format("\tpBaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
@@ -2417,6 +2418,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 		changeContextToSource();
 		fileBody() += fmt::format("void {}::onGetCell()\n{{\n", newModuleName);
+		sourcefileBody_ += fmt::format("\townerID = pOwner->id();\n\n");
 		fileBody() += fmt::format("\tif(pCellEntityCall)\n");
 		fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
 		fileBody() += fmt::format("\tpCellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
