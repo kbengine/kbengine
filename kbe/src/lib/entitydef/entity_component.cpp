@@ -1490,7 +1490,7 @@ PyObject* EntityComponent::pyGetCellEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1523,7 +1523,7 @@ PyObject* EntityComponent::pyGetBaseEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1556,7 +1556,7 @@ PyObject* EntityComponent::pyGetClientEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1589,7 +1589,7 @@ PyObject* EntityComponent::pyGetAllClients()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1622,7 +1622,7 @@ PyObject* EntityComponent::pyGetOtherClients()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 

@@ -753,7 +753,7 @@ PyObject* Entity::pyGetCellEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																					
 	}
 
@@ -772,7 +772,7 @@ PyObject* Entity::pyGetDBID()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																					
 	}
 
@@ -786,7 +786,7 @@ PyObject* Entity::pyGetDBInterfaceName()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -803,7 +803,7 @@ PyObject* Entity::pyGetClientEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
