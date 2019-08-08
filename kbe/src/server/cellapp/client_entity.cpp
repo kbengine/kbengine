@@ -72,7 +72,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity: srcEntityID(%d) not found!\n",		
 			 srcEntityID_);		
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -80,7 +80,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity: srcEntityID(%d) is destroyed!\n",		
 			srcEntityID_);		
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -88,7 +88,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: no client, srcEntityID(%d).\n",		
 			srcEntity->scriptName(), srcEntity->id());		
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -100,7 +100,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not found entity(%d), srcEntityID(%d).\n",		
 			srcEntity->scriptName(), clientEntityID_, srcEntity->id());		
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 

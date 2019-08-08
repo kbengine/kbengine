@@ -459,7 +459,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -483,7 +483,7 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																					
 	}
 	
@@ -507,7 +507,7 @@ PyObject* Proxy::pyHasClient()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -526,7 +526,7 @@ PyObject* Proxy::pyClientAddr()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -555,7 +555,7 @@ PyObject* Proxy::pyGetClientEnabled()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
