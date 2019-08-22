@@ -184,6 +184,12 @@ PyObject* EntityComponent::pyName()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* EntityComponent::pyGetClassName()
+{
+	return PyUnicode_FromString(scriptName());
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityComponent::pyIsDestroyed()
 {
 	return ::PyBool_FromLong(isDestroyed());
