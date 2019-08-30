@@ -555,7 +555,7 @@ int KBEServerLogTableMysql::isShareDB(DBInterface * pdbi)
 				bool isOtherServerShareDB = citer->second;
 				if (!isOtherServerShareDB || (isOtherServerShareDB && !isShareDB))
 				{
-					ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}! Check 'kbe_serverlog' table.\n", pdbi->name(),
+					ERROR_MSG(fmt::format("KBEServerLogTableMysql::isShareDB: The database interface({}) is{} shared, uid={}! Check 'kbe_serverlog' table and 'kbengine[_defs].xml->dbmgr->shareDB'.\n", pdbi->name(),
 						isOtherServerShareDB ? "" : " not", citer->first));
 
 					return -1;
