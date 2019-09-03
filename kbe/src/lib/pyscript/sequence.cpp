@@ -112,7 +112,10 @@ PyObject* Sequence::seq_concat(PyObject* self, PyObject* seq)
 	PyObject* pyList = PyList_New(seqSize1 + seqSize2);
 
 	for (int i = 0; i < seqSize1; ++i)
+	{
+		Py_INCREF(values[i]);
 		PyList_SET_ITEM(pyList, i, values[i]);
+	}
 
 	for (int i = 0; i < seqSize2; ++i)
 	{
@@ -139,6 +142,7 @@ PyObject* Sequence::seq_repeat(PyObject* self, Py_ssize_t n)
 
 	for (int j = 0; j < seqSize1; ++j)
 	{
+		Py_INCREF(values[j]);
 		PyList_SET_ITEM(pyList, j, values[j]);
 	}
 
