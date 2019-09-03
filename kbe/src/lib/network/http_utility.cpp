@@ -830,7 +830,6 @@ Request::Status Requests::perform(Request* pRequest)
 
 	if (rc != CURLM_OK)
 	{
-		delete pRequest;
 		return Request::INVALID_OPT;
 	}
 
@@ -848,7 +847,9 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 	if (headers.size() > 0)
 		r->setHeader(headers);
 
-	return perform(r);
+	Request::Status status = perform(r);
+	delete r;
+	return status;
 }
 
 //-------------------------------------------------------------------------------------
@@ -863,7 +864,9 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 	if (headers.size() > 0)
 		r->setHeader(headers);
 
-	return perform(r);
+	Request::Status status = perform(r);
+	delete r;
+	return status;
 }
 
 //-------------------------------------------------------------------------------------
