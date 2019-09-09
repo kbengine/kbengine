@@ -52,7 +52,6 @@ class ComponentStatus(ServerApp.ServerApp):
 	def requireQueryCS(self):
 		CMD_queryAppsLoads = CMD_ID_queryAppsLoads[self.componentType]
 		msg = MessageStream.MessageStreamWriter(CMD_queryAppsLoads)
-		msg.writeUint16(CMD_queryAppsLoads)
 		self.send(msg)
 		
 	def onComponentStatusMsg(self, streamReader):
