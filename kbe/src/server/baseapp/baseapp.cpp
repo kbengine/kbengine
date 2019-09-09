@@ -1035,7 +1035,7 @@ PyObject* Baseapp::__py_createEntityRemotely(PyObject* self, PyObject* args)
 	switch (argCount)
 	{
 	case 4:
-		ret = PyArg_ParseTuple(args, "s|O|O|O", &entityType, &params, &pyEntityCall, &pyCallback);
+		ret = PyArg_ParseTuple(args, "s|O|O|O", &entityType, &pyEntityCall, &params, &pyCallback);
 		break;
 	case 3:
 		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyEntityCall, &params);
