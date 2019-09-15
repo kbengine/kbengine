@@ -220,8 +220,6 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 	}
 
 	Network::Http::Request::Status status = Network::Http::perform(pRequest);
-	delete pRequest;
-
 	return PyLong_FromLong(status);
 }
 
