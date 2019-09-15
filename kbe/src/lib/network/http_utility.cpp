@@ -848,6 +848,7 @@ Request::Status Requests::perform(Request* pRequest)
 
 	if (rc != CURLM_OK)
 	{
+		delete pRequest;
 		return Request::INVALID_OPT;
 	}
 
@@ -866,7 +867,8 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 		r->setHeader(headers);
 
 	Request::Status status = perform(r);
-	delete r;
+	// 由curl的回调中销毁
+	// delete r;
 	return status;
 }
 
@@ -883,7 +885,8 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 		r->setHeader(headers);
 
 	Request::Status status = perform(r);
-	delete r;
+	// 由curl的回调中销毁
+	// delete r;
 	return status;
 }
 
