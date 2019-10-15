@@ -153,7 +153,7 @@ bool ClientSDKUE4::getArrayType(DataType* pDataType, std::string& outstr)
 	{
 		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
 
-		// ï¿½ï¿½ï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// Èç¹ûÔªËØÓÖÊÇÊý×é
 		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
 		{
 			if (outstr.size() > 0)
@@ -497,9 +497,7 @@ bool ClientSDKUE4::writeEngineMessagesModuleEnd()
 
 	fileBody() += "\t\tloginappMessages.Empty();\n";
 	fileBody() += "\t\tbaseappMessages.Empty();\n";
-	fileBody() += "\t\tclientMessages.Empty();\n\n";
-	fileBody() += "\t\tfor (auto item : messages)\n";
-	fileBody() += "\t\t\tdelete item.Value;\n\n";
+	fileBody() += "\t\tclientMessages.Empty();\n";
 	fileBody() += "\t\tmessages.Empty();\n";
 	fileBody() += "\n\t\tinitialize();";
 
@@ -1147,8 +1145,8 @@ bool ClientSDKUE4::createArrayChildClass(DataType* pRootDataType, DataType* pDat
 		fileBody() += fmt::format("{}\tDATATYPE_{} itemType;\n\n",
 			tabs, pDataType->aliasName(), pDataType->aliasName());
 
-		// ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¬ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÏµÍ³Listï¿½ï¿½ï¿½
+		// Èç¹ûÊÇ·ÇÄäÃûµÄÊý×é£¬ÔòµÚÒ»²ã½âÎöÓ¦¸ÃÖ±½ÓÉèÖÃÎªÓÐÃû×ÖµÄÀà±ð
+		// ·ñÔòÉèÖÃÎªÏµÍ³ListÀà±ð
 		if (numLayer == 1)
 		{
 			if (strlen(pRootDataType->aliasName()) == 0 || pRootDataType->aliasName()[0] == '_')
@@ -1203,8 +1201,8 @@ bool ClientSDKUE4::createArrayChildClass(DataType* pRootDataType, DataType* pDat
 
 		std::string classNameStr = typeName;
 
-		// ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¬ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÏµÍ³Listï¿½ï¿½ï¿½
+		// Èç¹ûÊÇ·ÇÄäÃûµÄÊý×é£¬ÔòµÚÒ»²ã½âÎöÓ¦¸ÃÖ±½ÓÉèÖÃÎªÓÐÃû×ÖµÄÀà±ð
+		// ·ñÔòÉèÖÃÎªÏµÍ³ListÀà±ð
 		if (numLayer == 1)
 		{
 			if (strlen(pRootDataType->aliasName()) == 0 || pRootDataType->aliasName()[0] == '_')
@@ -1331,7 +1329,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 
 		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
 
-		// ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ÏÈ´´½¨ÊôÐÔ
 		{
 			FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 			FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
@@ -1374,7 +1372,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 			}
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½createFromStreamExï¿½ï¿½ï¿½ï¿½
+		// ´´½¨createFromStreamEx·½·¨
 		{
 			changeContextToHeader();
 			fileBody() += fmt::format("\tvoid createFromStreamEx(MemoryStream& stream, {}& datas);\n", typeName);
@@ -1409,7 +1407,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 			fileBody() += fmt::format("}}\n\n");
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½addToStreamExï¿½ï¿½ï¿½ï¿½
+		// ´´½¨addToStreamEx·½·¨
 		{
 			changeContextToHeader();
 			fileBody() += fmt::format("\tvoid addToStreamEx(Bundle& stream, const {}& v);\n", typeName);
@@ -1625,7 +1623,7 @@ bool ClientSDKUE4::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule*
 //-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
-	// ï¿½ï¿½ï¿½pDescrÎªNoneï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿Í»ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ÒªÇ¿ï¿½ï¿½ï¿½è¶¨useMethodDescrAliasÎªtrueï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Îªfalseï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// Èç¹ûpDescrÎªNone£¬²¢ÇÒÊÇ¿Í»§¶Ë·½·¨£¬ÄÇÃ´ÐèÒªÇ¿ÖÆÉè¶¨useMethodDescrAliasÎªtrue£¬·ñÔòÄ¬ÈÏÎªfalse½«»á³öÏÖÎÊÌâ
 	if (!pDescr && componentType == CLIENT_TYPE)
 	{
 		fileBody() += fmt::format("\tp{}Module->useMethodDescrAlias = true;\n", pScriptDefModule->getName());
@@ -2187,7 +2185,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	{
 		fileBody() += fmt::format("class KBENGINEPLUGINS_API {} : public EntityComponent\n{{\npublic:\n", newModuleName);
 
-		// Ð´entityCallï¿½ï¿½ï¿½ï¿½
+		// Ð´entityCallÊôÐÔ
 		fileBody() += fmt::format("\tEntityBaseEntityCall_{}* pBaseEntityCall;\n", newModuleName);
 		fileBody() += fmt::format("\tEntityCellEntityCall_{}* pCellEntityCall;\n", newModuleName);
 		fileBody() += fmt::format("\tScriptModule* getScriptModule();\n\n");
@@ -2211,7 +2209,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 		fileBody() += fmt::format("\t// Please inherit and implement \"class {} : public {}\"\n", pEntityScriptDefModule->getName(), newModuleName);
 		fileBody() += fmt::format("class KBENGINEPLUGINS_API {} : public Entity\n{{\npublic:\n", newModuleName);
 
-		// Ð´entityCallï¿½ï¿½ï¿½ï¿½
+		// Ð´entityCallÊôÐÔ
 		fileBody() += fmt::format("\tEntityBaseEntityCall_{}* pBaseEntityCall;\n", newModuleName);
 		fileBody() += fmt::format("\tEntityCellEntityCall_{}* pCellEntityCall;\n\n", newModuleName);
 
@@ -2250,7 +2248,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	}
 
 	changeContextToHeader();
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øºó£¬ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÐ´Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
+	// º¯Êý·µ»Øºó£¬ºóÐøÁ÷³ÌÎªÐ´ÊµÌåÊôÐÔ..
 	return true;
 }
 
@@ -2321,7 +2319,7 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 	fileBody() += "}\n";
 
-	// attachï¿½ï¿½ï¿½
+	// attach×é¼þ
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
 		changeContextToHeader();
@@ -2345,7 +2343,7 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 		fileBody() += fmt::format("}}\n");
 	}
 
-	// detachï¿½ï¿½ï¿½
+	// detach×é¼þ
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
 		changeContextToHeader();
@@ -2612,7 +2610,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 		fileBody() += "}\n";
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ´¦Àí·½·¨
 	changeContextToHeader();
 
 	if (!pEntityScriptDefModule->isComponentModule())
@@ -2842,7 +2840,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	fileBody() += "}\n";
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ´¦ÀíÊôÐÔ
 	ENTITY_PROPERTY_UID posuid = 0;
 	if (posuid == 0)
 	{
@@ -2980,7 +2978,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 
-	// entityï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½0Ê±ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÃ»ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½Â¿ï¿½switchï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// entity¼´Ê¹ÔÚÊôÐÔÐ¡ÓÚ0Ê±ÈÔÈ»´æÔÚÄ¬ÈÏÊôÐÔ£¬¶ø×é¼þÔò¿ÉÄÜÒòÎªÃ»ÓÐÊôÐÔµ¼ÖÂ¿Õswitch±àÒë³ö´í
 	if (!pEntityScriptDefModule->isComponentModule() || clientPropertys.size() > 0)
 	{
 		fileBody() += fmt::format("\t\tswitch(pProp->properUtype)\n\t\t{{\n");
@@ -3098,7 +3096,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 	fileBody() += "\t}\n";
 	fileBody() += "}\n";
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½callPropertysSetMethods
+	// ´¦ÀíÊôÐÔcallPropertysSetMethods
 	changeContextToHeader();
 	fileBody() += fmt::format("\tvoid callPropertysSetMethods() override;\n");
 
@@ -3503,7 +3501,7 @@ bool ClientSDKUE4::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 //-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ¶ÔÓÚÄäÃûÊý×éÐèÒª½âÎö£¬·ñÔòÖ±½ÓÌîÀàÐÍÃû³Æ
 	if (childItemName.size() == 0 || childItemName[0] == '_')
 	{
 		std::string typeStr;
