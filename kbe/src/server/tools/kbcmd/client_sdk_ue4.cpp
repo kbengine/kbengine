@@ -515,7 +515,9 @@ bool ClientSDKUE4::writeEngineMessagesModuleEnd()
 
 	fileBody() += "\t\tloginappMessages.Empty();\n";
 	fileBody() += "\t\tbaseappMessages.Empty();\n";
-	fileBody() += "\t\tclientMessages.Empty();\n";
+	fileBody() += "\t\tclientMessages.Empty();\n\n";
+	fileBody() += "\t\tfor (auto item : messages)\n";
+	fileBody() += "\t\t\tdelete item.Value;\n\n";
 	fileBody() += "\t\tmessages.Empty();\n";
 	fileBody() += "\n\t\tinitialize();";
 
