@@ -1323,13 +1323,21 @@ void KBEngineApp::newPassword(const FString& old_password, const FString& new_pa
 
 void KBEngineApp::Client_onReqAccountNewPasswordCB(uint16 failcode)
 {
+	auto* pEventData = NewObject<UKBEventData_newPasswordResponse>();
 	if (failcode != 0)
 	{
-		ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): newPassword failed! code=%d, error=%s! username=%s", failcode, *serverErr(failcode), *username_);
-		return;
+		auto errorStr = serverErr(failcode);
+		ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): newPassword failed! code=%d, error=%s! username=%s", failcode, *errorStr, *username_);
+		pEventData->errorStr = errorStr;
+	}
+	else {
+		DEBUG_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): successfully! username=%s", *username_);
 	}
 
-	DEBUG_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): successfully! username=%s", *username_);
+	pEventData->retCode = failcode;
+	pEventData->username = username_;
+	KBENGINE_EVENT_FIRE(KBEventTypes::onNewPasswordResponse, pEventData);
+
 }
 
 void KBEngineApp::Client_onRemoteMethodCallOptimized(MemoryStream& stream)
