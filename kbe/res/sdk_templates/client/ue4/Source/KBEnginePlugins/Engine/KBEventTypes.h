@@ -7,36 +7,43 @@ namespace KBEngine
 
 struct KBENGINEPLUGINS_API KBEventTypes
 {
+	// ------------------------------------账号相关------------------------------------
+
 	// Create new account.
 	// <para> param1(string): accountName</para>
 	// <para> param2(string): password</para>
 	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
 	static const FString createAccount;
 
-	// Login to server.
-	// <para> param1(string): accountName</para>
-	// <para> param2(string): password</para>
-	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
-	static const FString login;
-
-	// Relogin to baseapp.
-	static const FString logout;
-
-	// Relogin to baseapp.
-	static const FString reloginBaseapp;
-
+	// Create account feedback results.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
+	static const FString onCreateAccountResult;
+	
 	// Request server binding account Email.
 	// <para> param1(string): emailAddress</para>
 	static const FString bindAccountEmail;
+
+	// Response from binding account Email request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	static const FString onBindAccountEmail;
 
 	// Request to set up a new password for the account. Note: account must be online.
 	// <para> param1(string): old_password</para>
 	// <para> param2(string): new_password</para>
 	static const FString newPassword;
 
+	// Response from a new password request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	static const FString onNewPassword;
+
 	// Request to reset password for the account. Note: account must be online.
 	// <para> param1(string): username</para>
 	static const FString resetPassword;
+
+	// Response from a reset password request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	static const FString onResetPassword;
 
 	// ------------------------------------连接相关------------------------------------
 
@@ -53,10 +60,17 @@ struct KBENGINEPLUGINS_API KBEventTypes
 
 	// ------------------------------------logon相关------------------------------------
 
-	// Create account feedback results.
-	// <para> param1(uint16): retcode. // server_errors</para>
-	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
-	static const FString onCreateAccountResult;
+	// Login to server.
+	// <para> param1(string): accountName</para>
+	// <para> param2(string): password</para>
+	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
+	static const FString login;
+
+	// Relogin to baseapp.
+	static const FString logout;
+
+	// Relogin to baseapp.
+	static const FString reloginBaseapp;
 
 	// Engine version mismatch.
 	// <para> param1(string): clientVersion
