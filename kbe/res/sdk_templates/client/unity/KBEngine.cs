@@ -746,6 +746,8 @@
 		
 		public void Client_onReqAccountResetPasswordCB(UInt16 failcode)
 		{
+			Event.fireOut(EventOutTypes.onResetPassword, failcode);
+			
 			if(failcode != 0)
 			{
 				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
@@ -770,6 +772,8 @@
 
 		public void Client_onReqAccountBindEmailCB(UInt16 failcode)
 		{
+			Event.fireOut(EventOutTypes.onBindAccountEmail, failcode);
+
 			if(failcode != 0)
 			{
 				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
@@ -794,6 +798,8 @@
 
 		public void Client_onReqAccountNewPasswordCB(UInt16 failcode)
 		{
+			Event.fireOut(EventOutTypes.onNewPassword, failcode);
+
 			if(failcode != 0)
 			{
 				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
