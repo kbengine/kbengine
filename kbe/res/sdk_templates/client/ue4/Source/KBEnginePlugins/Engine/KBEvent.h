@@ -572,6 +572,23 @@ public:
 };
 
 UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_newPasswordResponse : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	uint16 retCode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FString username;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FString errorStr;
+
+};
+
+UCLASS(Blueprintable, BlueprintType)
 class KBENGINEPLUGINS_API UKBEventData_onStreamDataStarted : public UKBEventData
 {
 	GENERATED_BODY()

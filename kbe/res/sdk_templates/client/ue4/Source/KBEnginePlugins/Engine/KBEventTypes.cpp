@@ -9,6 +9,7 @@ const FString KBEventTypes::logout = "logout";
 const FString KBEventTypes::reloginBaseapp = "reloginBaseapp";
 const FString KBEventTypes::bindAccountEmail = "bindAccountEmail";
 const FString KBEventTypes::newPassword = "newPassword";
+const FString KBEventTypes::onNewPasswordResponse = "onNewPasswordResponse";
 const FString KBEventTypes::resetPassword = "resetPassword";
 
 // ------------------------------------连接相关------------------------------------

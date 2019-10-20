@@ -34,6 +34,13 @@ struct KBENGINEPLUGINS_API KBEventTypes
 	// <para> param2(string): new_password</para>
 	static const FString newPassword;
 
+	// Response from a new password request sent.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	// <para> param2(FString): username.
+	// <para> param3(FString): errorStr. // server_errors</para>
+	// If retcode is 0, it means newPassword success.
+	static const FString onNewPasswordResponse;
+
 	// Request to reset password for the account. Note: account must be online.
 	// <para> param1(string): username</para>
 	static const FString resetPassword;
