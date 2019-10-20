@@ -11,6 +11,33 @@
     /// </summary>
     public class EventOutTypes
     {
+        // ------------------------------------账号相关------------------------------------
+
+        /// <summary>
+        /// Create account feedback results.
+        /// <para> param1(uint16): retcode. // server_errors</para>
+        /// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
+        /// </summary>
+        public const string onCreateAccountResult = "onCreateAccountResult";
+
+        /// <summary>
+        // Response from binding account Email request.
+        // <para> param1(uint16): retcode. // server_errors</para>
+        /// </summary>
+        public const string onBindAccountEmail = "onBindAccountEmail";
+
+        /// <summary>
+        // Response from a new password request.
+        // <para> param1(uint16): retcode. // server_errors</para>
+        /// </summary>
+        public const string onNewPassword = "onNewPassword";
+
+        /// <summary>
+        // Response from a reset password request.
+        // <para> param1(uint16): retcode. // server_errors</para>
+        /// </summary>
+        public const string onResetPassword = "onResetPassword";
+
         // ------------------------------------连接相关------------------------------------
         /// <summary>
         /// Kicked of the current server.
@@ -30,13 +57,6 @@
         public const string onConnectionState = "onConnectionState";
 
         // ------------------------------------logon相关------------------------------------
-        /// <summary>
-        /// Create account feedback results.
-        /// <para> param1(uint16): retcode. // server_errors</para>
-        /// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
-        /// </summary>
-        public const string onCreateAccountResult = "onCreateAccountResult";
-
         /// <summary>
         /// Engine version mismatch.
         /// <para> param1(string): clientVersion
