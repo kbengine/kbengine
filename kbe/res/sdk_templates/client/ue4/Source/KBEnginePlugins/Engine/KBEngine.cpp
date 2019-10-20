@@ -1189,6 +1189,11 @@ void KBEngineApp::onConnectTo_resetpassword_callback(FString ip, uint16 port, bo
 
 void KBEngineApp::Client_onReqAccountResetPasswordCB(uint16 failcode)
 {
+	auto* pEventData = NewObject<UKBEventData_onResetPassword>();
+	pEventData->failedcode = failcode;
+	pEventData->errorStr = serverErr(failcode);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onResetPassword, pEventData);
+	
 	if (failcode != 0)
 	{
 		ERROR_MSG("KBEngineApp::Client_onReqAccountResetPasswordCB(): reset failed! code=%d, error=%s! username=%s", failcode, *serverErr(failcode), *username_);
@@ -1301,6 +1306,11 @@ void KBEngineApp::bindAccountEmail(const FString& emailAddress)
 
 void KBEngineApp::Client_onReqAccountBindEmailCB(uint16 failcode)
 {
+	auto* pEventData = NewObject<UKBEventData_onBindAccountEmail>();
+	pEventData->failedcode = failcode;
+	pEventData->errorStr = serverErr(failcode);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onBindAccountEmail, pEventData);
+
 	if (failcode != 0)
 	{
 		ERROR_MSG("KBEngineApp::Client_onReqAccountBindEmailCB(): bind failed! code=%d, error=%s! username=%s", failcode, *serverErr(failcode), *username_);
@@ -1323,21 +1333,18 @@ void KBEngineApp::newPassword(const FString& old_password, const FString& new_pa
 
 void KBEngineApp::Client_onReqAccountNewPasswordCB(uint16 failcode)
 {
-	auto* pEventData = NewObject<UKBEventData_newPasswordResponse>();
+	auto* pEventData = NewObject<UKBEventData_onNewPassword>();
+	pEventData->failedcode = failcode;
+	pEventData->errorStr = serverErr(failcode);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onNewPassword, pEventData);
+
 	if (failcode != 0)
 	{
-		auto errorStr = serverErr(failcode);
-		ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): newPassword failed! code=%d, error=%s! username=%s", failcode, *errorStr, *username_);
-		pEventData->errorStr = errorStr;
-	}
-	else {
-		DEBUG_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): successfully! username=%s", *username_);
+		ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): newPassword failed! code=%d, error=%s! username=%s", failcode, *serverErr(failcode), *username_);
+		return;
 	}
 
-	pEventData->retCode = failcode;
-	pEventData->username = username_;
-	KBENGINE_EVENT_FIRE(KBEventTypes::onNewPasswordResponse, pEventData);
-
+	DEBUG_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB(): successfully! username=%s", *username_);
 }
 
 void KBEngineApp::Client_onRemoteMethodCallOptimized(MemoryStream& stream)

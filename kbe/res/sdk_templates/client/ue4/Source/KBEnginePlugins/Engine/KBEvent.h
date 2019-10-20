@@ -549,6 +549,19 @@ public:
 };
 
 UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_onResetPassword : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int32 failedcode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FString errorStr;
+};
+
+UCLASS(Blueprintable, BlueprintType)
 class KBENGINEPLUGINS_API UKBEventData_bindAccountEmail : public UKBEventData
 {
 	GENERATED_BODY()
@@ -556,6 +569,19 @@ class KBENGINEPLUGINS_API UKBEventData_bindAccountEmail : public UKBEventData
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	FString email;
+};
+
+UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_onBindAccountEmail : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int32 failedcode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FString errorStr;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -572,20 +598,16 @@ public:
 };
 
 UCLASS(Blueprintable, BlueprintType)
-class KBENGINEPLUGINS_API UKBEventData_newPasswordResponse : public UKBEventData
+class KBENGINEPLUGINS_API UKBEventData_onNewPassword : public UKBEventData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	uint16 retCode;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	FString username;
+	int32 failedcode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	FString errorStr;
-
 };
 
 UCLASS(Blueprintable, BlueprintType)
