@@ -365,8 +365,8 @@
 					(Character encoding type)
 				-->
 				<unicodeString>
-					<characterSet> utf8 </characterSet> 						<!-- Type: String -->
-					<collation> utf8_bin </collation> 							<!-- Type: String -->
+					<characterSet> utf8mb4 </characterSet> 						<!-- Type: String -->
+					<collation> utf8mb4_bin </collation> 						<!-- Type: String -->
 				</unicodeString>
 			</default>
 		</databaseInterfaces>
