@@ -1,157 +1,166 @@
 # -*- coding: gb2312 -*-
 # written by kebiao, 2010/08/20
+# update dependency to openpyxl by 1Pixel, 2019/12/19
 
-from win32com.client import Dispatch
+import openpyxl
 import os
 import sys
 
 class ExcelTool:
-	"""
-	简单的封装excel各种操作
-	系统要求， windows系统， 安装python2.6以及pywin32-214.win32-py2.6.exe, 以及ms office
-	"""
-	def __init__(self, fileName):
-		#try:
-		#	self.close()
-		#except:
-		#	pass
+    """
+    简单的封装excel各种操作
+    系统要求， windows系统， 安装python2.6以及pywin32-214.win32-py2.6.exe, 以及ms office
+    """
+    def __init__(self, fileName):
+        #try:
+        #   self.close()
+        #except:
+        #   pass
 
-		self.__xapp = Dispatch("Excel.Application")
+        self.__workbook = None
 
-		self.__xlsx = None
+        self.fileName = os.path.abspath(fileName)
+        
+    def getWorkbookEx(self, auto_create = False):
+        try:
+            self.__workbook = openpyxl.open(self.fileName)
+            return True
+        except:
+            pass
+            
+        if auto_create:
+            self.__workbook = openpyxl.Workbook()
+            return True
+            
+        return False
+        
+    def getXLSX(self):
+        return self.__workbook
 
-		self.fileName = os.path.abspath(fileName)
 
-	def getWorkbook(self, forcedClose = False):
-		"""
-		如果Workbook已经打开需要先关闭后打开
-		forcedClose：是否强制关闭，后打开该Workbook
-		"""
-		try:
-			wn  = len(self.__xapp.Workbooks)
-		except:
-			print('程序异常退出，这可能是你打开编辑了"某文件"而没有保存该文件造成的，请保存该文件')
-			sys.exit(1)
+    def close(self, saveChanges = False):
+        """
+        关闭excel应用
+        """
+        
+        if saveChanges:
+            self.__workbook.save(self.fileName)
+            
+        self.__workbook.close()
 
-		for x in range(0, wn):
-			Workbook = self.__xapp.Workbooks[x]
+    def getSheetCount(self):
+        """
+        获得工作表个数
+        """
+        return len(self.__workbook.worksheets)
 
-			if self.fileName == os.path.join(Workbook.Path, Workbook.name):
-				if forcedClose:
-					Workbook.Close(SaveChanges = False)
-				return False
+    def getSheetNameByIndex(self, index):
+        """
+        获得excel上指定索引位置上的表名称
+        """
+        return self.__workbook.worksheets[index].title
 
-		self.__xlsx = self.__xapp.Workbooks.Open(self.fileName)			#打开文件
-		return True
+    def getSheetByIndex(self, index):
+        """
+        获得excel上指定索引位置上的表
+        """
+        try:
+            return self.__workbook.worksheets[index]
+        except:
+            return None
+    def __getRowCountOnSheet(self, sheet):
+        cc = sheet.max_column + 1
+        canRun = True
+        
+        while cc > 0 and canRun:
+            cc -= 1
+            for i in range(1, sheet.max_row + 1):
+                if sheet.cell(i, cc).value is not None:
+                    canRun = False
+        return cc
 
-	def getXApp(self):
-		return self.__xapp
+    def getRowCount(self, sheetIndex):
+        """
+        获得一排有多少元素
+        """
+        ws = self.__workbook.worksheets[sheetIndex]
+        return self.__getRowCountOnSheet(ws)
+        
+        cc = ws.max_column + 1
+        canRun = True
+        
+        while cc > 0 and canRun:
+            cc -= 1
+            for i in range(1, ws.max_row + 1):
+                if ws.cell(i, cc).value is not None:
+                    canRun = False
+        return cc
 
-	def getXLSX(self):
-		return self.__xlsx
+    def getColCount(self, sheetIndex):
+        """
+        获得一列有多少元素
+        """
+        return self.__workbook.worksheets[sheetIndex].max_row
+        
+    def getValue(self, sheet, row, col):
+        """
+        获得某个工作表的某个位置上的值
+        """
+        return sheet.cell(row, col).value
 
-	def close(self, saveChanges = False):
-		"""
-		关闭excel应用
-		"""
-		if self.__xapp:
-			self.__xlsx.Close(SaveChanges = saveChanges)
-			if len(self.__xapp.Workbooks) ==0:
-				self.__xapp.Quit()
-		else:
-			return False
+    def getText(self, sheet, row, col):
+        """
+        获得某个工作表的某个位置上的值
+        """
+        return str(sheet.cell(row, col).value)
 
-	def getSheetCount(self):
-		"""
-		获得工作表个数
-		"""
-		return self.__xlsx.Sheets.Count
+    def getRowValues(self, sheet, row):
+        """
+        整排
+        """
+        cc = self.__getRowCountOnSheet(sheet)
+        return [sheet.cell(row+1, i).value for i in range(1, cc + 1)]
 
-	def getSheetNameByIndex(self, index):
-		"""
-		获得excel上指定索引位置上的表名称
-		"""
-		return self.getSheetByIndex(index).Name
+    def getSheetRowIters(self, sheet, row):
+        """
+        行迭代器
+        """
+        return sheet.Cells(1).CurrentRegion.Rows
 
-	def getSheetByIndex(self, index):
-		"""
-		获得excel上指定索引位置上的表
-		"""
-		if index in range(1, len(self.__xlsx.Sheets)+1):
-			return self.__xlsx.Sheets(index)
+    def getSheetColIters(self, sheet, col):
+        """
+        列迭代器
+        """
+        return sheet.Cells(1).CurrentRegion.Columns
 
-		else:
-			return None
-
-	def getRowCount(self, sheetIndex):
-		"""
-		获得一排有多少元素
-		"""
-		return self.getSheetByIndex(sheetIndex).Cells(1).CurrentRegion.Columns.Count
-
-	def getColCount(self, sheetIndex):
-		"""
-		获得一列有多少元素
-		"""
-		return self.getSheetByIndex(sheetIndex).Cells(1).CurrentRegion.Rows.Count
-
-	def getValue(self, sheet, row, col):
-		"""
-		获得某个工作表的某个位置上的值
-		"""
-		return sheet.Cells(row, col).Value
-
-	def getText(self, sheet, row, col):
-		"""
-		获得某个工作表的某个位置上的值
-		"""
-		return sheet.Cells(row, col).Text
-
-	def getRowValues(self, sheet, row):
-		"""
-		整排
-		"""
-		return sheet.Cells(1).CurrentRegion.Rows[row].Value[0]
-
-	def getSheetRowIters(self, sheet, row):
-		"""
-		行迭代器
-		"""
-		return sheet.Cells(1).CurrentRegion.Rows
-
-	def getSheetColIters(self, sheet, col):
-		"""
-		列迭代器
-		"""
-		return sheet.Cells(1).CurrentRegion.Columns
-
-	def getColValues(self, sheet, col):
-		"""
-		整列
-		"""
-		return sheet.Cells(1).CurrentRegion.Columns[col].Value
+    def getColValues(self, sheet, col):
+        """
+        整列
+        """
+        rc = sheet.max_row
+        return [sheet.cell(i, col+1).value for i in range(1, rc+1)]
 
 #---------------------------------------------------------------------
 #   使用例子
 #---------------------------------------------------------------------
 def main():
-	xbook = ExcelTool("d:\\test1.xlsx")
+    xbook = ExcelTool("test.xlsx")
 
-	print("sheetCount=%i" % xbook.getSheetCount())
+    print("sheetCount=%i" % xbook.getSheetCount())
 
-	for x in range(1, xbook.getSheetCount() +1 ):
-	   print( "      ", xbook.getSheetNameByIndex(x))
+    for x in range(1, xbook.getSheetCount()):
+       print( "      ", xbook.getSheetNameByIndex(x))
 
-	print( "sheet1:rowCount=%i, colCount=%i" % (xbook.getRowCount(1), xbook.getColCount(1)))
+    print( "sheet1:rowCount=%i, colCount=%i" % (xbook.getRowCount(1), xbook.getColCount(1)))
 
-	for r in range(1, xbook.getRowCount(1) + 1):
-		for c in range(1, xbook.getColCount(1) + 1):
-			val = xbook.getValue(xbook.getSheetByIndex(2), r, c)
-			if val:
-				print( "DATA:", val)
+    for r in range(1, xbook.getRowCount(1)+1):
+        for c in range(1, xbook.getColCount(1)+1):
+            val = xbook.getValue(xbook.getSheetByIndex(2), r, c)
+            if val:
+                print( "DATA:", val)
 
 if __name__ == "__main__":
-	main()
+    main()
 
 
 
