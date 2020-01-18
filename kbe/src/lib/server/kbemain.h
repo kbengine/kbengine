@@ -319,10 +319,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				if (hide > 0)
 				{
 #if KBE_PLATFORM == PLATFORM_WIN32
-					TCHAR strTitle[255];
-					GetConsoleTitle(strTitle, 255);
-					HWND hw = ::FindWindow(L"ConsoleWindowClass", strTitle);
-					ShowWindow(hw, SW_HIDE);
+					ShowWindow(GetConsoleWindow(), SW_HIDE);
 #else
 #endif
 				}

@@ -47,7 +47,9 @@ BlowfishFilter::~BlowfishFilter()
 {
 	KBE_SAFE_RELEASE(pPacket_);
 	KBE_SAFE_RELEASE(pEncryptStream_);
-	KBE_SAFE_RELEASE(pBlowFishKey_);
+
+	BF_KEY* bfKey = static_cast<BF_KEY*>(pBlowFishKey_);
+	KBE_SAFE_RELEASE(bfKey);
 }
 
 bool BlowfishFilter::init()

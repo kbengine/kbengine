@@ -16,17 +16,22 @@ Script* PyProfile::pScript_ = NULL;
 //-------------------------------------------------------------------------------------
 bool PyProfile::initialize(Script* pScript)
 {
-	if(isInit)
+	if (isInit)
 		return true;
-	
+
 	PyObject* cProfileModule = PyImport_ImportModule("cProfile");
 
-	if(!cProfileModule)
+	if (!cProfileModule)
 	{
 		ERROR_MSG("can't import cProfile!\n");
 		PyErr_PrintEx(0);
+		return false;
 	}
-	
+	else
+	{
+		Py_DECREF(cProfileModule);
+	}
+
 	profileMethod_ = PyObject_GetAttrString(cProfileModule, "Profile");
 
 	isInit = profileMethod_ != NULL;

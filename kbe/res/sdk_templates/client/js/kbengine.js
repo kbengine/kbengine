@@ -2775,32 +2775,43 @@ KBEngine.KBEngineArgs = function()
 -----------------------------------------------------------------------------------------*/
 KBEngine.EventTypes =
 {
+	// ------------------------------------账号相关------------------------------------
+
 	// Create new account.
 	// <para> param1(string): accountName</para>
 	// <para> param2(string): password</para>
 	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
 	createAccount : "createAccount",
 
-	// Login to server.
-	// <para> param1(string): accountName</para>
-	// <para> param2(string): password</para>
-	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
-	login : "login",
-
-	// Logout to baseapp, called when exiting the client.	
-	logout : "logout",
-
-	// Relogin to baseapp.
-	reloginBaseapp : "reloginBaseapp",
+	// Create account feedback results.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
+	onCreateAccountResult : "onCreateAccountResult",
 
 	// Request server binding account Email.
 	// <para> param1(string): emailAddress</para>
 	bindAccountEmail : "bindAccountEmail",
 
+	// Response from binding account Email request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	onBindAccountEmail : "onBindAccountEmail",
+
 	// Request to set up a new password for the account. Note: account must be online.
 	// <para> param1(string): old_password</para>
 	// <para> param2(string): new_password</para>
 	newPassword : "newPassword",
+
+	// Response from a new password request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	onNewPassword : "onNewPassword",
+
+	// Request to reset password for the account. Note: account must be online.
+	// <para> param1(string): username</para>
+	resetPassword : "resetPassword",
+
+	// Response from a reset password request.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	onResetPassword : "onResetPassword",
 
 	// ------------------------------------连接相关------------------------------------
 
@@ -2817,10 +2828,17 @@ KBEngine.EventTypes =
 
 	// ------------------------------------logon相关------------------------------------
 
-	// Create account feedback results.
-	// <para> param1(uint16): retcode. // server_errors</para>
-	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
-	onCreateAccountResult : "onCreateAccountResult",
+	// Login to server.
+	// <para> param1(string): accountName</para>
+	// <para> param2(string): password</para>
+	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
+	login : "login",
+
+	// Logout to baseapp, called when exiting the client.	
+	logout : "logout",
+
+	// Relogin to baseapp.
+	reloginBaseapp : "reloginBaseapp",
 
 	// Engine version mismatch.
 	// <para> param1(string): clientVersion
@@ -3075,6 +3093,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.Event.register(KBEngine.EventTypes.reloginBaseapp, KBEngine.app, "reloginBaseapp");
 		KBEngine.Event.register(KBEngine.EventTypes.bindAccountEmail, KBEngine.app, "bindAccountEmail");
 		KBEngine.Event.register(KBEngine.EventTypes.newPassword, KBEngine.app, "newPassword");
+		KBEngine.Event.register(KBEngine.EventTypes.resetPassword, KBEngine.app, "resetPassword");
 	}
 
 	this.uninstallEvents = function()
@@ -3085,6 +3104,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.Event.deregister(KBEngine.EventTypes.reloginBaseapp, KBEngine.app);
 		KBEngine.Event.deregister(KBEngine.EventTypes.bindAccountEmail, KBEngine.app);
 		KBEngine.Event.deregister(KBEngine.EventTypes.newPassword, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.resetPassword, KBEngine.app);
 	}
 	
 	this.hello = function()
@@ -4043,7 +4063,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 	}
 
-	this.reset_password = function(username)
+	this.resetPassword = function(username)
 	{ 
 		KBEngine.app.reset();
 		KBEngine.app.username = username;
@@ -5550,6 +5570,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onReqAccountResetPasswordCB = function(failedcode)
 	{
+		KBEngine.Event.fire(KBEngine.EventTypes.onResetPassword, failedcode);
+
 		if(failedcode != 0)
 		{
 			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountResetPasswordCB: " + KBEngine.app.username + " is failed! code=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + ")!");
@@ -5561,6 +5583,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onReqAccountBindEmailCB = function(failedcode)
 	{
+		KBEngine.Event.fire(KBEngine.EventTypes.onBindAccountEmail, failedcode);
+
 		if(failedcode != 0)
 		{
 			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountBindEmailCB: " + KBEngine.app.username + " is failed! code=" + failedcode +"(" + KBEngine.app.serverErrs[failedcode].name + ")!");
@@ -5572,6 +5596,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onReqAccountNewPasswordCB = function(failedcode)
 	{
+		KBEngine.Event.fire(KBEngine.EventTypes.onNewPassword, failedcode);
+
 		if(failedcode != 0)
 		{
 			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB: " + KBEngine.app.username + " is failed! code=" + failedcode + "(" +KBEngine.app.serverErrs[failedcode].name + ")!");

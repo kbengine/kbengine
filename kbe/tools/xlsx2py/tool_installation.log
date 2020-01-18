@@ -1,4 +1,4 @@
-ĞèÒª°²×°ÈçÏÂ¹¤¾ß²ÅÄÜÊ¹ÓÃ(Need to install the following tools to use):
+éœ€è¦å®‰è£…å¦‚ä¸‹å·¥å…·æ‰èƒ½ä½¿ç”¨(Need to install the following tools to use):
 	python-3.x.msi(https://www.python.org/downloads/windows/)
-	pywin32-x-py3.x.exe(https://sourceforge.net/projects/pywin32/files/pywin32/)
-	office2010¼°ÒÔÉÏ
+	pip install openpyxl
+	office2010åŠä»¥ä¸Š

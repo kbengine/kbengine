@@ -384,8 +384,51 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		return -1;
 	}
 
+	int ret = -1;
+	pEndpoint->setnonblocking(true);
 	pEndpoint->addr(*pComponentInfos->pIntAddr);
-	int ret = pEndpoint->connect(pComponentInfos->pIntAddr->port, pComponentInfos->pIntAddr->ip);
+
+	for (int itry = 0; itry < 3; ++itry)
+	{
+		fd_set	frds, fwds;
+		struct timeval tv = { 0, 1000000 };
+
+		FD_ZERO(&frds);
+		FD_ZERO(&fwds);
+		FD_SET((int)(*pEndpoint), &frds);
+		FD_SET((int)(*pEndpoint), &fwds);
+
+		if (pEndpoint->connect(pComponentInfos->pIntAddr->port, pComponentInfos->pIntAddr->ip) == -1)
+		{
+			int selgot = select((*pEndpoint) + 1, &frds, &fwds, NULL, &tv);
+			if (selgot > 0)
+			{
+				if (FD_ISSET((*pEndpoint), &frds) || FD_ISSET((*pEndpoint), &fwds))
+				{
+					pEndpoint->connect(pComponentInfos->pIntAddr->port, pComponentInfos->pIntAddr->ip);
+
+					int error = kbe_lasterror();
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+					if (error == WSAEISCONN || error == 0)
+#else
+					if (error == EISCONN)
+#endif
+					{
+						ret = 0;
+						break;
+					}
+				}
+
+				ret = -1;
+			}
+			else
+			{
+				ret = 0;
+				break;
+			}
+		}
+	}
 
 	if(ret == 0)
 	{
@@ -751,6 +794,10 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 				info->pIntAddr->c_str()));
 
 			return false;
+		}
+		else
+		{
+			break;
 		}
 	}
 	

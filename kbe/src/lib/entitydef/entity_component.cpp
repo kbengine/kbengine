@@ -184,6 +184,12 @@ PyObject* EntityComponent::pyName()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* EntityComponent::pyGetClassName()
+{
+	return PyUnicode_FromString(scriptName());
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityComponent::pyIsDestroyed()
 {
 	return ::PyBool_FromLong(isDestroyed());
@@ -1490,7 +1496,7 @@ PyObject* EntityComponent::pyGetCellEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1523,7 +1529,7 @@ PyObject* EntityComponent::pyGetBaseEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1556,7 +1562,7 @@ PyObject* EntityComponent::pyGetClientEntityCall()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1589,7 +1595,7 @@ PyObject* EntityComponent::pyGetAllClients()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -1622,7 +1628,7 @@ PyObject* EntityComponent::pyGetOtherClients()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), ownerID_);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 

@@ -270,9 +270,18 @@ void CConnectRemoteMachineWindow::saveHistory()
 void CConnectRemoteMachineWindow::saveIpMapping()
 {
 	CString host = getCurrentHost();
-	m_ipMapping.clear();
+
 	if (!host.IsEmpty())
 	{
+		for (std::multimap<CString, CString>::iterator iter = m_ipMapping.begin(); iter != m_ipMapping.end();)
+		{
+			// 如果已经存在这个host的记录则清空
+			if (iter->first == host)
+				iter = m_ipMapping.erase(iter);
+			else
+				++iter;
+		}
+
 		for (int index = 0; index < m_mappinglog.GetCount(); index++)
 		{
 			CString str;

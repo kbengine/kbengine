@@ -79,7 +79,8 @@ Request::Request():
 	curl_easy_setopt((CURL*)pContext_, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt((CURL*)pContext_, CURLOPT_NOSIGNAL, 1);
 
-	curl_easy_setopt((CURL*)pContext_, CURLOPT_CONNECTTIMEOUT_MS, 0);
+	curl_easy_setopt((CURL*)pContext_, CURLOPT_CONNECTTIMEOUT_MS, 10000);
+	setTimeout(10);
 
 	KBE_ASSERT(sizeof(error_) >= CURL_ERROR_SIZE);
 	curl_easy_setopt((CURL*)pContext_, CURLOPT_ERRORBUFFER, error_);
@@ -847,7 +848,10 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 	if (headers.size() > 0)
 		r->setHeader(headers);
 
-	return perform(r);
+	Request::Status status = perform(r);
+	// 由curl的回调中销毁
+	// delete r;
+	return status;
 }
 
 //-------------------------------------------------------------------------------------
@@ -862,7 +866,10 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 	if (headers.size() > 0)
 		r->setHeader(headers);
 
-	return perform(r);
+	Request::Status status = perform(r);
+	// 由curl的回调中销毁
+	// delete r;
+	return status;
 }
 
 //-------------------------------------------------------------------------------------

@@ -51,7 +51,8 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 	pWitnessedTimeoutHandler_(NULL),
 	pGhostManager_(NULL),
 	flags_(APP_FLAGS_NONE),
-	spaceViewers_()
+	spaceViewers_(),
+	pInitProgressHandler_(NULL)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -65,6 +66,7 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Cellapp::~Cellapp()
 {
+	pInitProgressHandler_ = NULL;
 	EntityCallAbstract::resetCallHooks();
 }
 
@@ -390,7 +392,28 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 	cinfos->pChannel = NULL;
 
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
-	KBE_ASSERT(ret != -1);
+
+	if (ret == -1)
+	{
+		if (!pInitProgressHandler_)
+			pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
+
+		pInitProgressHandler_->updateInfos(componentID_, startGlobalOrder_, startGroupOrder_);
+
+		InitProgressHandler::PendingConnectEntityApp appInfos;
+		appInfos.componentID = componentID;
+		appInfos.componentType = tcomponentType;
+		appInfos.uid = uid;
+		appInfos.count = 0;
+		pInitProgressHandler_->addPendingConnectEntityApps(appInfos);
+
+		ERROR_MSG(fmt::format("Cellapp::onGetEntityAppFromDbmgr: Add to the pending list and try connecting later! uid:{}, componentType:{}, componentID:{}\n",
+			uid,
+			COMPONENT_NAME_EX((COMPONENT_TYPE)tcomponentType),
+			componentID));
+
+		return;
+	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
@@ -783,20 +806,10 @@ void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
 	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
 
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	if (!pInitProgressHandler_)
+		pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
 
-	// 所有脚本都加载完毕
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onInit"), 
-										const_cast<char*>("i"), 
-										0);
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
-
-	new InitProgressHandler(this->networkInterface());
+	pInitProgressHandler_->start();
 }
 
 //-------------------------------------------------------------------------------------

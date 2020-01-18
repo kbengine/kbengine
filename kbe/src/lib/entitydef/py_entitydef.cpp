@@ -167,6 +167,7 @@ DefContext::DefContext()
 	implementedByModuleName = "";
 	implementedByModuleFile = "";
 	pyObjectSourceFile = "";
+	pyObjectSourceFileComponentType = UNKNOWN_COMPONENT_TYPE;
 
 	inheritEngineModuleType = DC_TYPE_UNKNOWN;
 	type = DC_TYPE_UNKNOWN;
@@ -209,7 +210,8 @@ bool DefContext::addToStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) << implementedByModuleName;
 	(*pMemoryStream) << implementedByModuleFile;
 	(*pMemoryStream) << pyObjectSourceFile;
-
+	(*pMemoryStream) << pyObjectSourceFileComponentType;
+	
 	(*pMemoryStream) << (int)baseClasses.size();
 	std::vector< std::string >::iterator baseClassesIter = baseClasses.begin();
 	for (; baseClassesIter != baseClasses.end(); ++baseClassesIter)
@@ -291,7 +293,8 @@ bool DefContext::createFromStream(MemoryStream* pMemoryStream)
 	(*pMemoryStream) >> implementedByModuleName;
 	(*pMemoryStream) >> implementedByModuleFile;
 	(*pMemoryStream) >> pyObjectSourceFile;
-
+	(*pMemoryStream) >> pyObjectSourceFileComponentType;
+	
 	(*pMemoryStream) >> size;
 	for (int i = 0; i < size; ++i)
 	{
@@ -581,13 +584,14 @@ static bool registerDefContext(DefContext& defContext)
 	}
 	else if (defContext.type == DefContext::DC_TYPE_FIXED_ITEM)
 	{
-		if (!EntityDef::validDefPropertyName(defContext.attrName))
-		{
-			PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
-				defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
-
-			return false;
-		}
+		// 字典里面的字段放开关键字限制，例如允许定义名称为id的字段
+		//if (!EntityDef::validDefPropertyName(defContext.attrName))
+		//{
+		//	PyErr_Format(PyExc_AssertionError, "EntityDef.%s: '%s.%s' is limited!\n\n",
+		//		defContext.optionName.c_str(), name.c_str(), defContext.attrName.c_str());
+		//
+		//	return false;
+		//}
 
 		name += "." + defContext.attrName;
 	}
@@ -637,6 +641,7 @@ static bool registerDefContext(DefContext& defContext)
 				{
 					iter->second.pyObjectPtr = defContext.pyObjectPtr;
 					iter->second.pyObjectSourceFile = defContext.pyObjectSourceFile;
+					iter->second.pyObjectSourceFileComponentType = g_componentType;
 				}
 
 				return true;
@@ -896,6 +901,7 @@ static PyObject* __py_def_parse(PyObject *self, PyObject* args)
 
 	defContext.pyObjectPtr = PyObjectPtr(pyFunc);
 	PYOBJECT_SOURCEFILE(defContext.pyObjectPtr.get(), defContext.pyObjectSourceFile);
+	defContext.pyObjectSourceFileComponentType = defContext.componentType;
 
 	if (defContext.optionName == "method" || defContext.optionName == "clientmethod")
 	{
@@ -2671,26 +2677,29 @@ static bool registerDefComponents(ScriptDefModule* pScriptModule, DefContext& de
 		if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 		{
 			// 如果是bots类型，需要将脚本类设置为程序环境的类
-			// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
+			// 注意：如果是CLIENT_TYPE使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
 			if ((g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE) && pDefPropTypeContext->hasClient)
 			{
 				if (!updateScript(*pDefPropTypeContext))
 					return false;
 			}
 
-			PyObject* pyClass = pDefPropTypeContext->pyObjectPtr.get();
-			if (pyClass)
+			if (pDefPropTypeContext->pyObjectSourceFileComponentType == g_componentType)
 			{
-				if (!PyType_Check(pyClass))
+				PyObject* pyClass = pDefPropTypeContext->pyObjectPtr.get();
+				if (pyClass)
 				{
-					ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: EntityClass[{}] is valid!\n",
-						pDefPropTypeContext->moduleName.c_str()));
+					if (!PyType_Check(pyClass))
+					{
+						ERROR_MSG(fmt::format("PyEntityDef::registerDefComponents: EntityClass[{}] is valid!\n",
+							pDefPropTypeContext->moduleName.c_str()));
 
-					return false;
+						return false;
+					}
+
+					Py_INCREF((PyTypeObject *)pyClass);
+					pCompScriptDefModule->setScriptType((PyTypeObject *)pyClass);
 				}
-
-				Py_INCREF((PyTypeObject *)pyClass);
-				pCompScriptDefModule->setScriptType((PyTypeObject *)pyClass);
 			}
 		}
 
@@ -2800,19 +2809,22 @@ static bool registerEntityDef(ScriptDefModule* pScriptModule, DefContext& defCon
 	// 除了这几个进程以外，其他进程不需要访问脚本
 	if (g_componentType == BASEAPP_TYPE || g_componentType == CELLAPP_TYPE || g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
 	{
-		PyObject* pyClass = defContext.pyObjectPtr.get();
-		if (pyClass)
+		if (defContext.pyObjectSourceFileComponentType == g_componentType)
 		{
-			if (!PyType_Check(pyClass))
+			PyObject* pyClass = defContext.pyObjectPtr.get();
+			if (pyClass)
 			{
-				ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: EntityClass[{}] is valid!\n",
-					defContext.moduleName.c_str()));
+				if (!PyType_Check(pyClass))
+				{
+					ERROR_MSG(fmt::format("PyEntityDef::registerEntityDef: EntityClass[{}] is valid!\n",
+						defContext.moduleName.c_str()));
 
-				return false;
+					return false;
+				}
+
+				Py_INCREF((PyTypeObject *)pyClass);
+				pScriptModule->setScriptType((PyTypeObject *)pyClass);
 			}
-
-			Py_INCREF((PyTypeObject *)pyClass);
-			pScriptModule->setScriptType((PyTypeObject *)pyClass);
 		}
 	}
 
@@ -2839,7 +2851,7 @@ static bool registerEntityDefs()
 		// autosetHasClient(defContext);
 
 		// 如果是bots类型，需要将脚本类设置为程序环境的类
-		// 注意：如果是CLIENT_TYPE只能使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
+		// 注意：如果是CLIENT_TYPE使用def文件模式或者将定义放在一个common的py中，因为该模式相关定义都在服务器代码上，而客户端环境没有服务器代码
 		if ((g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE) && defContext.hasClient)
 		{
 			if (!updateScript(defContext))

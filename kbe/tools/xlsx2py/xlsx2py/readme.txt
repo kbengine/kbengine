@@ -1,5 +1,5 @@
-python xlsx2py data文件 excel文件 
+python xlsx2py data_file excel_file
 
-具体excel导出规则，请参看"tool_rules.txt"
-
-
+Update:
+* Change excel library dependency from microsoft office (win32com) to openpyxl
+* Upgrade to python3

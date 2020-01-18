@@ -63,7 +63,7 @@ PyObject* AllClientsComponent::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "AllClientsComponent::onScriptGetAttribute: not found entity(%d).",
 			entityID);
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -71,7 +71,7 @@ PyObject* AllClientsComponent::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "AllClientsComponent::onScriptGetAttribute: %s not is real entity(%d).",
 			pEntity->scriptName(), pEntity->id());
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -150,7 +150,7 @@ PyObject* AllClients::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "AllClients::onScriptGetAttribute: not found entity(%d).", 
 			id());
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -158,7 +158,7 @@ PyObject* AllClients::onScriptGetAttribute(PyObject* attr)
 	{
 		PyErr_Format(PyExc_AssertionError, "AllClients::onScriptGetAttribute: %s not is real entity(%d).", 
 			pEntity->scriptName(), pEntity->id());
-		PyErr_PrintEx(0);
+
 		return 0;
 	}
 	

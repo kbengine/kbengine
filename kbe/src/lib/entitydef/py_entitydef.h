@@ -86,6 +86,8 @@ public:
 
 	PyObjectPtr pyObjectPtr;
 	std::string pyObjectSourceFile;
+	// 脚本最后设置在哪个组件进程中，如果当前组件进程不等于该进程那么表示当前进程上没有脚本
+	COMPONENT_TYPE pyObjectSourceFileComponentType;
 
 	std::vector< std::string > baseClasses;
 

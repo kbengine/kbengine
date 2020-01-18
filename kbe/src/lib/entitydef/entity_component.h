@@ -106,6 +106,8 @@ public:
 
 	DECLARE_PY_GET_MOTHOD(pyGetOwner);
 
+	DECLARE_PY_GET_MOTHOD(pyGetClassName);
+
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, PyObject_ptr);
 

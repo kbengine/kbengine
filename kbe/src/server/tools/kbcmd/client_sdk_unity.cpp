@@ -1834,10 +1834,12 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		sourcefileBody_ += fmt::format("\t\t}}\n");
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\townerID = owner.id;\n");
 		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
 		sourcefileBody_ += fmt::format("\t\t}}\n");
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\townerID = owner.id;\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
 		sourcefileBody_ += fmt::format("\t\t}}\n");
 
