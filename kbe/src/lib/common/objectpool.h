@@ -20,10 +20,10 @@ namespace KBEngine{
 #define OBJECT_POOL_INIT_SIZE			16
 #define OBJECT_POOL_INIT_MAX_SIZE		OBJECT_POOL_INIT_SIZE * 1024
 
-// Ã¿5·ÖÖÓ¼ì²éÒ»´ÎÊÝÉí
+// æ¯5åˆ†é’Ÿæ£€æŸ¥ä¸€æ¬¡ç˜¦èº«
 #define OBJECT_POOL_REDUCING_TIME_OUT	300 * stampsPerSecondD()
 
-// ×·×Ù¶ÔÏó·ÖÅä´¦
+// è¿½è¸ªå¯¹è±¡åˆ†é…å¤„
 #define OBJECTPOOL_POINT fmt::format("{}#{}", __FUNCTION__, __LINE__).c_str() 
 
 template< typename T >
@@ -42,9 +42,9 @@ public:
 };
 
 /*
-	Ò»Ð©¶ÔÏó»á·Ç³£Æµ·±µÄ±»´´½¨£¬ ÀýÈç£ºMemoryStream, Bundle, TCPPacketµÈµÈ
-	Õâ¸ö¶ÔÏó³Ø¶ÔÍ¨¹ý·þÎñ¶Ë·åÖµÓÐÐ§µÄÔ¤¹ÀÌáÇ°´´½¨³öÒ»Ð©¶ÔÏó»º´æÆðÀ´£¬ÔÚÓÃµ½µÄÊ±ºòÖ±½Ó´Ó¶ÔÏó³ØÖÐ
-	»ñÈ¡Ò»¸öÎ´±»Ê¹ÓÃµÄ¶ÔÏó¼´¿É¡£
+	ä¸€äº›å¯¹è±¡ä¼šéžå¸¸é¢‘ç¹çš„è¢«åˆ›å»ºï¼Œ ä¾‹å¦‚ï¼šMemoryStream, Bundle, TCPPacketç­‰ç­‰
+	è¿™ä¸ªå¯¹è±¡æ± å¯¹é€šè¿‡æœåŠ¡ç«¯å³°å€¼æœ‰æ•ˆçš„é¢„ä¼°æå‰åˆ›å»ºå‡ºä¸€äº›å¯¹è±¡ç¼“å­˜èµ·æ¥ï¼Œåœ¨ç”¨åˆ°çš„æ—¶å€™ç›´æŽ¥ä»Žå¯¹è±¡æ± ä¸­
+	èŽ·å–ä¸€ä¸ªæœªè¢«ä½¿ç”¨çš„å¯¹è±¡å³å¯ã€‚
 */
 template< typename T, typename THREADMUTEX = KBEngine::thread::ThreadMutexNull >
 class ObjectPool
@@ -134,40 +134,8 @@ public:
 	}
 
 	/** 
-		Ç¿ÖÆ´´½¨Ò»¸öÖ¸¶¨ÀàÐÍµÄ¶ÔÏó¡£ Èç¹û»º³åÀïÒÑ¾­´´½¨Ôò·µ»ØÏÖÓÐµÄ£¬·ñÔò
-		´´½¨Ò»¸öÐÂµÄ£¬ Õâ¸ö¶ÔÏó±ØÐëÊÇ¼Ì³Ð×ÔTµÄ¡£
-	*/
-	template<typename T1>
-	T* createObject(const std::string& logPoint)
-	{
-		pMutex_->lockMutex();
-
-		while(true)
-		{
-			if(obj_count_ > 0)
-			{
-				T* t = static_cast<T1*>(*objects_.begin());
-				objects_.pop_front();
-				--obj_count_;
-				incLogPoint(logPoint);
-				t->poolObjectCreatePoint(logPoint);
-				t->onEabledPoolObject();
-				t->isEnabledPoolObject(true);
-				pMutex_->unlockMutex();
-				return t;
-			}
-
-			assignObjs();
-		}
-
-		pMutex_->unlockMutex();
-
-		return NULL;
-	}
-
-	/** 
-		´´½¨Ò»¸ö¶ÔÏó¡£ Èç¹û»º³åÀïÒÑ¾­´´½¨Ôò·µ»ØÏÖÓÐµÄ£¬·ñÔò
-		´´½¨Ò»¸öÐÂµÄ¡£
+		åˆ›å»ºä¸€ä¸ªå¯¹è±¡ã€‚ å¦‚æžœç¼“å†²é‡Œå·²ç»åˆ›å»ºåˆ™è¿”å›žçŽ°æœ‰çš„ï¼Œå¦åˆ™
+		åˆ›å»ºä¸€ä¸ªæ–°çš„ã€‚
 	*/
 	T* createObject(const std::string& logPoint)
 	{
@@ -197,7 +165,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏó
+		å›žæ”¶ä¸€ä¸ªå¯¹è±¡
 	*/
 	void reclaimObject(T* obj)
 	{
@@ -207,7 +175,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈÝÆ÷
+		å›žæ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
@@ -225,7 +193,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈÝÆ÷
+		å›žæ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
@@ -243,7 +211,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈÝÆ÷
+		å›žæ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
@@ -296,7 +264,7 @@ public:
 
 protected:
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏó
+		å›žæ”¶ä¸€ä¸ªå¯¹è±¡
 	*/
 	void reclaimObject_(T* obj)
 	{
@@ -304,7 +272,7 @@ protected:
 		{
 			decLogPoint(obj->poolObjectCreatePoint());
 
-			// ÏÈÖØÖÃ×´Ì¬
+			// å…ˆé‡ç½®çŠ¶æ€
 			obj->onReclaimObject();
 			obj->isEnabledPoolObject(false);
 			obj->poolObjectCreatePoint("");
@@ -325,12 +293,12 @@ protected:
 
 		if (obj_count_ <= OBJECT_POOL_INIT_SIZE)
 		{
-			// Ð¡ÓÚµÈÓÚÔòË¢ÐÂ¼ì²éÊ±¼ä
+			// å°äºŽç­‰äºŽåˆ™åˆ·æ–°æ£€æŸ¥æ—¶é—´
 			lastReducingCheckTime_ = now_timestamp;
 		}
 		else if (now_timestamp - lastReducingCheckTime_ > OBJECT_POOL_REDUCING_TIME_OUT)
 		{
-			// ³¤Ê±¼ä´óÓÚOBJECT_POOL_INIT_SIZEÎ´Ê¹ÓÃµÄ¶ÔÏóÔò¿ªÊ¼×öÇåÀí¹¤×÷
+			// é•¿æ—¶é—´å¤§äºŽOBJECT_POOL_INIT_SIZEæœªä½¿ç”¨çš„å¯¹è±¡åˆ™å¼€å§‹åšæ¸…ç†å·¥ä½œ
 			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
 			
 			//printf("ObjectPool::reclaimObject_(): start reducing..., name=%s, currsize=%d, OBJECT_POOL_INIT_SIZE=%d\n", 
@@ -359,28 +327,28 @@ protected:
 
 	bool isDestroyed_;
 
-	// Ò»Ð©Ô­Òòµ¼ÖÂËø»¹ÊÇÓÐ±ØÒªµÄ
-	// ÀýÈç£ºdbmgrÈÎÎñÏß³ÌÖÐÊä³ölog£¬cellappÖÐ¼ÓÔØnavmeshºóµÄÏß³Ì»Øµ÷µ¼ÖÂµÄlogÊä³ö
+	// ä¸€äº›åŽŸå› å¯¼è‡´é”è¿˜æ˜¯æœ‰å¿…è¦çš„
+	// ä¾‹å¦‚ï¼šdbmgrä»»åŠ¡çº¿ç¨‹ä¸­è¾“å‡ºlogï¼Œcellappä¸­åŠ è½½navmeshåŽçš„çº¿ç¨‹å›žè°ƒå¯¼è‡´çš„logè¾“å‡º
 	THREADMUTEX* pMutex_;
 
 	std::string name_;
 
 	size_t total_allocs_;
 
-	// Linux»·¾³ÖÐ£¬list.size()Ê¹ÓÃµÄÊÇstd::distance(begin(), end())·½Ê½À´»ñµÃ
-	// »á¶ÔÐÔÄÜÓÐÓ°Ïì£¬ÕâÀïÎÒÃÇ×Ô¼º¶Ôsize×öÒ»¸ö¼ÇÂ¼
+	// LinuxçŽ¯å¢ƒä¸­ï¼Œlist.size()ä½¿ç”¨çš„æ˜¯std::distance(begin(), end())æ–¹å¼æ¥èŽ·å¾—
+	// ä¼šå¯¹æ€§èƒ½æœ‰å½±å“ï¼Œè¿™é‡Œæˆ‘ä»¬è‡ªå·±å¯¹sizeåšä¸€ä¸ªè®°å½•
 	size_t obj_count_;
 
-	// ×îºóÒ»´ÎÊÝÉí¼ì²éÊ±¼ä
-	// Èç¹û³¤´ïOBJECT_POOL_REDUCING_TIME_OUT´óÓÚOBJECT_POOL_INIT_SIZE£¬Ôò×î¶àÊÝÉíOBJECT_POOL_INIT_SIZE¸ö
+	// æœ€åŽä¸€æ¬¡ç˜¦èº«æ£€æŸ¥æ—¶é—´
+	// å¦‚æžœé•¿è¾¾OBJECT_POOL_REDUCING_TIME_OUTå¤§äºŽOBJECT_POOL_INIT_SIZEï¼Œåˆ™æœ€å¤šç˜¦èº«OBJECT_POOL_INIT_SIZEä¸ª
 	uint64 lastReducingCheckTime_;
 
-	// ¼ÇÂ¼µÄ´´½¨Î»ÖÃÐÅÏ¢£¬ÓÃÓÚ×·×ÙÐ¹Â¶µã
+	// è®°å½•çš„åˆ›å»ºä½ç½®ä¿¡æ¯ï¼Œç”¨äºŽè¿½è¸ªæ³„éœ²ç‚¹
 	std::map<std::string, ObjectPoolLogPoint> logPoints_;
 };
 
 /*
-	³Ø¶ÔÏó£¬ ËùÓÐÊ¹ÓÃ³ØµÄ¶ÔÏó±ØÐëÊµÏÖ»ØÊÕ¹¦ÄÜ¡£
+	æ± å¯¹è±¡ï¼Œ æ‰€æœ‰ä½¿ç”¨æ± çš„å¯¹è±¡å¿…é¡»å®žçŽ°å›žæ”¶åŠŸèƒ½ã€‚
 */
 class PoolObject
 {
@@ -402,8 +370,8 @@ public:
 	}
 
 	/**
-		³Ø¶ÔÏó±»Îö¹¹Ç°µÄÍ¨Öª
-		Ä³Ð©¶ÔÏó¿ÉÒÔÔÚ´Ë×öÒ»Ð©¹¤×÷
+		æ± å¯¹è±¡è¢«æžæž„å‰çš„é€šçŸ¥
+		æŸäº›å¯¹è±¡å¯ä»¥åœ¨æ­¤åšä¸€äº›å·¥ä½œ
 	*/
 	virtual bool destructorPoolObject()
 	{
@@ -432,10 +400,10 @@ public:
 
 protected:
 
-	// ³Ø¶ÔÏóÊÇ·ñ´¦ÓÚ¼¤»î£¨´Ó³ØÖÐÒÑ¾­È¡³ö£©×´Ì¬
+	// æ± å¯¹è±¡æ˜¯å¦å¤„äºŽæ¿€æ´»ï¼ˆä»Žæ± ä¸­å·²ç»å–å‡ºï¼‰çŠ¶æ€
 	bool isEnabledPoolObject_;
 
-	// ¼ÇÂ¼¶ÔÏó´´½¨µÄÎ»ÖÃ
+	// è®°å½•å¯¹è±¡åˆ›å»ºçš„ä½ç½®
 	std::string poolObjectCreatePoint_;
 };
 
