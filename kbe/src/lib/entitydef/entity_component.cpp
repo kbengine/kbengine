@@ -714,7 +714,12 @@ bool EntityComponent::isSamePersistentType(PyObject* pyValue)
 				{
 					cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
 					Py_DECREF(cellDataDict);
-					Py_INCREF(cellComponentPart);
+
+					// 组件没有cell属性时不会在cell创建这个组件
+					if (cellComponentPart)
+					{
+						Py_INCREF(cellComponentPart);
+					}
 				}
 			}
 
@@ -886,7 +891,12 @@ void EntityComponent::addPersistentToStream(MemoryStream* mstream, PyObject* pyV
 				{
 					cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
 					Py_DECREF(cellDataDict);
-					Py_INCREF(cellComponentPart);
+
+					// 组件没有cell属性时不会在cell创建这个组件
+					if (cellComponentPart)
+					{
+						Py_INCREF(cellComponentPart);
+					}
 				}
 			}
 
