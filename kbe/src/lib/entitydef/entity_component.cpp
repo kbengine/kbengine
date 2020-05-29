@@ -930,7 +930,7 @@ void EntityComponent::addPersistentToStream(MemoryStream* mstream, PyObject* pyV
 
 		if (pyVal)
 		{
-			propertyDescription->addToStream(mstream, pyVal);
+			propertyDescription->addPersistentToStream(mstream, pyVal);
 			Py_DECREF(pyVal);
 		}
 		else
