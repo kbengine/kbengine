@@ -260,13 +260,14 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH_SIZE);
-			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE) currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1;
+			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE) 
+				currMsgLen_ = NETWORK_MESSAGE_MAX_SIZE1;
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH1:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH1_SIZE);
-            if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1) 
-                pChannel_->condemn("PacketReader::mergeFragmentMessage: msglen1 exceeds the limit!");
+			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1) 
+				pChannel_->condemn("PacketReader::mergeFragmentMessage: msglen1 exceeds the limit!");
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
