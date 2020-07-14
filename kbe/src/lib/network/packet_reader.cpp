@@ -132,7 +132,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 							currMsgLen_ + NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE);
 
 						if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE)
-							currMsgLen_ == 0xFFFFFFFF;
+							currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1;
 					}
 				}
 				else
@@ -145,7 +145,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			}
 
 			// 如果长度占满说明使用了扩展长度，我们还需要等待扩展长度信息
-			if (currMsgLen_ == 0xFFFFFFFF)
+			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1)
 			{
 				if (pPacket->length() < NETWORK_MESSAGE_LENGTH1_SIZE)
 				{
@@ -278,12 +278,13 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH_SIZE);
-			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE) currMsgLen_ == 0xFFFFFFFF;
+			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE) currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1;
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH1:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH1_SIZE);
-			if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE) currMsgLen_ -= 1;
+            if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1) 
+                pChannel_->condemn("PacketReader::mergeFragmentMessage: msglen1 exceeds the limit!");
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全

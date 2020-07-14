@@ -172,11 +172,27 @@ CPPFLAGS += -DNO_USE_LOG4CXX
 endif
 
 OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+OPENSSL_SYS_DEV = /usr/include/openssl/ssl.h
+OPENSSL_DEP_TMP = $(LIBDIR)/libssl.a $(LIBDIR)/libcrypto.a
+
+ifneq ("$(wildcard $(OPENSSL_SYS_DEV))", "")
+OPENSSL_DIR=/usr
+OPENSSL_DEP_TMP = /usr/lib/x86_64-linux-gnu/libssl.a /usr/lib/x86_64-linux-gnu/libcrypto.a
+$(info, "use system openssl.")
+else
+USE_SELF_OPENSSL=1
+endif
+
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
+
 ifeq ($(USE_OPENSSL),1)
+OPENSSL_DEP = $(OPENSSL_DEP_TMP)
 LDLIBS += -lssl -lcrypto -ldl
 CPPFLAGS += -DUSE_OPENSSL
+else
+OPENSSL_DEP =
 endif
+
 
 G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/g3dlite
 KBE_INCLUDES += -I$(G3DMATH_DIR)
@@ -209,7 +225,7 @@ endif
 JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc
 KBE_INCLUDES += -I$(JEMALLOC_DIR)/include
 #ifeq ($(USE_JEMALLOC),1)
-LDLIBS += -ljemalloc -lrt
+LDLIBS += -ljemalloc -lrt -ldl
 CPPFLAGS += -DUSE_JEMALLOC
 #endif
 
@@ -516,12 +532,6 @@ endif
 #----------------------------------------------------------------------------
 # Local targets
 #----------------------------------------------------------------------------
-
-ifeq ($(USE_OPENSSL),1)
-OPENSSL_DEP = $(LIBDIR)/libssl.a $(LIBDIR)/libcrypto.a
-else
-OPENSSL_DEP =
-endif
 
 
 # For executables
