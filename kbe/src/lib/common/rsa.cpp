@@ -123,7 +123,27 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 	RSA* rsa = NULL;
     FILE *fp = NULL;
 
+#if OPENSSL_VERSION_NUMBER < 0x00908000L
 	if ((rsa = RSA_generate_key(keySize, e, NULL, NULL)) == NULL) 
+#else
+    BIGNUM *bne;
+
+    bne = BN_new();
+    if (bne && BN_set_word(bne, e) != 1)
+        rsa = RSA_new();
+
+    bool ret = rsa && RSA_generate_key_ex(rsa, keySize, bne, NULL) != 1;
+
+    if (!ret)
+    {
+        RSA_free(rsa);
+        rsa = NULL;
+    }
+
+    BN_free(bne);
+    
+    if(!ret)
+#endif
 	{
 		ERR_load_crypto_strings();
 		char err[1024];

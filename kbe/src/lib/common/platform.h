@@ -556,6 +556,9 @@ inline int32 getUserUID()
 	// Linux:
 		char * uid = getenv( "UID" );
 		iuid = uid ? atoi( uid ) : getuid();
+
+		char * uuid = getenv("UUID");
+		iuid = uuid ? atoi( uuid ) : iuid;
 #endif
 	}
 
