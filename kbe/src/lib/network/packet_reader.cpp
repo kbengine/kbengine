@@ -132,7 +132,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 							currMsgLen_ + NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE);
 
 						if (currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE)
-							currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE1;
+							currMsgLen_ = NETWORK_MESSAGE_MAX_SIZE1;
 					}
 				}
 				else
