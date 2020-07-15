@@ -1,7 +1,7 @@
 
 all:: config.status
 
-CONFIG_ARGS = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+CONFIG_ARGS =
 
 ifeq ($(pythonbuild), release)
 	CONFIG_ARGS += --enable-optimizations 
