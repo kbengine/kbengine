@@ -167,7 +167,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 				else
 				{
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
-						fmt::format("TCPPacketSender::processSend(internal, {})", (int)sendfailCount_).c_str());
+						fmt::format("TCPPacketSender::processSend({}}, {})", (pChannel->isInternal() ? "internal" : "external"), (int)sendfailCount_).c_str());
 				}
 			}
 			else
