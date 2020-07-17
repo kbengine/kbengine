@@ -686,7 +686,7 @@ bool EndPoint::setupSSL(int sslVersion, Packet* pPacket)
 {
 	switch (sslVersion)
 	{
-#if (OPENSSL_VERSION_NUMBER <  0x10100000)
+#if (OPENSSL_VERSION_NUMBER <  0x1000207fL)
 #ifndef OPENSSL_NO_SSL2
 	case SSL2_VERSION:
 		sslContext_ = SSL_CTX_new(SSLv2_server_method());

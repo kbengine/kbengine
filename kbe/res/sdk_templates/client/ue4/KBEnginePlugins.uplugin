@@ -10,14 +10,14 @@
 	"DocsURL": "http://kbengine.org/docs",
 	"MarketplaceURL": "http://kbengine.org/marketplace",
 	"SupportURL": "http://bbs.kbengine.org",
-	"EnabledByDefault": false,
 	"CanContainContent": false,
 	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
 			"Name": "KBEnginePlugins",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	]
