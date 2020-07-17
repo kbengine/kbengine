@@ -9,7 +9,7 @@
     <ClCompile Include="..\Modules\_ssl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependencies\openssl\include\openssl\applink.c">
+    <ClCompile Include="..\..\dependencies\vsopenssl\include\openssl\applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

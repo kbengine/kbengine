@@ -17,7 +17,7 @@
 	"Modules": [
 		{
 			"Name": "KBEnginePlugins",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	]

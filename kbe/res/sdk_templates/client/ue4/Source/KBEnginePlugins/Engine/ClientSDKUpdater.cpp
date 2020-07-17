@@ -7,7 +7,7 @@
 #include "Paths.h"
 #include "PlatformFilemanager.h"
 #include "FileHelper.h"
-#include "OutPutDeviceDebug.h"
+//#include "OutPutDeviceDebug.h"
 
 namespace KBEngine
 {
