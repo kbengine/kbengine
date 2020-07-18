@@ -171,7 +171,7 @@ else
 CPPFLAGS += -DNO_USE_LOG4CXX
 endif
 
-OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/vsopenssl
 OPENSSL_SYS_DEV = /usr/include/openssl/ssl.h
 OPENSSL_DEP_TMP = $(LIBDIR)/libssl.a $(LIBDIR)/libcrypto.a
 

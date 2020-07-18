@@ -114,9 +114,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jwsmtp", "lib\dependencies\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "navigation", "lib\navigation\navigation.vcxproj", "{9085A36E-CAF8-4E86-93AF-373D2554026B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "lib\dependencies\openssl\vcbuild\libeay32\libeay32.vcxproj", "{70ABE75C-FBC2-4C82-9103-B952FA5CD168}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "lib\dependencies\vsopenssl\vcbuild\libeay32\libeay32.vcxproj", "{70ABE75C-FBC2-4C82-9103-B952FA5CD168}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "lib\dependencies\openssl\vcbuild\ssleay32\ssleay32.vcxproj", "{24265BD3-3CF3-41A9-B137-53DBEC0F53BF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "lib\dependencies\vsopenssl\vcbuild\ssleay32\ssleay32.vcxproj", "{24265BD3-3CF3-41A9-B137-53DBEC0F53BF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apr", "lib\dependencies\apr\apr.vcxproj", "{C6C836E6-2899-458A-90BA-184192342D30}"
 EndProject

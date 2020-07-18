@@ -208,7 +208,7 @@ _symtable symtablemodule.c
 
 # Socket module helper for SSL support; you must comment out the other
 # socket line above, and possibly edit the SSL variable:
-#SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+#SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/vsopenssl
 #_ssl _ssl.c \
 #	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
 #	-L$(KBE_ROOT)/kbe/src/libs -lssl -lcrypto
