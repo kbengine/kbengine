@@ -295,7 +295,7 @@ PyObject* FixedArray::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 		return NULL;
 	}
 
-	int index = 0;
+	int index = -1;
 
 	if (PyTuple_Size(args) > 0)
 	{
