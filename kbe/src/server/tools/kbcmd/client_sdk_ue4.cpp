@@ -2815,7 +2815,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 						fileBody() += fmt::format("\t\t\t{} {}_arg{};\n",
 							typestr, pMethodDescription->getName(), i);
 
-						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {}_arg{});\n",
+						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}])->createFromStreamEx(stream, {}_arg{});\n",
 							typeID, (i - 1), pMethodDescription->getName(), i);
 					}
 				}
