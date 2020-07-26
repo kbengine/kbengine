@@ -327,7 +327,7 @@ PyObject* EntityCall::__py_pyGetComponent(PyObject* self, PyObject* args)
 	char* componentName = NULL;
 	if (currargsSize == 1)
 	{
-		if (PyArg_ParseTuple(args, "s", &componentName) == -1)
+		if (!PyArg_ParseTuple(args, "s", &componentName))
 		{
 			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: args error!");
 			PyErr_PrintEx(0);
@@ -346,7 +346,7 @@ PyObject* EntityCall::__py_pyGetComponent(PyObject* self, PyObject* args)
 	else if (currargsSize == 2)
 	{
 		PyObject* pyobj = NULL;
-		if (PyArg_ParseTuple(args, "sO", &componentName, &pyobj) == -1)
+		if (!PyArg_ParseTuple(args, "sO", &componentName, &pyobj))
 		{
 			PyErr_Format(PyExc_AssertionError, "EntityCall::getComponent:: args error!");
 			PyErr_PrintEx(0);

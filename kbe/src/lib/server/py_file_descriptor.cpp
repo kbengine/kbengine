@@ -44,7 +44,7 @@ PyObject* PyFileDescriptor::__py_registerReadFileDescriptor(PyObject* self, PyOb
 	PyObject* pycallback = NULL;
 	int fd = 0;
 
-	if(PyArg_ParseTuple(args, "i|O", &fd, &pycallback) == -1)
+	if(!PyArg_ParseTuple(args, "i|O", &fd, &pycallback))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::registerReadFileDescriptor: args error!");
 		PyErr_PrintEx(0);
@@ -81,7 +81,7 @@ PyObject* PyFileDescriptor::__py_deregisterReadFileDescriptor(PyObject* self, Py
 
 	int fd = 0;
 
-	if(PyArg_ParseTuple(args, "i", &fd) == -1)
+	if(!PyArg_ParseTuple(args, "i", &fd))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::deregisterReadFileDescriptor: args error!");
 		PyErr_PrintEx(0);
@@ -117,7 +117,7 @@ PyObject* PyFileDescriptor::__py_registerWriteFileDescriptor(PyObject* self, PyO
 	PyObject* pycallback = NULL;
 	int fd = 0;
 
-	if(PyArg_ParseTuple(args, "i|O", &fd, &pycallback) == -1)
+	if(!PyArg_ParseTuple(args, "i|O", &fd, &pycallback))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::registerWriteFileDescriptor: args error!");
 		PyErr_PrintEx(0);
@@ -154,7 +154,7 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 
 	int fd = 0;
 
-	if(PyArg_ParseTuple(args, "i", &fd) == -1)
+	if(!PyArg_ParseTuple(args, "i", &fd))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::deregisterWriteFileDescriptor: args error!");
 		PyErr_PrintEx(0);

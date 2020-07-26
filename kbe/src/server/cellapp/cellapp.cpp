@@ -539,7 +539,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	int ret = -1;
+	int ret = 0;
 	ENTITY_ID eid = -1;
 
 	char* data = NULL;
@@ -554,7 +554,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	else if(argCount == 1)
 		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
-	if(ret == -1)
+	if(!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
@@ -1821,7 +1821,7 @@ PyObject* Cellapp::__py_reloadScript(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount == 1)
 	{
-		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
+		if(!PyArg_ParseTuple(args, "b", &fullReload))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args error!");
 			PyErr_PrintEx(0);
@@ -2141,7 +2141,7 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 
 	if(currargsSize == 3)
 	{
-		if(PyArg_ParseTuple(args, "IOO", &spaceID, &pyStartPos, &pyEndPos) == -1)
+		if(!PyArg_ParseTuple(args, "IOO", &spaceID, &pyStartPos, &pyEndPos))
 		{
 			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args error!");
 			PyErr_PrintEx(0);
@@ -2150,7 +2150,7 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	}
 	else if(currargsSize == 4)
 	{
-		if(PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos) == -1)
+		if(!PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos))
 		{
 			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args error!");
 			PyErr_PrintEx(0);
@@ -2237,7 +2237,7 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	uint32 flags;
 
-	if(PyArg_ParseTuple(args, "I", &flags) == -1)
+	if(!PyArg_ParseTuple(args, "I", &flags))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args error!");
 		PyErr_PrintEx(0);

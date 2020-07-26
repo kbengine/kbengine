@@ -39,7 +39,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	PyObject* pyType = NULL;
 	PyObject* pyObj = NULL;
 	
-	if(PyArg_ParseTuple(args, "O|O|O", &pyName, &pyType, &pyObj) == -1)
+	if(!PyArg_ParseTuple(args, "O|O|O", &pyName, &pyType, &pyObj))
 	{
 		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args error! "
 			"arg(watcherPath, deftype[UINT32|STRING...], pyCallable).\n");
@@ -153,7 +153,7 @@ static PyObject* delWatcher(PyObject* self, PyObject* args)
 
 	PyObject* pyName = NULL;
 	
-	if(PyArg_ParseTuple(args, "O", &pyName) == -1)
+	if(!PyArg_ParseTuple(args, "O", &pyName))
 	{
 		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName error!\n");
 		PyErr_PrintEx(0);

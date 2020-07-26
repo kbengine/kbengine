@@ -270,7 +270,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	char* type;
 	PyObject* pyVal = NULL;
 
-	if(PyArg_ParseTuple(args, "s|O", &type, &pyVal) == -1)
+	if(!PyArg_ParseTuple(args, "s|O", &type, &pyVal))
 	{
 		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: args error!");
 		PyErr_PrintEx(0);
@@ -409,7 +409,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 	}
 	
 	char* type;
-	if(PyArg_ParseTuple(args, "s", &type) == -1)
+	if(!PyArg_ParseTuple(args, "s", &type))
 	{
 		PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: args error!");
 		PyErr_PrintEx(0);
@@ -555,7 +555,7 @@ PyObject* PyMemoryStream::__py_rpos(PyObject* self, PyObject* args, PyObject* kw
 	else if (argCount == 1)
 	{
 		uint32 pos = 0;
-		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		if (!PyArg_ParseTuple(args, "I", &pos))
 		{
 			PyErr_Format(PyExc_TypeError, "PyMemoryStream::rpos: args error!");
 			PyErr_PrintEx(0);
@@ -594,7 +594,7 @@ PyObject* PyMemoryStream::__py_wpos(PyObject* self, PyObject* args, PyObject* kw
 	if (argCount == 1)
 	{
 		uint32 pos = 0;
-		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		if (!PyArg_ParseTuple(args, "I", &pos))
 		{
 			PyErr_Format(PyExc_TypeError, "PyMemoryStream::wpos: args error!");
 			PyErr_PrintEx(0);
@@ -632,7 +632,7 @@ PyObject* PyMemoryStream::__py_fill(PyObject* self, PyObject* args, PyObject* kw
 
 	PyObject* pyVal = NULL;
 
-	if (PyArg_ParseTuple(args, "O", &pyVal) == -1)
+	if (!PyArg_ParseTuple(args, "O", &pyVal))
 	{
 		PyErr_Format(PyExc_TypeError, "PyMemoryStream::fill: args error!");
 		PyErr_PrintEx(0);

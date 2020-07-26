@@ -961,14 +961,14 @@ PyObject* Baseapp::__py_createEntity(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* params = NULL;
 	char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 
 	if(argCount == 2)
 		ret = PyArg_ParseTuple(args, "s|O", &entityType, &params);
 	else
 		ret = PyArg_ParseTuple(args, "s", &entityType);
 
-	if(entityType == NULL || ret == -1)
+	if(entityType == NULL || !ret)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createEntity: args error!");
 		PyErr_PrintEx(0);
@@ -988,7 +988,7 @@ PyObject* Baseapp::__py_createEntityAnywhere(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* params = NULL, *pyCallback = NULL;
 	char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 
 	switch(argCount)
 	{
@@ -1003,7 +1003,7 @@ PyObject* Baseapp::__py_createEntityAnywhere(PyObject* self, PyObject* args)
 	};
 
 
-	if(entityType == NULL || ret == -1)
+	if(entityType == NULL || !ret)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createEntityAnywhere: args error!");
 		PyErr_PrintEx(0);
@@ -1030,7 +1030,7 @@ PyObject* Baseapp::__py_createEntityRemotely(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* params = NULL, *pyCallback = NULL, *pyEntityCall = NULL;
 	char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 
 	switch (argCount)
 	{
@@ -1044,7 +1044,7 @@ PyObject* Baseapp::__py_createEntityRemotely(PyObject* self, PyObject* args)
 		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyEntityCall);
 	};
 
-	if (entityType == NULL || ret == -1)
+	if (entityType == NULL || !ret)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createEntityRemotely: args error!");
 		PyErr_PrintEx(0);
@@ -1090,7 +1090,7 @@ PyObject* Baseapp::__py_createEntityFromDBID(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
 	const char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
@@ -1122,7 +1122,7 @@ PyObject* Baseapp::__py_createEntityFromDBID(PyObject* self, PyObject* args)
 		}
 	};
 
-	if (ret == -1)
+	if (!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntityFromDBID: args error!");
 		PyErr_PrintEx(0);
@@ -1429,7 +1429,7 @@ PyObject* Baseapp::__py_createEntityAnywhereFromDBID(PyObject* self, PyObject* a
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
 	const char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
@@ -1461,7 +1461,7 @@ PyObject* Baseapp::__py_createEntityAnywhereFromDBID(PyObject* self, PyObject* a
 		}
 	};
 
-	if (ret == -1)
+	if (!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntityAnywhereFromDBID: args error!");
 		PyErr_PrintEx(0);
@@ -1942,7 +1942,7 @@ PyObject* Baseapp::__py_createEntityRemotelyFromDBID(PyObject* self, PyObject* a
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL, *pyEntityCall = NULL;
 	const char* entityType = NULL;
-	int ret = -1;
+	int ret = 0;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
@@ -1974,7 +1974,7 @@ PyObject* Baseapp::__py_createEntityRemotelyFromDBID(PyObject* self, PyObject* a
 		}
 	};
 
-	if (ret == -1)
+	if (!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntityRemotelyFromDBID: args error!");
 		PyErr_PrintEx(0);
@@ -3177,7 +3177,7 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	int ret = -1;
+	int ret = 0;
 	ENTITY_ID eid = -1;
 
 	char* data = NULL;
@@ -3192,7 +3192,7 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	else if(argCount == 1)
 		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
-	if(ret == -1)
+	if(!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
@@ -3406,7 +3406,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	char* pChargeID = NULL;
 	DBID dbid = 0;
 
-	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
+	if(!PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args error!");
 		PyErr_PrintEx(0);
@@ -5071,7 +5071,7 @@ PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount == 1)
 	{
-		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
+		if(!PyArg_ParseTuple(args, "b", &fullReload))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args error!");
 			PyErr_PrintEx(0);
@@ -5143,7 +5143,7 @@ PyObject* Baseapp::__py_deleteEntityByDBID(PyObject* self, PyObject* args)
 
 	if (currargsSize == 3)
 	{
-		if (PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
+		if (!PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::deleteEntityByDBID: args error!");
 			PyErr_PrintEx(0);
@@ -5152,7 +5152,7 @@ PyObject* Baseapp::__py_deleteEntityByDBID(PyObject* self, PyObject* args)
 	}
 	else if (currargsSize == 4)
 	{
-		if (PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName) == -1)
+		if (!PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::deleteEntityByDBID: args error!");
 			PyErr_PrintEx(0);
@@ -5314,7 +5314,7 @@ PyObject* Baseapp::__py_lookUpEntityByDBID(PyObject* self, PyObject* args)
 
 	if (currargsSize == 3)
 	{
-		if (PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
+		if (!PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpEntityByDBID: args error!");
 			PyErr_PrintEx(0);
@@ -5325,7 +5325,7 @@ PyObject* Baseapp::__py_lookUpEntityByDBID(PyObject* self, PyObject* args)
 	{
 		PyObject* pyDBInterfaceName = NULL;
 
-		if (PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName) == -1)
+		if (!PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpEntityByDBID: args error!");
 			PyErr_PrintEx(0);
@@ -5732,7 +5732,7 @@ PyObject* Baseapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	uint32 flags;
 
-	if(PyArg_ParseTuple(args, "I", &flags) == -1)
+	if(!PyArg_ParseTuple(args, "I", &flags))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args error!");
 		PyErr_PrintEx(0);

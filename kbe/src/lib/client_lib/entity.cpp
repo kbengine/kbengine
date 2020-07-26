@@ -791,7 +791,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		return 0;																								
 	}
 
-	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
+	if(!PyArg_ParseTuple(args, "O", &pyargobj))
 	{
 		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
