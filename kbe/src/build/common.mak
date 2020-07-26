@@ -172,16 +172,14 @@ CPPFLAGS += -DNO_USE_LOG4CXX
 endif
 
 OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
-OPENSSL_SYS_DEV = /usr/include/openssl/ssl.h
 OPENSSL_DEP_TMP = $(LIBDIR)/libssl.a $(LIBDIR)/libcrypto.a
 
-ifneq ("$(wildcard $(OPENSSL_SYS_DEV))", "")
+ifneq ("$(wildcard /usr/lib/x86_64-linux-gnu/libssl.a)", "")
 OPENSSL_DIR=/usr
 OPENSSL_DEP_TMP = /usr/lib/x86_64-linux-gnu/libssl.a /usr/lib/x86_64-linux-gnu/libcrypto.a
 $(info, "use system openssl.")
 else
 USE_SELF_OPENSSL=1
-mv $(KBE_ROOT)/kbe/src/lib/dependencies/vsopenssl $(OPENSSL_DIR)
 endif
 
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
