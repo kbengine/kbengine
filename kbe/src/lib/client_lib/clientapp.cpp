@@ -559,7 +559,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	int type = -1;
 
-	if(PyArg_ParseTuple(args, "i", &type) == -1)
+	if(!PyArg_ParseTuple(args, "i", &type))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
@@ -772,7 +772,7 @@ PyObject* ClientApp::__py_getResFullPath(PyObject* self, PyObject* args)
 
 	char* respath = NULL;
 
-	if (PyArg_ParseTuple(args, "s", &respath) == -1)
+	if (!PyArg_ParseTuple(args, "s", &respath))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args error!");
 		PyErr_PrintEx(0);
@@ -799,7 +799,7 @@ PyObject* ClientApp::__py_hasRes(PyObject* self, PyObject* args)
 
 	char* respath = NULL;
 
-	if (PyArg_ParseTuple(args, "s", &respath) == -1)
+	if (!PyArg_ParseTuple(args, "s", &respath))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args error!");
 		PyErr_PrintEx(0);
@@ -823,7 +823,7 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	char* respath = NULL;
 	char* fargs = NULL;
 
-	if (PyArg_ParseTuple(args, "s|s", &respath, &fargs) == -1)
+	if (!PyArg_ParseTuple(args, "s|s", &respath, &fargs))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
@@ -863,7 +863,7 @@ PyObject* ClientApp::__py_matchPath(PyObject* self, PyObject* args)
 
 	char* respath = NULL;
 
-	if (PyArg_ParseTuple(args, "s", &respath) == -1)
+	if (!PyArg_ParseTuple(args, "s", &respath))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args error!");
 		PyErr_PrintEx(0);
@@ -891,7 +891,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 
 	if (argCount == 1)
 	{
-		if (PyArg_ParseTuple(args, "O", &pathobj) == -1)
+		if (!PyArg_ParseTuple(args, "O", &pathobj))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] error!");
 			PyErr_PrintEx(0);
@@ -900,7 +900,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		if (PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj) == -1)
+		if (!PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 			PyErr_PrintEx(0);

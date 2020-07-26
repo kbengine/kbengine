@@ -1517,7 +1517,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		return 0;																								
 	}
 
-	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
+	if(!PyArg_ParseTuple(args, "O", &pyargobj))
 	{
 		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
@@ -2728,7 +2728,7 @@ PyObject* Entity::__py_pyMoveToEntity(PyObject* self, PyObject* args)
 
 	if (currargsSize == 6)
 	{
-		if (PyArg_ParseTuple(args, "iffOii", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically) == -1)
+		if (!PyArg_ParseTuple(args, "iffOii", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically))
 		{
 			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
 				pobj->scriptName(), pobj->id());
@@ -2738,7 +2738,7 @@ PyObject* Entity::__py_pyMoveToEntity(PyObject* self, PyObject* args)
 	}
 	else if (currargsSize == 7)
 	{
-		if (PyArg_ParseTuple(args, "iffOiiO", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically, &pyOffset) == -1)
+		if (!PyArg_ParseTuple(args, "iffOiiO", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically, &pyOffset))
 		{
 			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
 				pobj->scriptName(), pobj->id());
@@ -3007,7 +3007,7 @@ PyObject* Entity::__py_pyEntitiesInView(PyObject* self, PyObject* args)
 	}
 
 	bool pending = false;
-	if (PyArg_ParseTuple(args, "|b", &pending) == -1)
+	if (!PyArg_ParseTuple(args, "|b", &pending))
 	{
 		PyErr_Format(PyExc_TypeError, "%s::entitiesInView(): args error!", pobj->scriptName());
 		PyErr_PrintEx(0);
@@ -3087,7 +3087,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 
 	if (currargsSize == 1)
 	{
-		if (PyArg_ParseTuple(args, "f", &radius) == -1)
+		if (!PyArg_ParseTuple(args, "f", &radius))
 		{
 			PyErr_Format(PyExc_TypeError, "%s::entitiesInRange: args error! entity(%d)",
 				pobj->scriptName(), pobj->id());
@@ -3097,7 +3097,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	}
 	else if (currargsSize == 2)
 	{
-		if (PyArg_ParseTuple(args, "fO", &radius, &pyEntityType) == -1)
+		if (!PyArg_ParseTuple(args, "fO", &radius, &pyEntityType))
 		{
 			PyErr_Format(PyExc_TypeError, "%s::entitiesInRange: args error! entity(%d)",
 				pobj->scriptName(), pobj->id());
@@ -3116,7 +3116,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	}
 	else if (currargsSize == 3)
 	{
-		if (PyArg_ParseTuple(args, "fOO", &radius, &pyEntityType, &pyPosition) == -1)
+		if (!PyArg_ParseTuple(args, "fOO", &radius, &pyEntityType, &pyPosition))
 		{
 			PyErr_Format(PyExc_TypeError, "%s::entitiesInRange: args error! entity(%d)",
 				pobj->scriptName(), pobj->id());

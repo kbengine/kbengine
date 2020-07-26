@@ -723,7 +723,7 @@ public:																										\
 		{																									\
 			if(g_componentType == BASEAPP_TYPE)																\
 			{																								\
-				if(PyArg_ParseTuple(args, "O", &pycallback) == -1)											\
+				if(!PyArg_ParseTuple(args, "O", &pycallback))												\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
@@ -747,7 +747,7 @@ public:																										\
 			}																								\
 			else																							\
 			{																								\
-				if(PyArg_ParseTuple(args, "i", &extra) == -1)												\
+				if(!PyArg_ParseTuple(args, "i", &extra))													\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
@@ -760,7 +760,7 @@ public:																										\
 		{																									\
 			if(g_componentType == BASEAPP_TYPE)																\
 			{																								\
-				if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)								\
+				if(!PyArg_ParseTuple(args, "O|i", &pycallback, &extra))										\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
@@ -785,7 +785,7 @@ public:																										\
 			else																							\
 			{																								\
 				PyObject* pystr_extra = NULL;																\
-				if(PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra) == -1)								\
+				if(!PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra))									\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
@@ -813,7 +813,7 @@ public:																										\
 			if(g_componentType == BASEAPP_TYPE)																\
 			{																								\
 				PyObject* pystr_extra = NULL;																\
-				if(PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra) == -1)				\
+				if(!PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra))						\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
@@ -954,7 +954,7 @@ public:																										\
 		ScriptID timerID = 0;																				\
 		PyObject* pyargobj = NULL;																			\
 																											\
-		if (PyArg_ParseTuple(args, "O", &pyargobj) == -1)													\
+		if (!PyArg_ParseTuple(args, "O", &pyargobj))														\
 		{																									\
 			PyErr_Format(PyExc_TypeError,																	\
 				"%s::delTimer: args(id|int or \"All\"|str) error!",											\

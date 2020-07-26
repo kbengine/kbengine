@@ -138,7 +138,7 @@ PyObject* Space::__py_GetSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	if(PyArg_ParseTuple(args, "I", &spaceID) == -1)
+	if(!PyArg_ParseTuple(args, "I", &spaceID))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceGeometryMapping: args error!");
 		PyErr_PrintEx(0);
@@ -178,7 +178,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 	if(argCount == 4)
 	{
-		if(PyArg_ParseTuple(args, "I|O|s|b", &spaceID, &mapper, &path, &shouldLoadOnServer) == -1)
+		if(!PyArg_ParseTuple(args, "I|O|s|b", &spaceID, &mapper, &path, &shouldLoadOnServer))
 		{
 			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args error!");
 			PyErr_PrintEx(0);
@@ -187,7 +187,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	}
 	else if(argCount == 5)
 	{
-		if(PyArg_ParseTuple(args, "I|O|s|b|O", &spaceID, &mapper, &path, &shouldLoadOnServer, &py_params) == -1)
+		if(!PyArg_ParseTuple(args, "I|O|s|b|O", &spaceID, &mapper, &path, &shouldLoadOnServer, &py_params))
 		{
 			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args error!");
 			PyErr_PrintEx(0);
@@ -223,7 +223,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
+		if(!PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path))
 		{
 			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
 			PyErr_PrintEx(0);
@@ -720,7 +720,7 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 	}
 	
 	char* key = NULL, *value = NULL;
-	if(PyArg_ParseTuple(args, "Iss", &spaceID, &key, &value) == -1)
+	if(!PyArg_ParseTuple(args, "Iss", &spaceID, &key, &value))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: args error!");
 		PyErr_PrintEx(0);
@@ -777,7 +777,7 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 	}
 	
 	char* key = NULL;
-	if(PyArg_ParseTuple(args, "Is", &spaceID, &key) == -1)
+	if(!PyArg_ParseTuple(args, "Is", &spaceID, &key))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: args error!");
 		PyErr_PrintEx(0);
@@ -833,7 +833,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 	}
 	
 	char* key = NULL;
-	if(PyArg_ParseTuple(args, "Is", &spaceID, &key) == -1)
+	if(!PyArg_ParseTuple(args, "Is", &spaceID, &key))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: args error!");
 		PyErr_PrintEx(0);
