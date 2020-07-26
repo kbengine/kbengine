@@ -26,7 +26,7 @@ KBEngine
 
 ## Docs
 
-	Docs		: http://kbengine.github.io/docs/
+	Docs		: https://kbengine.github.io//docs/
 	API		: https://github.com/kbengine/kbengine/tree/master/docs
 
 
