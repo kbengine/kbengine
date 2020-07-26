@@ -205,6 +205,13 @@ KBE_INCLUDES += -I$(SIGAR_DIR)/linux
 #ifeq ($(USE_SIGAR),1)
 LDLIBS += -lsigar
 CPPFLAGS += -DUSE_SIGAR
+
+#centos8 https://github.com/kbengine/kbengine/issues/1303
+ifneq ("$(wildcard /usr/include/tirpc)", "")
+KBE_INCLUDES += -I/usr/include/tirpc
+LDLIBS += -ltirpc
+endif
+
 #endif
 
 JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jwsmtp
