@@ -4,6 +4,8 @@ endif
 
 all:: kbemake
 
+CONFIG_ARGS =
+
 ifeq ($(USE_SELF_OPENSSL),1)
 	CONFIG_ARGS = --with-ssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 else
