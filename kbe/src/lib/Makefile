@@ -15,6 +15,13 @@ else
 	OPENSSL_CONFIG+=
 endif
 
+ifneq ("$(wildcard /usr/lib/x86_64-linux-gnu/libssl.a)", "")
+	$(info, "use system openssl.")
+else
+	$(info, "use self openssl.")
+	ln -s $(KBE_ROOT)/kbe/src/lib/dependencies/vsopenssl $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+endif
+
 # This directory must match the directory in src/build/common.mak
 LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
@@ -23,7 +30,7 @@ all install clean full:
 	cd dependencies/zlib && $(MAKE) $@ && if ! test -e ../../../libs/libz.a; then \cp -f "libz.a" "../../../libs"; fi
 	cd dependencies/fmt/src && $(MAKE) $@
 	cd dependencies/jemalloc && $(MAKE) $@ && if ! test -e ../../../libs/libjemalloc.a; then \cp -f "./lib/libjemalloc.a" "../../../libs"; fi
-	#cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi
+	if ! test -e dependencies/openssl/include/openssl/ssl.h; then cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi fi
 	cd dependencies/curl && $(MAKE) $@
 	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@
