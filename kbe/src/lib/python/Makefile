@@ -4,10 +4,10 @@ all:: config.status
 CONFIG_ARGS =
 
 
-ifeq ($(USE_SELF_OPENSSL),1)
-	CONFIG_SSL = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
-else
+ifneq ("$(wildcard /usr/lib/x86_64-linux-gnu/libssl.a)", "")
 	CONFIG_SSL =
+else
+	CONFIG_SSL = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 endif
 
 ifeq ($(pythonbuild), release)
