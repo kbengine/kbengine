@@ -3,6 +3,13 @@ all:: config.status
 
 CONFIG_ARGS =
 
+
+ifeq ($(USE_SELF_OPENSSL),1)
+	CONFIG_SSL = --with-openssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+else
+	CONFIG_SSL =
+endif
+
 ifeq ($(pythonbuild), release)
 	CONFIG_ARGS += --enable-optimizations 
 else
@@ -14,7 +21,7 @@ endif
 config.status:
 	@chmod -R 755 .
 	export KBE_ROOT=$(KBE_ROOT)
-	$(SHELL) configure $(CONFIG_ARGS)
+	$(SHELL) configure $(CONFIG_ARGS) $(CONFIG_SSL)
 	@make
 
 .PHONY: clean

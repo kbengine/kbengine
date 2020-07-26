@@ -4,12 +4,16 @@ endif
 
 all:: kbemake
 
-CONFIG_ARGS =
+ifeq ($(USE_SELF_OPENSSL),1)
+	CONFIG_ARGS = --with-ssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
+else
+	CONFIG_ARGS = --with-ssl
+endif
 
 kbemake:
 	@chmod -R 755 .
 	./buildconf
-	./configure --with-ssl --disable-shared --enable-static --disable-ldap --disable-sspi --without-librtmp --disable-ftp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --without-libidn
+	./configure $(CONFIG_ARGS) --disable-shared --enable-static --disable-ldap --disable-sspi --without-librtmp --disable-ftp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --without-libidn
 	@cp -f "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/kbe/Makefile.kbe" "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/src/Makefile" 
 	@make
 	@cp -f "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/lib/.libs/libcurl.a" "$(KBE_ROOT)/kbe/src/libs/" 

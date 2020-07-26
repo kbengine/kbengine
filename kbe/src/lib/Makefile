@@ -17,6 +17,7 @@ endif
 
 ifneq ("$(wildcard /usr/lib/x86_64-linux-gnu/libssl.a)", "")
     $(info, "use system openssl.")
+    USE_SELF_OPENSSL=0
 else
     $(info, "use self openssl.")
     USE_SELF_OPENSSL=1
