@@ -940,7 +940,7 @@ void RedisWatcher::initializeWatcher()
 	WATCH_OBJECT("db_querys/PSYNC", &KBEngine::watcher_PSYNC);
 	WATCH_OBJECT("db_querys/SAVE", &KBEngine::watcher_SAVE);
 	WATCH_OBJECT("db_querys/SHUTDOWN", &KBEngine::watcher_SHUTDOWN);
-	WATCH_OBJECT("db_querys/SELECT", &KBEngine::watcher_SLAVEOF);
+	WATCH_OBJECT("db_querys/SLAVEOF", &KBEngine::watcher_SLAVEOF);
 	WATCH_OBJECT("db_querys/SLOWLOG", &KBEngine::watcher_SLOWLOG);
 	WATCH_OBJECT("db_querys/SYNC", &KBEngine::watcher_SYNC);
 	WATCH_OBJECT("db_querys/TIME", &KBEngine::watcher_TIME);				
