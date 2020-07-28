@@ -595,7 +595,7 @@ static uint32 watcher_UNSUBSCRIBE()
 	return watcher_query("UNSUBSCRIBE");
 }
 
-// ‰∫ãÂä°
+//  ¬ŒÒ
 static uint32 watcher_DISCARD()
 {
 	return watcher_query("DISCARD");
@@ -637,7 +637,7 @@ static uint32 watcher_SCRIPT()
 	return watcher_query("SCRIPT");
 }
 
-// ConnectionÔºàËøûÊé•Ôºâ
+// Connection£®¡¨Ω”£©
 static uint32 watcher_AUTH()
 {
 	return watcher_query("AUTH");
@@ -663,7 +663,7 @@ static uint32 watcher_SELECT()
 	return watcher_query("SELECT");
 }
 
-// ServerÔºàÊúçÂä°Âô®Ôºâ
+// Server£®∑˛ŒÒ∆˜£©
 static uint32 watcher_BGREWRITEAOF()
 {
 	return watcher_query("BGREWRITEAOF");
@@ -888,7 +888,7 @@ void RedisWatcher::initializeWatcher()
 	WATCH_OBJECT("db_querys/SUBSCRIBE", &KBEngine::watcher_SUBSCRIBE);
 	WATCH_OBJECT("db_querys/UNSUBSCRIBE", &KBEngine::watcher_UNSUBSCRIBE);
 	
-	// TransactionÔºà‰∫ãÂä°Ôºâ
+	// Transaction£® ¬ŒÒ£©
 	WATCH_OBJECT("db_querys/DISCARD", &KBEngine::watcher_DISCARD);
 	WATCH_OBJECT("db_querys/EXEC", &KBEngine::watcher_EXEC);
 	WATCH_OBJECT("db_querys/MULTI", &KBEngine::watcher_MULTI);
@@ -900,14 +900,14 @@ void RedisWatcher::initializeWatcher()
 	WATCH_OBJECT("db_querys/EVALSHA", &KBEngine::watcher_EVALSHA);
 	WATCH_OBJECT("db_querys/SCRIPT", &KBEngine::watcher_SCRIPT);	
 
-	// ConnectionÔºàËøûÊé•Ôºâ
+	// Connection£®¡¨Ω”£©
 	WATCH_OBJECT("db_querys/AUTH", &KBEngine::watcher_AUTH);
 	WATCH_OBJECT("db_querys/ECHO", &KBEngine::watcher_ECHO);
 	WATCH_OBJECT("db_querys/PING", &KBEngine::watcher_PING);
 	WATCH_OBJECT("db_querys/QUIT", &KBEngine::watcher_QUIT);
 	WATCH_OBJECT("db_querys/SELECT", &KBEngine::watcher_SELECT);
 	
-	// ServerÔºàÊúçÂä°Âô®Ôºâ	
+	// Server£®∑˛ŒÒ∆˜£©	
 	WATCH_OBJECT("db_querys/BGREWRITEAOF", &KBEngine::watcher_BGREWRITEAOF);
 	WATCH_OBJECT("db_querys/BGSAVE", &KBEngine::watcher_BGSAVE);
 	WATCH_OBJECT("db_querys/CLIENT", &KBEngine::watcher_CLIENT);
