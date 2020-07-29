@@ -124,6 +124,22 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 				(*pBundle).newMessage(DbmgrInterface::eraseClientReq);
 				(*pBundle) << extra;
 				dbmgrinfos->pChannel->send(pBundle);
+
+                // 把请求交由脚本处理
+                SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+                PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+                                                    const_cast<char*>("onLoseLogin"), 
+                                                    const_cast<char*>("s"), 
+                                                    loginName.c_str());
+
+                if(pyResult != NULL)
+                {
+                    Py_DECREF(pyResult);
+                }
+                else
+                {
+                    SCRIPT_ERROR_CHECK();
+                }
 			}
 		}
 	}
