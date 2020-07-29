@@ -52,6 +52,13 @@ def onRequestLogin(loginName, password, clientType, datas):
 
 	return (errorno, loginName, password, clientType, datas)
 
+def onLoseLogin(loginName):
+	"""
+	KBEngine method.
+	账号请求登陆过程中断线时回调
+	"""
+	pass
+
 def onLoginCallbackFromDB(loginName, accountName, errorno, datas):
 	"""
 	KBEngine method.
