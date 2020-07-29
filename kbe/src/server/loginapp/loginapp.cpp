@@ -148,7 +148,7 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
                 PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
                                                     const_cast<char*>("onLoseLogin"), 
                                                     const_cast<char*>("s"), 
-                                                    loginName.c_str());
+                                                    extra.c_str());
 
                 if(pyResult != NULL)
                 {
