@@ -24,7 +24,7 @@ else
     $(shell ln -s $(KBE_ROOT)/kbe/src/lib/dependencies/vsopenssl $(KBE_ROOT)/kbe/src/lib/dependencies/openssl)
 endif
 
-# This directory must match the directory in src/build/common.mak
+# This directory must match the directory in src/build/common.mak 
 LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
