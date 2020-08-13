@@ -3345,7 +3345,7 @@ error:
             PyErr_SetString(PyExc_SystemError,
                             "error return without exception set");
 #else
-
+        
 #endif
 
         /* Log traceback info. */
