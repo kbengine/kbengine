@@ -535,6 +535,7 @@ int EntityComponent::onScriptDelAttribute(PyObject* attr)
 //-------------------------------------------------------------------------------------
 void EntityComponent::onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript, bool beforeDestroy)
 {
+	Py_INCREF(pEntity);
 	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
 
 	ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
@@ -573,6 +574,46 @@ void EntityComponent::onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntit
 			SCRIPT_ERROR_CHECK();
 		}
 	}
+
+	// 等所有组件都destroy完毕之后再清理组件owner，因为此后在任何地方引用了组件访问组件的owner将不可用
+	if (!beforeDestroy)
+	{
+		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
+		for (; comps_iter != componentDescrs.end(); ++comps_iter)
+		{
+			if (g_componentType == BASEAPP_TYPE)
+			{
+				if (!comps_iter->second->hasBase())
+					continue;
+			}
+			else if (g_componentType == CELLAPP_TYPE)
+			{
+				if (!comps_iter->second->hasCell())
+					continue;
+			}
+			else
+			{
+				if (!comps_iter->second->hasClient())
+					continue;
+			}
+
+			PyObject* pyObj = PyObject_GetAttrString(pEntity, comps_iter->first.c_str());
+			if (pyObj)
+			{
+				EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyObj);
+
+				pEntityComponent->onOwnerDestroyClear(pEntity, pEntityScriptDescrs);
+
+				Py_DECREF(pyObj);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+		}
+	}
+
+	Py_DECREF(pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -594,6 +635,12 @@ void EntityComponent::onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEnt
 	// 但是此处不设置为NULL， 由于在多个组件的情况时如在某个组件脚本的onClientDeath中调用owner.destroy()
 	// 其他脚本中也需要能够访问到owner，只不过owner的isDestroyed为True
 	//owner_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponent::onOwnerDestroyClear(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs)
+{
+	owner_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
