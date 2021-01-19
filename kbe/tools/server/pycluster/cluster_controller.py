@@ -208,8 +208,11 @@ class ClusterStartHandler(ClusterControllerHandler):
 		print("ClusterStartHandler::do: completed!")
 			
 class ClusterStopHandler(ClusterControllerHandler):
-	def __init__(self, uid, startTemplate):
+	def __init__(self, uid, startTemplate, cidstr):
 		ClusterControllerHandler.__init__(self, uid)
+		self.cidList = []
+		if len(cidstr) > 0:
+			self.cidList = cidstr.split(",")
 		
 		if len(startTemplate) > 0:
 			self.startTemplate = startTemplate.split("|")
@@ -241,8 +244,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			clist = []
 			for info in infos: 
-				if info.uid == self.uid:
-					clist.append(info.componentID)
+				if info.uid != self.uid:
+					continue
+				if len(self.cidList) != 0 and str(info.componentID) not in self.cidList:
+					continue
+				clist.append(info.componentID)
 						
 			self.interfacesCount[ctype] = len(clist)
 
@@ -260,7 +266,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 					print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 			
 			# 最好是尽量多的尝试次数，否则可能包未及时恢复造成后续查询错乱
-			self.stopServer( COMPONENT_NAME2TYPE[ctype], 0, MACHINES_ADDRESS, 3 )
+			if len(self.cidList) == 0:
+				self.stopServer( COMPONENT_NAME2TYPE[ctype], 0, MACHINES_ADDRESS, 3 )
+			else:
+				for _cid in clist:
+					self.stopServer( COMPONENT_NAME2TYPE[ctype], int(_cid), MACHINES_ADDRESS, 3 )
 			
 			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
 			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
@@ -289,8 +299,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 				
 				clist = []
 				for info in infos: 
-					if info.uid == self.uid:
-						clist.append(info.componentID)
+					if info.uid != self.uid:
+						continue
+					if len(self.cidList) != 0 and str(info.componentID) not in self.cidList:
+						continue
+					clist.append(info.componentID)
 						
 				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				waitcount += len(clist)
@@ -662,6 +675,7 @@ if __name__ == "__main__":
 
 		elif cmdType == "stop":
 			templatestr = ""
+			cidstr = ""
 			uid = -1
 			
 			if len(sys.argv) >= 3:
@@ -676,11 +690,16 @@ if __name__ == "__main__":
 				else:
 					templatestr = sys.argv[3]
 					
+			if len(sys.argv) == 5:
+				uid = sys.argv[2]
+				templatestr = sys.argv[3]
+				cidstr = sys.argv[4]
+					
 			uid = int(uid)
 			if uid < 0:
 				uid = getDefaultUID()
 				
-			clusterHandler = ClusterStopHandler(uid, templatestr)
+			clusterHandler = ClusterStopHandler(uid, templatestr, cidstr)
 		elif cmdType == "shutdown":
 			templatestr = ""
 			uid = -1
