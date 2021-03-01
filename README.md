@@ -7,7 +7,7 @@ KBEngine
 
 ## Homepage
 
-	http://kbengine.org
+	https://kbengine.github.io/
 
 
 ## Releases
@@ -72,7 +72,7 @@ KBEngine
 
 ## 中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321、716679842
+[官网](https://kbengine.github.io/cn/)，[论坛](https://github.com/kbengine/kbengine/discussions)，QQ交流群：461368412、16535321、716679842
 
 
 ## 什么是KBEngine?
