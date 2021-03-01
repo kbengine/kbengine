@@ -613,6 +613,128 @@ class ClusterStartServerHandler(ClusterControllerHandler):
 			
 			if currentCount == expectCount:
 				break
+				
+class ClusterSetFlagsHandler(ClusterControllerHandler):
+	def __init__(self, uid, cidstr, flags):
+		ClusterControllerHandler.__init__(self, uid)
+		self.cidList = []
+		if len(cidstr) > 0:
+			self.cidList = cidstr.split("|")
+		
+		self.startTemplate = ["baseapp"]
+		self.flags = flags
+	
+	def sendSet(self, showDebug):
+		interfaces = self.interfaces
+		
+		"""
+		if len(self.startTemplate) <= 0:
+			for ctype in self.interfaces:
+				infos = self.interfaces.get(ctype, [])
+				for x in range(0, len(infos)):
+					self.startTemplate.append(COMPONENT_NAME[ctype])
+		"""
+
+		#self.interfacesCount = {}
+		#self.interfacesCount1 = {}
+		
+		#print("online-components:")
+		#printed = []
+		for ctype in self.startTemplate:
+			#print("ctype: %s" % ctype)
+			if ctype not in COMPONENT_NAME2TYPE:
+				continue
+			
+			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
+			print("self.uid: %d, self.cidList: %s" % (self.uid, self.cidList))
+			
+			clist = []
+			for info in infos: 
+				#print("info.uid: %d, info.componentID: %d" % (info.uid, info.componentID))
+				if info.uid != self.uid:
+					continue
+				if str(info.componentID) not in self.cidList:
+					continue
+				clist.append(info.componentID)
+			#print("clist: %s" % clist)
+						
+			"""
+			self.interfacesCount[ctype] = len(clist)
+
+			if ctype in self.interfacesCount1:
+				self.interfacesCount1[ctype] += 1
+			else:
+				self.interfacesCount1[ctype] = 1
+			
+			if self.interfacesCount1[ctype] > self.interfacesCount[ctype]:
+				continue
+			"""
+			
+			"""
+			if ctype not in printed:
+				printed.append(ctype)
+				if showDebug:
+					print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
+			"""
+			
+			# 最好是尽量多的尝试次数，否则可能包未及时恢复造成后续查询错乱
+			for _cid in clist:
+				self.setFlags( COMPONENT_NAME2TYPE[ctype], self.flags, int(_cid), MACHINES_ADDRESS, 1 )
+			
+			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
+			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
+			
+	def do(self):
+		"""
+		qcount = 0
+		
+		while(True):
+			if qcount > 0:
+				print("\nquery status: %i" % qcount)
+				
+			qcount += 1
+			
+			self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
+			self.sendSet(False)
+			
+			if qcount == 1:
+				continue
+				
+			waitcount = 0
+			for ctype in self.interfacesCount:
+				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "machine":
+					continue
+			
+				infos = self.interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
+				
+				clist = []
+				for info in infos: 
+					if info.uid == self.uid:
+						clist.append(info.componentID)
+						
+				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
+				waitcount += len(clist)
+
+			if waitcount > 0:
+				time.sleep(3)
+			else:
+				break
+		"""
+		
+		"""
+		print("[other-online-components:]")
+		for ctype in self.interfaces:
+			infos = self.interfaces.get(ctype, [])
+			clist = []
+			for info in infos: 
+				if info.uid == self.uid:
+					clist.append(info.componentID)
+			print("\t\t%s : %i\t%s" % (COMPONENT_NAME[ctype], len(clist), clist))
+		"""
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
+		self.sendSet(False)
+			
+		print("ClusterSetFlagsHandler::do: completed!")
 
 
 
@@ -852,6 +974,22 @@ if __name__ == "__main__":
 				exit(1)
 
 			clusterHandler = ClusterLoadProcessHandler(uid, filename)
+		elif cmdType == "setflag":
+			uid = -1
+			
+			if len(sys.argv) == 5:
+				uid = sys.argv[2]
+				cidstr = sys.argv[3]
+				flags = sys.argv[4]
+					
+				uid = int(uid)
+				if uid < 0:
+					uid = getDefaultUID()
+					
+				flags = int(flags)
+				
+				clusterHandler = ClusterSetFlagsHandler(uid, cidstr, flags)
+			
 		else:
 			uid = -1
 

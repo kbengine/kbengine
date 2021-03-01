@@ -4768,6 +4768,28 @@ void Baseapp::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::reqSetFlags(Network::Channel* pChannel, MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
+
+	uint32 flags = 0;
+	s >> flags;
+
+	Baseapp::getSingleton().flags(flags);
+
+	flags = Baseapp::getSingleton().flags();
+
+	DEBUG_MSG(fmt::format("Baseapp::reqSetFlags: {}\n", flags));
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	bool success = true;
+	(*pBundle) << success;
+	(*pBundle) << flags;
+	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onHello(Network::Channel* pChannel, 
 						const std::string& verInfo, 
 						const std::string& scriptVerInfo,
