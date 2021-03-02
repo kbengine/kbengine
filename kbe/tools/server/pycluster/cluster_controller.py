@@ -619,7 +619,7 @@ class ClusterSetFlagsHandler(ClusterControllerHandler):
 		ClusterControllerHandler.__init__(self, uid)
 		self.cidList = []
 		if len(cidstr) > 0:
-			self.cidList = cidstr.split("|")
+			self.cidList = cidstr.split(",")
 		
 		self.startTemplate = ["baseapp"]
 		self.flags = flags
