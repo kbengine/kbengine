@@ -1775,6 +1775,13 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::reqSetFlags(Network::Channel* pChannel, MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
+}
+
+//-------------------------------------------------------------------------------------
 bool Cellapp::addUpdatable(Updatable* pObject)
 {
 	return updatables_.add(pObject);

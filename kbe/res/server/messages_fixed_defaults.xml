@@ -36,6 +36,11 @@
 		<id>6</id>
 		<descr>杀死服务器进程。</descr>
 	</Machine::killserver>
+	
+	<Machine::setflags>
+		<id>7</id>
+		<descr>设置flags。</descr>
+	</Machine::setflags>
 
 	<Loginapp::reqClose>
 		<id>1</id>

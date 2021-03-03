@@ -14,6 +14,7 @@ MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
 MachineInterface_onQueryMachines = 5
 MachineInterface_killserver = 6
+MachineInterface_setflags = 7
 
 from . import Define, MessageStream
 
@@ -283,6 +284,29 @@ class Machines:
 			self.receiveReply()
 		else:
 			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
+			
+	def setFlags(self, componentType, flags, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+		"""
+		"""
+		msg = MessageStream.MessageStreamWriter(MachineInterface_setflags)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(componentID)
+		msg.writeUint32(flags)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+
+		if trycount <= 0:
+			self.send( msg.build(), targetIP )
+			self.receiveReply()
+		else:
+			_receiveData = self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
+			_receiveList = []
+			for _data in _receiveData:
+				_receiveList.append(int.from_bytes(_data, byteorder='little', signed = True))
+			_succ = "False"
+			if 1 in _receiveList:
+				_succ = "True"
+			print("componentID: %d, success: %s" % (componentID, _succ))
 
 	def parseQueryDatas( self, recvDatas ):
 		"""
