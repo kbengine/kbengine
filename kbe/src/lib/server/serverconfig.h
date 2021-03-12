@@ -94,6 +94,7 @@ struct DBInterfaceInfo
 		memset(db_username, 0, sizeof(db_username));
 		memset(db_password, 0, sizeof(db_password));
 		memset(db_name, 0, sizeof(db_name));
+		memset(db_name, 0, sizeof(db_autoIncrementInit));
 	}
 
 	int index;
@@ -107,6 +108,7 @@ struct DBInterfaceInfo
 	bool db_passwordEncrypt;								// db密码是否是加密的
 	char db_name[MAX_NAME];									// 数据库名
 	uint16 db_numConnections;								// 数据库最大连接
+	char db_autoIncrementInit[MAX_BUF];							// 自增索引起始
 	std::string db_unicodeString_characterSet;				// 设置数据库字符集
 	std::string db_unicodeString_collation;
 };
