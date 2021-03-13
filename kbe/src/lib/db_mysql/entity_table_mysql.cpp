@@ -379,6 +379,13 @@ bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 		"ENGINE=" MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 
+	const char* autoIncrementInit = pdbi->getAutoIncrementInit();
+	if (autoIncrementInit != NULL && strlen(autoIncrementInit) > 0)
+	{
+		kbe_snprintf(sql_str, SQL_BUF, "%s AUTO_INCREMENT= %s",
+			sql_str, autoIncrementInit);
+	}
+
 	try
 	{
 		bool ret = pdbi->query(sql_str, strlen(sql_str), false);

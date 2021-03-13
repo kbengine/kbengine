@@ -891,7 +891,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 			return false;
 		}
 
-		Components::ComponentInfos* winfo = findComponent(info->cid);
+		Components::ComponentInfos* winfo = findComponent(info->componentType, info->cid);
 		if(winfo)
 		{
 			winfo->state = (COMPONENT_STATE)istate;

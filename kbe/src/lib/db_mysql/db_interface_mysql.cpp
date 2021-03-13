@@ -767,4 +767,19 @@ bool DBInterfaceMysql::processException(std::exception & e)
 }
 
 //-------------------------------------------------------------------------------------
+const char* DBInterfaceMysql::getAutoIncrementInit()
+{
+	DBInterfaceInfo* pDBInfo = g_kbeSrvConfig.dbInterface(name());
+	if (!pDBInfo)
+	{
+		ERROR_MSG(fmt::format("DBInterfaceMysql::getAutoIncrementInit: not found dbInterface({})\n",
+			name()));
+
+		return NULL;
+	}
+
+	return pDBInfo->db_autoIncrementInit;
+}
+
+//-------------------------------------------------------------------------------------
 }

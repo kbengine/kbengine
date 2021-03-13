@@ -177,6 +177,11 @@ public:
 	*/
 	static size_t sql_max_allowed_packet(){ return sql_max_allowed_packet_; }
 
+	/**
+		获得自增起始id
+	*/
+	virtual const char* getAutoIncrementInit();
+
 protected:
 	MYSQL* pMysql_;
 
