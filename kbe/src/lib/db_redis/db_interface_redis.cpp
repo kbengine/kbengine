@@ -122,7 +122,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	redisReply* pRedisReply = NULL;
 	
 	// √‹¬Î—È÷§
-	if(!ping())
+	if(!ping(c))
 	{
 		pRedisReply = (redisReply*)redisCommand(c, fmt::format("auth {}", db_password_).c_str());  
 		
