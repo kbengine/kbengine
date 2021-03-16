@@ -374,17 +374,18 @@ bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 	if(this->isChild())
 		exItems = ", " TABLE_PARENTID_CONST_STR " bigint(20) unsigned NOT NULL, INDEX(" TABLE_PARENTID_CONST_STR ")";
 
-	kbe_snprintf(sql_str, SQL_BUF, "CREATE TABLE IF NOT EXISTS " ENTITY_TABLE_PERFIX "_%s "
-			"(id bigint(20) unsigned AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
-		"ENGINE=" MYSQL_ENGINE_TYPE, 
-		tableName(), exItems.c_str());
-
+	char autoIncrement_str[SQL_BUF];
+	memset(autoIncrement_str, 0, sizeof(autoIncrement_str));
 	const char* autoIncrementInit = pdbi->getAutoIncrementInit();
 	if (autoIncrementInit != NULL && strlen(autoIncrementInit) > 0)
 	{
-		kbe_snprintf(sql_str, SQL_BUF, "%s AUTO_INCREMENT= %s",
-			sql_str, autoIncrementInit);
+		kbe_snprintf(autoIncrement_str, SQL_BUF, " AUTO_INCREMENT=%s", autoIncrementInit);
 	}
+
+	kbe_snprintf(sql_str, SQL_BUF, "CREATE TABLE IF NOT EXISTS " ENTITY_TABLE_PERFIX "_%s "
+			"(id bigint(20) unsigned AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
+		"ENGINE=" MYSQL_ENGINE_TYPE "%s", 
+		tableName(), exItems.c_str(), autoIncrement_str);
 
 	try
 	{

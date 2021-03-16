@@ -94,7 +94,7 @@ struct DBInterfaceInfo
 		memset(db_username, 0, sizeof(db_username));
 		memset(db_password, 0, sizeof(db_password));
 		memset(db_name, 0, sizeof(db_name));
-		memset(db_name, 0, sizeof(db_autoIncrementInit));
+		memset(db_autoIncrementInit, 0, sizeof(db_autoIncrementInit));
 	}
 
 	int index;
