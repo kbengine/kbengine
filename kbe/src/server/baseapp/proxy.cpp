@@ -448,7 +448,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -472,7 +472,7 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																					
 	}
 	
@@ -496,7 +496,7 @@ PyObject* Proxy::pyHasClient()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -515,7 +515,7 @@ PyObject* Proxy::pyClientAddr()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -544,7 +544,7 @@ PyObject* Proxy::pyGetClientEnabled()
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
-		PyErr_PrintEx(0);
+
 		return 0;																				
 	}
 
@@ -585,7 +585,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 
 	if(currargsSize == 1)
 	{
-		if(PyArg_ParseTuple(args, "O", &pyResourceName) == -1)
+		if(!PyArg_ParseTuple(args, "O", &pyResourceName))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
@@ -594,7 +594,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	}
 	else if(currargsSize == 2)
 	{
-		if(PyArg_ParseTuple(args, "O|O", &pyResourceName, &pyDesc) == -1)
+		if(!PyArg_ParseTuple(args, "O|O", &pyResourceName, &pyDesc))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
@@ -603,7 +603,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	}
 	else if(currargsSize == 3)
 	{
-		if(PyArg_ParseTuple(args, "O|O|H", &pyResourceName, &pyDesc, &id) == -1)
+		if(!PyArg_ParseTuple(args, "O|O|H", &pyResourceName, &pyDesc, &id))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
@@ -674,7 +674,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 
 	if(currargsSize == 1)
 	{
-		if(PyArg_ParseTuple(args, "O", &pyData) == -1)
+		if(!PyArg_ParseTuple(args, "O", &pyData))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);
@@ -683,7 +683,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	}
 	else if(currargsSize == 2)
 	{
-		if(PyArg_ParseTuple(args, "O|O", &pyData, &pyDesc) == -1)
+		if(!PyArg_ParseTuple(args, "O|O", &pyData, &pyDesc))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);
@@ -692,7 +692,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	}
 	else if(currargsSize == 3)
 	{
-		if(PyArg_ParseTuple(args, "O|O|H", &pyData, &pyDesc, &id) == -1)
+		if(!PyArg_ParseTuple(args, "O|O|H", &pyData, &pyDesc, &id))
 		{
 			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);

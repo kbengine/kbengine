@@ -242,7 +242,7 @@ PyObject* Interfaces::__py_executeRawDatabaseCommand(PyObject* self, PyObject* a
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	int ret = -1;
+	int ret = 0;
 	ENTITY_ID eid = -1;
 
 	char* data = NULL;
@@ -257,7 +257,7 @@ PyObject* Interfaces::__py_executeRawDatabaseCommand(PyObject* self, PyObject* a
 	else if (argCount == 1)
 		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
-	if (ret == -1)
+	if (!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
@@ -655,7 +655,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	if (iter == reqAccountLogin_requests_.end())
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
-		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found!" \
+		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found! " \
 			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 

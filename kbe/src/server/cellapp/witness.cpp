@@ -285,7 +285,7 @@ void Witness::setViewRadius(float radius, float hyst)
 	// 由于位置同步使用了相对位置压缩传输，可用范围为-512~512之间，因此超过范围将出现同步错误
 	// 这里做一个限制，如果需要过大的数值客户端应该调整坐标单位比例，将其放大使用。
 	// 参考: MemoryStream::appendPackXZ
-	if(viewRadius_ + viewHysteresisArea_ > 512)
+	if(viewRadius_ + viewHysteresisArea_ > 512 && pEntity_)
 	{
 		if (g_kbeSrvConfig.getCellApp().entity_posdir_updates_type > 0)
 		{

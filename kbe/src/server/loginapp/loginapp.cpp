@@ -124,6 +124,22 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 				(*pBundle).newMessage(DbmgrInterface::eraseClientReq);
 				(*pBundle) << extra;
 				dbmgrinfos->pChannel->send(pBundle);
+
+                // 把请求交由脚本处理
+                SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+                PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+                                                    const_cast<char*>("onLoseLogin"), 
+                                                    const_cast<char*>("s"), 
+                                                    extra.c_str());
+
+                if(pyResult != NULL)
+                {
+                    Py_DECREF(pyResult);
+                }
+                else
+                {
+                    SCRIPT_ERROR_CHECK();
+                }
 			}
 		}
 	}
@@ -365,7 +381,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			    char *extraDatas;
 			    Py_ssize_t extraDatas_size = 0;
 				
-				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
+				if(!PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size))
 				{
 					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onRequestCreateAccount, Return value error! accountName={}\n", 
 						g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
@@ -1013,7 +1029,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		    Py_ssize_t extraDatas_size = 0;
 			SERVER_ERROR_CODE error;
 			
-			if(PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size) == -1)
+			if(!PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size))
 			{
 				ERROR_MSG(fmt::format("Loginapp::login: {}.onRequestLogin, Return value error! loginName={}\n", 
 					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
@@ -1611,6 +1627,9 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::onBaseappInitProgress(Network::Channel* pChannel, float progress)
 {
+	if(pChannel->isExternal())
+		return;
+		
 	if(progress > 1.f)
 	{
 		INFO_MSG(fmt::format("Loginapp::onBaseappInitProgress: progress={}.\n", 

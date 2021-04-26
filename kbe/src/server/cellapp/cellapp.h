@@ -16,6 +16,7 @@
 namespace KBEngine{
 
 class TelnetServer;
+class InitProgressHandler;
 
 class Cellapp:	public EntityApp<Entity>, 
 				public Singleton<Cellapp>
@@ -185,6 +186,11 @@ public:
 	*/
 	void forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+		请求设置flags
+	*/
+	void reqSetFlags(Network::Channel* pChannel, MemoryStream& s);
+
 	/**
 		获取游戏时间
 	*/
@@ -274,6 +280,8 @@ protected:
 
 	// 通过工具查看space
 	SpaceViewers						spaceViewers_;
+
+	InitProgressHandler*				pInitProgressHandler_;
 };
 
 }

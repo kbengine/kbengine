@@ -17,9 +17,39 @@ public:
 	
 	bool process();
 
+	void start();
+
+	struct PendingConnectEntityApp
+	{
+		COMPONENT_TYPE componentType;
+		int32 uid;
+		COMPONENT_ID componentID;
+		int count;
+	};
+
+	void addPendingConnectEntityApps(const PendingConnectEntityApp& app) {
+		pendingConnectEntityApps_.push_back(app);
+	}
+
+	void updateInfos(COMPONENT_ID componentID, COMPONENT_ORDER	startGlobalOrder, COMPONENT_ORDER startGroupOrder) {
+		startGlobalOrder_ = startGlobalOrder;
+		startGroupOrder_ = startGroupOrder;
+		componentID_ = componentID;
+	}
+
+	bool sendRegisterNewApps();
+
 private:
 	Network::NetworkInterface & networkInterface_;
 	int delayTicks_;
+	bool cellappReady_;
+
+	std::vector< PendingConnectEntityApp > pendingConnectEntityApps_;
+
+	COMPONENT_ORDER	startGlobalOrder_;
+	COMPONENT_ORDER	startGroupOrder_;
+	COMPONENT_ID componentID_;
+
 };
 
 

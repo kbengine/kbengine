@@ -256,6 +256,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	{
 		ERROR_MSG(fmt::format("app::initialize(): create clientsdk error! nonsupport type={}\n", clientType));
 		ret = -1;
+		return ret;
 	}
 
 	// 开始打包
@@ -409,6 +410,7 @@ int process_newassets(int argc, char* argv[], const std::string assetsType)
 	{
 		ERROR_MSG(fmt::format("app::initialize(): create serverassets error! nonsupport type={}\n", assetsType));
 		ret = -1;
+		return ret;
 	}
 
 	script::entitydef::uninstallModule();

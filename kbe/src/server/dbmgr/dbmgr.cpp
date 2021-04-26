@@ -836,7 +836,7 @@ PyObject* Dbmgr::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	int ret = -1;
+	int ret = 0;
 	ENTITY_ID eid = -1;
 
 	char* data = NULL;
@@ -851,7 +851,7 @@ PyObject* Dbmgr::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 	else if (argCount == 1)
 		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
-	if (ret == -1)
+	if (!ret)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);

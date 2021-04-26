@@ -1248,10 +1248,14 @@ bool ClientSDKUnity::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModul
 bool ClientSDKUnity::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
 	// 如果pDescr为None，并且是客户端方法，那么需要强制设定useMethodDescrAlias为true，否则默认为false将会出现问题
-	if (!pDescr && componentType == CLIENT_TYPE)
+	if (!pDescr)
 	{
-		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
-		return true;
+		if (componentType == CLIENT_TYPE)
+		{
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
+			return true;
+		}
+		return false;
 	}
 
 	sourcefileBody_ += fmt::format("\t\t\tList<DATATYPE_BASE> p{}_{}_args = new List<DATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
@@ -1831,8 +1835,20 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	{
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void createFromStream(MemoryStream stream)\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tbase.createFromStream(stream);\n");
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\townerID = owner.id;\n");
 		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\townerID = owner.id;\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = null;\n", newModuleName);
 		sourcefileBody_ += fmt::format("\t\t}}\n");
 	}
 
@@ -1923,14 +1939,44 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(id, className);\n", newModuleName);
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onGetBase();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(id, className);\n", newModuleName);
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onGetCell();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = null;\n");
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			sourcefileBody_ += fmt::format("\t\t\t{}.onLoseCell();\n", pPropertyDescription->getName());
+		}
 		sourcefileBody_ += "\t\t}\n";
 
 		sourcefileBody_ += fmt::format("\n\t\tpublic override EntityCall getBaseEntityCall()\n\t\t{{\n");

@@ -45,7 +45,7 @@ bool DataDownload::send(const Network::MessageHandler& msgHandler, Network::Bund
 {
 	Proxy* proxy = static_cast<Proxy*>(Baseapp::getSingleton().findEntity(entityID_));
 	
-	if(proxy)
+	if(proxy && proxy->clientEntityCall())
 	{
 		proxy->sendToClient(msgHandler, pBundle);
 	}

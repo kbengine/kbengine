@@ -58,6 +58,7 @@ public:
 		m_color = RGB(0,0,0);
 		m_iStyle = PS_SOLID;
 		m_iThick = 1;
+		m_dValuePerPixel = 0;
 	}
 };
 // CLineChartCtrl

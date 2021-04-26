@@ -349,7 +349,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 
 	if(PyTuple_Size(args) == 1)
 	{
-		if(PyArg_ParseTuple(args, "I", &reqCreateAndLoginTotalCount) == -1)
+		if(!PyArg_ParseTuple(args, "I", &reqCreateAndLoginTotalCount))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
@@ -361,8 +361,8 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 	}
 	else if(PyTuple_Size(args) == 3)
 	{
-		if(PyArg_ParseTuple(args, "I|I|f", &reqCreateAndLoginTotalCount, 
-			&reqCreateAndLoginTickCount, &reqCreateAndLoginTickTime) == -1)
+		if(!PyArg_ParseTuple(args, "I|I|f", &reqCreateAndLoginTotalCount, 
+			&reqCreateAndLoginTickCount, &reqCreateAndLoginTickTime))
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
@@ -401,7 +401,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	int type = -1;
 
-	if(PyArg_ParseTuple(args, "i", &type) == -1)
+	if(!PyArg_ParseTuple(args, "i", &type))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);

@@ -66,7 +66,7 @@
     <ClCompile Include="entity_autoloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
+    <ClCompile Include="..\..\lib\dependencies\vsopenssl\include\openssl\applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="entity.cpp">
