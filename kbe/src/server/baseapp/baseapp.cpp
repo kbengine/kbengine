@@ -2426,7 +2426,7 @@ void Baseapp::createCellEntityInNewSpace(Entity* pEntity, PyObject* pyCellappInd
 	if (!pScriptModule || !pScriptModule->hasCell())
 	{
 		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace: cannot find the cellapp script({})!\n",
-			pScriptModule->getName(), pScriptModule->getName()));
+			pEntity->scriptName(), pEntity->scriptName()));
 
 		return;
 	}

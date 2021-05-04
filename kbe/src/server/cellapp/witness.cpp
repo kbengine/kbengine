@@ -293,7 +293,7 @@ void Witness::setViewRadius(float radius, float hyst)
 			viewHysteresisArea_ = 5.0f;
 
 			ERROR_MSG(fmt::format("Witness::setViewRadius({}): viewRadius({}) cannot be greater than 512! Beyond 512, please set kbengine[_defaults].xml->entity_posdir_updates->type to 0.\n",
-				pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
+				(pEntity_ ? pEntity_->id() : 0), (viewRadius_ + viewHysteresisArea_)));
 
 			// 不返回，继续生效
 			// return;
