@@ -1496,6 +1496,8 @@ bool ClientSDKUE4::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* 
 		return true;
 	}
 
+	assert(pDescr);
+
 	fileBody() += fmt::format("\tTArray<DATATYPE_BASE*> {}_{}_args;\n", pScriptDefModule->getName(), pDescr->getName());
 
 	const std::vector<DataType*>& args = pDescr->getArgTypes();

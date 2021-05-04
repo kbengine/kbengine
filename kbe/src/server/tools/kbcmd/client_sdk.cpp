@@ -126,6 +126,7 @@ bool ClientSDK::saveFile()
 			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
 				path));
 
+			fclose(fp);
 			return false;
 		}
 
@@ -169,6 +170,7 @@ bool ClientSDK::saveFile()
 			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
 				path));
 
+			fclose(fp);
 			return false;
 		}
 

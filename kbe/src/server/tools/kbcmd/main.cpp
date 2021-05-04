@@ -291,7 +291,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	}
 
 	app.finalise();
-	INFO_MSG(fmt::format("{}({}) has shut down. ClientSDK={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pClientSDK->good()));
+	INFO_MSG(fmt::format("{}({}) has shut down. ClientSDK={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, (pClientSDK ? pClientSDK->good() : false)));
 
 	// 如果还有日志未同步完成， 这里会继续同步完成才结束
 	DebugHelper::getSingleton().finalise();
@@ -404,7 +404,7 @@ int process_newassets(int argc, char* argv[], const std::string assetsType)
 	}
 
 	app.finalise();
-	INFO_MSG(fmt::format("{}({}) has shut down. ServerAssets={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pServerAssets->good()));
+	INFO_MSG(fmt::format("{}({}) has shut down. ServerAssets={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, (pServerAssets ? pServerAssets->good() : false)));
 
 	// 如果还有日志未同步完成， 这里会继续同步完成才结束
 	DebugHelper::getSingleton().finalise();
