@@ -672,7 +672,7 @@ void Baseapp::finalise()
 //-------------------------------------------------------------------------------------
 void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 {
-	if(pChannel && pChannel->isExternal())
+	if(!pChannel || pChannel->isExternal())
 		return;
 	
 	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
@@ -2423,7 +2423,13 @@ void Baseapp::onCreateEntityRemotelyFromDBIDOtherBaseappCallback(Network::Channe
 void Baseapp::createCellEntityInNewSpace(Entity* pEntity, PyObject* pyCellappIndex)
 {
 	ScriptDefModule* pScriptModule = pEntity->pScriptModule();
-	if (!pScriptModule || !pScriptModule->hasCell())
+	if (!pScriptModule)
+	{
+		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace: cannot find pScriptModule!\n"));
+		return;
+	}
+
+	if (!pScriptModule->hasCell())
 	{
 		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace: cannot find the cellapp script({})!\n",
 			pScriptModule->getName(), pScriptModule->getName()));
@@ -4360,7 +4366,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel, 
 												KBEngine::MemoryStream& s)
 {
-	if(pChannel->isExternal())
+	if(!pChannel || pChannel->isExternal())
 		return;
 	
 	ENTITY_ID eid;

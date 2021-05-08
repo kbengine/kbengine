@@ -382,13 +382,12 @@ void Cellappmgr::reqCreateCellEntityInNewSpace(Network::Channel* pChannel, Memor
 	}
 
 	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
-	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateCellEntityInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
-		entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
-
 	// 预先将实体数量增加
 	if (cellapp_iter != cellapps_.end())
 	{
 		cellapp_iter->second.incNumEntities();
+		DEBUG_MSG(fmt::format("Cellappmgr::reqCreateCellEntityInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
+			entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
 	}
 }
 

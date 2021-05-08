@@ -32,6 +32,9 @@ struct LOG_ITEM
 	LOG_ITEM()
 	{
 		persistent = true;
+		uid = 0;
+		logtype = 0;
+		t = 0;
 	}
 
 	int32 uid;

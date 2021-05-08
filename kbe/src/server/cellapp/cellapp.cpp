@@ -80,13 +80,14 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Cellapp::canShutdown()
 		//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 		//if(pEntity->baseEntityCall() != NULL && 
 		//		pEntity->pScriptModule()->isPersistent())
+		do
 		{
 			INFO_MSG(fmt::format("Cellapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n",
 				entities.size()));
 
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
-		}
+		} while (0);
 	}
 
 	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
@@ -1314,16 +1315,19 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		if(calltype == ENTITYCALL_TYPE_CELL)
 		{
 			GhostManager* gm = Cellapp::getSingleton().pGhostManager();
-			COMPONENT_ID cellID = gm->getRoute(eid);
-			if(gm && cellID > 0)
+			if (gm)
 			{
-				Network::Bundle* pBundle = gm->createSendBundle(cellID);
-				(*pBundle).newMessage(CellappInterface::onEntityCall);
-				(*pBundle) << eid << calltype;
-				(*pBundle).append(s);
-				gm->pushMessage(cellID, pBundle);
-				s.done();
-				return;
+				COMPONENT_ID cellID = gm->getRoute(eid);
+				if (cellID > 0)
+				{
+					Network::Bundle* pBundle = gm->createSendBundle(cellID);
+					(*pBundle).newMessage(CellappInterface::onEntityCall);
+					(*pBundle) << eid << calltype;
+					(*pBundle).append(s);
+					gm->pushMessage(cellID, pBundle);
+					s.done();
+					return;
+				}
 			}
 		}
 
