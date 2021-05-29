@@ -35,6 +35,7 @@
 #pragma warning(disable:4217)
 #include <io.h>
 #include <time.h> 
+#include <chrono>
 //#define FD_SETSIZE 1024
 #ifndef WIN32_LEAN_AND_MEAN 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
@@ -684,6 +685,19 @@ inline int64 kbe_clock64(void)
 inline uint32 kbe_clock()
 {
 	return (uint32)(kbe_clock64() & 0xfffffffful);
+}
+
+/* get time in millisecond 64 */
+inline uint64 getTimeMs()
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	auto timeNow = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	return timeNow.count();
+#else
+	timeval time;
+	gettimeofday(&time, NULL);
+	return (uint64)((time.tv_sec * 1000) + (time.tv_usec / 1000));
+#endif
 }
 
 /* 产生一个64位的uuid 
