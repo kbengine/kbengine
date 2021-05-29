@@ -19,8 +19,6 @@
 #include <syslog.h>
 #endif
 
-#include <sys/timeb.h>
-
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/logmanager.h"
@@ -685,13 +683,9 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		(*pMemoryStream) << g_componentGlobalOrder;
 		(*pMemoryStream) << g_componentGroupOrder;
 
-		struct timeb tp;
-		ftime(&tp);
-
-		int64 t = tp.time;
-		(*pMemoryStream) << t;
-		uint32 millitm = tp.millitm;
-		(*pMemoryStream) << millitm;
+		uint64 t = getTimeMs();
+		(*pMemoryStream) << (int64)(t / 1000);
+		(*pMemoryStream) << (uint32)(t % 1000);
 		pMemoryStream->appendBlob(str, length);
 
 		childThreadBufferedLogPackets_.push(pMemoryStream);
@@ -733,13 +727,9 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		(*pBundle) << g_componentGlobalOrder;
 		(*pBundle) << g_componentGroupOrder;
 
-		struct timeb tp;
-		ftime(&tp);
-
-		int64 t = tp.time;
-		(*pBundle) << t;
-		uint32 millitm = tp.millitm;
-		(*pBundle) << millitm;
+		uint64 t = getTimeMs();
+		(*pBundle) << (int64)(t / 1000);
+		(*pBundle) << (uint32)(t % 1000);
 		pBundle->appendBlob(str, length);
 
 		bufferedLogPackets_.push(pBundle);
