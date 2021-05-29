@@ -53,6 +53,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning(disable:4217)
 #include <io.h>
 #include <time.h> 
+#include <chrono>
 //#define FD_SETSIZE 1024
 #ifndef WIN32_LEAN_AND_MEAN 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
@@ -659,6 +660,62 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
     }
 
 	return newTime - oldTime;
+}
+
+/* get system time */
+inline void kbe_timeofday(long* sec, long* usec)
+{
+#if defined(__unix)
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	if (sec) *sec = time.tv_sec;
+	if (usec) *usec = time.tv_usec;
+#else
+	static long mode = 0, addsec = 0;
+	BOOL retval;
+	static int64 freq = 1;
+	int64 qpc;
+	if (mode == 0) {
+		retval = QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+		freq = (freq == 0) ? 1 : freq;
+		retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+		addsec = (long)time(NULL);
+		addsec = addsec - (long)((qpc / freq) & 0x7fffffff);
+		mode = 1;
+	}
+	retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+	retval = retval * 2;
+	if (sec) *sec = (long)(qpc / freq) + addsec;
+	if (usec) *usec = (long)((qpc % freq) * 1000000 / freq);
+#endif
+}
+
+/* get clock in millisecond 64 */
+inline int64 kbe_clock64(void)
+{
+	long s, u;
+	int64 value;
+	kbe_timeofday(&s, &u);
+	value = ((int64)s) * 1000 + (u / 1000);
+	return value;
+}
+
+inline uint32 kbe_clock()
+{
+	return (uint32)(kbe_clock64() & 0xfffffffful);
+}
+
+/* get time in millisecond 64 */
+inline uint64 getTimeMs()
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	auto timeNow = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	return timeNow.count();
+#else
+	timeval time;
+	gettimeofday(&time, NULL);
+	return (uint64)((time.tv_sec * 1000) + (time.tv_usec / 1000));
+#endif
 }
 
 /* 产生一个64位的uuid 
