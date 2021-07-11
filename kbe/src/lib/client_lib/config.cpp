@@ -12,6 +12,8 @@
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
 
+ServerConfig g_ServerConfig;
+
 //-------------------------------------------------------------------------------------
 Config::Config():
 gameUpdateHertz_(10),
