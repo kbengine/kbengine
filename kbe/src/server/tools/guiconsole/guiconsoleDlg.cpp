@@ -1593,7 +1593,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 
 	COMPONENT_TYPE debugComponentType = getTreeItemComponent(hItem);
 	BOOL isread_only = debugComponentType != CELLAPP_TYPE && debugComponentType != BASEAPP_TYPE && debugComponentType != BOTS_TYPE;
-	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only || !changeToChecked && !m_tree.GetCheck(hItem));
+	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only || (!changeToChecked && !m_tree.GetCheck(hItem)));
 
 	if(!isread_only && changeToChecked)
 	{

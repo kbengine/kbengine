@@ -1004,6 +1004,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 					else
 						missingFields.push_back("port");
 
+					node = xml->enterNode(interfaceNode, "autoIncrementInit");
+					if (node != NULL)
+						strncpy((char*)&pDBInfo->db_autoIncrementInit, xml->getValStr(node).c_str(), MAX_BUF - 1);
+
 					node = xml->enterNode(interfaceNode, "auth");
 					if(node != NULL)
 					{

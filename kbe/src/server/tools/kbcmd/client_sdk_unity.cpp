@@ -1254,6 +1254,8 @@ bool ClientSDKUnity::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule
 		return true;
 	}
 
+	assert(pDescr);
+
 	sourcefileBody_ += fmt::format("\t\t\tList<DATATYPE_BASE> p{}_{}_args = new List<DATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
 
 	const std::vector<DataType*>& args = pDescr->getArgTypes();

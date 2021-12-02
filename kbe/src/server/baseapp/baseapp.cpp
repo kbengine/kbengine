@@ -2426,7 +2426,7 @@ void Baseapp::createCellEntityInNewSpace(Entity* pEntity, PyObject* pyCellappInd
 	if (!pScriptModule || !pScriptModule->hasCell())
 	{
 		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace: cannot find the cellapp script({})!\n",
-			pScriptModule->getName(), pScriptModule->getName()));
+			pEntity->scriptName(), pEntity->scriptName()));
 
 		return;
 	}
@@ -4765,6 +4765,28 @@ void Baseapp::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStre
 		return;
 
 	pInitProgressHandler_->onEntityAutoLoadCBFromDBMgr(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::reqSetFlags(Network::Channel* pChannel, MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
+
+	uint32 flags = 0;
+	s >> flags;
+
+	Baseapp::getSingleton().flags(flags);
+
+	flags = Baseapp::getSingleton().flags();
+
+	DEBUG_MSG(fmt::format("Baseapp::reqSetFlags: {}\n", flags));
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	bool success = true;
+	(*pBundle) << success;
+	(*pBundle) << flags;
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

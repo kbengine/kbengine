@@ -1314,7 +1314,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		if(calltype == ENTITYCALL_TYPE_CELL)
 		{
 			GhostManager* gm = Cellapp::getSingleton().pGhostManager();
-			COMPONENT_ID cellID = gm->getRoute(eid);
+			COMPONENT_ID cellID = gm ? gm->getRoute(eid) : 0;
 			if(gm && cellID > 0)
 			{
 				Network::Bundle* pBundle = gm->createSendBundle(cellID);
@@ -1772,6 +1772,13 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 
 		s.wpos((int)wpos);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqSetFlags(Network::Channel* pChannel, MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------

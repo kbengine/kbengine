@@ -1627,6 +1627,9 @@ void Loginapp::importClientSDK(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::onBaseappInitProgress(Network::Channel* pChannel, float progress)
 {
+	if(pChannel->isExternal())
+		return;
+		
 	if(progress > 1.f)
 	{
 		INFO_MSG(fmt::format("Loginapp::onBaseappInitProgress: progress={}.\n", 

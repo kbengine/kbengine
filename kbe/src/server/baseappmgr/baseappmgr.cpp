@@ -452,12 +452,16 @@ void Baseappmgr::reqCreateEntityAnywhereFromDBIDQueryBestBaseappID(Network::Chan
 			baseapps_.size()));
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
-	(*pBundle).newMessage(BaseappInterface::onGetCreateEntityAnywhereFromDBIDBestBaseappID);
+	if (cinfos)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+		(*pBundle).newMessage(BaseappInterface::onGetCreateEntityAnywhereFromDBIDBestBaseappID);
 
-	(*pBundle) << bestBaseappID_;
-	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
-	cinfos->pChannel->send(pBundle);
+		(*pBundle) << bestBaseappID_;
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+		cinfos->pChannel->send(pBundle);
+	}
+
 	s.done();
 }
 

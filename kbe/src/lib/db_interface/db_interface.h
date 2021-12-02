@@ -139,6 +139,11 @@ public:
 	*/
 	virtual const std::string& lastquery() const{ return lastquery_; }
 
+	/**
+		获得自增起始id
+	*/
+	virtual  const char* getAutoIncrementInit() { return NULL; }
+
 protected:
 	char name_[MAX_BUF];									// 数据库接口的名称
 	char db_type_[MAX_BUF];									// 数据库的类别
