@@ -939,6 +939,7 @@ bool ClientSDKUE4::writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule)
 		changeContextToSource();
 
 		fileBody() += fmt::format("#include \"{}.h\"\n", (std::string("EntityCall") + pScriptDefModule->getName() + moduleSuffix));
+		fileBody() += fmt::format("#include \"EntityDef.h\"\n");
 		fileBody() += fmt::format("#include \"Bundle.h\"\n\n");
 
 		fileBody() += namespaceNameBegin;
