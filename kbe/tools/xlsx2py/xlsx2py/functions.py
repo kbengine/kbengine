@@ -1,9 +1,9 @@
-# -*- coding: gb2312 -*-
+# -*- coding: utf-8 -*-
 #
 import xlsxtool
 def funcPos2D(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØintÊı¾İ
+	è¿”å›intæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -14,7 +14,7 @@ def funcPos2D(mapDict, dctData, chilidDict, data):
 
 def funcInt(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØintÊı¾İ
+	è¿”å›intæ•°æ®
 	"""
 	try:
 		v = eval(data)
@@ -30,7 +30,7 @@ def funcInt(mapDict, dctData, chilidDict, data):
 
 def funcFloat(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØfloatÊı¾İ
+	è¿”å›floatæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return 0.0
@@ -39,7 +39,7 @@ def funcFloat(mapDict, dctData, chilidDict, data):
 
 def funcStr(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»Ø×Ö·û´®Êı¾İ
+	è¿”å›å­—ç¬¦ä¸²æ•°æ®
 	"""
 	if data is None:
 		return ""
@@ -53,7 +53,7 @@ def funcStr(mapDict, dctData, chilidDict, data):
 
 def funcEval(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØevalÊı¾İ
+	è¿”å›evalæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ""
@@ -61,7 +61,7 @@ def funcEval(mapDict, dctData, chilidDict, data):
 
 def funcTupleInt(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ
+	è¿”å›tupleæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -72,7 +72,7 @@ def funcTupleInt(mapDict, dctData, chilidDict, data):
 
 def funcTupleFloat(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ
+	è¿”å›tupleæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -83,7 +83,7 @@ def funcTupleFloat(mapDict, dctData, chilidDict, data):
 	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØdictÊı¾İ
+	è¿”å›dictæ•°æ®
 	"xx:1'2'3;fff:2'3'4"
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
@@ -103,7 +103,7 @@ def funcDict(mapDict, dctData, chilidDict, data):
 
 def funcTupleStr(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ
+	è¿”å›tupleæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -113,7 +113,7 @@ def funcTupleStr(mapDict, dctData, chilidDict, data):
 
 def funcTupleEval(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ
+	è¿”å›tupleæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -123,7 +123,7 @@ def funcTupleEval(mapDict, dctData, chilidDict, data):
 
 def funcTupleEvalMD(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ Ê¹ÓÃ´ú¶Ô±í
+	è¿”å›tupleæ•°æ® ä½¿ç”¨ä»£å¯¹è¡¨
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return ()
@@ -132,12 +132,12 @@ def funcTupleEvalMD(mapDict, dctData, chilidDict, data):
 	try:
 		return tuple([eval(mapDict[e.decode("gb2312")]) for e in data.split(",") if len(e) > 0])
 	except Exception as errstr:
-		print( "º¯ÊıÖĞ·¢Éú´íÎó:%s" % errstr)
+		print( "å‡½æ•°ä¸­å‘ç”Ÿé”™è¯¯:%s" % errstr)
 		return ()
 	
 def funcTupleEval1(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØtupleÊı¾İ
+	è¿”å›tupleæ•°æ®
 	1'100/2'100/3'54
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
@@ -149,14 +149,14 @@ def funcTupleEval1(mapDict, dctData, chilidDict, data):
 		try:
 			i, v = e.split("'")
 		except Exception as errstr:
-			print( "º¯ÊıÖĞ·¢Éú´íÎó:%s" % errstr)
+			print( "å‡½æ•°ä¸­å‘ç”Ÿé”™è¯¯:%s" % errstr)
 			continue
 		ret.append((eval(i), eval(v)))
 	return tuple(ret)
 	
 def funcBool(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»Ø²¼¶ûÖµ
+	è¿”å›å¸ƒå°”å€¼
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return False
@@ -164,19 +164,19 @@ def funcBool(mapDict, dctData, chilidDict, data):
 
 def funcNotBool(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØÈ¡·´µÄ²¼¶ûÖµ
+	è¿”å›å–åçš„å¸ƒå°”å€¼
 	"""
 	return not funcBool(mapDict, dctData, chilidDict, data)
 
 def funcNull(mapDict, dctData, chilidDict, data):
 	"""
-	Ê²Ã´Ò²²»×ö Ö±½Ó·µ»Ø
+	ä»€ä¹ˆä¹Ÿä¸åš ç›´æ¥è¿”å›
 	"""
 	return data
 
 def funcZipFloat(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØfloatÊı¾İ
+	è¿”å›floatæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return 0
@@ -185,7 +185,7 @@ def funcZipFloat(mapDict, dctData, chilidDict, data):
 
 def funcUNZipFloat(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»ØfloatÊı¾İ
+	è¿”å›floatæ•°æ®
 	"""
 	if data is None or (type(data) == str and len(data) == 0):
 		return 0.0
@@ -194,12 +194,12 @@ def funcUNZipFloat(mapDict, dctData, chilidDict, data):
 	
 def funcFlags(mapDict, dctData, chilidDict, data):
 	"""
-	·µ»Ø±ê¼Ç×éºÏÊı¾İ
-	±ÈÈç£º ÏëÔÚexcelÉÏÅäÖÃ±ê¼Ç×éºÏ
-	½ü³Ì¹¥»÷:0x00000001
-	Ô¶³Ì¹¥»÷:0x00000002
-	±©»÷:0x00000004
-	ÓÃ´Ëº¯Êı¿ÉÒÔÊä³ö¶à¸ö±ê¼Ç×é³ÉÒ»¸öuint32µÄÊı×Ö
+	è¿”å›æ ‡è®°ç»„åˆæ•°æ®
+	æ¯”å¦‚ï¼š æƒ³åœ¨excelä¸Šé…ç½®æ ‡è®°ç»„åˆ
+	è¿‘ç¨‹æ”»å‡»:0x00000001
+	è¿œç¨‹æ”»å‡»:0x00000002
+	æš´å‡»:0x00000004
+	ç”¨æ­¤å‡½æ•°å¯ä»¥è¾“å‡ºå¤šä¸ªæ ‡è®°ç»„æˆä¸€ä¸ªuint32çš„æ•°å­—
 	"""
 	val = 0
 	for x in data.split(","):

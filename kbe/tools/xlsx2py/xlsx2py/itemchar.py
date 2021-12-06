@@ -1,9 +1,9 @@
-# -*- coding: gb2312 -*-
+# -*- coding: utf-8 -*-
 #
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-# ÎïÆ·
+# ç‰©å“
 def funcItemOver(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -20,7 +20,7 @@ def funcItemOver(mapDict, allDatas, datas, dataName):
 	else:
 		noAlias = 1
 		for value in datas.values():
-			# Ôö¼ÓÎïÆ·IDµÄ±ğÃû
+			# å¢åŠ ç‰©å“IDçš„åˆ«å
 			value["noAlias"] = noAlias
 			noAlias += 1
 
@@ -36,7 +36,7 @@ def funcItemOver(mapDict, allDatas, datas, dataName):
 		d = datas
 	return d
 
-# µôÂä
+# æ‰è½
 def funcDropOver(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -104,7 +104,7 @@ def funcDropOver(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# npc¹¦ÄÜ¹Ò½Ó±í
+# npcåŠŸèƒ½æŒ‚æ¥è¡¨
 NpcLinkFuncType = {
 			1 : "npcShop",
 			2 : "npcSkillStudy",
@@ -168,7 +168,7 @@ def funcNpcLink(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# ×°±¸Ç¿»¯±í
+# è£…å¤‡å¼ºåŒ–è¡¨
 def funcEquipReinfoce(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -201,7 +201,7 @@ def funcEquipReinfoce(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# ×°±¸Ç¿»¯·Ö½â±í
+# è£…å¤‡å¼ºåŒ–åˆ†è§£è¡¨
 def funcEquipDecomposeR(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -221,7 +221,7 @@ def funcEquipDecomposeR(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# ×°±¸ÆÕÍ¨·Ö½â±í
+# è£…å¤‡æ™®é€šåˆ†è§£è¡¨
 def funcEquipDecomposeC(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -244,12 +244,12 @@ def funcEquipDecomposeC(mapDict, allDatas, datas, dataName):
 			d[eqTypeNo][eqSubTypeNo][dcTypeNo][dcTypeValue] = {}
 
 		dd = d[eqTypeNo][eqSubTypeNo][dcTypeNo][dcTypeValue]
-		# ÎïÆ·µÈ¼¶
+		# ç‰©å“ç­‰çº§
 		if dcTypeNo == 1:
 			dcSubTypeNo = dcInfo["dcSubTypeNO"]
 			dd[dcSubTypeNo] = {}
 			dd = dd[dcSubTypeNo]
-		# ÎïÆ·ID
+		# ç‰©å“ID
 		elif dcTypeNo == 2:
 			dd = dd
 
@@ -265,7 +265,7 @@ def funcEquipDecomposeC(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# ×°±¸´òÔì·ÑÓÃ±í
+# è£…å¤‡æ‰“é€ è´¹ç”¨è¡¨
 def funcEquipBuildCost(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -290,7 +290,7 @@ def funcEquipBuildCost(mapDict, allDatas, datas, dataName):
 
 	return d
 
-# Ì××°ÊôĞÔË÷Òı±í
+# å¥—è£…å±æ€§ç´¢å¼•è¡¨
 def funcSuitProp(mapDict, allDatas, datas, dataName):
 	"""
 	"""

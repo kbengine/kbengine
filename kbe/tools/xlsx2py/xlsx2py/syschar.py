@@ -1,7 +1,7 @@
-# -*- coding: gb2312 -*-
+# -*- coding: utf-8 -*-
 #
 #-----------------------------------------------------------------------------------------------------------------------------------
-# Ìì¸³
+# å¤©èµ‹
 def funcGeniusOver(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -78,7 +78,7 @@ def checkConfigure(avatar, geniusclass, gid, isInc):
 
 def getGeniusData(avatarPro, geniusclass):
 	"""
-	@param avatarPro	: Ö°Òµ avatar.getPro()
+	@param avatarPro	: èŒä¸š avatar.getPro()
 	@param geniusClass	: scdefine.GENIUS_TYPE_*
 	"""
 	return datas.get(avatarPro, {}).get(geniusclass, {})
@@ -92,7 +92,7 @@ def getGeniusDataByGID(gid):
 
 def getRewardGenius(avatarPro, geniusclass):
 	"""
-	@param avatarPro	: Ö°Òµ avatar.getPro()
+	@param avatarPro	: èŒä¸š avatar.getPro()
 	@param geniusClass	: scdefine.GENIUS_TYPE_*
 	"""
 	ret = {}
@@ -120,7 +120,7 @@ def getGeniusClassByGID(gid):
 	return e
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-# ³õÊ¼»¯±í
+# åˆå§‹åŒ–è¡¨
 def funcAvatarInitDatasOver(mapDict, allDatas, datas, dataName):
 	d = {}
 	keys = ("equipBoxItemIDs", "commonBoxItemIDs",)
@@ -148,7 +148,7 @@ def funcAvatarInitDatasOver(mapDict, allDatas, datas, dataName):
 	return d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-# buff×´Ì¬±í
+# buffçŠ¶æ€è¡¨
 def funcBuffStateOver(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -158,7 +158,7 @@ def funcBuffStateOver(mapDict, allDatas, datas, dataName):
 	return datas
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-# ÇòÓ¦ÓÃ±í
+# çƒåº”ç”¨è¡¨
 def funcPowerDefinesOver(mapDict, allDatas, datas, dataName):
 	"""
 	"""
@@ -191,7 +191,7 @@ def getLimit():
 	return e 
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
-# ½ÇÉ«»ù´¡ÊôĞÔ
+# è§’è‰²åŸºç¡€å±æ€§
 def funcAvatarBaseAttrDatasOver(mapDict, allDatas, datas, dataName):
 	d = {}
 	for value in datas.values():
