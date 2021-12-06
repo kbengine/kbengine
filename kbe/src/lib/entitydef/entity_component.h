@@ -186,7 +186,7 @@ public:
 		return pComponentDescrs_;
 	}
 
-	typedef std::tr1::function<void (EntityComponent*, const PropertyDescription*, PyObject*)> OnDataChangedEvent;
+	typedef std::function<void (EntityComponent*, const PropertyDescription*, PyObject*)> OnDataChangedEvent;
 
 	static void onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript, bool beforeDestroy);
 	void onOwnerDestroyBegin(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript);

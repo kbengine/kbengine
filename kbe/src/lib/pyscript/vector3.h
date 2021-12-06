@@ -14,7 +14,7 @@ class ScriptVector3 : public ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(ScriptVector3, ScriptObject)
 public:	
-	typedef std::tr1::function<void (void)> PYVector3ChangedCallback;
+	typedef std::function<void (void)> PYVector3ChangedCallback;
 
 	static PySequenceMethods seqMethods;
 	static PyNumberMethods numberMethods;

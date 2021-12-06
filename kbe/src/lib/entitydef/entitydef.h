@@ -31,8 +31,8 @@ public:
 	typedef std::vector<ScriptDefModulePtr> SCRIPT_MODULES;	
 	typedef std::map<std::string, ENTITY_SCRIPT_UID> SCRIPT_MODULE_UID_MAP;	
 
-	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
-	typedef std::tr1::function<Network::Channel* (EntityCall&)> FindChannelFunc;
+	typedef std::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
+	typedef std::function<Network::Channel* (EntityCall&)> FindChannelFunc;
 
 	EntityDef();
 	~EntityDef();

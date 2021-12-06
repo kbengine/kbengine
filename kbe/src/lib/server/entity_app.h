@@ -262,12 +262,12 @@ load_(0.f)
 	idClient_.pApp(this);
 
 	// 初始化EntityDef模块获取entity实体函数地址
-	EntityDef::setGetEntityFunc(std::tr1::bind(&EntityApp<E>::tryGetEntity, this,
-		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+	EntityDef::setGetEntityFunc(std::bind(&EntityApp<E>::tryGetEntity, this,
+		std::placeholders::_1, std::placeholders::_2));
 
 	// 初始化entityCall模块获取channel函数地址
-	EntityCallAbstract::setFindChannelFunc(std::tr1::bind(&EntityApp<E>::findChannelByEntityCall, this,
-		std::tr1::placeholders::_1));
+	EntityCallAbstract::setFindChannelFunc(std::bind(&EntityApp<E>::findChannelByEntityCall, this,
+		std::placeholders::_1));
 }
 
 template<class E>

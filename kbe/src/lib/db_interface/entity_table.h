@@ -283,7 +283,7 @@ public:
 		{
 			std::string keyCopy(key);
 			std::transform(keyCopy.begin(), keyCopy.end(), keyCopy.begin(), tolower);
-			return std::tr1::hash<std::string>()(keyCopy);
+			return std::hash<std::string>()(keyCopy);
 		}
 	};
 

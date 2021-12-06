@@ -58,8 +58,8 @@ state_(C_STATE_INIT)
 	networkInterface_.pChannelDeregisterHandler(this);
 
 	// 初始化entityCall模块获取channel函数地址
-	EntityCallAbstract::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByEntityCall, this,
-		std::tr1::placeholders::_1));
+	EntityCallAbstract::setFindChannelFunc(std::bind(&ClientApp::findChannelByEntityCall, this,
+		std::placeholders::_1));
 
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
 

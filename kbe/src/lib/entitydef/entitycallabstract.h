@@ -39,8 +39,8 @@ public:
 	
 	virtual ~EntityCallAbstract();
 
-	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall)> EntityCallCallHookFunc;
-	typedef std::tr1::function<Network::Channel* (EntityCallAbstract&)> FindChannelFunc;
+	typedef std::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall)> EntityCallCallHookFunc;
+	typedef std::function<Network::Channel* (EntityCallAbstract&)> FindChannelFunc;
 
 	enum ENTITYCALL_CLASS
 	{

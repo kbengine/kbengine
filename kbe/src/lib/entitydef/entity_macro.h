@@ -1042,8 +1042,8 @@ public:																										\
 	{																										\
 		CLASS* pobj = static_cast<CLASS*>(self);															\
 		static EntityComponent::OnDataChangedEvent dataChangedEvent;										\
-			dataChangedEvent = std::tr1::bind(&CLASS::onDefDataChanged, pobj,								\
-			std::tr1::placeholders::_1, std::tr1::placeholders::_2, std::tr1::placeholders::_3);			\
+			dataChangedEvent = std::bind(&CLASS::onDefDataChanged, pobj,								\
+			std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);			\
 		return PyLong_FromVoidPtr((void*)&dataChangedEvent);												\
 	}																										\
 																											\

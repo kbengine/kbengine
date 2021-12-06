@@ -126,8 +126,8 @@ pCustomVolatileinfo_(NULL)
 {
 	setDirty();
 
-	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
-	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
+	pyPositionChangedCallback_ = std::bind(&Entity::onPyPositionChanged, this);
+	pyDirectionChangedCallback_ = std::bind(&Entity::onPyDirectionChanged, this);
 	pPyPosition_ = new script::ScriptVector3(&position(), &pyPositionChangedCallback_);
 	pPyDirection_ = new script::ScriptVector3(&direction().dir, &pyDirectionChangedCallback_);
 

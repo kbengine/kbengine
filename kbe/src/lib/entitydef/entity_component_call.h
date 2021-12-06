@@ -31,8 +31,8 @@ class EntityComponentCall : public EntityCallAbstract
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityComponentCall, EntityCallAbstract)
 public:
-	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityComponentCall* pEntityCall)> EntityCallCallHookFunc;
-	typedef std::tr1::function<Network::Channel* (EntityComponentCall&)> FindChannelFunc;
+	typedef std::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityComponentCall* pEntityCall)> EntityCallCallHookFunc;
+	typedef std::function<Network::Channel* (EntityComponentCall&)> FindChannelFunc;
 
 	EntityComponentCall(EntityCall* pEntityCall, PropertyDescription* pComponentPropertyDescription);
 

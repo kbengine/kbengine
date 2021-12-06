@@ -46,8 +46,8 @@ pEventPoller_(Network::EventPoller::create()),
 pTelnetServer_(NULL)
 {
 	// 初始化EntityDef模块获取entity实体函数地址
-	EntityDef::setGetEntityFunc(std::tr1::bind(&Bots::tryGetEntity, this,
-		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+	EntityDef::setGetEntityFunc(std::bind(&Bots::tryGetEntity, this,
+		std::placeholders::_1, std::placeholders::_2));
 
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	Components::getSingleton().initialize(&ninterface, componentType, componentID);

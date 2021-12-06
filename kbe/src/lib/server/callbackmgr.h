@@ -7,7 +7,7 @@
 		标识该回调的唯一id， 外部可以通过该id来触发这个回调。
 		
 	用法:
-	typedef CallbackMgr<std::tr1::function<void(Entity*, int64, bool)>> CALLBACK_MGR;
+	typedef CallbackMgr<std::function<void(Entity*, int64, bool)>> CALLBACK_MGR;
 	CALLBACK_MGR callbackMgr;
 	void xxx(Entity*, int64, bool){}
 	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // 可以使用bind来绑定一个类成员函数
