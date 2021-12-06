@@ -38,7 +38,7 @@
     <ProjectGuid>{C6E20F84-3247-4AD6-B051-B073268F73BA}</ProjectGuid>
     <RootNamespace>_ssl</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

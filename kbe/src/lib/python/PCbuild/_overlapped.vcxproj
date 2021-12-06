@@ -38,7 +38,7 @@
     <ProjectGuid>{EB6E69DD-04BF-4543-9B92-49FAABCEAC2E}</ProjectGuid>
     <RootNamespace>_overlapped</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
