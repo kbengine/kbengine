@@ -179,7 +179,7 @@ private:
 	uint32 _currLine;
 
 	Network::Address loggerAddr_;
-	KBEngine::thread::ThreadMutex logMutex;
+	KBEngine::Thread::ThreadMutex logMutex;
 
 	std::queue< Network::Bundle* > bufferedLogPackets_;
 	size_t hasBufferedLogPackets_;

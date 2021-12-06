@@ -217,7 +217,7 @@ bool ServerApp::initThreadPool()
 {
 	if(!threadPool_.isInitialize())
 	{
-		thread::ThreadPool::timeout = int(g_kbeSrvConfig.thread_timeout_);
+		Thread::ThreadPool::timeout = int(g_kbeSrvConfig.thread_timeout_);
 		threadPool_.createThreadPool(g_kbeSrvConfig.thread_init_create_, 
 			g_kbeSrvConfig.thread_pre_create_, g_kbeSrvConfig.thread_max_create_);
 

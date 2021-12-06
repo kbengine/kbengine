@@ -125,7 +125,7 @@ protected:
 	DBID_TASKS_MAP dbid_tasks_;
 	ENTITYID_TASKS_MAP entityid_tasks_;
 
-	KBEngine::thread::ThreadMutex mutex_;
+	KBEngine::Thread::ThreadMutex mutex_;
 
 	std::string dbInterfaceName_;
 };

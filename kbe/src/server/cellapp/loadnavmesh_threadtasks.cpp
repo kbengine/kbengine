@@ -17,7 +17,7 @@ bool LoadNavmeshTask::process()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
+Thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 {
 	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(resPath_);
 	
@@ -32,7 +32,7 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 		pSpace->onLoadedSpaceGeometryMapping(pNavigationHandle);
 	}
 	
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------

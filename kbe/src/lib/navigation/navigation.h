@@ -32,7 +32,7 @@ public:
 
 private:
 	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;
-	KBEngine::thread::ThreadMutex mutex_;
+	KBEngine::Thread::ThreadMutex mutex_;
 };
 
 }

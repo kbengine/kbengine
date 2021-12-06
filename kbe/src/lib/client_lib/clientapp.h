@@ -248,7 +248,7 @@ protected:
 	Network::BlowfishFilter*								pBlowfishFilter_;
 
 	// Ïß³Ì³Ø
-	thread::ThreadPool										threadPool_;
+	Thread::ThreadPool										threadPool_;
 
 	PyObjectPtr												entryScript_;
 

@@ -33,9 +33,9 @@ bool DBTaskBase::process()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState DBTaskBase::presentMainThread()
+Thread::TPTask::TPTaskState DBTaskBase::presentMainThread()
 {
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,10 +59,10 @@ bool DBTaskSyncTable::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState DBTaskSyncTable::presentMainThread()
+Thread::TPTask::TPTaskState DBTaskSyncTable::presentMainThread()
 {
 	pEntityTables_->onTableSyncSuccessfully(pEntityTable_, success_);
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------

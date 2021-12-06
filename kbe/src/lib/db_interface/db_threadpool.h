@@ -19,13 +19,13 @@ namespace KBEngine{
 */
 class TPThread;
 
-class DBThreadPool : public thread::ThreadPool
+class DBThreadPool : public Thread::ThreadPool
 {
 public:
 	DBThreadPool(const std::string& dbinterfaceName);
 	~DBThreadPool();
 
-	virtual thread::TPThread* createThread(int threadWaitSecond = 0, bool threadStartsImmediately = true);
+	virtual Thread::TPThread* createThread(int threadWaitSecond = 0, bool threadStartsImmediately = true);
 
 	virtual std::string name() const{ return std::string("DBThreadPool/") + dbinterfaceName_; }
 

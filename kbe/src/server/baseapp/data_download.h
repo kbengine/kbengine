@@ -13,7 +13,7 @@ namespace KBEngine{
 
 class DataDownloads;
 
-class DataDownload : public thread::TPTask
+class DataDownload : public Thread::TPTask
 {
 public:
 	DataDownload(PyObjectPtr objptr, 
@@ -26,7 +26,7 @@ public:
 	void pDataDownloads(DataDownloads* pDataDownloads){ pDataDownloads_ = pDataDownloads; }
 	DataDownloads* pDataDownloads(){ return pDataDownloads_; }
 
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	virtual Thread::TPTask::TPTaskState presentMainThread();
 
 	void entityID(ENTITY_ID entityID){ entityID_ = entityID; }
 	ENTITY_ID entityID(){ return entityID_; }

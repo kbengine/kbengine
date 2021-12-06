@@ -917,7 +917,7 @@ void DebugHelper::printBufferedLogs()
 //-------------------------------------------------------------------------------------
 void DebugHelper::print_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -931,7 +931,7 @@ void DebugHelper::print_msg(const std::string& s)
 //-------------------------------------------------------------------------------------
 void DebugHelper::error_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -948,7 +948,7 @@ void DebugHelper::error_msg(const std::string& s)
 //-------------------------------------------------------------------------------------
 void DebugHelper::info_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -986,7 +986,7 @@ int KBELOG_TYPE_MAPPING(int type)
 //-------------------------------------------------------------------------------------
 void DebugHelper::script_info_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -1008,7 +1008,7 @@ void DebugHelper::script_info_msg(const std::string& s)
 //-------------------------------------------------------------------------------------
 void DebugHelper::script_error_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 	setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
 
@@ -1040,7 +1040,7 @@ void DebugHelper::resetScriptMsgType()
 //-------------------------------------------------------------------------------------
 void DebugHelper::debug_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -1054,7 +1054,7 @@ void DebugHelper::debug_msg(const std::string& s)
 //-------------------------------------------------------------------------------------
 void DebugHelper::warning_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -1074,7 +1074,7 @@ void DebugHelper::warning_msg(const std::string& s)
 //-------------------------------------------------------------------------------------
 void DebugHelper::critical_msg(const std::string& s)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+	KBEngine::Thread::ThreadGuard tg(&this->logMutex); 
 
 	char buf[DBG_PT_SIZE];
 	kbe_snprintf(buf, DBG_PT_SIZE, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), s.c_str());

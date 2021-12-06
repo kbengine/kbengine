@@ -20,7 +20,7 @@
 #include "thread/threadmutex.h"
 #include <assert.h>
 	
-namespace KBEngine{ namespace thread{
+namespace KBEngine{ namespace Thread{
 
 class ThreadGuard
 {

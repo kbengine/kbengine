@@ -10,7 +10,7 @@
 
 namespace KBEngine{ 
 
-class SendEMailTask : public thread::TPTask
+class SendEMailTask : public Thread::TPTask
 {
 public:
 	SendEMailTask(const std::string& emailaddr, const std::string& code, const std::string& cbaddr, uint32 cbport):
@@ -23,7 +23,7 @@ public:
 
 	virtual ~SendEMailTask(){}
 	virtual bool process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	virtual Thread::TPTask::TPTaskState presentMainThread();
 	virtual const char* getopkey() = 0;
 	virtual const char* subject() = 0;
 	virtual const char* message() = 0;

@@ -123,13 +123,13 @@ public:
 	};
 };
 
-class FindServersTask : public thread::TPTask
+class FindServersTask : public Thread::TPTask
 {
 public:
 	std::vector<COMPONENT_TYPE> findComponentTypes;
 
 	FindServersTask():
-	thread::TPTask(),
+	Thread::TPTask(),
 	findComponentTypes()
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
@@ -137,7 +137,7 @@ public:
 	}
 
 	FindServersTask(COMPONENT_TYPE findComponentType):
-	thread::TPTask(),
+	Thread::TPTask(),
 	findComponentTypes()
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
@@ -272,7 +272,7 @@ RESTART_RECV:
 		return false;
 	}
 
-	virtual thread::TPTask::TPTaskState presentMainThread()
+	virtual Thread::TPTask::TPTaskState presentMainThread()
 	{ 
 		if(!g_isDestroyed)
 		{
@@ -280,7 +280,7 @@ RESTART_RECV:
 			dlg->updateTree();
 		}
 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+		return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 };
 
@@ -465,10 +465,10 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleProfileHandlerEx);
 
-	KBEngine::Network::Bundle::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
-	KBEngine::Network::TCPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
-	KBEngine::Network::UDPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
-	KBEngine::MemoryStream::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::Network::Bundle::ObjPool().pMutex(new KBEngine::Thread::ThreadMutex());
+	KBEngine::Network::TCPPacket::ObjPool().pMutex(new KBEngine::Thread::ThreadMutex());
+	KBEngine::Network::UDPPacket::ObjPool().pMutex(new KBEngine::Thread::ThreadMutex());
+	KBEngine::MemoryStream::ObjPool().pMutex(new KBEngine::Thread::ThreadMutex());
 	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -755,7 +755,7 @@ HCURSOR CguiconsoleDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CguiconsoleDlg::addThreadTask(thread::TPTask* tptask)
+void CguiconsoleDlg::addThreadTask(Thread::TPTask* tptask)
 {
 	threadPool_.addTask(tptask);
 }

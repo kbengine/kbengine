@@ -39,9 +39,9 @@ bool SendEMailTask::process()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState SendEMailTask::presentMainThread()
+Thread::TPTask::TPTaskState SendEMailTask::presentMainThread()
 {
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@
 
 namespace KBEngine{ 
 
-class LoadNavmeshTask : public thread::TPTask
+class LoadNavmeshTask : public Thread::TPTask
 {
 public:
 	LoadNavmeshTask(const std::string& resPath, SPACE_ID spaceID, const std::map< int, std::string >& params):
@@ -21,7 +21,7 @@ public:
 
 	virtual ~LoadNavmeshTask(){}
 	virtual bool process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	virtual Thread::TPTask::TPTaskState presentMainThread();
 
 protected:
 	std::string resPath_;

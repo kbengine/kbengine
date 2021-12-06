@@ -31,7 +31,7 @@
 #include <pthread.h>	
 #endif
 	
-namespace KBEngine{ namespace thread{
+namespace KBEngine{ namespace Thread{
 
 // 线程池活动线程大于这个数目则处于繁忙状态
 #define THREAD_BUSY_SIZE 32
@@ -291,7 +291,7 @@ public:
 	/** 
 		获得缓存的任务
 	*/
-	INLINE std::queue<thread::TPTask*>& bufferedTaskList();
+	INLINE std::queue<Thread::TPTask*>& bufferedTaskList();
 
 	/** 
 		操作缓存的任务锁

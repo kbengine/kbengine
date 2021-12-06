@@ -59,14 +59,14 @@ bool DataDownload::send(const Network::MessageHandler& msgHandler, Network::Bund
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState DataDownload::presentMainThread()
+Thread::TPTask::TPTaskState DataDownload::presentMainThread()
 {
 	if(error_)
 	{
 		ERROR_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread error.\n", 
 			entityID(), id(), (int)type()));
 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+		return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
 	uint32 datasize = GAME_PACKET_MAX_SIZE_TCP - sizeof(int16) - sizeof(uint32);
@@ -89,10 +89,10 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
 					entityID(), id(), (int)type()));
 
-				return thread::TPTask::TPTASK_STATE_COMPLETED; 
+				return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
 
-			return thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
+			return Thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
 		}
 
 		pBundle->newMessage(ClientInterface::onStreamDataRecv);
@@ -112,7 +112,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 					entityID(), id(), (int)type()));
 
 				error_ = true;
-				return thread::TPTask::TPTASK_STATE_COMPLETED; 
+				return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
 		}
 		else
@@ -127,7 +127,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 					entityID(), id(), (int)type()));
 
 				error_ = true;
-				return thread::TPTask::TPTASK_STATE_COMPLETED; 
+				return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
 
 			totalSentBytes_ += datasize;
@@ -149,7 +149,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		(*pBundle) << this->id();
 
 		send(ClientInterface::onStreamDataCompleted, pBundle);
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+		return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	
 	DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({4:.2f}%).\n",
@@ -161,10 +161,10 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread-continue.\n",
 			entityID(), id(), (int)type()));
 
-		return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
+		return Thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 	}
 
-	return thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
+	return Thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
 }
 
 //-------------------------------------------------------------------------------------

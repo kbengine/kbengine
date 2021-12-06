@@ -215,7 +215,7 @@ bool DBUtil::initInterface(DBInterface* pdbi)
 		DBInterfaceRedis::initInterface(pdbi);
 	}
 	
-	thread::ThreadPool* pThreadPool = pThreadPoolMaps_[pdbi->name()];
+	Thread::ThreadPool* pThreadPool = pThreadPoolMaps_[pdbi->name()];
 	KBE_ASSERT(pThreadPool);
 
 	if (!pThreadPool->isInitialize())

@@ -8,11 +8,11 @@
 
 namespace KBEngine{
 
-class DBThread : public thread::TPThread
+class DBThread : public Thread::TPThread
 {
 public:
-	DBThread(const std::string& dbinterfaceName, thread::ThreadPool* threadPool, int threadWaitSecond = 0) :
-	thread::TPThread(threadPool, threadWaitSecond),
+	DBThread(const std::string& dbinterfaceName, Thread::ThreadPool* threadPool, int threadWaitSecond = 0) :
+	Thread::TPThread(threadPool, threadWaitSecond),
 	_pDBInterface(NULL),
 	dbinterfaceName_(dbinterfaceName)
 	{
@@ -46,7 +46,7 @@ public:
 	{
 	}
 	
-	virtual thread::TPTask* tryGetTask(void)
+	virtual Thread::TPTask* tryGetTask(void)
 	{
 		if (task())
 		{
@@ -57,16 +57,16 @@ public:
 			}
 		}
 
-		return thread::TPThread::tryGetTask();
+		return Thread::TPThread::tryGetTask();
 	}
 
-	virtual void onProcessTaskStart(thread::TPTask* pTask)
+	virtual void onProcessTaskStart(Thread::TPTask* pTask)
 	{
 		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->lock();
 	}
 
-	virtual void processTask(thread::TPTask* pTask)
+	virtual void processTask(Thread::TPTask* pTask)
 	{ 
 		bool retry;
 
@@ -76,7 +76,7 @@ public:
 
 			try
 			{
-				thread::TPThread::processTask(pTask);
+				Thread::TPThread::processTask(pTask);
 			}
 			catch (std::exception & e)
 			{
@@ -86,7 +86,7 @@ public:
 		} while (retry);
 	}
 
-	virtual void onProcessTaskEnd(thread::TPTask* pTask)
+	virtual void onProcessTaskEnd(Thread::TPTask* pTask)
 	{
 		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->unlock();
@@ -99,7 +99,7 @@ private:
 
 //-------------------------------------------------------------------------------------
 DBThreadPool::DBThreadPool(const std::string& dbinterfaceName) :
-thread::ThreadPool(),
+Thread::ThreadPool(),
 dbinterfaceName_(dbinterfaceName)
 {
 }
@@ -110,7 +110,7 @@ DBThreadPool::~DBThreadPool()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPThread* DBThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
+Thread::TPThread* DBThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
 {
 	DBThread* tptd = new DBThread(dbinterfaceName_, this, threadWaitSecond);
 

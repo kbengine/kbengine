@@ -20,7 +20,7 @@
 #include "../../../server/tools/bots/bots_interface.h"
 #include "../../../server/tools/interfaces/interfaces_interface.h"
 
-class LookAppTask : public thread::TPTask
+class LookAppTask : public Thread::TPTask
 {
 	COMPONENT_ID _cid;
 	uint32 _ip;
@@ -32,7 +32,7 @@ class LookAppTask : public thread::TPTask
 	StatusWindow* _pStatusWindow;
 public:
 	LookAppTask(StatusWindow* pStatusWindow, COMPONENT_TYPE componentType, COMPONENT_ID id, uint32 ip, uint16 port):
-	thread::TPTask(),
+	Thread::TPTask(),
 	_componentType(componentType),
 	_cid(id),
 	_ip(ip),
@@ -200,14 +200,14 @@ public:
 		return false;
 	}
 
-	virtual thread::TPTask::TPTaskState presentMainThread()
+	virtual Thread::TPTask::TPTaskState presentMainThread()
 	{ 
 		if(!_success)
-			return thread::TPTask::TPTASK_STATE_COMPLETED; 
+			return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 
 		Components::ComponentInfos* winfo = Components::getSingleton().findComponent(_componentType, _cid);
 		if(winfo == NULL)
-			return thread::TPTask::TPTASK_STATE_COMPLETED; 
+			return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 
 		winfo->state = (COMPONENT_STATE)state;
 		winfo->extradata = extradata;
@@ -216,7 +216,7 @@ public:
 		winfo->extradata3 = extradata3;
 
 		_pStatusWindow->update(*winfo);
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+		return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 };
 

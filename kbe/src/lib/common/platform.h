@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <utility>
 #include <functional>
+#include <unordered_map>
+#include <memory>
 #include <cctype>
 #include <iterator>
 #include "common/strutil.h"
@@ -43,9 +45,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h> 
-#include <unordered_map>
-#include <functional>
-#include <memory>
 #define _SCL_SECURE_NO_WARNINGS
 #else
 // linux include
@@ -59,15 +58,11 @@
 #include <iconv.h>
 #include <langinfo.h>   /* CODESET */
 #include <stdint.h>
-#include <signal.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h> 
 #include <netinet/ip.h>
 #include <arpa/inet.h>
-#include <tr1/unordered_map>
-#include <tr1/functional>
-#include <tr1/memory>
 #include <linux/types.h>
 #include <sys/time.h>
 #include <sys/types.h>

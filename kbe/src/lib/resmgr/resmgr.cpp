@@ -578,7 +578,7 @@ ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint3
 		return new FileObject(respath.c_str(), flags, model);
 	}
 
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.find(respath);
 	if(iter == respool_.end())
 	{
@@ -595,7 +595,7 @@ ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint3
 //-------------------------------------------------------------------------------------
 void Resmgr::update()
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.begin();
 	for(; iter != respool_.end();)
 	{

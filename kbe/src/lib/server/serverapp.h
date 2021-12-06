@@ -86,7 +86,7 @@ public:
 	double gameTimeInSeconds() const;
 	void handleTimers();
 
-	thread::ThreadPool& threadPool() { return threadPool_; }
+	Thread::ThreadPool& threadPool() { return threadPool_; }
 
 	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
 	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
@@ -195,7 +195,7 @@ protected:
 	ComponentActiveReportHandler*							pActiveTimerHandle_;
 
 	// Ïß³Ì³Ø
-	thread::ThreadPool										threadPool_;	
+	Thread::ThreadPool										threadPool_;	
 };
 
 }

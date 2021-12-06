@@ -89,7 +89,7 @@ public:
 protected:
 };
 
-class InterfacesHandler_Interfaces : public InterfacesHandler_Dbmgr, public thread::TPTask
+class InterfacesHandler_Interfaces : public InterfacesHandler_Dbmgr, public Thread::TPTask
 {
 public:
 	InterfacesHandler_Interfaces();

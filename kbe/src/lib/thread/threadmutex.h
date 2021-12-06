@@ -25,7 +25,7 @@
 #include "common/common.h"
 
 
-namespace KBEngine{ namespace thread{
+namespace KBEngine{ namespace Thread{
 
 class ThreadMutexNull
 {

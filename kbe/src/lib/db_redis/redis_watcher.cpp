@@ -12,7 +12,7 @@
 
 namespace KBEngine{ 
 
-static KBEngine::thread::ThreadMutex _g_logMutex;
+static KBEngine::Thread::ThreadMutex _g_logMutex;
 static KBEUnordered_map< std::string, uint32 > g_querystatistics;
 static bool _g_installedWatcher = false;
 static bool _g_debug = false;
@@ -20,7 +20,7 @@ static bool _g_debug = false;
 //-------------------------------------------------------------------------------------
 static uint32 watcher_query(std::string cmd)
 {
-	KBEngine::thread::ThreadGuard tg(&_g_logMutex);
+	KBEngine::Thread::ThreadGuard tg(&_g_logMutex);
 
 	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(cmd);
 	if (iter != g_querystatistics.end())

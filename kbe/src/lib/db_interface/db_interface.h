@@ -11,7 +11,7 @@
 
 namespace KBEngine { 
 
-namespace thread
+namespace Thread
 {
 class ThreadPool;
 }
@@ -179,8 +179,8 @@ public:
 
 	static void handleMainTick();
 
-	typedef KBEUnordered_map<std::string, thread::ThreadPool*> DBThreadPoolMap;
-	static thread::ThreadPool* pThreadPool(const std::string& name)
+	typedef KBEUnordered_map<std::string, Thread::ThreadPool*> DBThreadPoolMap;
+	static Thread::ThreadPool* pThreadPool(const std::string& name)
 	{ 
 		DBThreadPoolMap::iterator iter = pThreadPoolMaps_.find(name);
 		if (iter != pThreadPoolMaps_.end())

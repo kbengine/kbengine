@@ -18,7 +18,7 @@ class EntityTables;
 	数据库线程任务基础类
 */
 
-class DBTaskBase : public thread::TPTask
+class DBTaskBase : public Thread::TPTask
 {
 public:
 
@@ -31,7 +31,7 @@ public:
 	virtual bool process();
 	virtual bool db_thread_process() = 0;
 	virtual DBTaskBase* tryGetNextTask(){ return NULL; }
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	virtual Thread::TPTask::TPTaskState presentMainThread();
 
 	virtual void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 
@@ -51,7 +51,7 @@ public:
 	DBTaskSyncTable(EntityTables* pEntityTables, KBEShared_ptr<EntityTable> pEntityTable);
 	virtual ~DBTaskSyncTable();
 	virtual bool db_thread_process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	virtual Thread::TPTask::TPTaskState presentMainThread();
 
 protected:
 	KBEShared_ptr<EntityTable> pEntityTable_;

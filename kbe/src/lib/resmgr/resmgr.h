@@ -125,7 +125,7 @@ private:
 
 	KBEUnordered_map< std::string, ResourceObjectPtr > respool_;
 
-	KBEngine::thread::ThreadMutex mutex_;
+	KBEngine::Thread::ThreadMutex mutex_;
 };
 
 }

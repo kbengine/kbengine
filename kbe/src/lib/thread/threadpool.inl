@@ -1,5 +1,5 @@
 namespace KBEngine { 
-namespace thread
+namespace Thread
 {
 
 INLINE bool ThreadPool::isInitialize(void) const
@@ -42,7 +42,7 @@ INLINE uint32 ThreadPool::bufferTaskSize() const
 	return (uint32)bufferedTaskList_.size();
 }
 
-INLINE std::queue<thread::TPTask*>& ThreadPool::bufferedTaskList()
+INLINE std::queue<Thread::TPTask*>& ThreadPool::bufferedTaskList()
 {
 	return bufferedTaskList_;
 }

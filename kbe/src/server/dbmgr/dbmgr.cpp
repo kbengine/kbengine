@@ -102,7 +102,7 @@ ShutdownHandler::CAN_SHUTDOWN_STATE Dbmgr::canShutdown()
 	{
 		if (bditer->second.size() > 0)
 		{
-			thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(bditer->first);
+			Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(bditer->first);
 			KBE_ASSERT(pThreadPool);
 
 			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks{}=[{}], threads={}/{}, threadpoolDestroyed={}!\n",
@@ -802,7 +802,7 @@ void Dbmgr::executeRawDatabaseCommand(Network::Channel* pChannel,
 
 	if (entityID == -1)
 	{
-		thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+		Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 		if (!pThreadPool)
 		{
 			ERROR_MSG(fmt::format("Dbmgr::executeRawDatabaseCommand: not found pThreadPool(dbInterface={})!\n", dbInterfaceName));

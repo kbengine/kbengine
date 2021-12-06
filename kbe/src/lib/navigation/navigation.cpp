@@ -27,14 +27,14 @@ Navigation::~Navigation()
 //-------------------------------------------------------------------------------------
 void Navigation::finalise()
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_);
+	KBEngine::Thread::ThreadGuard tg(&mutex_);
 	navhandles_.clear();
 }
 
 //-------------------------------------------------------------------------------------
 bool Navigation::removeNavigation(std::string resPath)
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
 	if(navhandles_.find(resPath) != navhandles_.end())
 	{
@@ -51,7 +51,7 @@ bool Navigation::removeNavigation(std::string resPath)
 //-------------------------------------------------------------------------------------
 NavigationHandlePtr Navigation::findNavigation(std::string resPath)
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
 	if(navhandles_.find(resPath) != navhandles_.end())
 	{
@@ -79,14 +79,14 @@ NavigationHandlePtr Navigation::findNavigation(std::string resPath)
 //-------------------------------------------------------------------------------------
 bool Navigation::hasNavigation(std::string resPath)
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	return navhandles_.find(resPath) != navhandles_.end();
 }
 
 //-------------------------------------------------------------------------------------
 NavigationHandlePtr Navigation::loadNavigation(std::string resPath, const std::map< int, std::string >& params)
 {
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEngine::Thread::ThreadGuard tg(&mutex_); 
 	if(resPath == "")
 		return NULL;
 	

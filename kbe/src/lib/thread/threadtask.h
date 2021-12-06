@@ -9,7 +9,7 @@
 #include "common/task.h"
 #include "helper/debug_helper.h"
 
-namespace KBEngine{ namespace thread{
+namespace KBEngine{ namespace Thread{
 
 /*
 	线程池的线程基类
@@ -31,10 +31,10 @@ public:
 	};
 
 	/**
-		返回值： thread::TPTask::TPTaskState， 请参看TPTaskState
+		返回值： Thread::TPTask::TPTaskState， 请参看TPTaskState
 	*/
-	virtual thread::TPTask::TPTaskState presentMainThread(){ 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	virtual Thread::TPTask::TPTaskState presentMainThread(){ 
+		return Thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 };
 

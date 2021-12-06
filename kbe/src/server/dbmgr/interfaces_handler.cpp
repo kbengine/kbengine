@@ -58,7 +58,7 @@ bool InterfacesHandler_Dbmgr::createAccount(Network::Channel* pChannel, std::str
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(registerName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::createAccount: not found dbInterface({})!\n",
@@ -93,7 +93,7 @@ bool InterfacesHandler_Dbmgr::loginAccount(Network::Channel* pChannel, std::stri
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(loginName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::loginAccount: not found dbInterface({})!\n",
@@ -139,7 +139,7 @@ void InterfacesHandler_Dbmgr::accountActivate(Network::Channel* pChannel, std::s
 	{
 		std::string dbInterfaceName = dbinfo_iter->name;
 
-		thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+		Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 		if (!pThreadPool)
 		{
 			ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountActivate: not found dbInterface({})!\n",
@@ -157,7 +157,7 @@ void InterfacesHandler_Dbmgr::accountReqResetPassword(Network::Channel* pChannel
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountReqResetPassword: not found dbInterface({})!\n",
@@ -174,7 +174,7 @@ void InterfacesHandler_Dbmgr::accountResetPassword(Network::Channel* pChannel, s
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountResetPassword: not found dbInterface({})!\n",
@@ -192,7 +192,7 @@ void InterfacesHandler_Dbmgr::accountReqBindMail(Network::Channel* pChannel, ENT
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountReqBindMail: not found dbInterface({})!\n",
@@ -209,7 +209,7 @@ void InterfacesHandler_Dbmgr::accountBindMail(Network::Channel* pChannel, std::s
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(username);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountBindMail: not found dbInterface({})!\n",
@@ -227,7 +227,7 @@ void InterfacesHandler_Dbmgr::accountNewPassword(Network::Channel* pChannel, ENT
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::accountNewPassword: not found dbInterface({})!\n",
@@ -311,7 +311,7 @@ void InterfacesHandler_Interfaces::onCreateAccountCB(KBEngine::MemoryStream& s)
 
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::onCreateAccountCB: not found dbInterface({})!\n",
@@ -412,7 +412,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName);
 
-	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+	Thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::onLoginAccountCB: not found dbInterface({})!\n",

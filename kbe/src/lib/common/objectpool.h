@@ -46,7 +46,7 @@ public:
 	这个对象池对通过服务端峰值有效的预估提前创建出一些对象缓存起来，在用到的时候直接从对象池中
 	获取一个未被使用的对象即可。
 */
-template< typename T, typename THREADMUTEX = KBEngine::thread::ThreadMutexNull >
+template< typename T, typename THREADMUTEX = KBEngine::Thread::ThreadMutexNull >
 class ObjectPool
 {
 public:
@@ -110,13 +110,13 @@ public:
 		return objects_; 
 	}
 
-	void pMutex(KBEngine::thread::ThreadMutexNull* pMutex)
+	void pMutex(KBEngine::Thread::ThreadMutexNull* pMutex)
 	{
 		SAFE_RELEASE(pMutex_);
 		pMutex_ = pMutex;
 	}
 
-	KBEngine::thread::ThreadMutexNull* pMutex()
+	KBEngine::Thread::ThreadMutexNull* pMutex()
 	{
 		return pMutex_;
 	}
