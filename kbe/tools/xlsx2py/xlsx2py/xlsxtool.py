@@ -1,6 +1,6 @@
-#-*- coding: gb2312 -*-
+#-*- coding: utf-8 -*-
 """
-¹¤¾ß
+å·¥å…·
 """
 import os
 import sys
@@ -10,8 +10,8 @@ from xml.dom.minidom import *
 
 def exportMenu(msgIndex, YCallback = None, NCallback = None, OCallback = None):
 	"""
-	¼òµ¥µÄÑ¯ÎÊY(yes),N(no)£¬ Y:pass£¬N£ºexit, Other:continue
-	now assume ÊäÈë Y
+	ç®€å•çš„è¯¢é—®Y(yes),N(no)ï¼Œ Y:passï¼ŒNï¼šexit, Other:continue
+	now assume è¾“å…¥ Y
 	"""
 	if YCallback:
 		YCallback()
@@ -19,13 +19,13 @@ def exportMenu(msgIndex, YCallback = None, NCallback = None, OCallback = None):
 
 	# xlsxError.info_input(msgIndex)
 	
-	# msg = "------------ÇëÊäÈëY(yes), N(no)"
+	# msg = "------------è¯·è¾“å…¥Y(yes), N(no)"
 	# if OCallback:
 		# msg += ',other(o)'
 	
 	# print( msg,'------------------' )
 
-	# print( "ÄúµÄÊäÈë:" )
+	# print( "æ‚¨çš„è¾“å…¥:" )
 
 	# input_command = raw_input()
 
@@ -41,13 +41,13 @@ def exportMenu(msgIndex, YCallback = None, NCallback = None, OCallback = None):
 			# if OCallback:OCallback()
 			# return
 		# else:
-			# print( "ÊÇY»¹ÊÇN£º", )
+			# print( "æ˜¯Yè¿˜æ˜¯Nï¼š", )
 			# input_command = raw_input()
 
 
 def checkExtName(filePath, extName):
 	"""
-	¼ì²âÀ©Õ¹Ãû£¬Çë½«.Ò²¶ª½øÀ´
+	æ£€æµ‹æ‰©å±•åï¼Œè¯·å°†.ä¹Ÿä¸¢è¿›æ¥
 	"""
 	if filePath == "" or extName == '':
 		return
@@ -59,7 +59,7 @@ def checkExtName(filePath, extName):
 
 def __checkPath(dirPath):
 		"""
-		±ØĞëÓĞdriverName E:,D: ==
+		å¿…é¡»æœ‰driverName E:,D: ==
 		"""
 		driveName = os.path.splitdrive(dirPath)[0]
 		if not os.path.isdir(driveName):
@@ -71,7 +71,7 @@ def __checkPath(dirPath):
 		
 def __onCheckPath(dirPath):
 	"""
-	µİ¹é´´½¨Ä¿Â¼
+	é€’å½’åˆ›å»ºç›®å½•
 	"""
 	if not os.path.isdir(dirPath):
 		prvdir = os.path.split(dirPath)[0]
@@ -82,7 +82,7 @@ def __onCheckPath(dirPath):
 
 def createDir(dirPath):
 	"""
-	´´½¨Ä¿Â¼
+	åˆ›å»ºç›®å½•
 	"""
 	__checkPath(dirPath)	
 	#__checkOkCreate(dirPath)
@@ -92,7 +92,7 @@ def createDir(dirPath):
 def getFileMTime(fileName):
 	return os.stat(fileName)[-2]
 
-###########×Ö·û´®´¦Àí####################
+###########å­—ç¬¦ä¸²å¤„ç†####################
 def inputList(var_list):
 	"""
 	"""
@@ -104,7 +104,7 @@ def inputList(var_list):
 
 def inputElement(element):
 	"""
-	¶Ô×Ö´®±àÂë´¦Àí
+	å¯¹å­—ä¸²ç¼–ç å¤„ç†
 	"""
 	if isinstance(element, str):
 		#element.strip().replace
@@ -116,7 +116,7 @@ def inputElement(element):
 
 def str2List(error_str, pywinerr_list):
 	"""
-	×Ö·û´® -> list,²»¼ì²âÀ¨ºÅµÄÆ¥Åä
+	å­—ç¬¦ä¸² -> list,ä¸æ£€æµ‹æ‹¬å·çš„åŒ¹é…
 	"""
 	begin_pos = error_str.find('(')
 	next_pos = error_str.find(')')

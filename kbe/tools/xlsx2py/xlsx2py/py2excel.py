@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 *****************************************************************************************
     使用方法：python py2excel pyfile(utf-8)  readexcelfile, writeexcelfile

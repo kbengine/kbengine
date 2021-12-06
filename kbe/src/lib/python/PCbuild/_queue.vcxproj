@@ -38,7 +38,7 @@
     <ProjectGuid>{78D80A15-BD8C-44E2-B49E-1F05B0A0A687}</ProjectGuid>
     <RootNamespace>_queue</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

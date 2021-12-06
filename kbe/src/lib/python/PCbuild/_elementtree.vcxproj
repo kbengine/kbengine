@@ -38,7 +38,7 @@
     <ProjectGuid>{17E1E049-C309-4D79-843F-AE483C264AEA}</ProjectGuid>
     <RootNamespace>_elementtree</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

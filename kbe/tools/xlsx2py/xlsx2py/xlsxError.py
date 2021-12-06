@@ -1,6 +1,6 @@
-# -*- coding: gb2312 -*-
+# -*- coding: utf-8 -*-
 """
-错误配置文件
+閿欒閰嶇疆鏂囦欢
 """
 
 from config import *
@@ -10,7 +10,7 @@ import xlsxtool as xt
 
 def except_hook(typ, val, tb):
 	"""
-	traceback处理,显示中文:失败
+	traceback澶勭悊,鏄剧ず涓枃:澶辫触
 	"""
 	pywinerr_list = []
 	sys.__excepthook__(typ, val, tb)
@@ -38,7 +38,7 @@ def info_input(index, args = ""):
 
 class XlsxException(Exception):
 	"""
-	异常处理
+	寮傚父澶勭悊
 	"""
 	def __init__(self, index, msg = ""):
 		print( "ERROR%d:%s, %s"%(index, EXPORT_ERROR[index], xt.value_to_text(msg)) )
