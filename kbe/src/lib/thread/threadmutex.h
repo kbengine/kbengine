@@ -52,33 +52,30 @@ class ThreadMutex : public ThreadMutexNull
 public:
 	ThreadMutex(void)
 	{
-		THREAD_MUTEX_INIT(mutex_);
 	}
 
 	ThreadMutex(const ThreadMutex& v)
 	{
 		// 这里不允许拷贝构造mutex_，这是非常危险的
 		// 会造成多次THREAD_MUTEX_DELETE
-		THREAD_MUTEX_INIT(mutex_);
 	}
 
 	virtual ~ThreadMutex(void)
 	{ 
-		THREAD_MUTEX_DELETE(mutex_);
 	}	
 	
 	virtual void lockMutex(void)
 	{
-		THREAD_MUTEX_LOCK(mutex_);
+		mutex_.lock();
 	}
 
 	virtual void unlockMutex(void)
 	{
-		THREAD_MUTEX_UNLOCK(mutex_);
+		mutex_.unlock();
 	}
 
 protected:
-	THREAD_MUTEX mutex_;
+	std::mutex mutex_;
 };
 
 }

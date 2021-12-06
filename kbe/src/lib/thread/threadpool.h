@@ -62,15 +62,10 @@ public:
 	threadPool_(threadPool)
 	{
 		state_ = THREAD_STATE_SLEEP;
-		initCond();
-		initMutex();
 	}
 		
 	virtual ~TPThread()
 	{
-		deleteCond();
-		deleteMutex();
-
 		DEBUG_MSG(fmt::format("TPThread::~TPThread(): {}\n", (void*)this));
 	}
 	
@@ -81,69 +76,28 @@ public:
 	virtual void processTask(TPTask* pTask){ pTask->process(); }
 	virtual void onProcessTaskEnd(TPTask* pTask) {}
 
-	INLINE THREAD_ID id(void) const;
-	
-	INLINE void id(THREAD_ID tidp);
+	INLINE uint64_t id(void) const
+	{
+		std::stringstream ss;
+		ss << tidp_->get_id();
+		uint64_t id = std::stoull(ss.str());
+		return id;
+	};
 	
 	/**
 		创建一个线程， 并将自己与该线程绑定
 	*/
-	THREAD_ID createThread(void);
-	
-	virtual void initCond(void)
-	{
-		THREAD_SINGNAL_INIT(cond_);
-	}
-
-	virtual void initMutex(void)
-	{
-		THREAD_MUTEX_INIT(mutex_);	
-	}
-
-	virtual void deleteCond(void)
-	{
-		THREAD_SINGNAL_DELETE(cond_);
-	}
-	
-	virtual void deleteMutex(void)
-	{
-		THREAD_MUTEX_DELETE(mutex_);
-	}
-
-	virtual void lock(void)
-	{
-		THREAD_MUTEX_LOCK(mutex_); 
-	}
-	
-	virtual void unlock(void)
-	{
-		THREAD_MUTEX_UNLOCK(mutex_); 
-	}	
+	std::thread::id createThread(void);
 
 	virtual TPTask* tryGetTask(void);
 	
 	/**
 		发送条件信号
 	*/
-	int sendCondSignal(void)
+	void sendCondSignal(void)
 	{
-#if KBE_PLATFORM == PLATFORM_WIN32
-		return THREAD_SINGNAL_SET(cond_);
-#else
-REATTEMPT:
-
-		lock();
-
-		if (state_ == THREAD_STATE_PENDING)
-		{       
-			unlock();
-			goto REATTEMPT;
-		}
-
-		int ret = THREAD_SINGNAL_SET(cond_);
-		unlock();
-		return ret;
-#endif
+		std::lock_guard<std::mutex> lk(mutex_);
+		cond_.notify_all();
 	}
 	
 	/**
@@ -152,6 +106,8 @@ REATTEMPT:
 	bool onWaitCondSignal(void);
 	
 	bool join(void);
+
+	void detach() { tidp_->detach(); };
 
 	/**
 		获取本线程要处理的任务
@@ -170,11 +126,7 @@ REATTEMPT:
 	*/
 	void onTaskCompleted(void);
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	static unsigned __stdcall threadFunc(void *arg);
-#else	
-	static void* threadFunc(void* arg);
-#endif
+	static void* threadFunc(TPThread* tptd);
 
 	/**
 		设置本线程要处理的任务
@@ -188,9 +140,9 @@ REATTEMPT:
 	virtual std::string printWorkState()
 	{
 		char buf[128];
-		lock();
+		mutex_.lock();
 		sprintf(buf, "%p,%u", currTask_, done_tasks_);
-		unlock();
+		mutex_.unlock();
 		return buf;
 	}
 
@@ -201,11 +153,11 @@ REATTEMPT:
 	void inc_done_tasks(){ ++done_tasks_; }
 
 protected:
-	THREAD_SINGNAL cond_;			// 线程信号量
-	THREAD_MUTEX mutex_;			// 线程互诉体
+	std::condition_variable cond_;			// 线程信号量
+	std::mutex mutex_;			// 线程互诉体
+	std::thread* tidp_;
 	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出, 小于0为永久线程(秒单位)
 	TPTask * currTask_;				// 该线程的当前执行的任务
-	THREAD_ID tidp_;				// 本线程的ID
 	ThreadPool* threadPool_;		// 线程池指针
 	THREAD_STATE state_;			// 线程状态: -1还未启动, 0睡眠, 1繁忙中
 	uint32 done_tasks_;				// 线程启动一次在未改变到闲置状态下连续执行的任务计数
@@ -294,12 +246,6 @@ public:
 	INLINE std::queue<Thread::TPTask*>& bufferedTaskList();
 
 	/** 
-		操作缓存的任务锁
-	*/
-	INLINE void lockBufferedTaskList();
-	INLINE void unlockBufferedTaskList();
-
-	/** 
 		获得已经完成的任务数量
 	*/
 	INLINE uint32 finiTaskSize() const;
@@ -353,9 +299,9 @@ protected:
 	std::list<TPTask*> finiTaskList_;								// 已经完成的任务列表
 	size_t finiTaskList_count_;
 
-	THREAD_MUTEX bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
-	THREAD_MUTEX threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁
-	THREAD_MUTEX finiTaskList_mutex_;								// 处理finiTaskList互斥锁
+	std::mutex bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
+	std::mutex threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁
+	std::mutex finiTaskList_mutex_;								// 处理finiTaskList互斥锁
 	
 	std::list<TPThread*> busyThreadList_;							// 繁忙的线程列表
 	std::list<TPThread*> freeThreadList_;							// 闲置的线程列表
