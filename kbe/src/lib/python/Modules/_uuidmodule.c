@@ -3,7 +3,6 @@
 #include "Python.h"
 #ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
-#endif
 #elif defined(HAVE_UUID_H)
 #endif
 
