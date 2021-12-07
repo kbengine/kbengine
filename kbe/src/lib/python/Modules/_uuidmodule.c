@@ -4,8 +4,7 @@
 #ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
 #endif
-#ifdef HAVE_UUID_H
-#include <uuid.h>
+#elif defined(HAVE_UUID_H)
 #endif
 
 
