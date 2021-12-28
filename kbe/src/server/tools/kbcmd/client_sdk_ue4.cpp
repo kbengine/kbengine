@@ -3380,6 +3380,11 @@ bool ClientSDKUE4::writeEntityProperty_BLOB(ScriptDefModule* pEntityScriptDefMod
 {
 	fileBody() += fmt::format("\tTArray<uint8> {};\n", pPropertyDescription->getName());
 	initBody_ += fmt::format("\t{}(),\n", pPropertyDescription->getName());
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	fileBody() += fmt::format("\tvirtual void on{}Changed(const TArray<uint8>& oldValue) {{}}\n", name);
+
 	return true;
 }
 
