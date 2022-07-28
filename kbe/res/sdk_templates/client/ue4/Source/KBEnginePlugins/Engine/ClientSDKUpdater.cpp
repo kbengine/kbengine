@@ -9,6 +9,8 @@
 #include "FileHelper.h"
 //#include "OutPutDeviceDebug.h"
 
+#pragma warning(disable:4834)
+
 namespace KBEngine
 {
 
