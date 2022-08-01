@@ -1,5 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
+#pragma warning(disable:4834)
+
 #include "ClientSDKUpdater.h"
 #include "iostream"
 #include <stdlib.h>
@@ -8,8 +10,6 @@
 #include "PlatformFilemanager.h"
 #include "FileHelper.h"
 //#include "OutPutDeviceDebug.h"
-
-#pragma warning(disable:4834)
 
 namespace KBEngine
 {
